@@ -65,7 +65,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-
 .pane .compassbox #dial{position:static;width:250px;height:250px}.cbrow{display:flex;gap:8px;align-items:center}.compassbox{--baroW:53px;--stW:28px;--gp:8px}
 #baro{position:static!important;flex:none;align-self:flex-end;height:222px;width:var(--baroW)}
 .cbfoot{align-self:stretch;display:flex;align-items:center;justify-content:space-between;gap:6px;padding:0 calc(var(--stW) + var(--gp)) 0 calc(var(--baroW) + var(--gp))}
-.cbfoot .ws{flex:1;min-width:0;text-align:center}.cbfoot .btn.ico{flex:none;width:38px;height:38px;padding:0;display:flex;align-items:center;justify-content:center}
+.cbfoot-l{display:flex;gap:4px;flex:none}.cbfoot .ws{flex:1;min-width:0;text-align:center}.cbfoot .btn.ico{flex:none;width:38px;height:38px;padding:0;display:flex;align-items:center;justify-content:center}
 .compassbox .cbtog{position:absolute;left:4px;top:4px;z-index:2;width:26px;height:26px;padding:0;display:flex;align-items:center;justify-content:center;background:var(--paper);color:var(--ink);border:1px solid var(--ink);border-radius:50%;cursor:pointer}
 .compassbox.collapsed{padding:0;border:0;background:none;box-shadow:none}.compassbox.collapsed .cbrow,.compassbox.collapsed .ws{display:none}
 .compassbox.collapsed .cbtog svg{width:13px;height:13px}.compassbox.collapsed .cbtog{position:static;width:30px;height:30px;border-radius:3px;background:rgba(246,238,217,.96);box-shadow:0 4px 14px rgba(20,14,10,.3)}.steps5{display:flex;flex-direction:column;gap:3px}.steps5 .btn{min-height:0;height:28px;width:28px;padding:0;display:flex;align-items:center;justify-content:center}.steps5 .btn[aria-pressed="true"]{background:var(--ink);color:var(--paper)}.steps5 .btn.mv{outline:2px dashed var(--brass);outline-offset:1px}.compassbox .ws{font-family:var(--f-data);font-size:11px;text-align:center;line-height:1.35;letter-spacing:.03em}.compassbox .ws b{font-size:15px}
@@ -220,6 +220,12 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-
 .voycard .tag{font-family:var(--f-data);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ochre)}
 .voycard b{font-family:var(--f-display);font-weight:400;font-size:18px}
 .voycard span.d{font-size:12.5px;color:var(--ink-soft)}
+.hgrid{display:grid;grid-template-columns:96px minmax(0,1fr);gap:10px 14px;align-items:center;font-size:14px;line-height:1.4}
+.hgrid .hh{grid-column:1/-1;font-family:var(--f-display);font-variant:small-caps;font-size:15px;border-bottom:1px dotted var(--rule);margin-top:6px;padding-bottom:2px}
+.hgrid .hico{min-width:0;overflow:hidden;min-height:40px;padding:2px 4px;border:1px solid var(--rule);background:var(--paper-2);display:flex;align-items:center;justify-content:center;font-family:var(--f-data);font-size:11px;color:var(--ink);box-sizing:border-box;white-space:nowrap}
+.hgrid .hico svg{width:24px;height:24px}.hgrid .hico img{width:44px;height:44px;display:block}.hgrid .hico img.tall{width:auto;height:96px}.hgrid .hico.wide{grid-column:1/-1;display:block;white-space:normal;padding:6px;justify-self:stretch}
+.hgrid .hico.wide svg{width:100%;height:auto;max-height:150px}
+:root[data-theme=dark] .hgrid img.cv{filter:invert(.9) hue-rotate(180deg)}
 .keys{font-family:var(--f-data);font-size:12px;color:var(--ink-soft);line-height:1.7}
 .keys kbd{border:1px solid var(--rule);padding:0 4px;border-radius:2px;background:var(--paper-2);color:var(--ink)}
 .report{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 14px}
@@ -612,6 +618,8 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-
     <p><b>Time.</b> 1× is real time: one second on the clock for each real second, so a tack takes about half a minute and a Channel-sized crossing takes hours. Use 3× to hurry a little, or 60× (one minute per second) to skip across open water. The Skip 3 h button jumps three hours ahead; it stops early if something needs you. The game slows to 60× when something needs you.</p>
     <p><b>Mind your canvas.</b> More sail is faster until the wind gets up. If the rigging strains, shorten sail, or it will be damaged and she will sail slower.</p>
     <p><b>Lost at sea.</b> Your pencil track comes from the course you ordered and the speed read off the log line. The helmsman wanders, the ship slips to leeward and the current sets you west, and none of that is in your pencil track. The dashed ellipse shows how far off you might be. Take a noon sight for latitude, and cross-bearings on two peaks for a full fix.</p>
+    <h3 style="font-size:17px;margin-top:6px">What every button and picture means</h3>
+    <div id="helpIcons" class="hgrid"></div>
     <p class="keys"><kbd>Space</kbd> pause · <kbd>K</kbd> skip 3 hours (<kbd>Shift</kbd>+<kbd>K</kbd> 12, <kbd>Alt</kbd>+<kbd>K</kbd> 24) · <kbd>1</kbd>–<kbd>3</kbd> speed (1×, 3×, 60×) · <kbd>A</kbd>/<kbd>D</kbd> course 5° · <kbd>W</kbd>/<kbd>S</kbd> sails · <kbd>M</kbd> swap 3D/chart · drag the 3D view to look round · <kbd>Q</kbd>/<kbd>E</kbd> brace yards · <kbd>L</kbd> heave log · drag and scroll the chart</p>
     <div class="row"><button class="btn primary" id="helpClose">Back to the ship</button></div>
   </div>
@@ -1060,7 +1068,7 @@ const GLASS=4.0;
 function openHeave(){
   if(!S||S.done||heave)return;
   heave={start:performance.now()+900,stopped:false,v:S.ship.v};
-  $("logbox").style.display="grid";$("bHeave").disabled=true;$("bNip").disabled=false;$("glassMsg").textContent="The chip is over the stern… turn the glass!";
+  $("logbox").hidden=false;$("logbox").style.display="grid";$("bHeave").disabled=true;$("bNip").disabled=false;$("glassMsg").textContent="The chip is over the stern… turn the glass!";
   if(R3&&R3.logfx)R3.logfx.start=performance.now();
   requestAnimationFrame(heaveFrame);
 }
@@ -1088,7 +1096,7 @@ function nip(){
   S.estSpeed=heave.meas;S.lastLog={v:heave.meas,t:S.t,by:"you"};S.heaves++;
   S.log.unshift({time:timeStr(S),remark:`Hove the log: ${fmtKn(heave.meas)} knots.`});renderLog();
   if(R3&&R3.logfx)R3.logfx.end=performance.now();
-  setTimeout(()=>{$("logbox").style.display="none";$("bHeave").disabled=false;heave=null;if(R3&&R3.logfx){R3.logfx.start=0;R3.logfx.end=0;R3.logfx.placed=false;}updateUI();},1300);
+  setTimeout(()=>{$("logbox").style.display="none";$("logbox").hidden=true;$("bHeave").disabled=false;heave=null;if(R3&&R3.logfx){R3.logfx.start=0;R3.logfx.end=0;R3.logfx.placed=false;}updateUI();},1300);
 }
 function drawGlass(f,run){
   const c=$("glass"),g=c.getContext("2d");const W=c.width,H=c.height;g.clearRect(0,0,W,H);
@@ -3190,10 +3198,52 @@ dl.addEventListener("click",e=>{if(!S)return;const r=dl.getBoundingClientRect();
     const hint=()=>say("This browser will not go full screen from here. On an iPhone, open the page's Share menu and choose Add to Home Screen, or open the game in its own tab.",{log:false});
     try{if(isFs()){ext.call(document);}else if(req){const pr=req.call(de);if(pr&&pr.catch)pr.catch(hint);}else hint();}catch(e){hint();}};
   document.addEventListener("fullscreenchange",lab);document.addEventListener("webkitfullscreenchange",lab); }
-$("bHelp").onclick=()=>{$("ovHelp").hidden=false;modalOpen=true;};
+function fillHelpIcons(){
+  const box=$("helpIcons");box.textContent="";
+  const hh=t=>{const d=document.createElement("div");d.className="hh";d.textContent=t;box.append(d);};
+  const row=(ico,txt,cls)=>{const a=document.createElement("div");a.className="hico"+(cls?" "+cls:"");if(typeof ico==="string")a.textContent=ico;else a.append(ico);const b=document.createElement("div");b.innerHTML=txt;if(cls==="wide")b.style.gridColumn="1/-1";box.append(a,b);};
+  const svgOf=id=>{const e=typeof id==="string"?$(id):id;const v=e&&e.querySelector("svg");return v?v.cloneNode(true):null;};
+  const cv=(id,w)=>{const c=$(id);if(!c)return null;const i=new Image();i.className="cv";i.alt="";try{i.src=c.toDataURL();}catch(e){return null;}if(w==="auto")i.className="cv tall";else if(w){i.style.width=w;i.style.height="auto";}return i;};
+  hh("Top bar");
+  row("❚❚","<b>Pause.</b> Stops the clock. Handy for thinking, plotting and reading the chart.");
+  row("1× 3× 60×","<b>Speed of time.</b> 1× is real time. 3× hurries a little; 60× is a minute per second, for open water. The game drops to 60× only when something needs you.");
+  row("+3 h","<b>Skip ahead</b> three, twelve or twenty-four hours. It stops early if something needs your attention.");
+  row("Menu ☰","<b>Menu.</b> Voyages, this guide, save and load, dark mode, sound and full screen.");
+  hh("Information strip");
+  row("▲","<b>Fold</b> the strip up or down. It reads: date and watch, wind, weather, the glass with what it means, sea state and your last log line.");
+  hh("The views");
+  row(svgOf("bView")||"⇄","<b>Swap the 3D view and the chart</b> (M). One is the big picture, the other a small one in the corner.");
+  row(svgOf("mapIcon")||"Map","<b>Open the sea chart.</b> Your pencil track, the ports, landmarks and the ellipse of where you might be.");
+  row(svgOf("bShip")||"Ship","<b>The ship.</b> A cutaway with crew quarters, watches, hold stores and any leak.");
+  row(svgOf("bookBtn")||"Book","<b>Navigator's book.</b> Dead reckoning, the noon sight, landmarks and the log book.");
+  hh("The compass");
+  row(svgOf("cbBtn")||"Dial","<b>Fold the compass</b> away or bring it back.");
+  const d=cv("dial","56px");if(d)row(d,"<b>The compass.</b> Your brig seen from above. The <b>red arrow</b> is your ordered course, the <b>blue arrow</b> the wind, the <b>shaded wedge</b> the no-go zone where she stalls, and the <b>dashed line</b> across the yards the best angle. Tap the outer card to steer; tap inside to point the sails.");
+  const g=cv("baro","auto");if(g)row(g,"<b>The glass.</b> A barometer left of the compass, in inches of mercury. The arrow shows if it is rising or falling; the words beside the scale say what to expect. A fast fall means foul weather.");
+  [...document.querySelectorAll("#sailSteps5 button")].forEach(b=>{const t=(b.title||"").split(": ");row(svgOf(b)||b.textContent,"<b>"+t[0]+".</b> "+(t[1]||"").replace(/\.?$/,".")+" Sets all sails to this level at once.");});
+  row(svgOf("bDrop")||"⚓","<b>Anchor</b> (X). Let go the anchor to stop, or heave it up to sail. You must be at anchor near a town to trade.");
+  row(svgOf("bHeave2")||"Log","<b>Heave the log</b> (L). Cast the log-chip astern, turn the sand-glass and nip the line when it runs out. The knots counted are your speed reading for dead reckoning.");
+  row(svgOf("bFish")||"Fish","<b>Fish</b> (F). Put hand-lines over the side to add fresh fish to the stores.");
+  row("i","<b>Legend.</b> Explains the colours on the compass.");
+  hh("Ship controls");
+  row("◄5° 5°►","<b>Helm.</b> Turn the ship five degrees to port or starboard (A and D).");
+  row("Shorten · Make","<b>Shorten or make sail</b> (S and W) by one step. More sail is faster until the wind gets up.");
+  const sd=$("sailDiag");if(sd){const c=sd.cloneNode(true);c.removeAttribute("id");c.style.maxHeight="150px";row(c,"<b>The sail plan.</b> Tap sails to pick them, then say how much to set, reef or furl. Colours show how each sail is set.","wide");}
+  row("–","<b>Collapse</b> a panel to give the sea more room.");
+  row("⤢","<b>Make this the main view</b> when shown on the small pane.");
+  hh("On the water");
+  row("Flag","The red pennant on the mainmast streams with the wind, the best sign of where it comes from.");
+  row("Lanterns","Lamps light themselves at dusk and show as thin fading rays.");
+  row("Cloud","Clouds drift with the wind and change colour with the hour and the weather.");
+}
+$("bHelp").onclick=()=>{fillHelpIcons();$("ovHelp").hidden=false;modalOpen=true;};
 $("helpClose").onclick=()=>{$("ovHelp").hidden=true;modalOpen=!$("ovStart").hidden||!$("ovEnd").hidden;};
 $("bVoy").onclick=()=>{$("ovStart").hidden=false;modalOpen=true;};
-{const ft=document.createElement("div");ft.className="cbfoot";const ws=$("windSpd");ws.before(ft);ft.append($("bDrop"),ws,$("bFish"));} // anchor and fishing sit at the bottom left and right of the compass
+{const ft=document.createElement("div");ft.className="cbfoot";const ws=$("windSpd");ws.before(ft);const hb=document.createElement("button");hb.className="btn sm ico";hb.id="bHeave2";hb.title="Heave the log (L)";hb.setAttribute("aria-label","Heave the log");
+  hb.innerHTML='<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="7.5" r="4"/><path d="M7 3.5v8M3 7.5h8"/><path d="M10.2 10.8C12.6 13 14 13.8 15.2 15.2" stroke-dasharray="1.1 1.7"/><path d="M14 15.6h6.4a6.4 6.4 0 0 1-6.4 6.4z" fill="currentColor" fill-opacity=".35"/></svg>';
+  hb.onclick=()=>{if(!$("bHeave").disabled)openHeave();};new MutationObserver(()=>{hb.disabled=$("bHeave").disabled;}).observe($("bHeave"),{attributes:true,attributeFilter:["disabled"]});
+  const lb=document.createElement("div");lb.className="cbfoot-l";lb.append($("bDrop"),hb);ft.append(lb,ws,$("bFish"));
+  ft.after($("logbox"));$("logbox").style.cssText+=";align-self:stretch;margin-top:6px;min-width:0";} // the log-heaving panel opens under the compass // anchor and fishing sit at the bottom left and right of the compass
 $("paneV3").after($("paneTools")); // the icon row lives outside the pane so nothing in the pane can cover it
 const applyDark=()=>{document.documentElement.dataset.theme=DARK?"dark":"light";$("bDark").textContent=DARK?"Light mode":"Dark mode";$("bDark").setAttribute("aria-pressed",String(DARK));try{localStorage.setItem('drDark',DARK?'1':'0');}catch(e){}if(S){try{updateUI(true);}catch(e){}if(SV&&SV.open)try{svDraw();}catch(e){}}};
 $("bDark").onclick=()=>{DARK=!DARK;applyDark();};applyDark();
