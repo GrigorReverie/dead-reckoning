@@ -62,7 +62,10 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-
 .infobar small{font-family:var(--f-data);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft)}
 .infobar .it{display:inline-flex;align-items:baseline;gap:6px;min-width:0}.infobar .it i{font-style:normal;color:var(--ink-soft);font-family:var(--f-data);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase}
 .compassbox{position:absolute;right:12px;top:46px;z-index:3;background:rgba(246,238,217,.92);border:1px solid var(--ink);padding:6px 8px 7px;display:flex;flex-direction:column;align-items:center;gap:4px;box-shadow:0 4px 14px rgba(20,14,10,.25)}
-.pane .compassbox #dial{position:static;width:250px;height:250px}.cbrow{display:flex;gap:8px;align-items:center}#baro{position:static!important;flex:none;align-self:flex-end;height:222px;width:53px}
+.pane .compassbox #dial{position:static;width:250px;height:250px}.cbrow{display:flex;gap:8px;align-items:center}.compassbox{--baroW:53px;--stW:28px;--gp:8px}
+#baro{position:static!important;flex:none;align-self:flex-end;height:222px;width:var(--baroW)}
+.cbfoot{align-self:stretch;display:flex;align-items:center;justify-content:space-between;gap:6px;padding:0 calc(var(--stW) + var(--gp)) 0 calc(var(--baroW) + var(--gp))}
+.cbfoot .ws{flex:1;min-width:0;text-align:center}.cbfoot .btn.ico{flex:none;width:38px;height:38px;padding:0;display:flex;align-items:center;justify-content:center}
 .compassbox .cbtog{position:absolute;left:4px;top:4px;z-index:2;width:26px;height:26px;padding:0;display:flex;align-items:center;justify-content:center;background:var(--paper);color:var(--ink);border:1px solid var(--ink);border-radius:50%;cursor:pointer}
 .compassbox.collapsed{padding:0;border:0;background:none;box-shadow:none}.compassbox.collapsed .cbrow,.compassbox.collapsed .ws{display:none}
 .compassbox.collapsed .cbtog svg{width:13px;height:13px}.compassbox.collapsed .cbtog{position:static;width:30px;height:30px;border-radius:3px;background:rgba(246,238,217,.96);box-shadow:0 4px 14px rgba(20,14,10,.3)}.steps5{display:flex;flex-direction:column;gap:3px}.steps5 .btn{min-height:0;height:28px;width:28px;padding:0;display:flex;align-items:center;justify-content:center}.steps5 .btn[aria-pressed="true"]{background:var(--ink);color:var(--paper)}.steps5 .btn.mv{outline:2px dashed var(--brass);outline-offset:1px}.compassbox .ws{font-family:var(--f-data);font-size:11px;text-align:center;line-height:1.35;letter-spacing:.03em}.compassbox .ws b{font-size:15px}
@@ -273,7 +276,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-
 /* keep the top bar clear of the iPhone status bar and notch when installed */
 .bar{padding-top:calc(env(safe-area-inset-top,0px) + 4px)}
 /* the glass sits left of the compass; on a phone it shrinks with the dial */
-@media (max-width:860px){#baro{height:calc(min(230px,64vw) - 28px);width:calc((min(230px,64vw) - 28px)*.24)}.cbrow{gap:6px}}
+@media (max-width:860px){.compassbox{--baroW:calc((min(230px,64vw) - 28px)*.24);--stW:32px;--gp:6px}#baro{height:calc(min(230px,64vw) - 28px)}.cbrow{gap:6px}}
 /* the four view icons (chart, camera, ship, book) share one centred row along the bottom */
 :root{--ic:38px;--icg:22px}
 #paneV3.small ~ #paneTools{display:none!important}
@@ -3190,6 +3193,7 @@ dl.addEventListener("click",e=>{if(!S)return;const r=dl.getBoundingClientRect();
 $("bHelp").onclick=()=>{$("ovHelp").hidden=false;modalOpen=true;};
 $("helpClose").onclick=()=>{$("ovHelp").hidden=true;modalOpen=!$("ovStart").hidden||!$("ovEnd").hidden;};
 $("bVoy").onclick=()=>{$("ovStart").hidden=false;modalOpen=true;};
+{const ft=document.createElement("div");ft.className="cbfoot";const ws=$("windSpd");ws.before(ft);ft.append($("bDrop"),ws,$("bFish"));} // anchor and fishing sit at the bottom left and right of the compass
 $("paneV3").after($("paneTools")); // the icon row lives outside the pane so nothing in the pane can cover it
 const applyDark=()=>{document.documentElement.dataset.theme=DARK?"dark":"light";$("bDark").textContent=DARK?"Light mode":"Dark mode";$("bDark").setAttribute("aria-pressed",String(DARK));try{localStorage.setItem('drDark',DARK?'1':'0');}catch(e){}if(S){try{updateUI(true);}catch(e){}if(SV&&SV.open)try{svDraw();}catch(e){}}};
 $("bDark").onclick=()=>{DARK=!DARK;applyDark();};applyDark();
