@@ -325,16 +325,18 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-
   .ptools .tbicon,.bookbtn,.shipchart,#paneChart.small,#ctlIcon{bottom:calc(env(safe-area-inset-bottom,0px) + 22px)!important;border-color:transparent!important;background:transparent!important;box-shadow:none!important;border-radius:6px}
   .ptools .tbicon[aria-pressed="true"],.bookbox.open .bookbtn,#ctlIcon[aria-pressed="true"]{background:var(--ink)!important;color:var(--paper)!important}
   #paneChart.small .mapicon{background:transparent!important}
-  #paneChart.small{left:calc(10% - var(--ic)/2)!important;border:0!important}
-  .ptools{left:calc(30% - var(--ic)/2)!important;gap:calc(20vw - var(--ic))!important}
-  .shipchart{left:calc(50% - var(--ic)/2)!important}
+  #paneChart.small,.ptools,.shipchart{display:none!important}
+  .tbtab{display:flex!important;position:fixed;z-index:16;width:var(--ic);height:var(--ic);bottom:calc(env(safe-area-inset-bottom,0px) + 22px);border:0!important;background:transparent!important;box-shadow:none!important;border-radius:6px;padding:0;align-items:center;justify-content:center;color:var(--ink);cursor:pointer}
+  .tbtab svg{width:20px;height:20px;stroke-width:1.7}
+  .tbtab[aria-pressed="true"]{background:var(--ink)!important;color:var(--paper)!important}
+  #tbChart{left:calc(10% - var(--ic)/2)}#tbView{left:calc(30% - var(--ic)/2)}#tbShip{left:calc(50% - var(--ic)/2)}
   .bookbtn{left:calc(70% - var(--ic)/2)!important}
   #ctlIcon{display:flex!important;position:fixed;z-index:16;left:calc(90% - var(--ic)/2)!important}
   .app{padding-bottom:calc(var(--ic) + 40px)}
   .dock-all .ctog[data-dock="all"]{display:none!important}
   .side:has(.dock-all.collapsed){display:none}
 }
-#ctlIcon{display:none;width:var(--ic);height:var(--ic)}
+#ctlIcon,.tbtab{display:none;width:var(--ic);height:var(--ic)}
 .sheet{display:contents}@media (min-width:861px){#tabbar{display:none}}
 #ctlIcon svg{width:20px;height:20px}
 .ptools .tbicon svg,.bookbtn svg,#paneChart.small .mapicon svg,#ctlIcon svg{stroke-width:1.7!important}
@@ -3287,8 +3289,13 @@ $("bookBtn").onclick=()=>{const bx=$("bookBox"),o=!bx.classList.contains("open")
   // a panel open below the view takes about 60% of the room and slides up over the view when scrolled; closed, the view fills it down to the bottom menu
   const cw=document.querySelector(".chartwrap"),bx=$("bookBox"),root=document.documentElement;
   [dk,$("bookBody"),$("shipView")].forEach(el=>{const sh=document.createElement("div");sh.className="sheet";while(el.firstChild)sh.append(el.firstChild);el.append(sh);});
-  const tb=document.createElement("div");tb.id="tabbar";tb.setAttribute("aria-hidden","true");["Chart","View","Ship","Book","Helm"].forEach((t,i)=>{const sp=document.createElement("span");sp.textContent=t;sp.style.left=(10+20*i)+"%";tb.append(sp);});document.body.append(tb);
-  const fit=()=>{if(!matchMedia("(max-width:860px)").matches){if(cw.style.height)cw.style.height="";return;}
+  const closePanels=()=>{dk.classList.add("collapsed");bx.classList.remove("open");$("bookBtn").setAttribute("aria-expanded","false");if(SV.open)openShip(false);};
+  const mkTab=(id,src,title,fn)=>{const b=document.createElement("button");b.type="button";b.id=id;b.className="tbicon tbtab";b.title=title;b.setAttribute("aria-label",title);const v=$(src).querySelector("svg");if(v)b.innerHTML=v.outerHTML;b.onclick=()=>{fn();setTimeout(fit,0);};document.body.append(b);return b;};
+  const tbChart=mkTab("tbChart","mapIcon","Sea chart: tap again to come back to the 3D view",()=>{closePanels();setMain(!main3d);});
+  const tbView=mkTab("tbView","bView","3D view, full screen",()=>{closePanels();setMain(true);});
+  const tbShip=mkTab("tbShip","bShip","The ship: cutaway, crew quarters and watches; tap again to close",()=>{$("bShip").click();});
+  const tb=document.createElement("div");tb.id="tabbar";tb.setAttribute("aria-hidden","true");["Chart","3D","Ship","Book","Helm"].forEach((t,i)=>{const sp=document.createElement("span");sp.textContent=t;sp.style.left=(10+20*i)+"%";tb.append(sp);});document.body.append(tb);
+  const fit=()=>{tbChart.setAttribute("aria-pressed",String(!main3d));tbView.setAttribute("aria-pressed",String(main3d&&dk.classList.contains("collapsed")&&!bx.classList.contains("open")&&!SV.open));tbShip.setAttribute("aria-pressed",String(!!SV.open));if(!matchMedia("(max-width:860px)").matches){if(cw.style.height)cw.style.height="";return;}
     const open=!dk.classList.contains("collapsed")||bx.classList.contains("open")||SV.open;
     const top=cw.getBoundingClientRect().top,barTop=tb.getBoundingClientRect().top,avail=Math.max(260,Math.round(barTop-top));
     const h=open?Math.max(190,Math.round(avail*.4)):avail;if(cw.style.height!==h+"px"){cw.style.height=h+"px";try{resize();resize3D();}catch(e){}}
