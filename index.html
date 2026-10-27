@@ -1178,7 +1178,7 @@ function oarsAvail(){return Math.max(1,(S.crew?S.crew.length:SHIP.crewN)-(SHIP.b
 function oarsHands(r){const need=oarsNeed();if(!r.hands)r.hands=Math.min(need,oarsAvail());return clamp(r.hands,Math.min(SHIP.oars.n,oarsAvail()),Math.min(need,oarsAvail()));}
 function toggleOars(force){if(!S||S.done||!SHIP.oars)return;const sh=S.ship,r=rowOf(sh),O=SHIP.oars,on=force!=null?force:!r.on;if(on===r.on)return;
   if(on){if(sh.anch.mode==="holding"||sh.anch.mode==="weighing"){say("She is at anchor. Weigh anchor first.",{log:false});return;}
-    const bf=beaufort(windAt(S,sh.x,sh.y,S.t).kn);if(bf>4){say(`Too much sea to row in. The ${O.sweeps?"sweeps":"oars"} would be torn out of the men's hands.`,{log:false});return;}
+    const bf=beaufort(windAt(S,sh.x,sh.y,S.t).kn);if(bf>(O.maxBf||4)){say(`Too much sea to row in. The ${O.sweeps?"sweeps":"oars"} would be torn out of the men's hands.`,{log:false});return;}
     r.on=true;if(r.st===0||r.st===1)r.st=3;say(O.sweeps?`Out sweeps! ${O.n/2} a side through the oar ports, ${O.men} men to each.`:SHIP.boat?"Out oars! The men take their thwarts and the oars go out between the tholes.":`Out oars! ${O.n/2} sweeps a side, ${O.men} men to a sweep.`);}
   else{r.on=false;r.pivot=0;say(O.sweeps?"In sweeps. The hands stow them along the gangways.":"Oars in. The men ship them and stow them fore and aft.");}
   updateUI(true);}
@@ -1186,7 +1186,7 @@ function setStroke(i){if(!S||S.done||!SHIP.oars)return;const r=rowOf(S.ship);if(
 function oarPivot(sd){if(!S||S.done||!SHIP.oars)return;const r=rowOf(S.ship);if(!r.on)toggleOars(true);if(!r.on)return;r.pivot=sd;r.pt=S.t+40/3600;turn(sd*20);} // back one side and pull the other: she spins on her heel
 function rowStep(s,dt,bf){const sh=s.ship,r=sh.row,O=SHIP.oars;if(!r||!O)return 0;
   if(!r.on){r.wind=Math.min(1,r.wind+.5*dt);return 0;}
-  if(bf>4){r.on=false;r.pivot=0;say(`The sea is getting up: ${O.sweeps?"in sweeps":"oars in"} before they are torn away.`,{slow:true});updateUI(true);return 0;}
+  if(bf>(O.maxBf||4)){r.on=false;r.pivot=0;say(`The sea is getting up: ${O.sweeps?"in sweeps":"oars in"} before they are torn away.`,{slow:true});updateUI(true);return 0;}
   if(r.pivot&&s.t>r.pt)r.pivot=0;
   const st=STROKES[r.pivot?3:r.st],need=oarsNeed(),h=oarsHands(r),av=oarsAvail();
   const relief=r.relieve?h/clamp(av,h,2*h):1; // spare hands spell the rowers each glass
@@ -1452,7 +1452,7 @@ const SHIPX={
   caroline:{hullMax:10.8,speedK:.95,nogo:66,pol:"sqx",safeK:1,heelK:.95,leeK:1,year:1749,crew:[["Captain",1],["Lieutenant",2],["Master",1],["Bosun",1],["Gunner",1],["Carpenter",1],["Surgeon",1],["Cook",2],["Cabin boy",2],["Seaman",58]]},
   endeavour:{hullMax:8.5,speedK:.8,nogo:68,pol:"sqx",safeK:1.05,heelK:.85,leeK:1.05,year:1768,capt:"Lt. James Cook",crew:[["Captain",1],["Lieutenant",2],["Master",1],["Midshipman",3],["Bosun",1],["Gunner",1],["Carpenter",1],["Surgeon",1],["Cook",1],["Cabin boy",3],["Marine",12],["Gentleman",8],["Seaman",59]],
     named:{Lieutenant:["Zachary Hicks","John Gore"],Master:["Robert Molyneux"],Gentleman:["Joseph Banks","Daniel Solander","Herman Spöring","Sydney Parkinson","Alexander Buchan"],Surgeon:["William Monkhouse"]}},
-  xebec:{hullMax:11.5,speedK:1.1,nogo:50,pol:"lat",safeK:.9,heelK:1.15,leeK:1.1,year:1760,crew:[["Captain",1],["Lieutenant",2],["Master",1],["Bosun",2],["Gunner",2],["Carpenter",1],["Surgeon",1],["Cook",2],["Cabin boy",2],["Soldier",40],["Seaman",126]],oars:{n:28,men:3,kn:3.6},es:1},
+  xebec:{hullMax:11.5,speedK:1.1,nogo:50,pol:"lat",safeK:.9,heelK:1.15,leeK:1.1,year:1760,crew:[["Captain",1],["Lieutenant",2],["Master",1],["Bosun",2],["Gunner",2],["Carpenter",1],["Surgeon",1],["Cook",2],["Cabin boy",2],["Soldier",40],["Seaman",126]],oars:{n:28,men:3,kn:3.6,maxBf:5},es:1},
   gotheborg:{hullMax:11,speedK:.9,nogo:67,pol:"sqx",safeK:1.05,heelK:.85,leeK:1,year:1745,capt:"Capt. Erik Moréen",crew:[["Captain",1],["Mate",4],["Master",1],["Bosun",2],["Gunner",1],["Carpenter",2],["Surgeon",1],["Cook",2],["Cabin boy",4],["Gentleman",4],["Seaman",122]],sv:1},
   constitution:{hullMax:13.5,speedK:1.05,nogo:66,pol:"sqx",safeK:1.1,heelK:.75,leeK:.95,year:1797,capt:"Capt. Samuel Nicholson",crew:[["Captain",1],["Lieutenant",4],["Master",1],["Midshipman",8],["Bosun",2],["Gunner",2],["Carpenter",2],["Surgeon",2],["Cook",2],["Cabin boy",6],["Marine",55],["Seaman",365]]},
   trinidad:{hullMax:10.5,speedK:.78,nogo:68,pol:"sqx",safeK:1.15,heelK:.7,leeK:1.1,year:1769,crew:[["Captain",1],["Lieutenant",8],["Master",2],["Midshipman",16],["Bosun",4],["Gunner",6],["Carpenter",4],["Surgeon",3],["Cook",6],["Cabin boy",20],["Soldier",280],["Seaman",700]],es:1}};
@@ -2420,7 +2420,7 @@ function brigLines(){
   return{sstep,QB,FB,QDY,FCY,YW,rise,deckW,deckAt,railY,keelY,zF,zS,zA,shape,hx};
 }
 // the ship in hand: the brig's own model, or one of the fleet built from her spec
-function buildShip3D(R){R.shipId=SHIP.id;R.crew=null;R.sails=null;R.jib=null;R.gaff=null;R.yardInfo={};R.lamps=[];R.oars=[];R.tiller=null;R.gen=null;R.faA=null;R.handS=null;
+function buildShip3D(R){R.shipId=SHIP.id;R.sweepers=null;R.oarsOn=null;R.crew=null;R.sails=null;R.jib=null;R.gaff=null;R.yardInfo={};R.lamps=[];R.oars=[];R.tiller=null;R.gen=null;R.faA=null;R.handS=null;
   if(SHIP.id==="brig")buildShip(R);else buildVessel3D(R,SPEC[SHIP.id]);if(R.wake){R.wake.sl.length=0;R.wake.last=null;}R.foam=null;R.heel=0;}
 function setShip3D(){const R=R3;if(!R||R.shipId===SHIP.id)return;R.scene.remove(R.ship);
   R.ship.traverse(o=>{if(o.geometry&&!(o.parent&&o.parent.isGroup&&R.figKit&&0))o.geometry.dispose();});if(R.hullMatG){R.hullMatG.dispose();R.hullMatG=null;}
@@ -3351,6 +3351,17 @@ function update3D(dt,now){
       const wt4=[(1-u.dkv)*(1-R.nfc),(1-u.dkv)*R.nfc,u.dkv*(1-R.nfc),u.dkv*R.nfc];
       for(let k=0;k<4;k++){const q=u.v[k],o=u.op*wt4[k];q.visible=o>.004;if(!q.visible)continue;q.position.set(px,py,pz);q.scale.set(sx,sy,1);q.material.opacity=o;q.material.color.setRGB(k%2?1:tr,k%2?1:tg,k%2?1:tb);}}
   }
+  // the hands at the sweeps: men stand to each loom, face aft and walk it through the stroke (open boats row from their thwarts instead)
+  if(R.oars&&R.oars.length&&!(R.dk&&R.dk.open)&&SHIP.oars){const r=sh.row,on=!!(r&&r.on);
+    if(on&&!R.sweepers){const kit=figKit(R),per=Math.min(SHIP.oars.men,2);R.sweepers=[];
+      for(const o of R.oars)for(let k=0;k<per;k++){const c=kit.mk(o.g.parent,0,0,0,"sweep");c.o=o;c.d=o.inb*(.35+.55*(per>1?k/(per-1):.5));c.ph=Math.random()*.4;R.sweepers.push(c);}}
+    if(R.sweepers){const D=R.dk,st=on?STROKES[r.pivot?3:r.st]:null;
+      for(const c of R.sweepers){c.m.visible=on;if(!on)continue;const o=c.o,a=o.g.rotation.y,px=o.g.position.x,pz=o.g.position.z;
+        const x=px-o.sd*c.d*Math.cos(a)*.98,z=pz+o.sd*c.d*Math.sin(a)+.32,gy=D&&D.ground?D.ground(x,z):(D?D.foot:o.y-1);
+        const back=st.k<0||(r.pivot&&o.sd===r.pivot),ph=(R.rowPh||0)*(back?-1:1)+c.ph,dr=st.spm?Math.sin(ph):0;
+        c.m.position.set(x,gy,z);c.m.rotation.set(0,PI+o.sd*.25,0);c.lL.rotation.x=.25+.25*dr;c.lR.rotation.x=-.35+.25*dr;
+        c.aL.rotation.x=c.aR.rotation.x=-1.25-.25*dr;c.m.rotation.x=-.18-.12*dr;}
+      if(R.crew)for(const c of R.crew)if(c.role.startsWith("hand")&&on)c.m.visible=false;}}
   // camera
   R.hs+=angDiff(R.hs,sh.heading)*(1-Math.exp(-dt*1.6));
   const al=(R.hs+180+R.yaw)*D2R,pt=R.pitch*D2R,dh=R.dist*Math.cos(pt);
@@ -4496,13 +4507,13 @@ const OAR_SVG='<svg viewBox="0 0 24 24" width="20" height="20" fill="none" strok
 function oarsSetup(){if(!$("bOars"))return;const O=SHIP.oars;$("bOars").hidden=!O;$("oarSec").hidden=!O;if(!O){$("oarSteps").hidden=true;$("sailSteps5").hidden=false;return;}
   $("oarSide").textContent=`${O.n/2} ${O.sweeps?"sweeps":SHIP.boat?"oars":"sweeps"} a side`;}
 function hrsTxt(h){return h>=10?"all day":h>=1.5?`about ${Math.round(h)} hours`:h>=.75?"about an hour":`about ${Math.max(1,Math.round(h*60/5)*5)} minutes`;}
-function oarsUI(sh,bf){const O=SHIP.oars;if(!O||!$("bOars"))return;const r=rowOf(sh),on=r.on,st=STROKES[r.pivot?3:r.st],calm=bf<=4,anch=sh.anch.mode==="holding"||sh.anch.mode==="weighing";
+function oarsUI(sh,bf){const O=SHIP.oars;if(!O||!$("bOars"))return;const r=rowOf(sh),on=r.on,st=STROKES[r.pivot?3:r.st],calm=bf<=(O.maxBf||4),anch=sh.anch.mode==="holding"||sh.anch.mode==="weighing";
   const b=$("bOars"),t=on?`Ship the ${O.sweeps?"sweeps":"oars"} (O)`:calm?`Out ${O.sweeps?"sweeps":"oars"} (O)`:`Too much sea to row (force ${bf})`;b.title=t;b.setAttribute("aria-label",t);b.setAttribute("aria-pressed",String(on));b.disabled=!on&&(!calm||anch);
   $("oarSteps").hidden=!on;$("sailSteps5").hidden=on;
   for(const x of document.querySelectorAll("#oarSteps button,#oarSec .steps button"))x.setAttribute("aria-pressed",String(on&&+x.dataset.st===r.st&&!r.pivot));
   $("oarTog").textContent=on?`Ship ${O.sweeps?"sweeps":"oars"}`:`Out ${O.sweeps?"sweeps":"oars"}`;$("oarTog").disabled=!on&&(!calm||anch);
   $("oarState").innerHTML=on?(r.pivot?`Turning on the spot. <span class="muted">${r.pivot<0?"Port":"Starboard"} oars backing.</span>`:`${O.sweeps?"Sweeps":"Oars"} out. <span class="muted">${st.n}${st.spm?`, ${st.spm} strokes a minute`:""}.</span>`)
-    :anch?'<span class="muted">At anchor.</span>':calm?`<span class="muted">${O.sweeps?"Sweeps":"Oars"} stowed.${bf<=1?" A calm: good rowing weather.":""}</span>`:`<span class="muted">Stowed: too much sea above force 4.</span>`;
+    :anch?'<span class="muted">At anchor.</span>':calm?`<span class="muted">${O.sweeps?"Sweeps":"Oars"} stowed.${bf<=1?" A calm: good rowing weather.":""}</span>`:`<span class="muted">Stowed: too much sea above force ${O.maxBf||4}.</span>`;
   const need=oarsNeed(),h=oarsHands(r),pull=O.kn*st.k*Math.sqrt(h/need);
   $("oarNote").innerHTML=r.pivot?"One side backs, the other pulls: she spins with little way on.":`${st.t}${st.k>0?` About <b>${pull.toFixed(1)} kn</b> in a flat calm with fresh men; less into a head sea.`:""}`;
   const wp=Math.round(r.wind*100);$("oarWindT").textContent=wp+"%";const wi=$("oarWind");wi.style.width=wp+"%";wi.style.setProperty("--bw",(10000/Math.max(wp,1)).toFixed(0)+"%");
