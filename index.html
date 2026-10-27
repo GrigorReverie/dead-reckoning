@@ -311,6 +311,10 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-
   .bookbtn{left:calc(50% + var(--ic) + 1.5*var(--icg) - var(--sh))!important}
   #ctlIcon{display:flex!important;position:fixed;z-index:16;left:calc(50% + var(--ic) + 1.5*var(--icg) + var(--sh));bottom:max(16px,calc(env(safe-area-inset-bottom,0px) + 10px))}
   .side .dock-all.collapsed{display:none!important}
+  /* the wheel icon opens the ship controls as a panel above the icon row; tap it again to close */
+  .side .dock-all:not(.collapsed){position:fixed;left:8px;right:8px;bottom:calc(max(16px,env(safe-area-inset-bottom,0px) + 10px) + var(--ic) + 12px);max-height:calc(100vh - var(--bar-h,48px) - var(--ic) - 80px);overflow-y:auto;z-index:15;background:var(--paper);border:1px solid var(--ink);border-radius:3px;box-shadow:0 8px 28px rgba(20,14,10,.4);padding:10px 12px;width:auto!important}
+  .dock-all .ctog[data-dock="all"]{display:none!important}
+  .side:has(.dock-all.collapsed){display:none}
 }
 #ctlIcon{display:none;width:var(--ic);height:var(--ic)}
 #ctlIcon svg{width:20px;height:20px}
@@ -3205,7 +3209,12 @@ $("cbBtn").onclick=()=>{const c=$("compassBox"),o=c.classList.toggle("collapsed"
 $("bookBtn").onclick=()=>{const bx=$("bookBox"),o=!bx.classList.contains("open");bx.classList.toggle("open",o);$("bookBtn").setAttribute("aria-expanded",String(o));$("bookBtn").classList.remove("attn");setTimeout(()=>{resize();resize3D();},0);};
 {const dk=document.querySelector(".dock-all"),ci=document.createElement("button");ci.type="button";ci.id="ctlIcon";ci.className="tbicon";ci.title="Ship controls: helm, sails, log";ci.setAttribute("aria-label","Ship controls");ci.innerHTML=document.querySelector(".dockhead b.dh svg").outerHTML;document.body.append(ci);
   const sync=()=>ci.setAttribute("aria-pressed",String(!dk.classList.contains("collapsed")));sync();new MutationObserver(sync).observe(dk,{attributes:true,attributeFilter:["class"]});
-  ci.onclick=()=>{document.querySelector('.ctog[data-dock="all"]').click();if(!dk.classList.contains("collapsed"))dk.scrollIntoView({behavior:"smooth",block:"start"});};}
+  ci.onclick=()=>{document.querySelector('.ctog[data-dock="all"]').click();};
+  if(matchMedia("(max-width:860px)").matches)dk.classList.add("collapsed");sync();
+  // with the controls folded away the view takes all the room down to the icon row
+  const cw=document.querySelector(".chartwrap");
+  const fit=()=>{if(!matchMedia("(max-width:860px)").matches||!dk.classList.contains("collapsed")){if(cw.style.height)cw.style.height="";return;}const h=Math.max(260,Math.round(innerHeight-cw.getBoundingClientRect().top-ci.offsetHeight-34));if(cw.style.height!==h+"px")cw.style.height=h+"px";};
+  setInterval(fit,400);new MutationObserver(fit).observe(dk,{attributes:true,attributeFilter:["class"]});fit();}
 {const h=document.querySelector(".dockhead b.dh");h.onclick=()=>document.querySelector('.ctog[data-dock="all"]').click();}
 for(const b of document.querySelectorAll("#sailSteps5 button"))b.onclick=()=>setSail(+b.dataset.n);
 $("bHeave").onclick=openHeave;$("bNip").onclick=nip;
