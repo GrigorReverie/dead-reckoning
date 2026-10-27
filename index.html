@@ -2476,13 +2476,14 @@ function update3D(dt,now){
     o.bun.visible=sc<.55;o.bun.scale.set(clamp(1-sc*1.5,.3,1),1,clamp(1-sc*1.5,.3,1));
     const cs=Math.cos((rel+sh.brace)*D2R),belly=R.bs*(1.1+.3*sl)*Math.min(1,.25+Math.abs(cs));
     const flut=clamp((1-Math.abs(cs))*.5+(th<NOGO?.7:0)+(S.aback?.8:0),0,1.2);
-    if(show)updateSail(o.sail,belly,flut,tm);
+    if(show){const k=sc.toFixed(2)+"|"+belly.toFixed(2)+"|"+flut.toFixed(1);if(!(SV.open&&o.k===k)){updateSail(o.sail,belly,flut,SV.open?(R.svT=R.svT??tm):tm);o.k=SV.open?k:null;}}
   }
   { const ja=SS.jib,J=R.jib;J.mesh.visible=J.lines.visible=ja>.03;J.bun.visible=ja<.55;J.bun.scale.set(clamp(1-ja*1.5,.3,1),1,clamp(1-ja*1.5,.3,1));
-    if(ja>.03)updateJib(J,R.side,clamp((th-25)/40,.25,1),tm,ja); }
+    if(ja>.03){const k=ja.toFixed(2)+"|"+R.side+"|"+clamp((th-25)/40,.25,1).toFixed(1);if(!(SV.open&&J.k===k)){updateJib(J,R.side,clamp((th-25)/40,.25,1),SV.open?(R.svT??=tm):tm,ja);J.k=SV.open?k:null;}} }
   // gaff mainsail: boom eased out as the wind comes aft, sheeted in close-hauled, belly to leeward
   { const G=R.gaff;if(G){const sgn=Math.abs(rel)>3?Math.sign(rel):G.side;G.side=sgn;const tgt=-sgn*(.17+clamp((th-25)/115,0,1)*.93);G.ang+=(tgt-G.ang)*clamp(dt*2.2,0,1);
-      G.g.rotation.y=G.ang;G.sm.scale.x=G.el.scale.x=-sgn;const dv=SS.drv;G.sm.visible=G.el.visible=dv>.03;G.bun.visible=dv<.55;G.bun.scale.set(clamp(1-dv*1.5,.3,1),1,clamp(1-dv*1.5,.3,1));updateGaff(G,dv,tm);} }
+      G.g.rotation.y=G.ang;G.sm.scale.x=G.el.scale.x=-sgn;const dv=SS.drv;G.sm.visible=G.el.visible=dv>.03;G.bun.visible=dv<.55;G.bun.scale.set(clamp(1-dv*1.5,.3,1),1,clamp(1-dv*1.5,.3,1));{const k=dv.toFixed(2)+"|"+G.ang.toFixed(2);if(!(SV.open&&G.k===k)){updateGaff(G,dv,SV.open?(R.svT??=tm):tm);G.k=SV.open?k:null;}}} }
+  if(!SV.open)R.svT=undefined;
   // anchor cable: from the hawse down into the water ahead of the bow, slack when riding at anchor
   { const cl=R.cable;if(cl){const A=sh.anch,on=A.mode==="holding"||A.mode==="trailing"||A.mode==="weighing";cl.visible=on;
       if(on){const pa=cl.geometry.attributes.position.array,out=A.mode==="weighing"?clamp(1-(S.t-A.t0)*60,0,1):1,L=A.mode==="trailing"?3:8*out+1;let prev=null,n=0;
@@ -2617,7 +2618,7 @@ function update3D(dt,now){
   if(R.cover>2)R.camera.setViewOffset(R.W,R.H,0,R.cover*.3,R.W,R.H);else R.camera.clearViewOffset();
   R.camera.updateMatrixWorld();R.camera.updateProjectionMatrix();
   R.sea.position.set(0,0,0);
-  R.renderer.render(R.scene,R.camera);
+  if(!(SV.open&&innerWidth>860))R.renderer.render(R.scene,R.camera); // on a computer the ship page covers the 3D view, so skip drawing it
   drawHud(now,sq,w);
 }
 
@@ -3030,7 +3031,9 @@ function svExterior(W,H){
   const w=Math.min(1200,Math.round(W)),h=Math.round(w*SVH/SVW);
   try{
     if(!E.rt||E.rt.width!==w||E.rt.height!==h){E.rt=new THREE.WebGLRenderTarget(w,h,{depthBuffer:true});E.buf=new Uint8Array(w*h*4);E.cv.width=w;E.cv.height=h;E.ctx=E.cv.getContext("2d");E.img=E.ctx.createImageData(w,h);E.f=0;}
-    if(E.f++%2&&E.drawn)return E.cv;
+    // the sails are not animated in the ship view: re-render the 3D hull only when something visible changed
+    const sk=Object.values(S.ship.sls).map(v=>Math.round(v*50)).join(",")+"|"+Math.round(S.ship.heading/4)+"|"+(DARK?1:0)+(isNight(S)?1:0)+"|"+Math.round(S.ship.brace/3),nowT=performance.now();
+    if(E.drawn&&E.key===sk&&nowT-(E.t||0)<2500)return E.cv;E.key=sk;E.t=nowT;
     const r=R3.renderer,sc=R3.scene,hdg=S.ship.heading*D2R,fx=Math.sin(hdg),fz=-Math.cos(hdg),cam=E.cam;
     // camera square to her starboard side, the bow to the right, level with the waterline
     cam.position.set(-fz*100,0,fx*100);cam.up.set(0,1,0);cam.lookAt(0,0,0);cam.updateMatrixWorld();
