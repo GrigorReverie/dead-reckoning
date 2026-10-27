@@ -3042,7 +3042,7 @@ const crewEff=()=>(S&&S.eff)||1;
 /* ---------- the Ship tab: cutaway profile ---------- */
 const SV={sel:-1,hoverB:-1,last:0,rowT:0,open:false};
 const LAD01=[340,565,725],LAD12=[565],SVW=1000,SVH=782,SVS=.64,SVX=110,SVY=544;
-const gndY=(lv,x)=>{if(lv!==0)return lv===1?242:322;const z=(x-505)/37.25,w=172-35*(1.3*(z/12)*(z/12)),q=clamp((x-292)/34,0,1),f=clamp((x-735)/30,0,1); // quarterdeck, the sheered waist, forecastle: the same decks as the 3D brig
+const gndY=(lv,x,inn)=>{if(lv!==0)return lv===1?242:322;const z=(x-505)/37.25,w=172-35*(1.3*(z/12)*(z/12));if(inn&&x<=304)return w;const q=clamp((x-292)/34,0,1),f=clamp((x-735)/30,0,1); // quarterdeck, the sheered waist, forecastle: the same decks as the 3D brig
   return 96+(w-96)*q+(107-w)*f;};
 const nearLad=(arr,x)=>arr.reduce((a,b)=>Math.abs(b-x)<Math.abs(a-x)?b:a);
 const berthY=b=>gndY(b.lv,b.x)-12-b.tier*30;
@@ -3051,7 +3051,7 @@ function berthOwner(id){return svCrewIdx().findIndex(m=>m.b===id);}
 function assignBerth(mi,bid){const C=S.crew,m=C[mi];if(bid==null){m.b=null;}else{const o=berthOwner(bid);if(o>=0&&o!==mi)C[o].b=m.b;m.b=bid;}svBuildSel();svRows();}
 function svTarget(m,i,ctx){
   if(m.mode==="sleep"){if(m.b!=null){const b=BERTHS[m.b];return{x:b.x,lv:b.lv,up:0,act:"Asleep, "+b.label.toLowerCase()};}return{x:440+(i%8)*16,lv:1,up:0,act:"Asleep on the lower deck, no berth",floor:true};}
-  if(m.mode==="rest"){if(m.r==="Captain")return{x:150,lv:1,up:0,act:"Off duty in the great cabin",key:"cr",wander:[110,230]};return{x:500,lv:1,up:0,act:"Off watch, at leisure",key:"rest",wander:[430,600]};}
+  if(m.mode==="rest"){if(m.r==="Captain")return{x:150,lv:0,in:true,up:0,act:"Off duty in the great cabin",key:"cr",wander:[90,260]};return{x:500,lv:1,up:0,act:"Off watch, at leisure",key:"rest",wander:[430,600]};}
   if(m.r==="Captain")return{x:150,lv:0,up:0,act:"On the quarterdeck",key:"cap",wander:[150,265]};
   if(m.r==="Mate")return{x:225,lv:0,up:0,act:"Officer of the watch",key:"mate",wander:[200,265]};
   if(m.r==="Cook")return{x:655,lv:1,up:0,act:"In the galley",key:"cook",wander:[620,700]};
@@ -3066,7 +3066,8 @@ function svTarget(m,i,ctx){
   return{x:500,lv:0,up:0,act:"On deck, standing by",key:"deck",wander:[330,780]};}
 function svMove(m,i,dt,ctx){const T=svTarget(m,i,ctx);m.act=T.act;
   const f=m.fig||(m.fig={x:T.x,lv:T.lv,up:T.up,cl:null,ph:Math.random()*6,face:1,wx:null,wait:0,key:"",mov:false});
-  let tx=T.x;if(T.wander){if(f.key!==T.key){f.key=T.key;f.wx=null;}
+  const wi=!!T.in;if(f.in==null)f.in=wi;let door=false;if(f.in!==wi&&f.lv===0&&f.up<.01&&T.lv===0){if(Math.abs(f.x-300)<3)f.in=wi;else door=true;}
+  let tx=door?300:T.x;if(T.wander&&!door){if(f.key!==T.key){f.key=T.key;f.wx=null;}
     if(f.wx==null||(Math.abs(f.x-f.wx)<2&&f.lv===T.lv&&(f.wait-=dt)<=0)){f.wx=T.wander[0]+Math.random()*(T.wander[1]-T.wander[0]);f.wait=1.5+Math.random()*6;}tx=f.wx;}
   const sp=36*(speedMult>=60?5:1);let mov=false;
   if(speedMult>=600||skipLeft>0){f.x=tx;f.lv=T.lv;f.up=T.up;f.cl=null;}
@@ -3077,7 +3078,7 @@ function svMove(m,i,dt,ctx){const T=svTarget(m,i,ctx);m.act=T.act;
   else{const dx=tx-f.x;if(Math.abs(dx)>1){const d=Math.sign(dx);f.x+=d*Math.min(Math.abs(dx),sp*dt);f.face=d;mov=true;}
     else if(f.up<T.up-.01){f.up=Math.min(T.up,f.up+dt*.4);mov=true;}}
   f.mov=mov;if(mov)f.ph+=dt*9;
-  let y=gndY(f.lv,f.x);if(f.cl!=null){const nl=f.lv+Math.sign(T.lv-f.lv);y=y+(gndY(nl,f.x)-y)*f.cl;}
+  let y=gndY(f.lv,f.x,f.in);if(f.cl!=null){const nl=f.lv+Math.sign(T.lv-f.lv);y=y+(gndY(nl,f.x)-y)*f.cl;}
   f.y=y-f.up*130;f.lying=m.mode==="sleep"&&!mov&&f.cl==null&&f.lv===T.lv&&Math.abs(f.x-T.x)<3;f.tier=T.floor?0:(m.b!=null&&m.mode==="sleep"?BERTHS[m.b].tier:0);}
 function svCtx(){const C=S.crew,sh=S.ship,seamen=[];C.forEach((m,i)=>{if(m.mode==="duty"&&(m.r==="Seaman"||m.r==="Bosun"))seamen.push(i);});
   const work=(sh.q.length||SAILIDS.some(k=>Math.abs(sh.sls[k]-sh.sa[k])>.02))?Math.min(6,Math.max(0,seamen.length-2)):0;return{seamen,work};}
@@ -3564,7 +3565,7 @@ cam.x=geo(14.5,-61).x;cam.y=geo(14.5,-61).y;cam.zoom=1.4;
 drawGlass(0,false);
 requestAnimationFrame(frame);
 // test hook
-window.__DR={sx,sy,openPortCard,openPortPlan,get R3(){return R3},setMain,update3D,get S(){return S},VOYAGES,PORTS,islands,reefs,LMS,step,startVoyage,setCourse,tackOrWear,setSail,assistStep,noonAvailable,windAt:(x,y,t)=>windAt(S,x,y,t),inPoly,crossFix,plotFix,takeBearing,markNoon,startObserve,noonAvailable,endVoyage,toGeo,geo,atPort:()=>atPort(S),buyStore,sellFish,toggleFish};
+window.__DR={svMove,svCtx,sx,sy,openPortCard,openPortPlan,get R3(){return R3},setMain,update3D,get S(){return S},VOYAGES,PORTS,islands,reefs,LMS,step,startVoyage,setCourse,tackOrWear,setSail,assistStep,noonAvailable,windAt:(x,y,t)=>windAt(S,x,y,t),inPoly,crossFix,plotFix,takeBearing,markNoon,startObserve,noonAvailable,endVoyage,toGeo,geo,atPort:()=>atPort(S),buyStore,sellFish,toggleFish};
 })();
 </script>
 <script>if("serviceWorker" in navigator&&location.protocol.startsWith("http"))window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
