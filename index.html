@@ -52,7 +52,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-
 .seg button:last-child{border-right:0}
 .seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
 .tb{background:transparent;color:var(--ink);border:1px solid var(--ink);border-radius:3px;padding:5px 10px;font-family:var(--f-data);font-size:12px}
-.menuwrap{position:relative}.menupop{position:absolute;right:0;top:calc(100% + 6px);z-index:40;background:var(--paper);border:1px solid var(--ink);box-shadow:0 8px 24px rgba(20,14,10,.35);padding:6px;display:flex;flex-direction:column;gap:4px;min-width:150px}.menupop[hidden]{display:none}.menupop .tb{text-align:left;width:100%}
+.menuwrap{position:relative}.menupop{position:absolute;right:0;top:calc(100% + 6px);z-index:40;background:var(--paper);border:1px solid var(--ink);box-shadow:0 8px 24px rgba(20,14,10,.35);padding:6px;display:flex;flex-direction:column;gap:4px;min-width:150px}.menupop[hidden]{display:none}#assistPop{width:min(330px,calc(100vw - 16px));max-height:78vh;overflow-y:auto;padding:8px 12px 10px;gap:8px}#assistPop .ah{font-family:var(--f-display);font-weight:400;font-variant:small-caps;font-size:14px;border-bottom:1px dotted var(--rule);margin-top:4px}#assistPop .chk{align-items:flex-start;font-size:13px}#assistPop .chk small{display:block;color:var(--ink-soft);font-size:11.5px;line-height:1.35;margin-top:1px}#assistPop .chk input{margin-top:3px;flex:none}#assistPop,#assistPop .chk,#assistPop .chk span{white-space:normal;min-width:0}#assistPop .chk{max-width:100%}.menupop .tb{text-align:left;width:100%}
 .tb:hover{background:var(--paper-2)}
 .tb[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
 .infobar{display:flex;align-items:baseline;gap:4px 22px;flex-wrap:wrap;padding:6px max(16px,env(safe-area-inset-left,0px));background:var(--paper);border-bottom:1px solid var(--ink);font-size:12.5px;min-width:0}
@@ -285,6 +285,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-
   .voylist{grid-template-columns:minmax(0,1fr)}
 }
 .app{position:relative}
+@media (max-width:860px){.bar .mtxt{display:none}#assistPop{position:fixed;left:8px;right:8px;top:calc(env(safe-area-inset-top,0px) + 40px);width:auto}}
 /* keep the top bar clear of the iPhone status bar and notch when installed */
 .bar{padding-top:calc(env(safe-area-inset-top,0px) + 4px)}
 /* the glass sits left of the compass; on a phone it shrinks with the dial */
@@ -384,7 +385,22 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-
       <button id="t60" aria-pressed="false" title="60×: one minute per second (3)">60×</button>
     </div>
     <div class="seg" role="group" aria-label="Skip ahead"><button id="bSkip" title="Skip ahead three hours (K)">+3 h</button><button id="bSkip12" title="Skip ahead twelve hours (Shift+K)">+12 h</button><button id="bSkip24" title="Skip ahead a day (Alt+K)">+24 h</button></div>
-    <div class="menuwrap"><button class="tb" id="bMenu" aria-expanded="false" aria-haspopup="true" title="Voyages, help and sound">Menu ☰</button>
+    <div class="menuwrap"><button class="tb" id="bAssist" aria-expanded="false" aria-haspopup="true" title="Crew assists: sails, watches, speed log and navigation">Assists ✦</button>
+      <div class="menupop" id="assistPop" hidden>
+        <b class="ah">Sails</b>
+        <label class="chk"><input type="checkbox" id="aSail"> <span>Sailmaster<small>Shortens sail when she strains and makes sail again as the wind eases.</small></span></label>
+        <div id="aBosunSlot"></div>
+        <b class="ah">Crew</b>
+        <label class="chk"><input type="checkbox" id="aCrew"> <span>Mate keeps the watches<small>Spreads the hands evenly when they wear out or the crew changes.</small></span></label>
+        <b class="ah">Speed</b>
+        <div id="aLogSlot"></div>
+        <b class="ah">Navigation</b>
+        <label class="chk"><input type="checkbox" id="aRoute"> <span>Helm follows the route<small>Steers for each mark on your chart route in turn.</small></span></label>
+        <label class="chk"><input type="checkbox" id="aNoon"> <span>Navigator shoots the noon sight<small>Takes the sun up from the forenoon watch and marks noon when it dips.</small></span></label>
+        <label class="chk"><input type="checkbox" id="aFix"> <span>Lookout takes the bearings<small>Takes bearings on landmarks as they come in sight and plots the fix.</small></span></label>
+        <div id="aPeekSlot"></div>
+      </div></div>
+    <div class="menuwrap"><button class="tb" id="bMenu" aria-expanded="false" aria-haspopup="true" title="Voyages, help and sound"><span class="mtxt">Menu </span>☰</button>
       <div class="menupop" id="menuPop" hidden><button class="tb" id="bVoy">Voyages</button><button class="tb" id="bHelp">How to sail</button><button class="tb" id="bSave">Save game</button><button class="tb" id="bLoad">Load game</button><button class="tb" id="bDark" aria-pressed="false">Dark mode</button><button class="tb" id="bSound" aria-pressed="false">Sound off</button><button class="tb" id="bFull" title="Use the whole screen">Full screen</button></div></div>
   </div>
   <div class="infobar" aria-label="Date, wind and weather">
@@ -939,7 +955,7 @@ function step(dt){
   const sh=s.ship;
   const w=windAt(s,sh.x,sh.y,s.t);
   const bf=beaufort(w.kn);
-  wxStep(s,dt,w);routeStep(s);crewStep(s,dt,w);fishStep(s,dt,w);damageStep(s,dt,w);
+  wxStep(s,dt,w);routeStep(s);assistStep(s,dt,w);crewStep(s,dt,w);fishStep(s,dt,w);damageStep(s,dt,w);
   // squalls
   if(!s.squall&&s.t>s.nextSquall-.3&&!s.squallWarned){s.squallWarned=true;say("Squall to windward! Dark cloud and white water coming down on us.",{slow:true});}
   if(!s.squall&&s.t>=s.nextSquall){s.squall={t0:s.t,dur:.4+rng()*.5,boost:10+rng()*7,shift:(rng()<.5?-1:1)*(10+rng()*20)};}
@@ -1038,6 +1054,45 @@ function step(dt){
 }
 function isNight(s){const g=shipGeo(s);const lh=((localHours(s,s.t)%24)+24)%24;return sunAlt(g.lat,lh,dayIndex(s))<-4;}
 function mateHeave(s){const m=Math.max(0,Math.round(s.ship.v*(1+gauss()*.07)*2)/2);s.estSpeed=m;s.lastLog={v:m,t:s.t,by:"mate"};}
+/* ---------- assists: hands on board doing the small jobs ---------- */
+function assistStep(s,dt,w){
+  if(s.done||s.t<(s.assistT||0))return;s.assistT=s.t+.02;
+  const sh=s.ship;
+  if($("aSail").checked&&sh.anch.mode!=="holding"){
+    const kn=w.kn;let want=0;for(let L=0;L<SAILS.length;L++)if(SAILS[L].safe>kn+4)want=L;if(want===0&&SAILS[1].safe>kn)want=1;
+    const hold=SAILS[sh.sail].safe>kn+2;
+    if((s.strain>0||!hold||sh.sail>want)&&sh.sail>0){setSail(sh.sail-1);say(`The sailmaster shortens her to ${SAILS[sh.sail].name.toLowerCase()}.`,{});s.sailT=s.t;}
+    else if(sh.sail<want&&s.t-(s.sailT||-9)>.25){setSail(sh.sail+1);say(`The wind has eased. The sailmaster sets ${SAILS[sh.sail].name.toLowerCase()}.`,{});s.sailT=s.t;}
+  }
+  if($("aCrew").checked){
+    const n=s.crew.length;
+    if((s.crewN!==n)||(s.fat>.55&&s.t-(s.balT||-9)>2)){s.crewN=n;s.balT=s.t;svBalance();say("The mate spreads the hands evenly between the watches so they can sleep.",{});}
+  }
+  if($("aNoon").checked&&s.noon){
+    if(!s.noon.observing){if(noonAvailable().ok)startObserve();}
+    else{const r=s.noon.readings;if(r.length>=8){const mx=Math.max(...r);if(r[r.length-1]<mx-.012)markNoon();}}
+  }
+  if($("aFix").checked&&s.mode==="lost"){
+    const seen=LMS.filter(l=>l.vis&&!s.bearings.some(b=>b.lm===l&&b.t>s.t-.3));
+    seen.slice(0,2).forEach(l=>takeBearing(l));
+    if(crossFix())plotFix();
+  }
+}
+const ASSIST_IDS=["aSail","aCrew","aNoon","aFix","bosun","mateLog"];
+function initAssists(){
+  $("aBosunSlot").append($("bosun").closest("label"));$("aLogSlot").append($("mateRow"));$("aPeekSlot").append($("peekWrap"));
+  const bl=$("bosun").closest("label");bl.querySelector("input").insertAdjacentElement("afterend",Object.assign(document.createElement("span"),{innerHTML:"Bosun trims the yards<small>Braces the yards to the best angle for the wind, always.</small>"}));[...bl.childNodes].filter(n=>n.nodeType===3).forEach(n=>n.remove());
+  const ml=$("mateLog").closest("label");[...ml.childNodes].filter(n=>n.nodeType===3).forEach(n=>n.remove());ml.append(Object.assign(document.createElement("span"),{innerHTML:"Mate heaves the log each hour<small>Reads the speed off the log line every hour for your reckoning, with a little error.</small>"}));
+  const pl=$("peekWrap");[...pl.childNodes].filter(n=>n.nodeType===3).forEach(n=>n.remove());pl.append(Object.assign(document.createElement("span"),{innerHTML:"Show true position<small>Practice aid for the lost-at-sea voyages.</small>"}));
+  [bl,ml,pl].forEach(l=>{l.style.alignItems="flex-start";});
+  let saved={};try{saved=JSON.parse(localStorage.getItem("drAssists")||"{}");}catch(e){}
+  ASSIST_IDS.forEach(id=>{if(id in saved)$(id).checked=!!saved[id];$(id).addEventListener("change",()=>{const o={};ASSIST_IDS.forEach(k=>o[k]=$(k).checked);try{localStorage.setItem("drAssists",JSON.stringify(o));}catch(e){}});});
+  const pop=$("assistPop"),btn=$("bAssist");
+  btn.onclick=e=>{e.stopPropagation();pop.hidden=!pop.hidden;btn.setAttribute("aria-expanded",String(!pop.hidden));if(!pop.hidden&&S)$("aRoute").checked=!!S.route.follow;};
+  document.addEventListener("click",e=>{if(!pop.hidden&&!e.target.closest("#assistPop")&&e.target!==btn){pop.hidden=true;btn.setAttribute("aria-expanded","false");}});
+  window.addEventListener("keydown",e=>{if(e.key==="Escape"){pop.hidden=true;}});
+  $("aRoute").onchange=e=>{if(!S)return;S.route.follow=e.target.checked;S.route.t=0;if(S.route.follow)routeSteerOnce();$("rFollow").checked=S.route.follow;};
+}
 function hourly(w){
   const s=S;
   if($("mateLog").checked&&!(s.lastLog&&s.lastLog.by==="you"&&s.t-s.lastLog.t<.75))mateHeave(s);
@@ -3245,6 +3300,7 @@ $("bookBtn").onclick=()=>{const bx=$("bookBox"),o=!bx.classList.contains("open")
 {const h=document.querySelector(".dockhead b.dh");h.onclick=()=>document.querySelector('.ctog[data-dock="all"]').click();}
 for(const b of document.querySelectorAll("#sailSteps5 button"))b.onclick=()=>setSail(+b.dataset.n);
 $("bHeave").onclick=openHeave;$("bNip").onclick=nip;
+initAssists();
 $("bObserve").onclick=startObserve;$("bMark").onclick=markNoon;$("bFix").onclick=plotFix;
 $("peek").onchange=()=>updateUI(true);
 dl.addEventListener("click",e=>{if(!S)return;const r=dl.getBoundingClientRect();const x=e.clientX-r.left-r.width/2,y=e.clientY-r.top-r.height/2,kk=dl.width/r.width,rr=Math.hypot(x,y)*kk,Rc=dl.width/2-30;
@@ -3265,6 +3321,7 @@ function fillHelpIcons(){
   row("❚❚","<b>Pause.</b> Stops the clock. Handy for thinking, plotting and reading the chart.");
   row("1× 3× 60×","<b>Speed of time.</b> 1× is real time. 3× hurries a little; 60× is a minute per second, for open water. The game drops to 60× only when something needs you.");
   row("+3 h","<b>Skip ahead</b> three, twelve or twenty-four hours. It stops early if something needs your attention.");
+  row("Assists ✦","<b>Assists.</b> Hands on board who do the small jobs for you: the sailmaster, bosun, mate, helm, navigator and lookout. Switch on only the ones you want; each is explained in the menu.");
   row("Menu ☰","<b>Menu.</b> Voyages, this guide, save and load, dark mode, sound and full screen.");
   hh("Information strip");
   row("▲","<b>Fold</b> the strip up or down. It reads: date and watch, wind, weather, the glass with what it means, sea state and your last log line.");
@@ -3403,7 +3460,7 @@ cam.x=geo(14.5,-61).x;cam.y=geo(14.5,-61).y;cam.zoom=1.4;
 drawGlass(0,false);
 requestAnimationFrame(frame);
 // test hook
-window.__DR={sx,sy,openPortCard,openPortPlan,get R3(){return R3},setMain,update3D,get S(){return S},VOYAGES,PORTS,islands,reefs,LMS,step,startVoyage,setCourse,tackOrWear,setSail,windAt:(x,y,t)=>windAt(S,x,y,t),inPoly,crossFix,plotFix,takeBearing,markNoon,startObserve,noonAvailable,endVoyage,toGeo,geo,atPort:()=>atPort(S),buyStore,sellFish,toggleFish};
+window.__DR={sx,sy,openPortCard,openPortPlan,get R3(){return R3},setMain,update3D,get S(){return S},VOYAGES,PORTS,islands,reefs,LMS,step,startVoyage,setCourse,tackOrWear,setSail,assistStep,noonAvailable,windAt:(x,y,t)=>windAt(S,x,y,t),inPoly,crossFix,plotFix,takeBearing,markNoon,startObserve,noonAvailable,endVoyage,toGeo,geo,atPort:()=>atPort(S),buyStore,sellFish,toggleFish};
 })();
 </script>
 <script>if("serviceWorker" in navigator&&location.protocol.startsWith("http"))window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
