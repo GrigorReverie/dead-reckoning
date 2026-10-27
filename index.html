@@ -2017,13 +2017,8 @@ function buildIslands(R){
   }
 }
 
-function buildShip(R){
-  const {scene,inkMat,sailMat,lineMat,solidInk,hullMat,deckMat,boxMat,mastMat,sailLine}=R;
-  const group=new THREE.Group(),bob=new THREE.Group();group.add(bob);scene.add(group);
-  const L=24;
-  // hull lines of a 1760s-80s brig, after the Admiralty draughts: a curved stem raked forward over a rounded forefoot, a sternpost raked aft,
-  // a raked square transom over a rounded tuck, a full bow and a fine run, deadrise and a round bilge below the wale, tumblehome above it.
-  // The quarterdeck and forecastle are raised within the hull itself, the side stepping up at each break.
+/* the brig's hull lines, shared by the 3D model and the 2D cutaway so the two always agree (z along the keel, y above the water) */
+function brigLines(){
   const sstep=(a,b,v)=>{const t=clamp((v-a)/(b-a),0,1);return t*t*(3-2*t);};
   const QB=-5.4,FB=6.6,QDY=4.27,FCY=3.95,YW=1.25; // quarterdeck and forecastle breaks, their deck heights, the wing transom
   const rise=z=>1.3*(z/12)*(z/12); // sheer of the main deck above its lowest point amidships
@@ -2040,6 +2035,16 @@ function buildShip(R){
     else{const w=(c-u)/c,t=gT(y);g=t+(1-t)*Math.pow(Math.max(0,1-Math.pow(w,1.6+h)),.9);}
     return Math.max(.14,Bm(y,yk)*g);};
   const hx=(z,y)=>{const a=zA(y),f=zF(y);if(z<a||z>f)return 0;return shape((z-a)/(f-a),y,z);};
+  return{sstep,QB,FB,QDY,FCY,YW,rise,deckW,deckAt,railY,keelY,zF,zS,zA,shape,hx};
+}
+function buildShip(R){
+  const {scene,inkMat,sailMat,lineMat,solidInk,hullMat,deckMat,boxMat,mastMat,sailLine}=R;
+  const group=new THREE.Group(),bob=new THREE.Group();group.add(bob);scene.add(group);
+  const L=24;
+  // hull lines of a 1760s-80s brig, after the Admiralty draughts: a curved stem raked forward over a rounded forefoot, a sternpost raked aft,
+  // a raked square transom over a rounded tuck, a full bow and a fine run, deadrise and a round bilge below the wale, tumblehome above it.
+  // The quarterdeck and forecastle are raised within the hull itself, the side stepping up at each break.
+  const {sstep,QB,FB,QDY,FCY,YW,rise,deckW,deckAt,railY,keelY,zF,zS,zA,shape,hx}=brigLines();
   const NU=64,NT=36,pos=[],tone=[],idx=[],grid=[];
   for(let k=0;k<=NU;k++){const u=.5-.5*Math.cos(PI*k/NU),col=[];
     for(let j=0;j<=NT;j++){const t=j/NT;let z=-11+22*u,y=0;
@@ -3004,7 +3009,7 @@ function drawFish(){const M=S.fmarks;if(!M)return;ctx.save();ctx.font="11px 'IBM
 const WB=[0,4,8,12,16,18,20,24],WNAME=["Fore watch","Main watch","Quarter watch","Day work"],WSH=["F","M","Q","D"];
 const DUTYRATE={"Captain":.03,"Mate":.06,"Bosun":.065,"Carpenter":.03,"Cook":.03,"Cabin boy":.03,"Seaman":.075};
 const BERTHS=(()=>{const B=[],add=(room,label,x,tier,lv,q)=>B.push({room,label,x,tier,lv,q});
-  add("cab","Great cabin cot 1",125,0,1,1);add("cab","Great cabin cot 2",195,0,1,1);
+  add("cab","Aft cabin cot 1",125,0,1,1);add("cab","Aft cabin cot 2",195,0,1,1);
   for(const[x,i]of[[285,0],[350,1]])for(const t of[0,1])add("ste",`Steerage bunk ${i*2+t+1}`,x,t,1,.92);
   for(let t=0;t<2;t++)for(let i=0;i<5;i++)add("fore",`Forecastle hammock ${t*5+i+1}`,745+i*36,t,1,t?.8:.78);
   for(let i=0;i<4;i++)add("hold",`Hold berth ${i+1} (among the stores)`,300+i*42,0,2,.6);
@@ -3036,8 +3041,9 @@ const crewEff=()=>(S&&S.eff)||1;
 
 /* ---------- the Ship tab: cutaway profile ---------- */
 const SV={sel:-1,hoverB:-1,last:0,rowT:0,open:false};
-const LAD01=[262,565,740],LAD12=[565],SVW=1000,SVH=782,SVS=.64,SVX=110,SVY=544;
-const gndY=(lv,x)=>lv===0?(x<300?140:x>790?150:172):lv===1?242:322;
+const LAD01=[340,565,725],LAD12=[565],SVW=1000,SVH=782,SVS=.64,SVX=110,SVY=544;
+const gndY=(lv,x)=>{if(lv!==0)return lv===1?242:322;const z=(x-505)/37.25,w=172-35*(1.3*(z/12)*(z/12)),q=clamp((x-292)/34,0,1),f=clamp((x-735)/30,0,1); // quarterdeck, the sheered waist, forecastle: the same decks as the 3D brig
+  return 96+(w-96)*q+(107-w)*f;};
 const nearLad=(arr,x)=>arr.reduce((a,b)=>Math.abs(b-x)<Math.abs(a-x)?b:a);
 const berthY=b=>gndY(b.lv,b.x)-12-b.tier*30;
 function svCrewIdx(){return S&&S.crew?S.crew:[];}
@@ -3046,14 +3052,14 @@ function assignBerth(mi,bid){const C=S.crew,m=C[mi];if(bid==null){m.b=null;}else
 function svTarget(m,i,ctx){
   if(m.mode==="sleep"){if(m.b!=null){const b=BERTHS[m.b];return{x:b.x,lv:b.lv,up:0,act:"Asleep, "+b.label.toLowerCase()};}return{x:440+(i%8)*16,lv:1,up:0,act:"Asleep on the lower deck, no berth",floor:true};}
   if(m.mode==="rest"){if(m.r==="Captain")return{x:150,lv:1,up:0,act:"Off duty in the great cabin",key:"cr",wander:[110,230]};return{x:500,lv:1,up:0,act:"Off watch, at leisure",key:"rest",wander:[430,600]};}
-  if(m.r==="Captain")return{x:150,lv:0,up:0,act:"On the quarterdeck",key:"cap",wander:[130,285]};
-  if(m.r==="Mate")return{x:225,lv:0,up:0,act:"Officer of the watch",key:"mate",wander:[190,285]};
+  if(m.r==="Captain")return{x:150,lv:0,up:0,act:"On the quarterdeck",key:"cap",wander:[150,265]};
+  if(m.r==="Mate")return{x:225,lv:0,up:0,act:"Officer of the watch",key:"mate",wander:[200,265]};
   if(m.r==="Cook")return{x:655,lv:1,up:0,act:"In the galley",key:"cook",wander:[620,700]};
   if(m.r==="Carpenter"){if(S.jobs.caulk&&!S.jobs.caulk.why)return{x:380,lv:2,up:0,act:"Caulking the seams",key:"caulk",wander:[360,420]};return{x:790,lv:2,up:0,act:"In the carpenter's store",key:"carp",wander:[730,860]};}
   if(m.r==="Cabin boy")return{x:420,lv:0,up:0,act:"Running errands on deck",key:"boy",wander:[330,760]};
   const k=ctx.seamen.indexOf(i);
-  if(k===0)return{x:112,lv:0,up:0,act:"At the helm",key:"helm"};
-  if(k===1)return{x:762,lv:0,up:1,act:"Lookout at the foremast head",key:"look"};
+  if(k===0)return{x:280,lv:0,up:0,act:"At the helm",key:"helm"};
+  if(k===1)return{x:710,lv:0,up:3.9,act:"Lookout at the foremast head",key:"look"};
   const pm=S.pumpMen||0;if(k>=2&&k<2+pm)return{x:430+(k-2)*22,lv:0,up:0,act:"At the pump",key:"pump"+k};
   if(S.fishing&&k>=2+pm&&k<5+pm)return{x:560+(k-2-pm)*38,lv:0,up:0,act:"Fishing over the side",key:"fish"+k};
   if(ctx.work&&k>=2&&k<2+ctx.work){const fore=k%2===0,up=.4+((k>>1)%3)*.28;return{x:fore?762:470,lv:0,up,act:"Aloft handling sail",key:"up"+k};}
@@ -3076,74 +3082,84 @@ function svMove(m,i,dt,ctx){const T=svTarget(m,i,ctx);m.act=T.act;
 function svCtx(){const C=S.crew,sh=S.ship,seamen=[];C.forEach((m,i)=>{if(m.mode==="duty"&&(m.r==="Seaman"||m.r==="Bosun"))seamen.push(i);});
   const work=(sh.q.length||SAILIDS.some(k=>Math.abs(sh.sls[k]-sh.sa[k])>.02))?Math.min(6,Math.max(0,seamen.length-2)):0;return{seamen,work};}
 const svCol=()=>{const cs=getComputedStyle(document.documentElement),g=n=>cs.getPropertyValue(n).trim();return{ink:g("--ink"),paper:g("--paper"),paper2:g("--paper-2"),rule:g("--rule"),och:g("--ochre"),soft:g("--ink-soft"),brass:g("--brass")};};
-function svExterior(W,H){
-  return null;
-  const E=R3.ext||(R3.ext={rt:null,cv:document.createElement("canvas"),cam:new THREE.OrthographicCamera(-18.16,23.78,31.29,-3.62,1,400),f:0,ok:true});
-  if(!E.ok)return null;
-  const w=Math.min(1200,Math.round(W)),h=Math.round(w*SVH/SVW);
-  try{
-    if(!E.rt||E.rt.width!==w||E.rt.height!==h){E.rt=new THREE.WebGLRenderTarget(w,h,{depthBuffer:true});E.buf=new Uint8Array(w*h*4);E.cv.width=w;E.cv.height=h;E.ctx=E.cv.getContext("2d");E.img=E.ctx.createImageData(w,h);E.f=0;}
-    // the sails are not animated in the ship view: re-render the 3D hull only when something visible changed
-    const sk=Object.values(S.ship.sls).map(v=>Math.round(v*50)).join(",")+"|"+Math.round(S.ship.heading/4)+"|"+(DARK?1:0)+(isNight(S)?1:0)+"|"+Math.round(S.ship.brace/3),nowT=performance.now();
-    if(E.drawn&&E.key===sk&&nowT-(E.t||0)<2500)return E.cv;E.key=sk;E.t=nowT;
-    const r=R3.renderer,sc=R3.scene,hdg=S.ship.heading*D2R,fx=Math.sin(hdg),fz=-Math.cos(hdg),cam=E.cam;
-    // camera square to her starboard side, the bow to the right, level with the waterline
-    cam.position.set(-fz*100,0,fx*100);cam.up.set(0,1,0);cam.lookAt(0,0,0);cam.updateMatrixWorld();
-    const vis=sc.children.map(c=>c.visible),crew=R3.crew?R3.crew.map(c=>c.m.visible):[],oc=r.getClearColor(new THREE.Color()).clone(),oa=r.getClearAlpha(),ort=r.getRenderTarget();
-    sc.children.forEach(c=>{c.visible=c===R3.ship;});if(R3.crew)R3.crew.forEach(c=>{c.m.visible=false;});
-    r.setRenderTarget(E.rt);r.setClearColor(0x000000,0);r.clear();r.render(sc,cam);r.readRenderTargetPixels(E.rt,0,0,w,h,E.buf);
-    r.setRenderTarget(ort);r.setClearColor(oc,oa);sc.children.forEach((c,i)=>{c.visible=vis[i];});if(R3.crew)R3.crew.forEach((c,i)=>{c.m.visible=crew[i];});
-    const d=E.img.data,b=E.buf;for(let y=0;y<h;y++){const so=(h-1-y)*w*4,dof=y*w*4;for(let x=0;x<w*4;x++)d[dof+x]=b[so+x];}
-    E.ctx.putImageData(E.img,0,0);E.drawn=true;return E.cv;
-  }catch(err){E.ok=false;return null;}
-}
 function svDraw(now){const c=$("shipCv"),par=c.parentElement,dpr=Math.min(2,devicePixelRatio||1),W=Math.max(par.clientWidth,innerWidth<=860?720:300),H=Math.round(W*SVH/SVW);
   if(c.width!==Math.round(W*dpr)||c.height!==Math.round(H*dpr)){c.width=Math.round(W*dpr);c.height=Math.round(H*dpr);c.style.height=H+"px";c.style.width=W+"px";}
   const g=c.getContext("2d"),K=svCol(),k=W/SVW,day=!isNight(S)&&!DARK;if(day){K.ink='#2b2119';K.soft='#8a7a62';}g.setTransform(dpr*k,0,0,dpr*k,0,0);g.clearRect(0,0,SVW,SVH);g.fillStyle=K.paper;g.fillRect(0,0,SVW,SVH);
   g.lineJoin="round";g.lineCap="round";const L=(w,col)=>{g.lineWidth=w>=10?w:w*.58;g.strokeStyle=col||K.ink;};
   const line=(x1,y1,x2,y2)=>{g.beginPath();g.moveTo(x1,y1);g.lineTo(x2,y2);g.stroke();};
   const tm=now/1000,sh=S.ship;
-  const EXT=svExterior(Math.round(W*dpr),H);
   // sky wash and a few drifting cumulus, like the margins of a printed ship plate
   if(day){const sg=g.createLinearGradient(0,0,0,SVH*.75);sg.addColorStop(0,'rgba(150,186,206,.34)');sg.addColorStop(.6,'rgba(190,206,205,.12)');sg.addColorStop(1,'rgba(240,230,190,0)');g.fillStyle=sg;g.fillRect(0,0,SVW,SVH);}
   for(const[cx,cy,cs]of[[160,70,1],[640,40,.8],[880,120,.9]]){const x=((cx+tm*3*cs)%1300)-150;g.globalAlpha=day?.85:.25;g.fillStyle=K.paper;g.strokeStyle=K.soft;g.lineWidth=1;g.beginPath();for(const[dx,dy,r]of[[0,0,26],[28,-10,32],[62,-2,26],[88,6,18],[-26,8,18]]){g.moveTo(x+(dx+r)*cs,cy+dy*cs);g.arc(x+dx*cs,cy+dy*cs,r*cs,0,2*PI);}g.fill();g.globalAlpha=day?.5:.2;g.stroke();for(let l=0;l<4;l++){g.beginPath();g.moveTo(x-30*cs,cy+(14+l*5)*cs);g.lineTo(x+100*cs,cy+(14+l*5)*cs);g.stroke();}g.globalAlpha=1;}
-  if(EXT){g.globalAlpha=1;g.drawImage(EXT,0,0,SVW,SVH);}
   g.setTransform(dpr*k*SVS,0,0,dpr*k*SVS,dpr*k*SVX,dpr*k*SVY);
   // hull
-  // one silhouette for the whole ship: raked stem and sternpost, planked sides painted like the 3D brig; the rooms are cut into her side (inset by I) so hull and interior are a single drawing
-  const mkHull=I=>{const h=new Path2D();h.moveTo(46+I,138+I*.3);h.lineTo(56+I,206);h.lineTo(76+I,276-I*.8);for(let z=-11.2;z<=10.8;z+=.8){const e=Math.abs((z+12)/12-1),d=2.7*(1-.55*e*e*e);h.lineTo(505+37.25*z,172+35*(2.1+d)-I*1.1);}
-    h.lineTo(930-I*1.2,250);h.quadraticCurveTo(950-I*1.3,200,964-I*1.4,150);h.lineTo(790,150);h.lineTo(790,172);h.lineTo(300,172);h.lineTo(300,140);h.closePath();return h;};
-  const hull=mkHull(0),hullIn=mkHull(15);
+  // the whole ship is drawn from the 3D brig's own lines (brigLines) so the two always agree: z along the keel, h above the water
+  const BL=brigLines(),{QB,FB,QDY,FCY,YW,rise,deckW,deckAt,railY,keelY,zF,zA,zS}=BL,X=z=>505+37.25*z,Y=h=>172-(h-2.1)*35,ZX=x=>(x-505)/37.25;
+  const dkY=x=>Y(deckW(ZX(x)));
+  const mkHull=()=>{const p=new Path2D();p.moveTo(X(zA(4.77)),Y(4.77));for(let z=-12.3;z<=12.5;z+=.3)p.lineTo(X(z),Y(railY(z)));for(let y=4.5;y>=-2.62;y-=.25)p.lineTo(X(zF(y)),Y(y));for(let z=9;z>=-10.6;z-=.5)p.lineTo(X(z),Y(keelY(z)));for(let y=keelY(-10.6);y<=4.77;y+=.25)p.lineTo(X(zA(y)),Y(y));p.closePath();return p;};
+  // the rooms are cut into her side: inset by the thickness of the planking, the top following the decks
+  const mkIn=I=>{const p=new Path2D(),ax=y=>X(zA(y))+I*1.2,fx=y=>X(zF(y))-I*.9,top=z=>z<QB?Y(QDY)+5:z>FB?Y(FCY)+5:dkY(X(z));
+    p.moveTo(ax(QDY),Y(QDY)+5);for(let x=ax(QDY);x<=fx(FCY);x+=6)p.lineTo(x,top(ZX(x)));for(let y=FCY;y>=-2.4;y-=.25)p.lineTo(fx(y),Y(y));for(let z=9;z>=-10.4;z-=.5)p.lineTo(X(z),Y(keelY(z))-I);for(let y=-2.9;y<=QDY;y+=.25)p.lineTo(ax(y),Y(y));p.closePath();return p;};
+  const hull=mkHull(),hullIn=mkIn(11);
   const bob=Math.sin(tm*.9)*2,roll=Math.sin(tm*.7)*.012;g.save();g.translate(505,246);g.rotate(roll);g.translate(-505,-246+bob);
-  g.save();g.clip(hull);
-  if(day){const hg=g.createLinearGradient(0,118,0,345),stp=(y,c)=>hg.addColorStop(Math.min(1,Math.max(0,(y-118)/227)),c);
-    stp(118,'#2a231d');stp(168,'#2a231d');stp(170,'#c9a24a');stp(204,'#d7b25a');stp(206,'#2a231d');stp(238,'#2a231d');stp(241,'#ece0bd');stp(247,'#ece0bd');stp(249,'#b85a3c');stp(345,'#9c4630');g.fillStyle=hg;}
-  else g.fillStyle=K.rule;
-  g.fillRect(0,100,SVW,260);
-  L(.8,day?'rgba(250,240,210,.28)':K.soft);g.globalAlpha=.7;for(let y=150;y<345;y+=7)line(0,y,SVW,y);g.globalAlpha=1;
+  // planked sides painted as on the 3D brig: black topsides with the ochre band and blacked wale following the sheer, cream boot-top, copper below
+  const band=(h0,h1,col,sh)=>{g.fillStyle=col;g.beginPath();for(let z=-13;z<=15;z+=.5)g.lineTo(X(z),Y(h1+(sh?rise(z):0)));for(let z=15;z>=-13;z-=.5)g.lineTo(X(z),Y(h0+(sh?rise(z):0)));g.closePath();g.fill();};
+  const paint=path=>{g.save();g.clip(path);g.fillStyle=day?'#2a231d':K.rule;g.fillRect(-50,-20,SVW+120,SVH);
+    if(day){band(-9,.3,'#b85a3c');band(.26,.44,'#ece0bd');band(2.18,3.04,'#c9a24a',1);}else{g.globalAlpha=.5;band(2.18,3.04,K.soft,1);band(-9,.3,K.soft);g.globalAlpha=1;}
+    L(.7,day?'rgba(250,240,210,.3)':K.soft);for(const yb of[1.18,1.74,2.2,3.0]){g.beginPath();for(let z=-13;z<=15;z+=.5)g.lineTo(X(z),Y(yb+rise(z)));g.stroke();}
+    g.restore();};
+  // knee of the head with its scroll, and the rudder hung on the sternpost, each in the 3D model's own profile
+  { const P=new Path2D();let first=true;const add=(z,y)=>{first?(P.moveTo(X(z),Y(y)),first=false):P.lineTo(X(z),Y(y));};
+    for(let y=-1.3;y<=3.95;y+=.25)add(zF(y)-.15,y);add(zF(3.95)+.3,4.2);add(14.0,3.95);for(let y=3.6;y>=-1.3;y-=.25)add(zF(y)+1.45*BL.sstep(-1.3,3.4,y)-.02,y);P.closePath();paint(P);L(1.2);g.stroke(P);
+    const R=new Path2D(),yk=keelY(-10.6),yt=YW+.75;R.moveTo(X(zS(yk)-.03),Y(yk));for(let i=0;i<=8;i++){const y=yk+(yt-yk)*i/8;R.lineTo(X(zS(y)-.03),Y(y));}for(let i=8;i>=0;i--){const y=yk+(yt-yk)*i/8,sg=i/8;R.lineTo(X(zS(y)-.03-(sg>.8?.38:1.1-.55*sg)),Y(y));}R.closePath();paint(R);L(1.2);g.stroke(R);
+    g.fillStyle=day?'#c9a24a':K.soft;g.beginPath();g.arc(X(13.85),Y(3.95),9,0,2*PI);g.fill();L(1.2);g.stroke();g.beginPath();g.arc(X(13.85),Y(3.95),4,0,2*PI);g.stroke(); }
+  paint(hull);
+  // the bulwarks, painted red inboard, seen from inside along the far side; sixteen gun ports, their lids triced up
+  g.save();g.clip(hull);{g.fillStyle=day?'#a8452f':K.soft;g.globalAlpha=day?1:.5;g.beginPath();for(let z=-12.4;z<=12.6;z+=.25)g.lineTo(X(z),Y(railY(z)));for(let z=12.6;z>=-12.4;z-=.25)g.lineTo(X(z),Y(deckAt(z)));g.closePath();g.fill();g.globalAlpha=1;
+    L(.7,day?'rgba(40,20,12,.4)':K.soft);for(const dh of[.3,.6,.85]){g.beginPath();for(let z=-12.4;z<=12.6;z+=.25)g.lineTo(X(z),Y(deckAt(z)+(railY(z)-deckAt(z))*dh));g.stroke();}
+    for(const pz of[-4.4,-3.0,-1.6,-.2,1.2,2.6,4.0,5.4]){const yc=deckW(pz)+.62;g.fillStyle='#2a2018';g.fillRect(X(pz-.34),Y(yc+.27),.68*37.25,.54*35);L(1,day?'#3a2a1c':K.ink);g.strokeRect(X(pz-.34),Y(yc+.27),.68*37.25,.54*35);line(X(pz-.34),Y(yc+.27)-2,X(pz+.34),Y(yc+.27)-2);}
+    L(2.6);g.beginPath();for(let z=-12.4;z<=12.6;z+=.25)g.lineTo(X(z),Y(railY(z))-1);g.stroke();}
   g.restore();L(2.4);g.stroke(hull);
-  g.save();g.clip(hullIn);g.fillStyle=K.paper;g.fillRect(0,100,SVW,260);
-  g.fillStyle=K.paper;g.fillRect(74,176,822,66);g.fillRect(100,246,800,72);g.fillRect(84,144,216,26);g.fillRect(300,176,0,0);g.globalAlpha=1;
-  if(day){for(const[x0,y0,x1,y1,c]of[[74,176,250,242,'rgba(178,69,44,.2)'],[250,176,420,242,'rgba(201,162,74,.24)'],[420,176,600,242,'rgba(214,170,96,.22)'],[600,176,720,242,'rgba(184,90,60,.22)'],[720,176,900,242,'rgba(201,162,74,.24)'],
-      [84,144,300,172,'rgba(178,69,44,.14)'],[100,246,260,322,'rgba(160,52,40,.18)'],[260,246,700,322,'rgba(150,120,80,.2)'],[700,246,900,322,'rgba(201,162,74,.2)']]){g.fillStyle=c;g.fillRect(x0,y0,x1-x0,y1-y0);}
+  // five lights of the great cabin across the raked transom
+  g.strokeStyle=day?'#e8d9a8':K.paper;g.lineWidth=5;g.beginPath();g.moveTo(X(zA(2.95))+2,Y(2.95));g.lineTo(X(zA(3.85))+2,Y(3.85));g.stroke();L(1);g.beginPath();g.moveTo(X(zA(2.95))-1,Y(2.95)+3);g.lineTo(X(zA(3.85))-1,Y(3.85)-3);g.stroke();
+  g.save();g.clip(hullIn);g.fillStyle=K.paper;g.fillRect(0,0,SVW,SVH);
+  // rooms washed in flat colour under the real decks: the great cabin under the quarterdeck, between decks, the hold, the forecastle store
+  if(day){const fillR=(x0,x1,y0,y1,c)=>{g.fillStyle=c;g.fillRect(x0,y0,x1-x0,y1-y0);};
+    fillR(0,X(QB),0,300,'rgba(178,69,44,.14)');fillR(X(FB),SVW,0,300,'rgba(201,162,74,.2)');
+    g.save();{const bd=new Path2D();bd.moveTo(30,242);for(let x=30;x<=990;x+=8)bd.lineTo(x,dkY(x));bd.lineTo(990,242);bd.closePath();g.clip(bd);
+      for(const[x0,x1,c]of[[0,250,'rgba(178,69,44,.2)'],[250,420,'rgba(201,162,74,.24)'],[420,600,'rgba(214,170,96,.22)'],[600,720,'rgba(184,90,60,.22)'],[720,1000,'rgba(201,162,74,.24)']])fillR(x0,x1,0,400,c);}g.restore();
+    fillR(0,260,246,400,'rgba(160,52,40,.18)');fillR(260,700,246,400,'rgba(150,120,80,.2)');fillR(700,1000,246,400,'rgba(201,162,74,.2)');
     g.strokeStyle='rgba(90,60,30,.22)';g.lineWidth=.6;for(let x=80;x<900;x+=14){g.beginPath();g.moveTo(x,236);g.lineTo(x+6,242);g.stroke();}
     for(let x=104;x<900;x+=16){g.beginPath();g.moveTo(x,316);g.lineTo(x+6,322);g.stroke();}}
-  // decks
-  L(2.2);line(60,140,300,140);line(300,172,790,172);line(790,150,952,150);line(62,242,905,242);line(100,322,830,322);
-  // bulkheads between decks and in the hold
-  L(1.6);for(const x of[250,420,600,720])line(x,172,x,242);for(const x of[130,260,700])line(x,246,x,322);
-  // cabin windows and furniture
-  L(1.4);for(const y of[190,210])line(68,y,80,y);line(150,242,150,226);line(130,226,170,226);line(135,226,135,242);line(165,226,165,242); // table
-  line(100,200,100,215);line(96,200,104,200); // lamp hook
+  // decks: the quarterdeck, the main deck following her sheer, the forecastle, the lower deck and the hold floor
+  L(2.6);line(X(zA(QDY))-4,Y(QDY),X(QB),Y(QDY));line(X(FB),Y(FCY),X(zF(FCY))+4,Y(FCY));
+  g.beginPath();for(let x=40;x<=990;x+=6)g.lineTo(x,dkY(x));L(2.2);g.stroke();
+  L(2.2);line(62,242,935,242);line(100,322,830,322);
+  // bulkheads where the quarterdeck and forecastle rise from the waist, the cabin door, then between decks and in the hold
+  L(2.2);line(X(QB),Y(QDY),X(QB),dkY(X(QB)));line(X(FB),Y(FCY),X(FB),dkY(X(FB)));
+  g.fillStyle=K.paper;g.fillRect(X(QB)-4,Y(3.95),8,Y(2.4)-Y(3.95));L(1.2);g.strokeRect(X(QB)-4,Y(3.95),8,Y(2.4)-Y(3.95));
+  L(1.6);for(const x of[250,420,600,720])line(x,dkY(x),x,242);for(const x of[130,260,700])line(x,246,x,322);
+  // great cabin: table and chairs, a hanging lamp, the captain's cot and a locker under the stern lights
+  { const fl=x=>dkY(x);L(1.5);const tx=170,ty=fl(tx);line(tx-24,ty-19,tx+24,ty-19);line(tx-18,ty-19,tx-18,ty);line(tx+18,ty-19,tx+18,ty);
+    for(const cx of[tx-38,tx+38]){line(cx,ty-16,cx,ty);line(cx-6,ty-16,cx+6,ty-16);line(cx+(cx<tx?-6:6),ty-30,cx+(cx<tx?-6:6),ty-16);}
+    L(1.1);line(tx,Y(QDY)+5,tx,Y(QDY)+20);g.beginPath();g.arc(tx,Y(QDY)+26,6,0,PI);g.stroke();
+    const cx2=X(-9.6),cy2=fl(cx2);g.strokeRect(cx2-22,cy2-14,44,12);line(cx2-22,cy2-2,cx2-22,cy2);line(cx2+22,cy2-2,cx2+22,cy2);
+    g.strokeRect(235,fl(250)-30,26,28);line(248,fl(250)-30,248,fl(250)-2); }
+  // lower deck: cabins aft, steerage and the mess deck
+  L(1.4);line(150,242,150,226);line(130,226,170,226);line(135,226,135,242);line(165,226,165,242);
+  line(100,200,100,215);line(96,200,104,200);
   // galley: hearth and copper
-  L(1.6);g.strokeRect(630,214,52,28);line(640,214,640,172);line(672,214,672,172);L(1.2);line(636,226,676,226);g.beginPath();g.arc(655,206,9,PI,2*PI);g.stroke();
+  L(1.6);g.strokeRect(630,214,52,28);line(640,214,640,dkY(640));line(672,214,672,dkY(672));L(1.2);line(636,226,676,226);g.beginPath();g.arc(655,206,9,PI,2*PI);g.stroke();
   // mess table
   L(1.6);line(470,226,550,226);line(480,226,480,242);line(540,226,540,242);
+  // forecastle store: coiled cable and a windlass on the deck above
+  L(1.3);for(const x of[X(8.2),X(9.6)]){g.beginPath();g.ellipse(x,Y(FCY)+22,14,9,0,0,2*PI);g.stroke();g.beginPath();g.ellipse(x,Y(FCY)+22,6,3.5,0,0,2*PI);g.stroke();}
+  L(2);g.strokeRect(X(8.9)-24,Y(FCY)-10,48,10);line(X(8.9),Y(FCY)-10,X(8.9),Y(FCY));for(const x of[X(7.4),X(10.3)])line(x,Y(FCY),x,Y(FCY)-20);
   // stores in the hold
   L(1.3);for(const[x,y]of[[500,308],[530,308],[560,308],[590,308],[515,292],[545,292],[575,292],[610,308],[640,308],[625,292]]){g.beginPath();g.ellipse(x,y,12,13,0,0,2*PI);g.stroke();line(x-12,y-5,x+12,y-5);line(x-12,y+5,x+12,y+5);}
-  L(1.3);g.strokeRect(150,296,70,26);line(150,309,220,309);g.strokeRect(150,262,70,26); // bread room and powder
-  g.strokeRect(745,292,88,30);for(let x=752;x<830;x+=12)line(x,292,x,322); // cable tier
-  L(2,day?'#5a3020':K.ink);for(const x of[412,710]){line(x-5,326,x-5,172);line(x+5,326,x+5,172);}
+  L(1.3);g.strokeRect(150,296,70,26);line(150,309,220,309);g.strokeRect(150,262,70,26);
+  g.strokeRect(745,292,88,30);for(let x=752;x<830;x+=12)line(x,292,x,322);
+  L(2,day?'#5a3020':K.ink);for(const x of[X(-2.5),X(5.5)]){line(x-5,326,x-5,dkY(x));line(x+5,326,x+5,dkY(x));}
   g.restore();
   // the sea: a wash over everything below the waterline, a wavering surface line, foam at stem and stern
   // no sea inside the ship: the wash is cut away over the cutaway rooms; water shows below decks only as bilge from a leak
@@ -3156,12 +3172,13 @@ function svDraw(now){const c=$("shipCv"),par=c.parentElement,dpr=Math.min(2,devi
   g.restore();
   if(S.water>1){const lv=Math.min(70,6+S.water*1.4),by=322-lv,bw=x=>by+Math.sin(x*.06+tm*1.6)*1.6,bp=new Path2D();bp.moveTo(60,bw(60));for(let x=60;x<=960;x+=8)bp.lineTo(x,bw(x));bp.lineTo(960,330);bp.lineTo(60,330);bp.closePath();
     g.save();g.clip(hullIn);g.fillStyle=day?'rgba(70,104,116,.55)':'rgba(40,80,140,.5)';g.fill(bp);g.strokeStyle=day?'rgba(250,246,230,.85)':K.ink;g.lineWidth=1.4;g.beginPath();for(let x=60;x<=960;x+=8){x>60?g.lineTo(x,bw(x)):g.moveTo(x,bw(x));}g.stroke();g.restore();}
-  if(!EXT){
-  // rail and quarterdeck bulwark, helm
-  L(1.6);line(58,122,58,138);line(58,122,300,122);for(let x=70;x<300;x+=22)line(x,122,x,140);line(300,152,300,172);line(300,152,790,152);for(let x=310;x<790;x+=30)line(x,152,x,172);g.fillStyle=day?'#2a231d':K.ink;for(let x=325;x<780;x+=60){g.fillRect(x-7,157,14,10);g.save();g.fillStyle=day?'#8a7a62':K.soft;g.beginPath();g.arc(x,162,3,0,2*PI);g.fill();g.restore();}line(790,134,952,134);line(790,134,790,150);for(let x=800;x<952;x+=26)line(x,134,x,150);
-  L(1.6);g.beginPath();g.arc(112,122,13,0,2*PI);g.stroke();for(let a=0;a<8;a++)line(112,122,112+Math.cos(a*PI/4)*13,122+Math.sin(a*PI/4)*13);line(112,135,112,140);
-  L(1.8,day?'#5a3020':K.ink);line(62,122,62,64);g.fillStyle=day?'#c9a24a':K.soft;g.beginPath();g.arc(62,62,2.6,0,2*PI);g.fill();
-  { const w=Math.sin(tm*5)*2.2;g.beginPath();g.moveTo(64,63);g.quadraticCurveTo(82,66+w,100,72+w*1.4);g.quadraticCurveTo(82,78+w*.6,64,81);g.closePath();g.fillStyle=day?'#b2452c':K.soft;g.fill();L(1,K.ink);g.stroke(); } // wind flag: a plain red triangle
+  {
+  // helm: the wheel and binnacle on the quarterdeck, the ensign staff at the taffrail
+  { const hx0=X(-6.05),hy0=Y(QDY)-18;L(1.6);g.beginPath();g.arc(hx0,hy0,13,0,2*PI);g.stroke();for(let a=0;a<8;a++)line(hx0,hy0,hx0+Math.cos(a*PI/4)*13,hy0+Math.sin(a*PI/4)*13);line(hx0,hy0+13,hx0,Y(QDY)); }
+  g.save();g.translate(X(-12.3)-8,Y(4.77)-3);
+  L(1.8,day?'#5a3020':K.ink);line(0,0,0,-58);g.fillStyle=day?'#c9a24a':K.soft;g.beginPath();g.arc(0,-60,2.6,0,2*PI);g.fill();
+  { const w=Math.sin(tm*5)*2.2;g.beginPath();g.moveTo(2,-59);g.quadraticCurveTo(20,-56+w,38,-50+w*1.4);g.quadraticCurveTo(20,-44+w*.6,2,-41);g.closePath();g.fillStyle=day?'#b2452c':K.soft;g.fill();L(1,K.ink);g.stroke(); } // wind flag: a plain red triangle
+  g.restore();
   // masts, yards, sails and rigging, in the 3D model's proportions (z along the keel, h above the water)
   { const X=z=>505+37.25*z,Y=h=>172-(h-2.1)*35,wood=day?'#5a3322':K.ink,woodHi=day?'#9a6a44':K.soft,sls=sh.sls,rg=day?'rgba(42,30,20,.82)':K.ink;
     const ln=(z1,h1,z2,h2)=>line(X(z1),Y(h1),X(z2),Y(h2));
@@ -3206,7 +3223,7 @@ function svDraw(now){const c=$("shipCv"),par=c.parentElement,dpr=Math.min(2,devi
   L(1);g.globalAlpha=.6;g.beginPath();for(let i=0;i<14;i++){const y=172-i*7,x=657+Math.sin(tm*1.4+i*.7)*(3+i*.9)+i*1.6;i?g.lineTo(x,y):g.moveTo(x,y);}g.stroke();g.globalAlpha=1;
   // room names
   g.fillStyle=K.soft;g.font="italic 17px 'IM Fell English',Georgia,serif";g.textAlign="center";
-  for(const[t,x,y]of[["Great cabin",170,183],["Steerage",335,183],["Mess deck",510,183],["Galley",660,183],["Forecastle",820,183],["Powder room",195,258],["Stores, casks & cargo",530,262],["Carpenter's store",790,284],["Quarterdeck",180,115],["Waist",545,146],["Forecastle deck",872,128]])g.fillText(t,x,y);
+  for(const[t,x,y]of[["Aft cabins",170,196],["Great cabin",170,118],["Steerage",335,183],["Mess deck",510,183],["Galley",660,183],["Forecastle",820,183],["Powder room",195,258],["Stores, casks & cargo",530,262],["Carpenter's store",790,284],["Forecastle deck",870,76]])g.fillText(t,x,y);
   // berths
   const sel=SV.sel,selB=sel>=0?S.crew[sel].b:null;
   BERTHS.forEach((b,id)=>{const y=berthY(b),owner=berthOwner(id),hot=SV.hoverB===id,mine=selB===id;L(hot||mine?2.4:1.3,hot||mine?K.och:K.ink);
@@ -3253,7 +3270,7 @@ function svHud(g,K,k,dpr,day){g.setTransform(dpr*k,0,0,dpr*k,0,0);const ink=day?
   g.strokeStyle=ink;g.lineWidth=1.2;g.strokeRect(8,8,SVW-16,SVH-16);g.lineWidth=.5;g.strokeRect(13,13,SVW-26,SVH-26);
   for(const[x,y]of[[8,8],[SVW-8,8],[8,SVH-8],[SVW-8,SVH-8]]){g.fillStyle=day?'#f6eed9':K.paper;g.beginPath();g.arc(x,y,7,0,2*PI);g.fill();g.lineWidth=.8;g.stroke();g.beginPath();g.arc(x,y,3,0,2*PI);g.stroke();for(let a=0;a<4;a++){g.beginPath();g.moveTo(x+Math.cos(a*PI/2)*3,y+Math.sin(a*PI/2)*3);g.lineTo(x+Math.cos(a*PI/2)*7,y+Math.sin(a*PI/2)*7);g.stroke();}}
   g.fillStyle=ink;g.textAlign="left";g.font="italic 30px 'IM Fell English',Georgia,serif";g.fillText("Brig  \u201cHesper\u201d",34,52);
-  g.font="italic 14px 'IM Fell English',Georgia,serif";g.fillStyle=day?'#6a5a44':K.soft;g.fillText("Inboard profile \u00b7 two-masted brig, ten guns \u00b7 Lesser Antilles, 1745",36,74);
+  g.font="italic 14px 'IM Fell English',Georgia,serif";g.fillStyle=day?'#6a5a44':K.soft;g.fillText("Inboard profile \u00b7 two-masted brig, sixteen guns \u00b7 Lesser Antilles, 1745",36,74);
   g.lineWidth=.6;g.strokeStyle=ink;g.beginPath();g.moveTo(36,82);g.lineTo(300,82);g.stroke();
   const px=37.25*SVS,x0=SVW-110-px*10,y0=108;g.lineWidth=.8;for(let i=0;i<5;i++){g.fillStyle=i%2?(day?'#f6eed9':K.paper):ink;g.fillRect(x0+i*px*2,y0,px*2,4);}g.strokeRect(x0,y0,px*10,4);
   g.font="11px 'IBM Plex Mono',monospace";g.fillStyle=ink;g.textAlign="center";for(const i of[0,5,10])g.fillText(String(i),x0+i*px,y0-4);g.textAlign="left";g.fillText("metres",x0+px*10+8,y0+5);}
