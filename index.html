@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Dead Reckoning">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <title>Dead Reckoning</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -270,6 +270,8 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-
   .voylist{grid-template-columns:minmax(0,1fr)}
 }
 .app{position:relative}
+/* keep the top bar clear of the iPhone status bar and notch when installed */
+.bar{padding-top:calc(env(safe-area-inset-top,0px) + 4px)}
 .shipv{position:absolute;left:0;right:0;bottom:0;top:var(--bar-h,48px);z-index:40;background:var(--paper);display:grid;grid-template-columns:minmax(0,1fr) 360px;min-height:0}
 .sv-main{padding:10px 14px;overflow:auto;min-width:0}
 .sv-top{display:flex;justify-content:space-between;align-items:center;gap:10px}
