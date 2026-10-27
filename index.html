@@ -703,6 +703,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-
 </div>
 
 <div class="ov" id="ovCrisis" hidden style="z-index:25"><div class="card" role="dialog" aria-labelledby="crTitle"><h2 id="crTitle" style="margin:0"></h2><p id="crText" style="margin:0"></p><div id="crBtns" style="display:flex;flex-direction:column;gap:8px"></div></div></div>
+<div id="fadeBlack" style="position:fixed;inset:0;background:#000;opacity:0;pointer-events:none;z-index:40"></div>
 <div class="ov" id="ovHelp" hidden>
   <div class="card">
     <h3>How to sail the Hesper</h3>
@@ -1042,8 +1043,8 @@ function step(dt){
   { // at anchor: she brings up, swings head to wind and rides to her cable; a drag anchor in deep water only slows her
     const A=sh.anch;
     if(A.mode==="holding"||A.mode==="weighing"){sh.v+=(0-sh.v)*(1-Math.exp(-dt/.003));
-      if(A.mode==="holding"){sh.heading=norm(sh.heading+angDiff(sh.heading,w.from)*(1-Math.exp(-dt/.015)));sh.ordered=sh.heading;sh.wander=0;sh.turnDir=0;
-        A.drag=w.kn>30?(w.kn-30)*.12:0;if(A.drag>0&&!A.dragWarned){A.dragWarned=true;say("The anchor is dragging in this wind! Veer more cable or get under way.",{slow:true});}if(A.drag===0)A.dragWarned=false;}
+      if(A.mode==="holding"){if(!s.docked){sh.heading=norm(sh.heading+angDiff(sh.heading,w.from)*(1-Math.exp(-dt/.015)));sh.ordered=sh.heading;sh.wander=0;sh.turnDir=0;}
+        A.drag=!s.docked&&w.kn>30?(w.kn-30)*.12:0;if(A.drag>0&&!A.dragWarned){A.dragWarned=true;say("The anchor is dragging in this wind! Veer more cable or get under way.",{slow:true});}if(A.drag===0)A.dragWarned=false;}
       if(A.mode==="weighing"&&s.t>=A.t0+60/3600){A.mode="up";say("Anchor's aweigh! The hands cat and fish it.",{});updateUI(true);}}
     else if(A.mode==="trailing")sh.v+=(sh.v*.4-sh.v)*(1-Math.exp(-dt/.004)); }
   if(inIrons&&sh.v<.5&&!rw&&Math.abs(angDiff(sh.heading,target))>4){
@@ -1092,10 +1093,10 @@ function step(dt){
     if(inPoly(sh,isl.pts)){runAground(isl);return;}
   }
   let near=1e9,nearName="";for(const isl of islands.concat(reefs)){const d=distPoly(sh,isl.pts);if(d<near){near=d;nearName=isl.name;}}
-  if(near<1.6&&s.t-s.breakersWarned>1){s.breakersWarned=s.t;say(`Breakers ahead! The leadsman finds bottom fast. ${s.mode==="lost"?"Land close aboard.":nearName+" close aboard."} Haul off!`,{pause:true});}
+  if(near<1.6&&!s.docked&&s.t-s.breakersWarned>1){s.breakersWarned=s.t;say(`Breakers ahead! The leadsman finds bottom fast. ${s.mode==="lost"?"Land close aboard.":nearName+" close aboard."} Haul off!`,{pause:true});}
   // arrival
   const pk=s.v.to||nearestPort(sh).k,P=PORTS[pk];const dp=Math.hypot(P.x-sh.x,P.y-sh.y);
-  if(dp<5&&!s.arrivedNear){s.arrivedNear=pk;say(`${P.name} is open ahead. You can come to anchor.`,{pause:!s.v.free});updateUI(true);}
+  if(dp<5&&!s.arrivedNear){s.arrivedNear=pk;say(`${P.name} is open ahead. You can dock at port.`,{pause:!s.v.free});updateUI(true);}
   if(dp>7)s.arrivedNear=false;
 }
 const nearestPort=(p)=>{let k=null,d=1e9;for(const q in PORTS){const e=Math.hypot(PORTS[q].x-p.x,PORTS[q].y-p.y);if(e<d){d=e;k=q;}}return{k,d};};
@@ -1157,8 +1158,21 @@ function runAground(isl){
 function depthFm(x,y){let dm=1e9;for(const I of islands){const rx=x-I.c.x,ry=y-I.c.y;if(Math.hypot(rx,ry)>I.r+40)continue;const P=I.pts;for(let i=0;i<P.length;i++){const q=closestOnSeg({x,y},P[i],P[(i+1)%P.length]);dm=Math.min(dm,Math.hypot(x-q.x,y-q.y));}
     if(inPoly({x,y},P))dm=0;}
   return dm>=1e9?150:Math.round(clamp(1.5+7*dm,1.5,150));}
+/* docking: fade to black, set the ship alongside the quay, fade back in */
+const fadeTo=(v,ms)=>new Promise(r=>{const f=$("fadeBlack");f.style.transition=`opacity ${ms}ms ease`;f.style.opacity=v;setTimeout(r,ms+40);});
+async function dockAtPort(){if(!S||S.done||S.docking)return;S.docking=true;const mission=!S.v.free,k=S.arrivedNear||nearestPort(S.ship).k,P=PORTS[k];
+  modalOpen=true;if(mission){endVoyage(true);$("ovEnd").hidden=true;} // the grade is worked out from where she really is, before she is moved
+  await fadeTo(1,800);
+  const sh=S.ship,A=sh.anch,tw=R3&&R3.towns&&R3.towns[k];sh.x=P.x;sh.y=P.y;sh.v=0;
+  if(tw){const dx=tw.inward.x,dy=-tw.inward.z,dl=1;sh.x=tw.coast.x-dx/dl*.012;sh.y=tw.coast.y-dy/dl*.012;sh.heading=norm(Math.atan2(dx,dy)/D2R-90);} // alongside the shore, the town to starboard
+  sh.ordered=sh.heading;sh.wander=0;sh.turnDir=0;sh.q=[];for(const id of SAILIDS){sh.sls[id]=0;sh.sa[id]=0;}if(sh.row)sh.row.on=false;
+  A.mode="holding";A.depth=Math.max(2,Math.round(depthFm(sh.x,sh.y)));A.drag=0;A.dragWarned=false;A.t0=S.t;
+  S.docked=k;S.arrivedNear=k;S.fishing=false;if(S.est){S.est.x=sh.x;S.est.y=sh.y;}
+  await new Promise(r=>setTimeout(r,500));await fadeTo(0,900);
+  S.docking=false;if(mission)$("ovEnd").hidden=false;else{modalOpen=false;say(`Made fast alongside the quay at ${P.name}. Sails furled and the anchor down.`,{});}
+  updateUI(true);}
 function dropAnchor(){if(!S||S.done)return;const sh=S.ship,A=sh.anch;
-  if(A.mode==="holding"||A.mode==="trailing"){A.mode="weighing";A.t0=S.t;say("Heave round, lads! Weighing anchor.",{});updateUI();return;}
+  if(A.mode==="holding"||A.mode==="trailing"){S.docked=null;A.mode="weighing";A.t0=S.t;say("Cast off! Heave round, lads, weighing anchor.",{});updateUI();return;}
   if(A.mode==="weighing")return;
   if(sh.v>3.5){say("She is making too much way to let go the anchor. Shorten sail and slow to under 3 knots first.",{});return;}
   const d=depthFm(sh.x,sh.y);A.depth=d;A.t0=S.t;A.drag=0;A.dragWarned=false;
@@ -1178,7 +1192,7 @@ function oarsAvail(){return Math.max(1,(S.crew?S.crew.length:SHIP.crewN)-(SHIP.b
 function oarsHands(r){const need=oarsNeed();if(!r.hands)r.hands=Math.min(need,oarsAvail());return clamp(r.hands,Math.min(SHIP.oars.n,oarsAvail()),Math.min(need,oarsAvail()));}
 function toggleOars(force){if(!S||S.done||!SHIP.oars)return;const sh=S.ship,r=rowOf(sh),O=SHIP.oars,on=force!=null?force:!r.on;if(on===r.on)return;
   if(on){if(sh.anch.mode==="holding"||sh.anch.mode==="weighing"){say("She is at anchor. Weigh anchor first.",{log:false});return;}
-    const bf=beaufort(windAt(S,sh.x,sh.y,S.t).kn);if(bf>4){say(`Too much sea to row in. The ${O.sweeps?"sweeps":"oars"} would be torn out of the men's hands.`,{log:false});return;}
+    const bf=beaufort(windAt(S,sh.x,sh.y,S.t).kn);if(bf>(O.maxBf||4)){say(`Too much sea to row in. The ${O.sweeps?"sweeps":"oars"} would be torn out of the men's hands.`,{log:false});return;}
     r.on=true;if(r.st===0||r.st===1)r.st=3;say(O.sweeps?`Out sweeps! ${O.n/2} a side through the oar ports, ${O.men} men to each.`:SHIP.boat?"Out oars! The men take their thwarts and the oars go out between the tholes.":`Out oars! ${O.n/2} sweeps a side, ${O.men} men to a sweep.`);}
   else{r.on=false;r.pivot=0;say(O.sweeps?"In sweeps. The hands stow them along the gangways.":"Oars in. The men ship them and stow them fore and aft.");}
   updateUI(true);}
@@ -1186,7 +1200,7 @@ function setStroke(i){if(!S||S.done||!SHIP.oars)return;const r=rowOf(S.ship);if(
 function oarPivot(sd){if(!S||S.done||!SHIP.oars)return;const r=rowOf(S.ship);if(!r.on)toggleOars(true);if(!r.on)return;r.pivot=sd;r.pt=S.t+40/3600;turn(sd*20);} // back one side and pull the other: she spins on her heel
 function rowStep(s,dt,bf){const sh=s.ship,r=sh.row,O=SHIP.oars;if(!r||!O)return 0;
   if(!r.on){r.wind=Math.min(1,r.wind+.5*dt);return 0;}
-  if(bf>4){r.on=false;r.pivot=0;say(`The sea is getting up: ${O.sweeps?"in sweeps":"oars in"} before they are torn away.`,{slow:true});updateUI(true);return 0;}
+  if(bf>(O.maxBf||4)){r.on=false;r.pivot=0;say(`The sea is getting up: ${O.sweeps?"in sweeps":"oars in"} before they are torn away.`,{slow:true});updateUI(true);return 0;}
   if(r.pivot&&s.t>r.pt)r.pivot=0;
   const st=STROKES[r.pivot?3:r.st],need=oarsNeed(),h=oarsHands(r),av=oarsAvail();
   const relief=r.relieve?h/clamp(av,h,2*h):1; // spare hands spell the rowers each glass
@@ -1452,7 +1466,7 @@ const SHIPX={
   caroline:{hullMax:10.8,speedK:.95,nogo:66,pol:"sqx",safeK:1,heelK:.95,leeK:1,year:1749,crew:[["Captain",1],["Lieutenant",2],["Master",1],["Bosun",1],["Gunner",1],["Carpenter",1],["Surgeon",1],["Cook",2],["Cabin boy",2],["Seaman",58]]},
   endeavour:{hullMax:8.5,speedK:.8,nogo:68,pol:"sqx",safeK:1.05,heelK:.85,leeK:1.05,year:1768,capt:"Lt. James Cook",crew:[["Captain",1],["Lieutenant",2],["Master",1],["Midshipman",3],["Bosun",1],["Gunner",1],["Carpenter",1],["Surgeon",1],["Cook",1],["Cabin boy",3],["Marine",12],["Gentleman",8],["Seaman",59]],
     named:{Lieutenant:["Zachary Hicks","John Gore"],Master:["Robert Molyneux"],Gentleman:["Joseph Banks","Daniel Solander","Herman Spöring","Sydney Parkinson","Alexander Buchan"],Surgeon:["William Monkhouse"]}},
-  xebec:{hullMax:11.5,speedK:1.1,nogo:50,pol:"lat",safeK:.9,heelK:1.15,leeK:1.1,year:1760,crew:[["Captain",1],["Lieutenant",2],["Master",1],["Bosun",2],["Gunner",2],["Carpenter",1],["Surgeon",1],["Cook",2],["Cabin boy",2],["Soldier",40],["Seaman",126]],oars:{n:28,men:3,kn:3.6},es:1},
+  xebec:{hullMax:11.5,speedK:1.1,nogo:50,pol:"lat",safeK:.9,heelK:1.15,leeK:1.1,year:1760,crew:[["Captain",1],["Lieutenant",2],["Master",1],["Bosun",2],["Gunner",2],["Carpenter",1],["Surgeon",1],["Cook",2],["Cabin boy",2],["Soldier",40],["Seaman",126]],oars:{n:28,men:3,kn:3.6,maxBf:5},es:1},
   gotheborg:{hullMax:11,speedK:.9,nogo:67,pol:"sqx",safeK:1.05,heelK:.85,leeK:1,year:1745,capt:"Capt. Erik Moréen",crew:[["Captain",1],["Mate",4],["Master",1],["Bosun",2],["Gunner",1],["Carpenter",2],["Surgeon",1],["Cook",2],["Cabin boy",4],["Gentleman",4],["Seaman",122]],sv:1},
   constitution:{hullMax:13.5,speedK:1.05,nogo:66,pol:"sqx",safeK:1.1,heelK:.75,leeK:.95,year:1797,capt:"Capt. Samuel Nicholson",crew:[["Captain",1],["Lieutenant",4],["Master",1],["Midshipman",8],["Bosun",2],["Gunner",2],["Carpenter",2],["Surgeon",2],["Cook",2],["Cabin boy",6],["Marine",55],["Seaman",365]]},
   trinidad:{hullMax:10.5,speedK:.78,nogo:68,pol:"sqx",safeK:1.15,heelK:.7,leeK:1.1,year:1769,crew:[["Captain",1],["Lieutenant",8],["Master",2],["Midshipman",16],["Bosun",4],["Gunner",6],["Carpenter",4],["Surgeon",3],["Cook",6],["Cabin boy",20],["Soldier",280],["Seaman",700]],es:1}};
@@ -1935,7 +1949,7 @@ function updateUI(force){
   $("hdgTxt").textContent=`Ship's head ${Math.round(sh.heading)}°`;
   { const fb=$("bFish");{const t=S.fishing?`Stop fishing · ${Math.round(S.catchTotal)} lb (F)`:"Put hand-lines over the side (F)";fb.title=t;fb.setAttribute("aria-label",t);}fb.setAttribute("aria-pressed",String(!!S.fishing)); }
   { const A=sh.anch,b=$("bDrop");{const t=A.mode==="up"?"Drop anchor (X)":A.mode==="weighing"?"Weighing anchor…":"Weigh anchor (X)";b.title=t;b.setAttribute("aria-label",t);b.setAttribute("aria-pressed",String(A.mode!=="up"));}b.disabled=A.mode==="weighing";
-    $("anchTxt").textContent=A.mode==="holding"?`At anchor in ${A.depth} fathoms${A.drag>0?" · dragging":""}`:A.mode==="trailing"?`Anchor trailing: no bottom (${A.depth} fathoms)`:A.mode==="weighing"?"Heaving up the anchor…":sh.row&&sh.row.on?`Under ${SHIP.oars&&SHIP.oars.sweeps?"sweeps":"oars"}`:sh.sailSet<.5&&sh.v>.3?"Bare poles: drifting before the wind":""; }
+    $("anchTxt").textContent=S.docked&&A.mode==="holding"?`Docked at ${PORTS[S.docked].name}`:A.mode==="holding"?`At anchor in ${A.depth} fathoms${A.drag>0?" · dragging":""}`:A.mode==="trailing"?`Anchor trailing: no bottom (${A.depth} fathoms)`:A.mode==="weighing"?"Heaving up the anchor…":sh.row&&sh.row.on?`Under ${SHIP.oars&&SHIP.oars.sweeps?"sweeps":"oars"}`:sh.sailSet<.5&&sh.v>.3?"Bare poles: drifting before the wind":""; }
   { const pe=$("sailPips");if(!pe.firstChild)for(let i=0;i<4;i++)pe.appendChild(document.createElement("i")).appendChild(document.createElement("b"));
     [...pe.children].forEach((el,i)=>{el.firstChild.style.height=(clamp(sh.sailSet-i,0,1)*100).toFixed(0)+"%";el.classList.toggle("tgt",false);});
     const moving=SAILIDS.some(k=>Math.abs(sh.sl[k]-sh.sls[k])>.03);
@@ -1959,8 +1973,8 @@ function updateUI(force){
     $("posTxt").innerHTML=`By reckoning <b class="mono">${fmtLat(eg.lat)} ${fmtLon(eg.lon)}</b><br>Could be off by about <b class="mono">${miles(S.est.sx)}</b> east–west and <b class="mono">${miles(S.est.sy)}</b> north–south.${$("peek").checked?`<br>True: <span class="mono">${fmtLat(tg.lat)} ${fmtLon(tg.lon)}</span>, ${Math.hypot(S.est.x-sh.x,S.est.y-sh.y).toFixed(1)} miles off.`:""}`;}
   else{$("modeTag").textContent="sea trial";$("posTxt").innerHTML=`Ship at <b class="mono">${fmtLat(tg.lat)} ${fmtLon(tg.lon)}</b>`;}
   const ref=S.mode==="lost"?S.est:sh;const P=PORTS[S.v.to||nearestPort(ref).k];const db=norm(Math.atan2(P.x-ref.x,P.y-ref.y)*R2D),dd=Math.hypot(P.x-ref.x,P.y-ref.y);
-  $("destTxt").innerHTML=S.arrivedNear?`<span class="warn">${P.name} is open ahead.</span> <button class="btn primary sm" id="bAnchor">Come to anchor</button>`:`${S.v.free?"Nearest port, ":""}${P.name} bears <b>${pointName(db)}</b> (${Math.round(db)}°), <b class="mono">${dd.toFixed(0)}</b> miles${S.mode==="lost"?" by reckoning":""}.`;
-  const ba=$("bAnchor");if(ba)ba.onclick=()=>{if(S.v.free){if(S.ship.anch.mode==="up")dropAnchor();}else endVoyage(true);};
+  $("destTxt").innerHTML=S.docked?`<span class="warn">Docked at ${PORTS[S.docked].name}.</span> Cast off with the anchor button to put to sea.`:S.arrivedNear?`<span class="warn">${P.name} is open ahead.</span> <button class="btn primary sm" id="bAnchor">Dock at Port</button>`:`${S.v.free?"Nearest port, ":""}${P.name} bears <b>${pointName(db)}</b> (${Math.round(db)}°), <b class="mono">${dd.toFixed(0)}</b> miles${S.mode==="lost"?" by reckoning":""}.`;
+  const ba=$("bAnchor");if(ba)ba.onclick=()=>{dockAtPort();};
   // noon
   const na=noonAvailable();
   $("noonState").textContent=S.noon.observing?"observing":na.ok?"ready":"—";
@@ -2131,6 +2145,14 @@ void main(){
     float hoop=aaLine(p.y/3.1,1.1);
     ink=0.9-clamp(grain,0.0,1.0)*0.55; ink=mix(ink,0.35,hoop*0.9); ink=min(ink,0.95);
   #endif
+  #ifdef TEX_FLAT
+    // harbour buildings and trees: flat wash, a few courses of stone or clapboard, a firm form shadow
+    float walls=1.0-abs(no.y);
+    ink=max(aaLine(p.y/1.15,w*0.8)*0.4*walls,dark*0.5);
+    #ifdef TEX_LEAF
+      ink=max(dark*0.55,aaLine(p.y/0.9+p.x/6.0,w)*0.18);
+    #endif
+  #endif
   #if !defined(TEX_MAST) && !defined(TEX_SAIL)
     ink=max(ink,dark*0.06);
   #endif
@@ -2158,6 +2180,9 @@ void main(){
     #ifdef TEX_GILT
       wash=vec3(0.84,0.66,0.30); wa=0.92;
     #endif
+  #endif
+  #ifdef TEX_FLAT
+    wash=FLATCOL*(0.93+0.14*vn(vec2(p.x*0.4+p.z*0.3,p.y*0.5))); wa=0.9;
   #endif
   #ifdef TEX_MAST
     wash=vec3(0.36,0.19,0.12)*(0.85+0.3*vn(vec2(p.x*2.0+p.z*2.0,p.y*0.9))); wa=0.95;
@@ -2316,7 +2341,7 @@ function init3D(){
     const solidInk=new THREE.MeshBasicMaterial({color:0x2e2519});
     const sailLine=new THREE.LineBasicMaterial({color:0x2e2519,transparent:true,opacity:.26});
     const ochreLine=new THREE.LineBasicMaterial({color:0xb2452c,fog:false});
-    const R={renderer,scene,camera,U,inkMat,terrainMat,sailMat,hullMat,bulwMat,deckMat,boxMat,mastMat,lineMat,solidInk,sailLine,W:1,H:1,dpr:renderer.getPixelRatio(),
+    const R={renderer,scene,camera,U,mk:tex,inkMat,terrainMat,sailMat,hullMat,bulwMat,deckMat,boxMat,mastMat,lineMat,solidInk,sailLine,W:1,H:1,dpr:renderer.getPixelRatio(),
       yaw:60,pitch:16,dist:58,hs:0,amp:.3,windFrom:90,wt:0,last:null,cover:0,frame:0,notes:false,nightF:0,camBrg:0,heel:0,roll:0,side:1,bs:1,heave:0,pit:0,
       paperA:[...PAL.day.paper],inkA:[...PAL.day.ink],clouds:[],tex:{}};
     // ---- sea ----
@@ -2380,22 +2405,146 @@ function buildIslands(R){
     const idx=[];for(let k=0;k<rows-1;k++)for(let i=0;i<M;i++){const a=k*M+i,b=k*M+(i+1)%M,cc=(k+1)*M+i,d=(k+1)*M+(i+1)%M;idx.push(a,cc,b,b,cc,d);}
     const g=new THREE.BufferGeometry();g.setAttribute("position",new THREE.BufferAttribute(P,3));g.setIndex(idx);g.computeVertexNormals();
     const mesh=new THREE.Mesh(g,terrainMat);mesh.frustumCulled=false;
-    const grp=new THREE.Group();grp.add(mesh);scene.add(grp);R.isl.push({isl,grp,peak});isl.grp=grp;
+    const grp=new THREE.Group();grp.add(mesh);scene.add(grp);const bins=new Int16Array(360);{const an=ring.map(b=>((Math.atan2(b.y-c.y,b.x-c.x)/PI*180)%360+360)%360);for(let d=0;d<360;d++){let bj=0,bd=1e9;for(let j=0;j<M;j++){const dd=Math.abs(((an[j]-d+540)%360)-180);if(dd<bd){bd=dd;bj=j;}}bins[d]=bj;}}
+    R.isl.push({isl,grp,peak,Rr,ring,M,K,P,c,bins});isl.grp=grp;
   }
-  // harbour towns
+  buildHarbours(R);buildForests(R);
+}
+
+/* ---- harbours and woods: low-poly shapes merged per wash colour, with pen outlines on the buildings ---- */
+function geoBuilder(R){
+  const parts={},lines=[];
+  const m4=new THREE.Matrix4(),q=new THREE.Quaternion(),e=new THREE.Euler(),v3=new THREE.Vector3(),s3=new THREE.Vector3();
+  const flatKey=(c,leaf)=>(leaf?"L":"F")+c.map(x=>x.toFixed(2)).join(",");
+  return{
+    // add a geometry in a flat wash colour c=[r,g,b] at (x,y,z), yaw ry (and lean rx,rz), scaled (sx,sy,sz); edges=true draws pen outlines
+    add(c,geo,x,y,z,ry,sx,sy,sz,edges,leaf,rx,rz){
+      const key=flatKey(c,leaf);const g=geo.index?geo.toNonIndexed():geo.clone();
+      e.set(rx||0,ry||0,rz||0);q.setFromEuler(e);m4.compose(v3.set(x,y,z),q,s3.set(sx||1,sy||1,sz||1));g.applyMatrix4(m4);
+      (parts[key]||(parts[key]={c,leaf,pos:[]})).pos.push(g.attributes.position.array);
+      if(edges){const eg=new THREE.EdgesGeometry(g,35).attributes.position.array;lines.push(eg);}
+    },
+    finish(parent){
+      for(const k in parts){const P=parts[k];let n=0;for(const a of P.pos)n+=a.length;const arr=new Float32Array(n);let o=0;for(const a of P.pos){arr.set(a,o);o+=a.length;}
+        const g=new THREE.BufferGeometry();g.setAttribute("position",new THREE.BufferAttribute(arr,3));g.computeVertexNormals();
+        const d={TEX_FLAT:1,FLATCOL:`vec3(${P.c.join(",")})`};if(P.leaf)d.TEX_LEAF=1;
+        const mesh=new THREE.Mesh(g,R.mk(d));mesh.frustumCulled=false;parent.add(mesh);}
+      if(lines.length){let n=0;for(const a of lines)n+=a.length;const arr=new Float32Array(n);let o=0;for(const a of lines){arr.set(a,o);o+=a.length;}
+        const g=new THREE.BufferGeometry();g.setAttribute("position",new THREE.BufferAttribute(arr,3));const l=new THREE.LineSegments(g,R.lineMat);l.frustumCulled=false;parent.add(l);}
+    }};
+}
+const rng32=a=>()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};
+const hashStr=s=>{let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;};
+// a gabled prism: ridge along x, eaves at z=+-d/2 at height 0, ridge at height h
+function gableGeo(w,d,h){
+  const g=new THREE.BufferGeometry(),a=w/2,b=d/2;
+  const p=[-a,0,-b, a,0,-b, a,h,0, -a,0,-b, a,h,0, -a,h,0,  -a,0,b, a,h,0, a,0,b, -a,0,b, -a,h,0, a,h,0,  -a,0,-b,-a,h,0,-a,0,b,  a,0,-b,a,0,b,a,h,0];
+  g.setAttribute("position",new THREE.BufferAttribute(new Float32Array(p),3));return g;
+}
+// a hipped pyramid of base w x d and height h, sitting on y=0
+function hipGeo(w,d,h){const g=new THREE.ConeGeometry(.70711,1,4);g.rotateY(PI/4);g.translate(0,.5,0);g.scale(w,h,d);return g;}
+const BOX=new THREE.BoxGeometry(1,1,1),CYL6=new THREE.CylinderGeometry(1,1,1,6),CYL8=new THREE.CylinderGeometry(1,1,1,8),CONE8=new THREE.ConeGeometry(1,1,8);
+const PAL_T={stone:[.80,.75,.64],white:[.91,.87,.75],cream:[.88,.78,.58],pink:[.88,.70,.58],ochre:[.84,.68,.40],tile:[.72,.36,.23],shingle:[.52,.40,.27],thatch:[.66,.55,.34],wood:[.50,.35,.23],dark:[.27,.20,.15],red:[.74,.22,.18],mill:[.86,.82,.70],grass:[.64,.66,.40],
+  leaf:[[.30,.42,.20],[.25,.37,.19],[.35,.46,.22]],palm:[.40,.55,.28],trunk:[.46,.35,.24]};
+// per-port character: quay length, piers, warehouses, houses, church, fort, windmills, crane
+const TOWNS={
+  bridgetown:{L:260,piers:2,ware:6,houses:30,church:1,fort:1,mills:2,crane:1,roof:"tile"},
+  castries:{L:200,piers:2,ware:4,houses:22,church:1,fort:0,mills:0,crane:1,roof:"shingle"},
+  stjohns:{L:230,piers:3,ware:5,houses:26,church:1,fort:1,mills:1,crane:1,roof:"tile"},
+  kingstown:{L:150,piers:1,ware:3,houses:16,church:1,fort:1,mills:0,crane:0,roof:"thatch"},
+  basseterre:{L:190,piers:2,ware:4,houses:22,church:1,fort:1,mills:1,crane:0,roof:"tile"}
+};
+// ground height of an island at a local point (x east, z south, metres); null off the shore
+function groundAt(o,x,z){
+  const dx=x/NM,dy=-z/NM,M=o.M,ring=o.ring,c=o.c;if(Math.hypot(dx,dy)<1e-7)return o.peak;
+  const i0=o.bins[(((Math.atan2(dy,dx)/PI*180)%360+360)%360)|0];
+  for(let j=-4;j<=4;j++){const i=(i0+j+M*4)%M,i1=(i+1)%M,ex=ring[i].x-c.x,ey=ring[i].y-c.y,Dx=ring[i1].x-ring[i].x,Dy=ring[i1].y-ring[i].y;
+    const cd=dx*Dy-dy*Dx;if(Math.abs(cd)<1e-12)continue;const t=(dx*ey-dy*ex)/(Dx*dy-Dy*dx),lam=(ex*Dy-ey*Dx)/cd;
+    if(t<0||t>1||lam<=0)continue;const s=1-1/lam;if(s<0)return null;
+    const kf=Math.min(o.K-.001,s*o.K),k0=kf|0,f=kf-k0,P=o.P,h=(k,i)=>P[((k+1)*M+i)*3+1];
+    return(h(k0,i)*(1-t)+h(k0,i1)*t)*(1-f)+(h(k0+1,i)*(1-t)+h(k0+1,i1)*t)*f;}
+  return null;
+}
+function buildHarbours(R){
   R.towns={};
-  for(const k in PORTS){const p=PORTS[k];let best=null,bd=1e9,bi=null;
-    for(const isl of islands){const pt=isl.pts;for(let i=0,j=pt.length-1;i<pt.length;j=i++){const q=closestOnSeg(p,pt[j],pt[i]);const d=Math.hypot(q.x-p.x,q.y-p.y);if(d<bd){bd=d;best=q;bi=isl;}}}
-    if(!bi)continue;
-    const dx=bi.c.x-best.x,dy=bi.c.y-best.y,dl=Math.hypot(dx,dy)||1;const ix=best.x+dx/dl*.3,iy=best.y+dy/dl*.3;
-    const town=new THREE.Group();
-    for(let i=0;i<9;i++){const w=14+Math.random()*10,h=10+Math.random()*8,d=12+Math.random()*10;
-      const geo=new THREE.BoxGeometry(w,h+14,d);const m=new THREE.Mesh(geo,inkMat);const ox=(Math.random()-.5)*140,oz=(Math.random()-.5)*110;
-      m.position.set(ox,h/2-4,oz);town.add(m);const e=new THREE.LineSegments(new THREE.EdgesGeometry(geo),lineMat);e.position.copy(m.position);town.add(e);
-      const roof=new THREE.Mesh(new THREE.ConeGeometry(Math.max(w,d)*.72,7,4),inkMat);roof.rotation.y=PI/4;roof.position.set(ox,h+3.5+3,oz);town.add(roof);
-      const re=new THREE.LineSegments(new THREE.EdgesGeometry(roof.geometry),lineMat);re.rotation.y=PI/4;re.position.copy(roof.position);town.add(re);}
-    const fp=new THREE.Mesh(new THREE.CylinderGeometry(.5,.7,45,6),R.solidInk);fp.position.set(70,20,0);town.add(fp);
-    town.position.set((ix-bi.c.x)*NM,6,-(iy-bi.c.y)*NM);bi.grp.add(town);R.towns[k]={town,isl:bi,x:ix,y:iy};
+  for(const k in PORTS){const p=PORTS[k];let best=null,bd=1e9,bi=null,seg=null;
+    for(const isl of islands){const pt=isl.pts;for(let i=0,j=pt.length-1;i<pt.length;j=i++){const q=closestOnSeg(p,pt[j],pt[i]);const d=Math.hypot(q.x-p.x,q.y-p.y);if(d<bd){bd=d;best=q;bi=isl;seg=[pt[j],pt[i]];}}}
+    if(!bi)continue;const o=R.isl.find(t=>t.isl===bi),sp=TOWNS[k]||TOWNS.kingstown,rnd=rng32(hashStr(k));
+    const Cx=(best.x-bi.c.x)*NM,Cz=-(best.y-bi.c.y)*NM,cl=Math.hypot(Cx,Cz)||1;
+    // the frame follows the shore itself: T along the coast segment, I inland, square to it
+    let sx=seg[1].x-seg[0].x,sz=-(seg[1].y-seg[0].y);const sl=Math.hypot(sx,sz)||1;sx/=sl;sz/=sl;let Ix=-sz,Iz=sx;if(Ix*-Cx+Iz*-Cz<0){Ix=-Ix;Iz=-Iz;}
+    const Tx=Iz,Tz=-Ix,yaw=Math.atan2(-Tz,Tx);
+    const at=(u,v)=>[Cx+Tx*u+Ix*v,Cz+Tz*u+Iz*v];
+    const gy=(u,v)=>{const q=at(u,v),g=groundAt(o,q[0],q[1]);return Math.max(1.6,g===null?1.6:g);};
+    const B=geoBuilder(R),T=PAL_T,L=sp.L;
+    const land=(u,v)=>{const q=at(u,v),g=groundAt(o,q[0],q[1]);return g!==null&&g>.25;};
+    const box=(c,u,v,y0,y1,w,d,edge,yw)=>{const q=at(u,v);B.add(c,BOX,q[0],(y0+y1)/2,q[1],yaw+(yw||0),w,y1-y0,d,edge!==false);};
+    const cyl=(c,geo,u,v,y0,y1,r,rt,edge)=>{const q=at(u,v);B.add(c,geo,q[0],(y0+y1)/2,q[1],yaw,r,y1-y0,r,!!edge);};
+    // stone quay with a pen-lined face, bollards, a crane and the wharf cargo
+    box(T.stone,0,3,-4,1.4,L,14);
+    for(let u=-L/2+10;u<=L/2-8;u+=24)cyl(T.dark,CYL6,u,-2.5,1.4,2.3,.5);
+    for(let n=0;n<(L/12|0);n++){const u=(rnd()-.5)*(L-30),v=1+rnd()*6;
+      if(rnd()<.5)box(T.wood,u,v,1.4,1.4+.8+rnd()*1.2,1.1+rnd()*1.3,1.1+rnd()*1.3,true,rnd()*3);else cyl(T.wood,CYL8,u,v,1.4,2.6,.65,0,true);}
+    if(sp.crane){const u=-L*.18;cyl(T.wood,CYL6,u,2,1.4,9.5,.35);cyl(T.wood,CYL6,u+3,2,1.4,9.5,.35);box(T.wood,u+1.5,-1.2,8.8,9.4,9,.5,true);box(T.dark,u+1.5,-4.5,6.2,6.5,.25,.25,false);}
+    // timber piers on piles
+    const pu=[];for(let i=0;i<sp.piers;i++)pu.push((i%2?1:-1)*(L/2-20-(i>>1)*50)+(i===0?0:0));
+    pu.forEach((u,i)=>{const len=34+rnd()*26;box(T.wood,u,-4-len/2+4,.7,1.3,5.5,len,true);
+      for(let z=0;z<=len;z+=5.5)for(const sd of[-1,1])cyl(T.dark,CYL6,u+sd*2.6,-z-1,-2.5,1.3,.28);
+      if(i===0&&sp.piers>1){box(T.dark,u,-len,1.3,2.4,.4,.4,false);} });
+    // harbour row: long gabled warehouses behind the quay
+    const wc=[T.white,T.cream,T.stone];
+    for(let n=0;n<sp.ware;n++){const w=26+rnd()*16,d=11+rnd()*5,u=-L/2+30+(n+.5)*((L-60)/sp.ware)+(rnd()-.5)*6,v=24+rnd()*8,h=6.5+rnd()*2.5,b=gy(u,v)-5,col=wc[n%3];if(!land(u-w/2,v)||!land(u+w/2,v))continue;
+      box(col,u,v,b,b+5+h,w,d);const q=at(u,v);B.add(T[sp.roof==="thatch"?"shingle":sp.roof],gableGeo(w+1.6,d+2.4,3.6),q[0],b+5+h,q[1],yaw,1,1,1,true);}
+    // houses in rows behind
+    const hc=[T.white,T.cream,T.pink,T.ochre];
+    for(let n=0;n<sp.houses;n++){const row=n%3,u=(rnd()-.5)*(L+60),v=64+row*38+rnd()*14,w=8+rnd()*5,d=7+rnd()*4,h=3.4+rnd()*2.6;
+      if(Math.abs(u)<14&&v<90||!land(u,v)||!land(u+w/2,v+d/2)||!land(u-w/2,v-d/2))continue;const b=gy(u,v)-4,col=hc[(rnd()*hc.length)|0],q=at(u,v);
+      box(col,u,v,b,b+4+h,w,d);
+      if(rnd()<.5)B.add(T[sp.roof],hipGeo(w+1.4,d+1.4,2.8+rnd()*1.2),q[0],b+4+h,q[1],yaw,1,1,1,true);else B.add(T[sp.roof],gableGeo(w+1.4,d+1.8,2.6),q[0],b+4+h,q[1],yaw,1,1,1,true);}
+    // church with a western tower and spire
+    if(sp.church){let u=L*.12,v=95;for(const du of[0,40,-40,80,-80])if(land(L*.12+du,95)&&land(L*.12+du,81)&&land(L*.12+du,109)){u=L*.12+du;break;}const b=gy(u,v)-4,q=at(u,v);box(T.white,u,v,b,b+4+9,11,22);B.add(T.tile,gableGeo(12.4,23.6,5),q[0],b+13,q[1],yaw,1,1,1,true);
+      box(T.stone,u,v-14,b,b+4+19,6.4,6.4);const t=at(u,v-14);B.add(T.dark,hipGeo(7.2,7.2,8),t[0],b+23,t[1],yaw,1,1,1,true);B.add(T.dark,BOX,t[0],b+32,t[1],yaw,.18,3,.18);}
+    // fort on a headland: bastioned stone walls, parapet, flag and guns
+    if(sp.fort){let u=0,v=0,ok=false;
+      for(let du=90;du<=260&&!ok;du+=18)for(const sg of[1,-1]){if(ok)break;for(let vv=20;vv<=70&&!ok;vv+=10){const uu=sg*(L/2+du-90+60);if([[0,0],[31,26],[-31,26],[31,-26],[-31,-26]].every(([a,b])=>land(uu+a,vv+b))){u=uu;v=vv;ok=true;}}}
+      if(!ok){u=L/2+90;v=18;}const b=Math.max(2.5,gy(u,v))-6;box(T.stone,u,v,b,b+6+7,62,52);
+      for(const sx of[-1,1])for(const sz of[-1,1]){const cu=u+sx*31,cv=v+sz*26;cyl(T.stone,CYL8,cu,cv,b,b+6+10,10.5,0,true);}
+      box(T.dark,u,v,b+13,b+14,50,40,false);
+      for(let n=0;n<5;n++){const gu=u-20+n*10;const q=at(gu,v-27);B.add(T.dark,CYL6,q[0],b+14.4,q[1],yaw,.45,3.2,.45,false,false,PI/2);}
+      cyl(T.dark,CYL6,u,v,b+13,b+34,.35);const f=at(u+2.5,v);B.add(T.red,BOX,f[0],b+32.6,f[1],yaw,5,2.8,.12);
+      const bu=u-L*.9,bv=26;void bu;void bv;}
+    // windmills inland (Barbados worked sugar by wind)
+    for(let n=0;n<sp.mills;n++){const u=(n?1:-1)*(L*.35+n*30),v=210+n*45,b=gy(u,v)-3,q=at(u,v),h=15;
+      B.add(T.mill,CYL8,q[0],b+h/2+1,q[1],yaw,3.6,h+2*3,3.6,true);
+      B.add(T.dark,CONE8,q[0],b+h+4.4,q[1],yaw,4.6,4.6,4.6,true);
+      const arm=at(u,v-5.2);for(const ca of[.4,.4+PI/2]){B.add(T.wood,BOX,arm[0],b+h+1.4,arm[1],yaw,.4,17,.25,true,false,0,ca);B.add(T.thatch,BOX,arm[0]+Math.cos(ca)*0,b+h+1.4,arm[1],yaw,3.2,12,.1,false,false,0,ca);} }
+    // a flagstaff on the quay
+    cyl(T.dark,CYL6,L*.05,-1,1.4,22,.25);{const f=at(L*.05+2.2,-1);B.add(T.red,BOX,f[0],20.6,f[1],yaw,4.4,2.6,.1);}
+    const town=new THREE.Group();B.finish(town);bi.grp.add(town);
+    const cx=at(0,60);R.towns[k]={town,isl:bi,x:bi.c.x+cx[0]/NM,y:bi.c.y-cx[1]/NM,coast:{x:best.x,y:best.y},inward:{x:Ix,z:Iz},u:{x:Tx,z:Tz},cl:cl};
+    o.town=town;o.townPos=[Cx,Cz];
+  }
+}
+function buildForests(R){
+  for(const o of R.isl){
+    const {isl,ring,M,K,P,c,Rr}=o,rnd=rng32(hashStr(isl.name)),B=geoBuilder(R),T=PAL_T,nm=1/NM;
+    // length of coastline and a cap on trees so a long coast stays light
+    let per=0;for(let i=0;i<M;i++){const a=ring[i],b=ring[(i+1)%M];per+=Math.hypot(b.x-a.x,b.y-a.y);}
+    const pm=per*NM;let palms=Math.min(2600,pm/48|0),woods=Math.min(7000,pm/12|0);
+    const tn=o.townPos,gone=(x,z)=>tn&&Math.hypot(x-tn[0],z-tn[1])<380;
+    const pt=(i,s)=>{const b=ring[i],x=(b.x-c.x)*(1-s)*NM,z=-(b.y-c.y)*(1-s)*NM;const kf=Math.min(K-.001,s*K),k0=kf|0,f=kf-k0;return[x,P[((k0+1)*M+i)*3+1]*(1-f)+P[((k0+2)*M+i)*3+1]*f,z];};
+    // metres inland to a ring fraction
+    const sOf=(i,m)=>{const b=ring[i];return Math.min(.9,m*nm/Math.max(.05,Math.hypot(b.x-c.x,b.y-c.y)));};
+    const palmG=new THREE.CylinderGeometry(.35,.6,1,5),crownG=new THREE.ConeGeometry(1,1,7),blobG=new THREE.IcosahedronGeometry(1,0);
+    for(let n=0;n<palms;n++){const i=(rnd()*M)|0,s=sOf(i,6+rnd()*55),[x,y,z]=pt(i,s);if(gone(x,z)||y<.6)continue;
+      const h=9+rnd()*7,lean=(rnd()-.5)*.35,la=rnd()*6.28;
+      B.add(T.trunk,palmG,x,y+h/2-.5,z,la,1,h,1,false,true,lean,0);
+      B.add(T.palm,crownG,x+Math.sin(lean)*-h*.5,y+h-.2,z,la,4.6+rnd()*1.2,1.7,4.6+rnd()*1.2,false,true);}
+    for(let n=0;n<woods;n++){const i=(rnd()*M)|0,m=70+Math.pow(rnd(),1.3)*2600,s=sOf(i,m),[x,y,z]=pt(i,s);if(gone(x,z)||y<2||y>650)continue;
+      const gx=Math.sin(x*.0061+1.7)*Math.cos(z*.0053+.4)+Math.sin((x+z)*.0027);if(gx<-.45)continue;
+      const r=6+rnd()*6,hy=r*(.8+rnd()*.5);
+      B.add(T.leaf[(rnd()*3)|0],blobG,x,y+hy*.9,z,rnd()*6.28,r,hy,r,false,true);}
+    const g=new THREE.Group();B.finish(g);o.grp.add(g);o.veg=g;
   }
 }
 
@@ -2420,7 +2569,7 @@ function brigLines(){
   return{sstep,QB,FB,QDY,FCY,YW,rise,deckW,deckAt,railY,keelY,zF,zS,zA,shape,hx};
 }
 // the ship in hand: the brig's own model, or one of the fleet built from her spec
-function buildShip3D(R){R.shipId=SHIP.id;R.crew=null;R.sails=null;R.jib=null;R.gaff=null;R.yardInfo={};R.lamps=[];R.oars=[];R.tiller=null;R.gen=null;R.faA=null;R.handS=null;
+function buildShip3D(R){R.shipId=SHIP.id;R.sweepers=null;R.oarsOn=null;R.crew=null;R.sails=null;R.jib=null;R.gaff=null;R.yardInfo={};R.lamps=[];R.oars=[];R.tiller=null;R.gen=null;R.faA=null;R.handS=null;
   if(SHIP.id==="brig")buildShip(R);else buildVessel3D(R,SPEC[SHIP.id]);if(R.wake){R.wake.sl.length=0;R.wake.last=null;}R.foam=null;R.heel=0;}
 function setShip3D(){const R=R3;if(!R||R.shipId===SHIP.id)return;R.scene.remove(R.ship);
   R.ship.traverse(o=>{if(o.geometry&&!(o.parent&&o.parent.isGroup&&R.figKit&&0))o.geometry.dispose();});if(R.hullMatG){R.hullMatG.dispose();R.hullMatG=null;}
@@ -3560,7 +3709,7 @@ function update3D(dt,now){
     R.lantern.intensity=R.lampF*1.2;
     const lit=R.lampF>.5;if(S.lit!==undefined&&lit!==S.lit&&!paused){say(lit?"The watch lights the stern lantern and the binnacle lamp.":"The lanterns are doused at first light.",{slow:true});}S.lit=lit; }
   // world objects relative to ship
-  for(const o of R.isl){const c=o.isl.c;o.grp.position.set((c.x-sh.x)*NM,0,-(c.y-sh.y)*NM);o.grp.visible=Math.hypot(c.x-sh.x,c.y-sh.y)<75;}
+  for(const o of R.isl){const c=o.isl.c;o.grp.position.set((c.x-sh.x)*NM,0,-(c.y-sh.y)*NM);const dd=Math.hypot(c.x-sh.x,c.y-sh.y);o.grp.visible=dd<75;if(o.veg)o.veg.visible=dd-o.Rr<9;}
   updateFauna(R,dt,gain,wdx,wdz,nightF);
   const dest=R.towns[S.v.to];
   if(dest){R.beacon.position.set((dest.x-sh.x)*NM,0,-(dest.y-sh.y)*NM);R.beacon.visible=S.mode==="trial";}
@@ -3584,6 +3733,17 @@ function update3D(dt,now){
       const wt4=[(1-u.dkv)*(1-R.nfc),(1-u.dkv)*R.nfc,u.dkv*(1-R.nfc),u.dkv*R.nfc];
       for(let k=0;k<4;k++){const q=u.v[k],o=u.op*wt4[k];q.visible=o>.004;if(!q.visible)continue;q.position.set(px,py,pz);q.scale.set(sx,sy,1);q.material.opacity=o;q.material.color.setRGB(k%2?1:tr,k%2?1:tg,k%2?1:tb);}}
   }
+  // the hands at the sweeps: men stand to each loom, face aft and walk it through the stroke (open boats row from their thwarts instead)
+  if(R.oars&&R.oars.length&&!(R.dk&&R.dk.open)&&SHIP.oars){const r=sh.row,on=!!(r&&r.on);
+    if(on&&!R.sweepers){const kit=figKit(R),per=Math.min(SHIP.oars.men,2);R.sweepers=[];
+      for(const o of R.oars)for(let k=0;k<per;k++){const c=kit.mk(o.g.parent,0,0,0,"sweep");c.o=o;c.d=o.inb*(.35+.55*(per>1?k/(per-1):.5));c.ph=Math.random()*.4;R.sweepers.push(c);}}
+    if(R.sweepers){const D=R.dk,st=on?STROKES[r.pivot?3:r.st]:null;
+      for(const c of R.sweepers){c.m.visible=on;if(!on)continue;const o=c.o,a=o.g.rotation.y,px=o.g.position.x,pz=o.g.position.z;
+        const x=px-o.sd*c.d*Math.cos(a)*.98,z=pz+o.sd*c.d*Math.sin(a)+.32,gy=D&&D.ground?D.ground(x,z):(D?D.foot:o.y-1);
+        const back=st.k<0||(r.pivot&&o.sd===r.pivot),ph=(R.rowPh||0)*(back?-1:1)+c.ph,dr=st.spm?Math.sin(ph):0;
+        c.m.position.set(x,gy,z);c.m.rotation.set(0,PI+o.sd*.25,0);c.lL.rotation.x=.25+.25*dr;c.lR.rotation.x=-.35+.25*dr;
+        c.aL.rotation.x=c.aR.rotation.x=-1.25-.25*dr;c.m.rotation.x=-.18-.12*dr;}
+      if(R.crew)for(const c of R.crew)if(c.role.startsWith("hand")&&on)c.m.visible=false;}}
   // camera
   R.hs+=angDiff(R.hs,sh.heading)*(1-Math.exp(-dt*1.6));
   const al=(R.hs+180+R.yaw)*D2R,pt=R.pitch*D2R,dh=R.dist*Math.cos(pt);
@@ -3886,7 +4046,7 @@ function genFish(s){const F=[],xs=islands.map(i=>i.c.x),ys=islands.map(i=>i.c.y)
   { const a=rng()*2*PI;mkP(s.ship.x+Math.sin(a)*7,s.ship.y+Math.cos(a)*7);F[F.length-1].kind="dolphinfish";F[F.length-1].rate=35; }
   F.forEach((f,i)=>f.id=i);return F;}
 function portsNear(s){const sh=s.ship;let best=null;for(const k in PORTS){const P=PORTS[k],g=geo(P.lat,P.lon),d=Math.hypot(g.x-sh.x,g.y-sh.y);if(!best||d<best.d)best={k,d,name:P.name};}return best;}
-function atPort(s){const b=portsNear(s);return b&&b.d<1.6&&(s.ship.anch.mode==="holding"||s.ship.v<.4)?b:null;}
+function atPort(s){if(s.docked&&s.ship.anch.mode==="holding")return{k:s.docked,d:0,name:PORTS[s.docked].name};const b=portsNear(s);return b&&b.d<1.6&&(s.ship.anch.mode==="holding"||s.ship.v<.4)?b:null;}
 const FISHD={bridgetown:1.25,stjohns:1.2,basseterre:1.1,castries:.85,kingstown:.9}; // plantation islands pay most for salt fish
 const priceOf=(s,item,k)=>item==="fish"?PRICE0.fish*(FISHD[k]||1)*(1+.12*Math.sin(dayIndex(s)*.9+(k.length*1.7))):PRICE0[item]*(PORTF[k]||1)*(1+.08*Math.sin(dayIndex(s)*.7+k.length*2.3+item.length*1.9));
 const QTY={bis:100,meat:100,beer:100,lime:50,rum:20,med:20},ITEMN={bis:"lb of biscuit",meat:"lb of salt meat",beer:"gallons of beer",lime:"lb of limes",rum:"gallons of rum",med:"doses of physic and dressings"};
@@ -4729,13 +4889,13 @@ const OAR_SVG='<svg viewBox="0 0 24 24" width="20" height="20" fill="none" strok
 function oarsSetup(){if(!$("bOars"))return;const O=SHIP.oars;$("bOars").hidden=!O;$("oarSec").hidden=!O;if(!O){$("oarSteps").hidden=true;$("sailSteps5").hidden=false;return;}
   $("oarSide").textContent=`${O.n/2} ${O.sweeps?"sweeps":SHIP.boat?"oars":"sweeps"} a side`;}
 function hrsTxt(h){return h>=10?"all day":h>=1.5?`about ${Math.round(h)} hours`:h>=.75?"about an hour":`about ${Math.max(1,Math.round(h*60/5)*5)} minutes`;}
-function oarsUI(sh,bf){const O=SHIP.oars;if(!O||!$("bOars"))return;const r=rowOf(sh),on=r.on,st=STROKES[r.pivot?3:r.st],calm=bf<=4,anch=sh.anch.mode==="holding"||sh.anch.mode==="weighing";
+function oarsUI(sh,bf){const O=SHIP.oars;if(!O||!$("bOars"))return;const r=rowOf(sh),on=r.on,st=STROKES[r.pivot?3:r.st],calm=bf<=(O.maxBf||4),anch=sh.anch.mode==="holding"||sh.anch.mode==="weighing";
   const b=$("bOars"),t=on?`Ship the ${O.sweeps?"sweeps":"oars"} (O)`:calm?`Out ${O.sweeps?"sweeps":"oars"} (O)`:`Too much sea to row (force ${bf})`;b.title=t;b.setAttribute("aria-label",t);b.setAttribute("aria-pressed",String(on));b.disabled=!on&&(!calm||anch);
   $("oarSteps").hidden=!on;$("sailSteps5").hidden=on;
   for(const x of document.querySelectorAll("#oarSteps button,#oarSec .steps button"))x.setAttribute("aria-pressed",String(on&&+x.dataset.st===r.st&&!r.pivot));
   $("oarTog").textContent=on?`Ship ${O.sweeps?"sweeps":"oars"}`:`Out ${O.sweeps?"sweeps":"oars"}`;$("oarTog").disabled=!on&&(!calm||anch);
   $("oarState").innerHTML=on?(r.pivot?`Turning on the spot. <span class="muted">${r.pivot<0?"Port":"Starboard"} oars backing.</span>`:`${O.sweeps?"Sweeps":"Oars"} out. <span class="muted">${st.n}${st.spm?`, ${st.spm} strokes a minute`:""}.</span>`)
-    :anch?'<span class="muted">At anchor.</span>':calm?`<span class="muted">${O.sweeps?"Sweeps":"Oars"} stowed.${bf<=1?" A calm: good rowing weather.":""}</span>`:`<span class="muted">Stowed: too much sea above force 4.</span>`;
+    :anch?'<span class="muted">At anchor.</span>':calm?`<span class="muted">${O.sweeps?"Sweeps":"Oars"} stowed.${bf<=1?" A calm: good rowing weather.":""}</span>`:`<span class="muted">Stowed: too much sea above force ${O.maxBf||4}.</span>`;
   const need=oarsNeed(),h=oarsHands(r),pull=O.kn*st.k*Math.sqrt(h/need);
   $("oarNote").innerHTML=r.pivot?"One side backs, the other pulls: she spins with little way on.":`${st.t}${st.k>0?` About <b>${pull.toFixed(1)} kn</b> in a flat calm with fresh men; less into a head sea.`:""}`;
   const wp=Math.round(r.wind*100);$("oarWindT").textContent=wp+"%";const wi=$("oarWind");wi.style.width=wp+"%";wi.style.setProperty("--bw",(10000/Math.max(wp,1)).toFixed(0)+"%");
@@ -4745,7 +4905,7 @@ function oarsUI(sh,bf){const O=SHIP.oars;if(!O||!$("bOars"))return;const r=rowOf
   $("oarMinus").disabled=h<=Math.min(O.n,av);$("oarPlus").disabled=h>=Math.min(need,av);
   for(const id of["oarBP","oarBS"])$(id).disabled=!on&&(!calm||anch);$("oarRel").checked=r.relieve!==false;
   if(on){$("windSpd").innerHTML=`<b style="color:var(--ink)">${r.pivot?"Turning":st.n}</b><br>${st.spm?st.spm+" strokes a minute":"blades still"}`;}}
-window.__DR={showCrisis,crisisKind,punish,loadState,packState,decS,toggleOars,setStroke,oarPivot,STROKES,pickShip,get SHIP(){return SHIP},SHIPDEFS,SPEC,useShip,applyShip,crewOf,rigOf,linesOf,get shipPick(){return shipPick},set shipPick(v){shipPick=v},svMove,svCtx,sx,sy,openPortCard,openPortPlan,get R3(){return R3},setMain,update3D,get S(){return S},VOYAGES,PORTS,islands,reefs,LMS,step,startVoyage,setCourse,tackOrWear,setSail,assistStep,noonAvailable,windAt:(x,y,t)=>windAt(S,x,y,t),inPoly,crossFix,plotFix,takeBearing,markNoon,startObserve,noonAvailable,endVoyage,toGeo,geo,atPort:()=>atPort(S),buyStore,sellFish,toggleFish};
+window.__DR={dockAtPort,showCrisis,crisisKind,punish,loadState,packState,decS,toggleOars,setStroke,oarPivot,STROKES,pickShip,get SHIP(){return SHIP},SHIPDEFS,SPEC,useShip,applyShip,crewOf,rigOf,linesOf,get shipPick(){return shipPick},set shipPick(v){shipPick=v},svMove,svCtx,sx,sy,openPortCard,openPortPlan,get R3(){return R3},setMain,update3D,get S(){return S},VOYAGES,PORTS,islands,reefs,LMS,step,startVoyage,setCourse,tackOrWear,setSail,assistStep,noonAvailable,windAt:(x,y,t)=>windAt(S,x,y,t),inPoly,crossFix,plotFix,takeBearing,markNoon,startObserve,noonAvailable,endVoyage,toGeo,geo,atPort:()=>atPort(S),buyStore,sellFish,toggleFish};
 })();
 </script>
 <script>if("serviceWorker" in navigator&&location.protocol.startsWith("http"))window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
