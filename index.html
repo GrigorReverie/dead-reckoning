@@ -312,9 +312,11 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-
   #ctlIcon{display:flex!important;position:fixed;z-index:16;left:calc(50% + var(--ic) + 1.5*var(--icg) + var(--sh));bottom:max(16px,calc(env(safe-area-inset-bottom,0px) + 10px))}
   .side .dock-all.collapsed{display:none!important}
   /* icons open their panel below the 3D view (the view shrinks to make room); tap the icon again to close */
-  .side .dock-all:not(.collapsed),.bookbody,.shipv{position:fixed!important;left:0!important;right:0!important;top:var(--ptop,50%)!important;bottom:var(--pbot,70px)!important;width:auto!important;max-height:none!important;transform:none!important;overflow-y:auto;z-index:15;background:var(--paper);border:0!important;border-top:6px solid var(--desk-2)!important;border-radius:0!important;box-shadow:none!important}
-  .side .dock-all:not(.collapsed){padding:10px 14px}
-  .bookbody{padding:0 8px}
+  .side .dock-all:not(.collapsed),.bookbody,.shipv{position:fixed!important;left:0!important;right:0!important;top:var(--ctop,100px)!important;bottom:var(--pbot,70px)!important;width:auto!important;max-height:none!important;transform:none!important;overflow-y:auto;z-index:15;border:0!important;border-radius:0!important;box-shadow:none!important;pointer-events:none;
+    background:linear-gradient(to bottom,transparent var(--vh,200px),var(--desk-2) var(--vh,200px),var(--desk-2) calc(var(--vh,200px) + 6px),var(--paper) calc(var(--vh,200px) + 6px))!important;background-attachment:local!important;padding-top:calc(var(--vh,200px) + 6px)!important}
+  .side .dock-all:not(.collapsed)>*,.bookbody>*,.shipv>*{pointer-events:auto}
+  .side .dock-all:not(.collapsed){padding-left:14px;padding-right:14px;padding-bottom:10px}
+  .bookbody{padding-left:8px;padding-right:8px}
   .dock-all .ctog[data-dock="all"]{display:none!important}
   .side:has(.dock-all.collapsed){display:none}
 }
@@ -3219,7 +3221,7 @@ $("bookBtn").onclick=()=>{const bx=$("bookBox"),o=!bx.classList.contains("open")
     const open=!dk.classList.contains("collapsed")||bx.classList.contains("open")||(typeof SV!=="undefined"&&SV.open);
     const top=cw.getBoundingClientRect().top,avail=Math.max(260,Math.round(innerHeight-top-ci.offsetHeight-34));
     const h=open?Math.max(190,Math.round(avail*.4)):avail;if(cw.style.height!==h+"px"){cw.style.height=h+"px";try{resize();resize3D();}catch(e){}}
-    root.style.setProperty("--ptop",Math.round(top+h)+"px");root.style.setProperty("--pbot",Math.round(innerHeight-ci.getBoundingClientRect().top+8)+"px");};
+    root.style.setProperty("--ctop",Math.round(top)+"px");root.style.setProperty("--vh",h+"px");root.style.setProperty("--pbot",Math.round(innerHeight-ci.getBoundingClientRect().top+8)+"px");};
   ci.addEventListener("click",()=>{bx.classList.remove("open");$("bookBtn").setAttribute("aria-expanded","false");if(SV.open)openShip(false);setTimeout(fit,0);},true);
   $("bookBtn").addEventListener("click",()=>{if(!matchMedia("(max-width:860px)").matches)return;dk.classList.add("collapsed");if(SV.open)openShip(false);setTimeout(fit,0);},true);
   ['bShip','bShip2'].forEach(id=>$(id).addEventListener("click",()=>{if(!matchMedia("(max-width:860px)").matches)return;if(!SV.open){dk.classList.add("collapsed");bx.classList.remove("open");}setTimeout(fit,0);},true));
