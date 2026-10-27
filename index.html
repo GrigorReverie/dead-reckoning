@@ -304,7 +304,18 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-
   .bookbtn{left:calc(50% + var(--ic) + 1.5*var(--icg))!important}
   .bookbody{position:fixed;bottom:calc(max(16px,env(safe-area-inset-bottom,0px) + 10px) + var(--ic) + 10px);left:50%;transform:translateX(-50%)}
   .app{padding-bottom:calc(var(--ic) + 36px)}
+  /* five icons now: chart, camera, ship, book, ship controls, all centred together */
+  :root{--sh:calc((var(--ic) + var(--icg))/2)}
+  #paneChart.small{left:calc(50% - 2*var(--ic) - 1.5*var(--icg) - var(--sh))!important}
+  .ptools,.shipchart{left:calc(50% - var(--ic) - var(--icg)/2 - var(--sh))!important}
+  .bookbtn{left:calc(50% + var(--ic) + 1.5*var(--icg) - var(--sh))!important}
+  #ctlIcon{display:flex!important;position:fixed;z-index:16;left:calc(50% + var(--ic) + 1.5*var(--icg) + var(--sh));bottom:max(16px,calc(env(safe-area-inset-bottom,0px) + 10px))}
+  .side .dock-all.collapsed{display:none!important}
 }
+#ctlIcon{display:none;width:var(--ic);height:var(--ic)}
+#ctlIcon svg{width:20px;height:20px}
+.ptools .tbicon svg,.bookbtn svg,#paneChart.small .mapicon svg,#ctlIcon svg{stroke-width:1.7!important}
+#paneChart.small{border:1px solid var(--ink)!important;border-radius:3px;box-shadow:0 4px 14px rgba(20,14,10,.3)}
 .shipv{position:absolute;left:0;right:0;bottom:0;top:var(--bar-h,48px);z-index:40;background:var(--paper);display:grid;grid-template-columns:minmax(0,1fr) 360px;min-height:0}
 .sv-main{padding:10px 14px;overflow:auto;min-width:0}
 .sv-top{display:flex;justify-content:space-between;align-items:center;gap:10px}
@@ -3192,6 +3203,9 @@ $("cbBtn").onclick=()=>{const c=$("compassBox"),o=c.classList.toggle("collapsed"
   document.addEventListener("click",e=>{if(!mp.hidden&&!e.target.closest(".menuwrap"))shut();});
   window.addEventListener("keydown",e=>{if(e.key==="Escape")shut();}); }
 $("bookBtn").onclick=()=>{const bx=$("bookBox"),o=!bx.classList.contains("open");bx.classList.toggle("open",o);$("bookBtn").setAttribute("aria-expanded",String(o));$("bookBtn").classList.remove("attn");setTimeout(()=>{resize();resize3D();},0);};
+{const dk=document.querySelector(".dock-all"),ci=document.createElement("button");ci.type="button";ci.id="ctlIcon";ci.className="tbicon";ci.title="Ship controls: helm, sails, log";ci.setAttribute("aria-label","Ship controls");ci.innerHTML=document.querySelector(".dockhead b.dh svg").outerHTML;document.body.append(ci);
+  const sync=()=>ci.setAttribute("aria-pressed",String(!dk.classList.contains("collapsed")));sync();new MutationObserver(sync).observe(dk,{attributes:true,attributeFilter:["class"]});
+  ci.onclick=()=>{document.querySelector('.ctog[data-dock="all"]').click();if(!dk.classList.contains("collapsed"))dk.scrollIntoView({behavior:"smooth",block:"start"});};}
 {const h=document.querySelector(".dockhead b.dh");h.onclick=()=>document.querySelector('.ctog[data-dock="all"]').click();}
 for(const b of document.querySelectorAll("#sailSteps5 button"))b.onclick=()=>setSail(+b.dataset.n);
 $("bHeave").onclick=openHeave;$("bNip").onclick=nip;
@@ -3223,6 +3237,7 @@ function fillHelpIcons(){
   row(svgOf("mapIcon")||"Map","<b>Open the sea chart.</b> Your pencil track, the ports, landmarks and the ellipse of where you might be.");
   row(svgOf("bShip")||"Ship","<b>The ship.</b> A cutaway with crew quarters, watches, hold stores and any leak.");
   row(svgOf("bookBtn")||"Book","<b>Navigator's book.</b> Dead reckoning, the noon sight, landmarks and the log book.");
+  row(svgOf("ctlIcon")||"Helm","<b>Ship controls.</b> Opens or folds the helm, sails and log panel (the wheel on the right of the bottom row on a phone).");
   hh("The compass");
   row(svgOf("cbBtn")||"Dial","<b>Fold the compass</b> away or bring it back (desktop only).");
   const d=cv("dial","56px");if(d)row(d,"<b>The compass.</b> Your brig seen from above. The <b>red arrow</b> is your ordered course, the <b>blue arrow</b> the wind, the <b>shaded wedge</b> the no-go zone where she stalls, and the <b>dashed line</b> across the yards the best angle. Tap the outer card to steer; tap inside to point the sails.");
