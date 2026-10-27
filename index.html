@@ -639,7 +639,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-
   </div>
   <section class="shipv" id="shipView" hidden aria-label="The ship">
     <div class="sv-main">
-      <div class="sv-top"><h2>Brig Hesper, in section</h2><button class="tb" id="svClose">Back to the helm</button></div>
+      <div class="sv-top"><h2>Brig Hesper, in section</h2><button class="tb" id="svClose" style="display:none">Back to the helm</button></div>
       <div class="sv-cv"><canvas id="shipCv" aria-label="Side profile of the brig with her rooms and crew"></canvas></div>
       <div class="plate"><i>Merchant brig</i><b>Hesper</b><i>1745</i></div>
       <p class="svhint">Bow to the right (swipe the picture sideways on a phone). Men on watch work the weather deck and the rigging; the rest sleep, eat or idle below. Tired men work slowly, so give the sleepers good berths.</p>
@@ -3262,7 +3262,7 @@ $("follow").onclick=()=>{follow=!follow;$("follow").setAttribute("aria-pressed",
 initRoute();initShip();
 $("rTog").onclick=()=>{const f=$("routePanel").classList.toggle("folded");$("rTog").textContent=f?"▼":"▲";$("rTog").setAttribute("aria-expanded",String(!f));};
 { const ib=document.querySelector(".infobar"),tg=$("ibTog"),ap=f=>{ib.classList.toggle("folded",f);tg.textContent=f?"▼":"▲";tg.setAttribute("aria-expanded",String(!f));setTimeout(()=>{resize();if(typeof resize3D==="function")resize3D();},0);};
-  try{if(localStorage.getItem("dr-infobar")==="1")ap(true);}catch(e){}
+  try{const v=localStorage.getItem("dr-infobar");if(v==="1"||(v===null&&matchMedia("(max-width:860px)").matches))ap(true);}catch(e){}
   tg.onclick=()=>{const f=!ib.classList.contains("folded");ap(f);try{localStorage.setItem("dr-infobar",f?"1":"0");}catch(e){}}; }
 { const bar=document.querySelector(".bar"),tg=$("barTog"),ap=f=>{bar.classList.toggle("folded",f);tg.textContent=f?"▼":"▲";tg.setAttribute("aria-expanded",String(!f));$("menuPop").hidden=true;setTimeout(()=>{resize();if(typeof resize3D==="function")resize3D();},0);};
   try{if(localStorage.getItem("dr-topbar")==="1")ap(true);}catch(e){}
