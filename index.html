@@ -67,7 +67,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-
 .cbfoot{align-self:stretch;display:flex;align-items:center;justify-content:space-between;gap:6px;padding:0 calc(var(--stW) + var(--gp)) 0 calc(var(--baroW) + var(--gp))}
 #bHeave,#bNip{width:38px;height:38px;padding:0;display:flex;align-items:center;justify-content:center;flex:none}
 .cbfoot:has(#logbox:not([hidden])) .ws,.cbfoot #glassMsg{display:none}.cbfoot #logbox #glass{position:static!important;flex:none;width:22px!important;height:34px!important}.cbfoot #logbox .mono{font-size:15px!important}.cbfoot #bNip{width:30px;height:30px}
-.cbtop{align-self:stretch;display:flex;justify-content:space-between;padding:0 calc(var(--stW) + var(--gp)) 0 calc(var(--baroW) + var(--gp));margin-bottom:-14px;position:relative;z-index:1}
+.cbtop{align-self:stretch;display:flex;justify-content:space-between;padding:0 calc(var(--stW) + var(--gp)) 0 calc(var(--baroW) + var(--gp));margin-bottom:-14px;position:relative;z-index:1;pointer-events:none}.cbtop button{pointer-events:auto;position:relative;top:30px}
 .cbtop button{border:0;background:none;color:var(--ink);padding:0 4px;font-size:13px;line-height:1;cursor:pointer;touch-action:manipulation;min-width:28px;height:26px}.cbtop button:hover{color:var(--red,#a8452c)}
 .compassbox.collapsed .cbtop{display:none}
 @media (max-width:860px){.cbtog{display:none!important}}
