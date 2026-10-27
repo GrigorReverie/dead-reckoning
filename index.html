@@ -653,6 +653,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-
         <div class="svbtns"><button type="button" id="svPump" title="Pumps: Auto starts when water is gaining">Pumps: Auto</button></div>
         <div class="svbtns" id="svJobs"><button type="button" data-j="caulk"></button><button type="button" data-j="rig"></button><button type="button" data-j="sails"></button></div>
         <p class="svhint" id="svJobTxt"></p></div>
+      <div class="svp" id="svHirePanel" hidden><h3>Hands for hire</h3><p class="svhint" id="svHireHint"></p><div class="svbtns" id="svHire"></div><div class="svbtns"><button type="button" id="svLeave" title="Let the hands ashore for the day: spirits rise, but some may not come back">Grant shore leave</button></div></div>
       <div class="svp"><h3>Purse and port</h3><div class="sveff" id="svPurse"></div><p class="svhint" id="svPortHint"></p><p class="svhint" id="svNews"></p><div class="svbtns" id="svTrade" hidden><button type="button" id="svB1"></button><button type="button" id="svB2"></button><button type="button" id="svB3"></button><button type="button" id="svB4"></button><button type="button" id="svB5"></button><button type="button" id="svSell"></button><button type="button" data-s="timber"></button><button type="button" data-s="canvas"></button><button type="button" data-s="rope"></button><button type="button" data-s="pitch"></button></div></div>
       <div class="svp"><h3>Crew</h3><div id="svSel"></div><div id="svRoster" class="svroster"></div></div>
     </aside>
@@ -3053,8 +3054,37 @@ function crewLife(s,dt,w,wi){const C=s.crew,T=s.stores,n=C.length,pt=atPort(s),a
     // spirits drift toward what the ship gives them
     const mt=clamp(.62+(s.ration<1?-.14:.04)-(s.hungry?.3:0)-(m.mode==="duty"?.25*Math.max(0,m.f-.55):0)-(s.pumping?.07:0)-.03*Math.min(3,nSick)-(s.squall||w.kn>=30?.06:0)+(ashore?.18:0)-(!prot&&s.noFresh>600?.08:0),0,1);
     m.mo+=(mt-m.mo)*(1-Math.exp(-dt/6));avg+=m.mo;}
+  { const out=[];for(const m of C){if(m.scv>=.98&&m.sick&&Math.random()<dt*.004)out.push([m,"died"]);else if(ashore&&m.mo<.25&&m.r!=="Captain"&&Math.random()<dt*.01)out.push([m,"ran"]);}
+    for(const[m,k]of out){if(C.length<=MINCREW&&k==="ran")continue;removeHand(m);say(k==="died"?`${m.n} dies of the scurvy and is committed to the sea.`:`${m.n} has deserted in the night, sick of the ship.`,{});} }
   avg/=n;if(avg<.3&&!s.sullenSaid){s.sullenSaid=true;say("The hands are sullen. Mutterings in the forecastle: better food, rest or a tot of rum would mend it.",{});}else if(avg>.45)s.sullenSaid=false;
   s.helmN=best?best.n:null;s.helmF=best?clamp(1.3-.6*best.sk,.7,1.3):1.2;}
+/* ---- hiring and port life ---- */
+const HN1=["John","William","Thomas","James","Richard","Robert","Henry","Samuel","Joseph","George","Edward","Peter","Daniel","Nathaniel","Jeremiah","Abraham"],HN2=["Hollis","Marsh","Tilley","Greaves","Boyd","Pollard","Wyatt","Rooke","Spratt","Venn","Cobb","Dunn","Lacey","Fenn","Gage","Hurst","Ibbot","Jory","Kemp","Lund"],MAXCREW=28,MINCREW=8;
+function hireList(s){const pt=atPort(s);if(!pt)return[];const d=dayIndex(s);let h=0;for(const c of pt.k+d)h=(h*31+c.charCodeAt(0))>>>0;
+  const r=()=>{h=(h*1664525+1013904223)>>>0;return h/4294967296;},out=[];
+  for(let i=0;i<4;i++){const sk=.2+r()*.6,n=HN1[Math.floor(r()*16)]+" "+HN2[Math.floor(r()*20)];r();out.push({id:pt.k+"|"+d+"|"+i,n,sk,cost:Math.round(15+60*sk)});}
+  return out.filter(c=>!(s.hired||[]).includes(c.id));}
+function removeHand(m){const C=S.crew,i=C.indexOf(m);if(i<0||m.r==="Captain")return;C.splice(i,1);if(SV.sel===i)SV.sel=-1;else if(SV.sel>i)SV.sel--;if($("svRoster")){svBuild();svBuildSel();}}
+function hireHand(id){if(!S||!S.crew)return;const c=hireList(S).find(x=>x.id===id);if(!c)return;
+  if(S.crew.length>=MAXCREW){say("There is no room in the ship for another hand.",{log:false});return;}
+  if(S.purse<c.cost){say("The purse is too light to pay his advance.",{log:false});return;}
+  const cnt=[0,0,0];S.crew.forEach(m=>{if(m.r==="Seaman"&&m.w<3)cnt[m.w]++;});
+  const m={n:c.n,r:"Seaman",w:cnt.indexOf(Math.min(...cnt)),f:.1,mode:undefined,ov:null,mo:.65,sk:c.sk,hp:1,scv:0,sus:.75+Math.random()*.5,sick:false,why:""};
+  m.b=BERTHS.findIndex((b,bi)=>berthOwner(bi)<0);if(m.b<0)m.b=null;
+  S.purse-=c.cost;(S.hired=S.hired||[]).push(id);S.crew.push(m);
+  say(`${c.n} signs on as a ${c.sk>.55?"able":"ordinary"} seaman for an advance of ${money(c.cost)}.`,{});if($("svRoster")){svBuild();svBuildSel();}svBill();}
+function payOff(m){if(!S)return;if(!atPort(S)){say("You can only pay a man off in port.",{log:false});return;}if(m.r==="Captain")return;if(S.crew.length<=MINCREW){say("You cannot sail her with fewer hands.",{log:false});return;}
+  removeHand(m);for(const o of S.crew)o.mo=Math.max(0,o.mo-.02);say(`${m.n} is paid off and goes ashore.`,{});svBill();}
+function shoreLeave(){if(!S||!S.crew)return;const pt=atPort(S);if(!pt){say("Shore leave is only given in port.",{log:false});return;}
+  if(S.t-(S.leaveT??-99)<24){say("The hands have only just been ashore.",{log:false});return;}
+  S.leaveT=S.t;const gone=[];for(const m of S.crew.slice()){if(m.r==="Captain"||m.sick)continue;if(S.crew.length-gone.length>MINCREW&&Math.random()<.02+(1-m.mo)*.15)gone.push(m);else m.mo=Math.min(1,m.mo+.2);}
+  for(const m of gone)removeHand(m);
+  say(gone.length?`The hands go ashore at ${pt.name}. ${gone.length===1?gone[0].n+" does":gone.length+" men do"} not come back.`:`The hands go ashore at ${pt.name} and all return by the evening tide, the happier for it.`,{});svBill();}
+function hireUI(){const pt=atPort(S),pan=$("svHirePanel");if(!pan)return;pan.hidden=!pt;if(!pt)return;
+  const hl=hireList(S),key=hl.map(h=>h.id).join()+"|"+S.crew.length+"|"+(S.purse>=60?1:0),box=$("svHire");
+  $("svHireHint").textContent=`${S.crew.length} of ${MAXCREW} hands aboard. Sailors come to the quay at ${pt.name}; an advance is paid on signing.`;
+  if(box.dataset.k!==key){box.dataset.k=key;box.innerHTML=hl.length?hl.map(h=>`<button type="button" data-h="${h.id}">Hire ${h.n} · skill ${pcx(h.sk)} · ${h.cost}s</button>`).join(""):"<span class=\"svhint\">No one is looking for a berth today.</span>";box.querySelectorAll("[data-h]").forEach(b=>b.onclick=()=>hireHand(b.dataset.h));}
+  $("svLeave").disabled=S.t-(S.leaveT??-99)<24;}
 function crewStep(s,dt,w){const C=s.crew;if(!C)return;crewX(s);const sh=s.ship,wi=watchInfo(s);
   if(s.wkey!==wi.key){if(s.wkey!==undefined){for(const m of C)m.ov=null;if(skipLeft<=0)say(`${["Eight bells","Eight bells","Eight bells","Eight bells","Four bells","Eight bells","Eight bells"][wi.i]}. The ${WNAME[wi.w].toLowerCase()} has the deck.`,{});}s.wkey=wi.key;}
   s.allHands=!!s.callAll||w.kn>=30||!!s.squall;
@@ -3322,9 +3352,9 @@ function svRows(){if(!S||!S.crew)return;const wi=watchInfo(S);$("svRoster").quer
   row.querySelector(".svs").textContent=m.sick?(m.why||"Laid up")+", in the sick berth":m.act||"";});
   crewX(S);{const q=$("svQ");if(q&&SV.sel>=0&&S.crew[SV.sel])q.innerHTML=crewInfo(S.crew[SV.sel]);}}
 function svBuildSel(){const box=$("svSel");if(SV.sel<0||!S){box.innerHTML='<p class="svhint">Select a hand in the cutaway or the list. Then click a berth in the ship to assign it, or pick a watch.</p>';return;}
-  const m=S.crew[SV.sel];box.innerHTML=`<div class="svcard"><b>${m.n}</b> <span>${m.r}</span><label>Berth <select id="svBerth"><option value="-1">No berth (sleeps on the lower deck)</option>${BERTHS.map((b,id)=>{const o=berthOwner(id);return`<option value="${id}"${m.b===id?" selected":""}>${b.label}${o>=0&&o!==SV.sel?" · "+S.crew[o].n.split(" ").pop():""}</option>`;}).join("")}</select></label><div class="svbtns"><button type="button" id="svOn">Turn out</button><button type="button" id="svOff">Stand down</button></div><div class="svq" id="svQ"></div></div>`;
+  const m=S.crew[SV.sel];box.innerHTML=`<div class="svcard"><b>${m.n}</b> <span>${m.r}</span><label>Berth <select id="svBerth"><option value="-1">No berth (sleeps on the lower deck)</option>${BERTHS.map((b,id)=>{const o=berthOwner(id);return`<option value="${id}"${m.b===id?" selected":""}>${b.label}${o>=0&&o!==SV.sel?" · "+S.crew[o].n.split(" ").pop():""}</option>`;}).join("")}</select></label><div class="svbtns"><button type="button" id="svOn">Turn out</button><button type="button" id="svOff">Stand down</button><button type="button" id="svPay" title="Discharge this hand, in port">Pay off</button></div><div class="svq" id="svQ"></div></div>`;
   $("svBerth").onchange=e=>assignBerth(SV.sel,+e.target.value<0?null:+e.target.value);
-  $("svOn").onclick=()=>{m.ov="on";m.mode="duty";svRows();};$("svOff").onclick=()=>{m.ov="off";if(m.mode==="duty")m.mode=m.f>.12?"sleep":"rest";svRows();};}
+  $("svPay").onclick=()=>payOff(m);$("svOn").onclick=()=>{m.ov="on";m.mode="duty";svRows();};$("svOff").onclick=()=>{m.ov="off";if(m.mode==="duty")m.mode=m.f>.12?"sleep":"rest";svRows();};}
 function svBill(){const wi=watchInfo(S),n=S.crew.filter(m=>m.mode==="duty").length,nx=(wi.w+1)%3,tm60=Math.round(wi.left*60),hh=Math.floor(tm60/60),mm=tm60%60;
   const sl=BERTHS.length,asleep=S.crew.filter(m=>m.mode==="sleep").length;
   $("svBill").innerHTML=`<b>${S.allHands?"All hands on deck":WNAME[wi.w]+" has the deck"}</b><br>${n} men at work · relieved in ${hh} h ${String(mm).padStart(2,"0")} min by the ${WNAME[(wi.w+1)%3].toLowerCase()}${S.allHands&&!S.callAll?" · called out by the weather":""}`;
@@ -3340,7 +3370,7 @@ function svBill(){const wi=watchInfo(S),n=S.crew.filter(m=>m.mode==="duty").leng
   { const T=S.stores,pt=atPort(S),near=portsNear(S);$("svPurse").innerHTML=`<div><span>Purse</span><b>${money(S.purse)}</b></div><div><span>Salt fish aboard</span><b>${Math.floor(T.fish)} lb</b></div><div><span>Caught this voyage</span><b>${Math.round(S.catchTotal)} lb</b></div>`;
     $("svNews").textContent="Salt fish per 100 lb: "+Object.keys(PORTS).map(k=>`${PORTS[k].name} ${Math.round(priceOf(S,'fish',k)*100)}s`).join(", ")+". The plantation islands pay most.";$("svTrade").hidden=!pt;$("svPortHint").textContent=pt?`In ${pt.name}. Prices are per 100 lb or gallons.`:`Not in port. Come to anchor within a mile and a half of a town to buy and sell (${near.name} is ${near.d.toFixed(0)} miles off).`;
     if(pt){document.querySelectorAll("#svTrade [data-s]").forEach(b=>{b.textContent=`${SPAREN[b.dataset.s].split(" (")[0]} +1 · ${Math.round(SPAREP[b.dataset.s]*(PORTF[pt.k]||1))}s`;});const pr=i=>Math.round(priceOf(S,i,pt.k));$("svB1").textContent=`Biscuit +100 · ${pr("bis")}s`;$("svB2").textContent=`Salt meat +100 · ${pr("meat")}s`;$("svB3").textContent=`Beer +100 · ${pr("beer")}s`;$("svB4").textContent=`Limes +50 · ${Math.round(pr("lime")/2)}s`;$("svB5").textContent=`Rum +20 gal · ${Math.round(pr("rum")/5)}s`;$("svSell").textContent=`Sell ${Math.floor(T.fish)} lb fish · ${Math.round(priceOf(S,"fish",pt.k)*100)}s per 100 lb`;} }
-  $("svAll").setAttribute("aria-pressed",String(!!S.callAll));}
+  hireUI();$("svAll").setAttribute("aria-pressed",String(!!S.callAll));}
 function svBalance(){const C=S.crew,keep=C.filter(m=>m.w!==3||m.r==="Seaman"||m.r==="Mate"||m.r==="Bosun");let i=0;
   for(const m of[...keep.filter(m=>m.r==="Mate"),...keep.filter(m=>m.r==="Bosun"),...keep.filter(m=>m.r==="Seaman")]){m.w=i%3;i++;}
   const bos=C.find(m=>m.r==="Bosun");if(bos)bos.w=1;svRows();}
@@ -3349,7 +3379,7 @@ function svFrame(dt,now){if(!S||!S.crew)return;const ctx=svCtx();S.crew.forEach(
 function openShip(on){SV.open=on;$("shipView").hidden=!on;$("bShip").setAttribute("aria-pressed",String(on));$("bShip").title=on?"Back to the helm":"The ship: cutaway, crew quarters and watches";
   if(on){const b=document.querySelector(".bar");document.documentElement.style.setProperty("--bar-h",b.offsetHeight+"px");if(S){svBuildSel();svRows();}}}
 function svNew(){SV.sel=-1;SV.rowT=0;if(S&&S.crew){svBuild();svBuildSel();}}
-function initShip(){$("bShip").onclick=$("bShip2").onclick=()=>openShip(!SV.open);$("svClose").onclick=()=>openShip(false);$("svAll").onclick=()=>{if(S){S.callAll=!S.callAll;svBill();}};$("svBal").onclick=()=>{if(S)svBalance();};document.querySelectorAll("#svTrade [data-s]").forEach(b=>b.onclick=()=>buySpare(b.dataset.s));document.querySelectorAll("#svJobs button").forEach(b=>b.onclick=()=>startJob(b.dataset.j));$("svPump").onclick=()=>{if(S){S.pumpMode=S.pumpMode==="auto"?"on":S.pumpMode==="on"?"off":"auto";svBill();}};$("svB1").onclick=()=>buyStore("bis");$("svB2").onclick=()=>buyStore("meat");$("svB3").onclick=()=>buyStore("beer");$("svB4").onclick=()=>buyStore("lime");$("svB5").onclick=()=>buyStore("rum");$("svRum").onclick=issueRum;$("svSell").onclick=sellFish;$("svRat").onclick=()=>{if(S){S.ration=S.ration<1?1:.66;svBill();}};
+function initShip(){$("bShip").onclick=$("bShip2").onclick=()=>openShip(!SV.open);$("svClose").onclick=()=>openShip(false);$("svAll").onclick=()=>{if(S){S.callAll=!S.callAll;svBill();}};$("svBal").onclick=()=>{if(S)svBalance();};document.querySelectorAll("#svTrade [data-s]").forEach(b=>b.onclick=()=>buySpare(b.dataset.s));document.querySelectorAll("#svJobs button").forEach(b=>b.onclick=()=>startJob(b.dataset.j));$("svPump").onclick=()=>{if(S){S.pumpMode=S.pumpMode==="auto"?"on":S.pumpMode==="on"?"off":"auto";svBill();}};$("svB1").onclick=()=>buyStore("bis");$("svB2").onclick=()=>buyStore("meat");$("svB3").onclick=()=>buyStore("beer");$("svB4").onclick=()=>buyStore("lime");$("svB5").onclick=()=>buyStore("rum");$("svRum").onclick=issueRum;$("svLeave").onclick=shoreLeave;$("svSell").onclick=sellFish;$("svRat").onclick=()=>{if(S){S.ration=S.ration<1?1:.66;svBill();}};
   const c=$("shipCv");c.addEventListener("pointermove",e=>{if(!S)return;const h=svHit(svXY(e));SV.hoverB=SV.sel>=0?h.bi:-1;c.style.cursor=h.mi>=0||SV.hoverB>=0?"pointer":"";});
   c.addEventListener("pointerleave",()=>{SV.hoverB=-1;});
   c.addEventListener("click",e=>{if(!S||!S.crew)return;const h=svHit(svXY(e));
