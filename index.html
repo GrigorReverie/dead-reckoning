@@ -3077,7 +3077,7 @@ function svCtx(){const C=S.crew,sh=S.ship,seamen=[];C.forEach((m,i)=>{if(m.mode=
   const work=(sh.q.length||SAILIDS.some(k=>Math.abs(sh.sls[k]-sh.sa[k])>.02))?Math.min(6,Math.max(0,seamen.length-2)):0;return{seamen,work};}
 const svCol=()=>{const cs=getComputedStyle(document.documentElement),g=n=>cs.getPropertyValue(n).trim();return{ink:g("--ink"),paper:g("--paper"),paper2:g("--paper-2"),rule:g("--rule"),och:g("--ochre"),soft:g("--ink-soft"),brass:g("--brass")};};
 function svExterior(W,H){
-  if(!R3||!R3.ship||!R3.renderer)return null;
+  return null;
   const E=R3.ext||(R3.ext={rt:null,cv:document.createElement("canvas"),cam:new THREE.OrthographicCamera(-18.16,23.78,31.29,-3.62,1,400),f:0,ok:true});
   if(!E.ok)return null;
   const w=Math.min(1200,Math.round(W)),h=Math.round(w*SVH/SVW);
@@ -3110,19 +3110,20 @@ function svDraw(now){const c=$("shipCv"),par=c.parentElement,dpr=Math.min(2,devi
   if(EXT){g.globalAlpha=1;g.drawImage(EXT,0,0,SVW,SVH);}
   g.setTransform(dpr*k*SVS,0,0,dpr*k*SVS,dpr*k*SVX,dpr*k*SVY);
   // hull
-  const hull=new Path2D();hull.moveTo(58,138);hull.lineTo(60,210);hull.lineTo(66,272);for(let z=-11.6;z<=11.2;z+=.8){const e=Math.abs((z+12)/12-1),d=2.7*(1-.55*e*e*e);hull.lineTo(505+37.25*z,172+35*(2.1+d));}hull.lineTo(952,150);hull.lineTo(790,150);hull.lineTo(790,172);hull.lineTo(300,172);hull.lineTo(300,140);hull.closePath();
-  const bob=EXT?-R3.bob.position.y*35:Math.sin(tm*.9)*2,roll=EXT?R3.bob.rotation.x:Math.sin(tm*.7)*.012;g.save();g.translate(505,246);g.rotate(roll);g.translate(-505,-246+bob);
-  // with the real 3D brig behind, the interior is a window in her side: inset from the hull so the planking, wale and copper show round it
-  const hullIn=new Path2D();{const I=10;hullIn.moveTo(58+I,138+I);hullIn.lineTo(60+I,210);hullIn.lineTo(66+I,272-I);for(let z=-11.6;z<=11.2;z+=.8){const e=Math.abs((z+12)/12-1),d=2.7*(1-.55*e*e*e);hullIn.lineTo(505+37.25*z,172+35*(2.1+d)-I*1.1);}hullIn.lineTo(952-I*1.4,150);hullIn.lineTo(790,150);hullIn.lineTo(790,172);hullIn.lineTo(300,172);hullIn.lineTo(300,140);hullIn.closePath();}
-  if(!EXT){g.fillStyle=K.paper2;g.fill(hull);}
-  g.save();g.clip(EXT?hullIn:hull);
-  // planked sides
-  if(!EXT&&day){const hg=g.createLinearGradient(0,118,0,345),stp=(y,c)=>hg.addColorStop(Math.min(1,Math.max(0,(y-118)/227)),c);
-    stp(118,'#2a231d');stp(168,'#2a231d');stp(170,'#c9a24a');stp(204,'#d7b25a');stp(206,'#2a231d');stp(238,'#2a231d');stp(241,'#ece0bd');stp(247,'#ece0bd');stp(249,'#b85a3c');stp(345,'#9c4630');
-    L(14,hg);g.stroke(hull);}
-  else if(!EXT){L(14,K.rule);g.globalAlpha=.55;g.stroke(hull);g.globalAlpha=1;}
-  L(.8,day?'rgba(40,28,20,.55)':K.soft);g.globalAlpha=.5;for(let y=185;y<340;y+=9)line(0,y,SVW,y);g.globalAlpha=1;
-  g.fillStyle=K.paper;if(EXT)g.globalAlpha=.88;g.fillRect(74,176,822,66);g.fillRect(100,246,800,72);g.fillRect(84,144,216,26);g.fillRect(300,176,0,0);g.globalAlpha=1;
+  // one silhouette for the whole ship: raked stem and sternpost, planked sides painted like the 3D brig; the rooms are cut into her side (inset by I) so hull and interior are a single drawing
+  const mkHull=I=>{const h=new Path2D();h.moveTo(46+I,138+I*.3);h.lineTo(56+I,206);h.lineTo(76+I,276-I*.8);for(let z=-11.2;z<=10.8;z+=.8){const e=Math.abs((z+12)/12-1),d=2.7*(1-.55*e*e*e);h.lineTo(505+37.25*z,172+35*(2.1+d)-I*1.1);}
+    h.lineTo(930-I*1.2,250);h.quadraticCurveTo(950-I*1.3,200,964-I*1.4,150);h.lineTo(790,150);h.lineTo(790,172);h.lineTo(300,172);h.lineTo(300,140);h.closePath();return h;};
+  const hull=mkHull(0),hullIn=mkHull(15);
+  const bob=Math.sin(tm*.9)*2,roll=Math.sin(tm*.7)*.012;g.save();g.translate(505,246);g.rotate(roll);g.translate(-505,-246+bob);
+  g.save();g.clip(hull);
+  if(day){const hg=g.createLinearGradient(0,118,0,345),stp=(y,c)=>hg.addColorStop(Math.min(1,Math.max(0,(y-118)/227)),c);
+    stp(118,'#2a231d');stp(168,'#2a231d');stp(170,'#c9a24a');stp(204,'#d7b25a');stp(206,'#2a231d');stp(238,'#2a231d');stp(241,'#ece0bd');stp(247,'#ece0bd');stp(249,'#b85a3c');stp(345,'#9c4630');g.fillStyle=hg;}
+  else g.fillStyle=K.rule;
+  g.fillRect(0,100,SVW,260);
+  L(.8,day?'rgba(250,240,210,.28)':K.soft);g.globalAlpha=.7;for(let y=150;y<345;y+=7)line(0,y,SVW,y);g.globalAlpha=1;
+  g.restore();L(2.4);g.stroke(hull);
+  g.save();g.clip(hullIn);g.fillStyle=K.paper;g.fillRect(0,100,SVW,260);
+  g.fillStyle=K.paper;g.fillRect(74,176,822,66);g.fillRect(100,246,800,72);g.fillRect(84,144,216,26);g.fillRect(300,176,0,0);g.globalAlpha=1;
   if(day){for(const[x0,y0,x1,y1,c]of[[74,176,250,242,'rgba(178,69,44,.2)'],[250,176,420,242,'rgba(201,162,74,.24)'],[420,176,600,242,'rgba(214,170,96,.22)'],[600,176,720,242,'rgba(184,90,60,.22)'],[720,176,900,242,'rgba(201,162,74,.24)'],
       [84,144,300,172,'rgba(178,69,44,.14)'],[100,246,260,322,'rgba(160,52,40,.18)'],[260,246,700,322,'rgba(150,120,80,.2)'],[700,246,900,322,'rgba(201,162,74,.2)']]){g.fillStyle=c;g.fillRect(x0,y0,x1-x0,y1-y0);}
     g.strokeStyle='rgba(90,60,30,.22)';g.lineWidth=.6;for(let x=80;x<900;x+=14){g.beginPath();g.moveTo(x,236);g.lineTo(x+6,242);g.stroke();}
@@ -3146,7 +3147,7 @@ function svDraw(now){const c=$("shipCv"),par=c.parentElement,dpr=Math.min(2,devi
   g.restore();
   // the sea: a wash over everything below the waterline, a wavering surface line, foam at stem and stern
   // no sea inside the ship: the wash is cut away over the cutaway rooms; water shows below decks only as bilge from a leak
-  g.save();{const cut=new Path2D();cut.rect(-300,0,SVW+600,SVH);cut.addPath(EXT?hullIn:hull);g.clip(cut,'evenodd');}
+  g.save();{const cut=new Path2D();cut.rect(-300,0,SVW+600,SVH);cut.addPath(hullIn);g.clip(cut,'evenodd');}
   { const wy=246,wv=x=>wy+Math.sin(x*.045+tm*1.3)*1.8+Math.sin(x*.11-tm*.9)*1.0,wp=new Path2D();wp.moveTo(-200,wv(-200));for(let x=-200;x<=1450;x+=10)wp.lineTo(x,wv(x));wp.lineTo(1450,400);wp.lineTo(-200,400);wp.closePath();
     const wg=g.createLinearGradient(0,wy,0,380);wg.addColorStop(0,day?'rgba(90,128,142,.4)':'rgba(60,110,170,.35)');wg.addColorStop(1,day?'rgba(56,92,110,.58)':'rgba(30,70,130,.5)');g.fillStyle=wg;g.fill(wp);
     g.strokeStyle=day?'rgba(250,246,230,.9)':K.ink;g.lineWidth=2;g.beginPath();for(let x=-200;x<=1450;x+=6){const y=wv(x);x>-200?g.lineTo(x,y):g.moveTo(x,y);}g.stroke();
@@ -3154,7 +3155,7 @@ function svDraw(now){const c=$("shipCv"),par=c.parentElement,dpr=Math.min(2,devi
     g.strokeStyle=day?'rgba(255,255,250,.85)':K.ink;g.lineWidth=1.4;for(const fx of[60,66,940,950,956]){for(let i=0;i<4;i++){g.beginPath();g.arc(fx+(fx<500?-i*7:i*7),wy+1,3+i*1.5,PI,2*PI);g.stroke();}} }
   g.restore();
   if(S.water>1){const lv=Math.min(70,6+S.water*1.4),by=322-lv,bw=x=>by+Math.sin(x*.06+tm*1.6)*1.6,bp=new Path2D();bp.moveTo(60,bw(60));for(let x=60;x<=960;x+=8)bp.lineTo(x,bw(x));bp.lineTo(960,330);bp.lineTo(60,330);bp.closePath();
-    g.save();g.clip(EXT?hullIn:hull);g.fillStyle=day?'rgba(70,104,116,.55)':'rgba(40,80,140,.5)';g.fill(bp);g.strokeStyle=day?'rgba(250,246,230,.85)':K.ink;g.lineWidth=1.4;g.beginPath();for(let x=60;x<=960;x+=8){x>60?g.lineTo(x,bw(x)):g.moveTo(x,bw(x));}g.stroke();g.restore();}
+    g.save();g.clip(hullIn);g.fillStyle=day?'rgba(70,104,116,.55)':'rgba(40,80,140,.5)';g.fill(bp);g.strokeStyle=day?'rgba(250,246,230,.85)':K.ink;g.lineWidth=1.4;g.beginPath();for(let x=60;x<=960;x+=8){x>60?g.lineTo(x,bw(x)):g.moveTo(x,bw(x));}g.stroke();g.restore();}
   if(!EXT){
   // rail and quarterdeck bulwark, helm
   L(1.6);line(58,122,58,138);line(58,122,300,122);for(let x=70;x<300;x+=22)line(x,122,x,140);line(300,152,300,172);line(300,152,790,152);for(let x=310;x<790;x+=30)line(x,152,x,172);g.fillStyle=day?'#2a231d':K.ink;for(let x=325;x<780;x+=60){g.fillRect(x-7,157,14,10);g.save();g.fillStyle=day?'#8a7a62':K.soft;g.beginPath();g.arc(x,162,3,0,2*PI);g.fill();g.restore();}line(790,134,952,134);line(790,134,790,150);for(let x=800;x<952;x+=26)line(x,134,x,150);
