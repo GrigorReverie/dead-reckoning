@@ -1705,17 +1705,18 @@ void main(){
   #endif
   #ifdef TEX_HULL
     // planking: strakes of constant height, butt joints staggered strake to strake, treenail row; copper plates below the waterline; a painted wale band
-    float sk=floor(p.y/0.34); float off=hsh(sk)*2.6;
-    float strake=aaLine(p.y/0.34,w);
+    float yb=p.y-vTone;
+    float sk=floor(yb/0.34); float off=hsh(sk)*2.6;
+    float strake=aaLine(yb/0.34,w);
     float butt=aaLine((p.z+off)/2.6,w*0.85)*step(0.0,sk+9.0);
-    float cell=fract(p.y/0.34); butt*=smoothstep(0.0,0.12,cell)*(1.0-smoothstep(0.88,1.0,cell));
+    float cell=fract(yb/0.34); butt*=smoothstep(0.0,0.12,cell)*(1.0-smoothstep(0.88,1.0,cell));
     float nails=aaLine((p.z+off*.3)/0.5,w*0.9)*smoothstep(.42,.5,cell)*(1.0-smoothstep(.5,.58,cell));
     float wood=max(strake*0.8,max(butt*0.75,nails*0.5));
     float cop=max(aaLine((p.z+p.y)/0.55,w*.8),aaLine((p.z-p.y)/0.55,w*.8))*0.65;
     float below=1.0-smoothstep(0.05,0.35,p.y);
-    float wale=smoothstep(0.85,1.0,p.y)*(1.0-smoothstep(1.5,1.65,p.y));
+    float wale=0.0;
     ink=mix(wood,cop,below); ink=max(ink,wale*0.42); ink=max(ink,smoothstep(2.5,3.6,p.y+0.0)*0.0);
-    ink=max(ink,aaOne(p.y,0.9,w)*0.95);ink=max(ink,aaOne(p.y,1.55,w)*0.95);ink=max(ink,aaOne(p.y,2.28,w)*0.9);
+    ink=max(ink,aaOne(yb,1.18,w)*0.95);ink=max(ink,aaOne(yb,1.74,w)*0.95);ink=max(ink,aaOne(yb,2.2,w)*0.9);ink=max(ink,aaOne(yb,3.0,w)*0.9);
   #endif
   #ifdef TEX_DECK
     float col=floor(p.x/0.4); float off2=hsh(col+3.0)*3.2;
@@ -1757,8 +1758,9 @@ void main(){
   #ifdef TEX_HULL
     float topside=smoothstep(0.2,0.45,p.y);
     wash=mix(vec3(0.70,0.30,0.20),vec3(0.15,0.13,0.12),topside);
-    float band=smoothstep(0.85,0.95,p.y)*(1.0-smoothstep(1.5,1.6,p.y));
+    float yb2=p.y-vTone; float band=smoothstep(2.18,2.24,yb2)*(1.0-smoothstep(2.98,3.04,yb2));
     wash=mix(wash,vec3(0.80,0.66,0.28),band); wa=0.92;
+    wash*=1.0-0.4*smoothstep(1.16,1.2,yb2)*(1.0-smoothstep(1.72,1.76,yb2)); // the main wale, blacked
     float boot=smoothstep(0.26,0.3,p.y)*(1.0-smoothstep(0.4,0.44,p.y)); wash=mix(wash,vec3(0.93,0.88,0.74),boot*0.9);
     wash*=0.86+0.26*vn(vec2(p.z*0.55,p.y*1.9))+0.06*(vn(vec2(p.z*3.1,p.y*7.0))-0.5);
   #endif
@@ -1767,6 +1769,9 @@ void main(){
   #endif
   #ifdef TEX_BOX
     wash=vec3(0.74,0.60,0.42); wa=0.6;
+    #ifdef TEX_BULW
+      wash=vec3(0.66,0.29,0.19); wa=0.85;
+    #endif
   #endif
   #ifdef TEX_MAST
     wash=vec3(0.36,0.19,0.12)*(0.85+0.3*vn(vec2(p.x*2.0+p.z*2.0,p.y*0.9))); wa=0.95;
@@ -1920,12 +1925,12 @@ function init3D(){
     const ink=(defs)=>new THREE.ShaderMaterial({uniforms:U,vertexShader:VS_INK,fragmentShader:FS_INK,side:THREE.DoubleSide,defines:Object.assign({HATCH_SCALE:"5.0",SHADE_FLOOR:"0.0"},defs||{}),extensions:{derivatives:true}});
     const inkMat=ink({OBJ:1}),terrainMat=ink({CONTOUR:1});
     const tex=(defs)=>new THREE.ShaderMaterial({uniforms:U,vertexShader:VS_INK,fragmentShader:FS_TEX,side:THREE.DoubleSide,defines:defs,extensions:{derivatives:true}});
-    const hullMat=tex({TEX_HULL:1}),deckMat=tex({TEX_DECK:1}),boxMat=tex({TEX_BOX:1}),sailMat=tex({TEX_SAIL:1,HATCH_UV:1}),mastMat=tex({TEX_MAST:1});
+    const hullMat=tex({TEX_HULL:1}),deckMat=tex({TEX_DECK:1}),boxMat=tex({TEX_BOX:1}),sailMat=tex({TEX_SAIL:1,HATCH_UV:1}),mastMat=tex({TEX_MAST:1}),bulwMat=tex({TEX_BOX:1,TEX_BULW:1});
     const lineMat=new THREE.LineBasicMaterial({color:0x2e2519,transparent:true,opacity:.62});
     const solidInk=new THREE.MeshBasicMaterial({color:0x2e2519});
     const sailLine=new THREE.LineBasicMaterial({color:0x2e2519,transparent:true,opacity:.26});
     const ochreLine=new THREE.LineBasicMaterial({color:0xb2452c,fog:false});
-    const R={renderer,scene,camera,U,inkMat,terrainMat,sailMat,hullMat,deckMat,boxMat,mastMat,lineMat,solidInk,sailLine,W:1,H:1,dpr:renderer.getPixelRatio(),
+    const R={renderer,scene,camera,U,inkMat,terrainMat,sailMat,hullMat,bulwMat,deckMat,boxMat,mastMat,lineMat,solidInk,sailLine,W:1,H:1,dpr:renderer.getPixelRatio(),
       yaw:60,pitch:16,dist:58,hs:0,amp:.3,windFrom:90,wt:0,last:null,cover:0,frame:0,notes:false,nightF:0,camBrg:0,heel:0,roll:0,side:1,bs:1,heave:0,pit:0,
       paperA:[...PAL.day.paper],inkA:[...PAL.day.ink],clouds:[],tex:{}};
     // ---- sea ----
@@ -2011,42 +2016,96 @@ function buildIslands(R){
 function buildShip(R){
   const {scene,inkMat,sailMat,lineMat,solidInk,hullMat,deckMat,boxMat,mastMat,sailLine}=R;
   const group=new THREE.Group(),bob=new THREE.Group();group.add(bob);scene.add(group);
-  const ST=19,PS=41,L=24;
-  const pos=[],tone=[],idx=[];const st=[];
-  for(let i=0;i<ST;i++){
-    const zn=i/(ST-1),z=-L/2+zn*L;
-    let b=3.5*(zn<.18?.8+1.1*zn:1);if(zn>.6)b*=Math.pow(Math.max(0,1-(zn-.6)/.4),.65);
-    const e=Math.abs(2*zn-1),d=2.7*(1-.55*e*e*e),sheer=2.1+1.3*e*e;st.push({z,b,d,sheer});
-    for(let j=0;j<PS;j++){const ph=j/(PS-1)*PI,cx=Math.cos(ph);const x=b*Math.sign(cx)*Math.pow(Math.abs(cx),.75);const y=sheer-(sheer+d)*Math.pow(Math.sin(ph),.85);
-      pos.push(x,y,z);tone.push(y>sheer-.6?.3:y<-.2?.4:.12);}
-  }
-  for(let i=0;i<ST-1;i++)for(let j=0;j<PS-1;j++){const a=i*PS+j,b=a+1,c=a+PS,d=c+1;idx.push(a,c,b,b,c,d);}
+  const L=24;
+  // hull lines of a 1760s-80s brig, after the Admiralty draughts: a curved stem raked forward over a rounded forefoot, a sternpost raked aft,
+  // a raked square transom over a rounded tuck, a full bow and a fine run, deadrise and a round bilge below the wale, tumblehome above it.
+  // The quarterdeck and forecastle are raised within the hull itself, the side stepping up at each break.
+  const sstep=(a,b,v)=>{const t=clamp((v-a)/(b-a),0,1);return t*t*(3-2*t);};
+  const QB=-5.4,FB=6.6,QDY=4.27,FCY=3.95,YW=1.25; // quarterdeck and forecastle breaks, their deck heights, the wing transom
+  const rise=z=>1.3*(z/12)*(z/12); // sheer of the main deck above its lowest point amidships
+  const deckW=z=>2.1+rise(z),deckAt=z=>z<QB?QDY:z>FB?FCY:deckW(z);
+  const railY=z=>deckW(z)+1.0+(QDY+.5-deckW(z)-1.0)*(1-sstep(QB-.6,QB+.25,z))+(FCY+.55-deckW(z)-1.0)*sstep(FB-.3,FB+.5,z); // top of the bulwark
+  const keelY=z=>-2.62-.33*clamp((10-z)/20,0,1); // a little drag: deeper aft
+  const zF=y=>{const s=clamp((y+2.62)/7.22,0,1.2);return 9.0+3.6*(.8*(1-Math.pow(Math.max(0,1-s),2.2))+.2*s);}; // stem
+  const zS=y=>-10.55-.75*(Math.max(y,-2.95)+2.95)/(YW+2.95); // sternpost line
+  const zA=y=>y<YW?zS(y):-11.3-1.05*(y-YW)/(4.8-YW); // sternpost, then the transom raked further aft
+  const Bm=(y,yk)=>y>1?3.5-.11*(y-1):.14+3.36*Math.pow(Math.max(0,1-Math.pow(clamp((1-y)/(1-yk),0,1),2.4)),.5);
+  const gT=y=>.8*sstep(YW-1.6,YW+.2,y);
+  const shape=(u,y,z)=>{const yk=keelY(z),h=clamp((y-yk)/(railY(z)-yk),0,1),c=.57;let g;
+    if(u>=c){const w=(u-c)/(1-c);g=Math.pow(Math.max(0,1-Math.pow(w,1.7+.7*h)),.7);}
+    else{const w=(c-u)/c,t=gT(y);g=t+(1-t)*Math.pow(Math.max(0,1-Math.pow(w,1.6+h)),.9);}
+    return Math.max(.14,Bm(y,yk)*g);};
+  const hx=(z,y)=>{const a=zA(y),f=zF(y);if(z<a||z>f)return 0;return shape((z-a)/(f-a),y,z);};
+  const NU=64,NT=36,pos=[],tone=[],idx=[],grid=[];
+  for(let k=0;k<=NU;k++){const u=.5-.5*Math.cos(PI*k/NU),col=[];
+    for(let j=0;j<=NT;j++){const t=j/NT;let z=-11+22*u,y=0;
+      for(let it=0;it<6;it++){const yt=railY(z),yk=keelY(z);y=yt-t*(yt-yk);z=zA(y)+u*(zF(y)-zA(y));}
+      col.push([shape(u,y,z),y,z]);}
+    grid.push(col);}
+  for(const sd of[1,-1]){const base=pos.length/3;
+    for(let k=0;k<=NU;k++)for(let j=0;j<=NT;j++){const p=grid[k][j];pos.push(sd*p[0],p[1],p[2]);tone.push(rise(p[2]));}
+    for(let k=0;k<NU;k++)for(let j=0;j<NT;j++){const a=base+k*(NT+1)+j,b=a+1,c=a+NT+1,d=c+1;if(sd>0)idx.push(a,c,b,b,c,d);else idx.push(a,b,c,b,d,c);}}
+  // the transom and sternpost aft, the stem forward: close the two sides across
+  for(const k of[0,NU]){const base=pos.length/3;for(let j=0;j<=NT;j++){const p=grid[k][j];pos.push(-p[0],p[1],p[2],p[0],p[1],p[2]);tone.push(rise(p[2]),rise(p[2]));}
+    for(let j=0;j<NT;j++){const a=base+j*2;idx.push(a,a+1,a+2,a+1,a+3,a+2);}}
   const hg=new THREE.BufferGeometry();hg.setAttribute("position",new THREE.Float32BufferAttribute(pos,3));hg.setAttribute("aTone",new THREE.Float32BufferAttribute(tone,1));hg.setIndex(idx);hg.computeVertexNormals();
   bob.add(new THREE.Mesh(hg,hullMat));
-  const hullPt=(i,ph)=>{const s=st[i],cx=Math.cos(ph);return new THREE.Vector3(s.b*Math.sign(cx)*Math.pow(Math.abs(cx),.75),s.sheer-(s.sheer+s.d)*Math.pow(Math.sin(ph),.85),s.z);};
-  const phAt=(i,dy)=>{const s=st[i];const q=Math.pow(clamp(dy/(s.sheer+s.d),0,1),1/.85);return Math.asin(q);};
-  const segs=[];const poly=(fn,n)=>{for(let i=0;i<n-1;i++){const a=fn(i),b=fn(i+1);segs.push(a.x,a.y,a.z,b.x,b.y,b.z);}};
-  for(const dy of[.18,.34,1.35,1.5,2.4,3.2,4.0])for(const side of[1,-1])poly(i=>{const p=hullPt(i,phAt(i,dy)+(side<0?0:0));if(side<0)p.x=-p.x;return p;},ST);
-  poly(i=>hullPt(i,0),ST);poly(i=>{const p=hullPt(i,0);p.x=-p.x;return p;},ST);
-  // gun ports
-  for(let i=4;i<=13;i+=1)for(const side of[1,-1]){const ph=phAt(i,.95);const c=hullPt(i,ph);c.x*=side;const w=.42,h=.26;
-    const q=[[-w,-h],[w,-h],[w,h],[-w,h]];for(let k=0;k<4;k++){const a=q[k],b=q[(k+1)%4];segs.push(c.x,c.y+a[1],c.z+a[0],c.x,c.y+b[1],c.z+b[0]);}}
-  { const pp=[];for(let i=4;i<=13;i++)for(const side of[1,-1]){const c=hullPt(i,phAt(i,.95));const x=c.x*side+side*.03,w=.42,h=.26;
-      pp.push(x,c.y-h,c.z-w,x,c.y-h,c.z+w,x,c.y+h,c.z+w,x,c.y-h,c.z-w,x,c.y+h,c.z+w,x,c.y+h,c.z-w);}
+  const ST=19,st=[];for(let i=0;i<ST;i++){const z=-L/2+i/(ST-1)*L;st.push({z,b:hx(z,0),d:-keelY(z),sheer:deckAt(z)});}
+  const segs=[];const L2=(a,b)=>segs.push(a[0],a[1],a[2],b[0],b[1],b[2]);
+  const onHull=(z,y,sd,o)=>[sd*(hx(z,y)+(o||0)),y,z];
+  const curve=(fy,o)=>{for(const sd of[1,-1]){let prev=null;for(let z=-12.6;z<=12.6;z+=.2){const y=fy(z),ok=hx(z,y)>0;const p=ok?onHull(z,y,sd,o):null;if(p&&prev)L2(prev,p);prev=p;}}};
+  const mesh=(P,I,mat,tn)=>{const g=new THREE.BufferGeometry();g.setAttribute("position",new THREE.Float32BufferAttribute(P,3));if(tn!=null)g.setAttribute("aTone",new THREE.Float32BufferAttribute(P.filter((_,i)=>i%3===2).map(tn),1));g.setIndex(I);g.computeVertexNormals();const m=new THREE.Mesh(g,mat);bob.add(m);return m;};
+  // pen lines: rail, main wale, the band along the ports; profile of keel, stem, sternpost and transom
+  curve(z=>railY(z),.01);for(const yb of[1.18,1.74,2.2,3.0])curve(z=>yb+rise(z),.015);
+  { const pr=[];for(let j=0;j<=NT;j++)pr.push(grid[NU][j]);for(let j=NT;j>=0;j--)pr.push(grid[0][j]);
+    for(let j=0;j<pr.length-1;j++){const a=pr[j],b=pr[j+1];L2([0,a[1],a[2]+(j<=NT?.02:-.02)],[0,b[1],b[2]+(j<NT?.02:-.02)]);}
+    for(const sd of[1,-1])for(let j=0;j<NT;j++){const a=grid[0][j],b=grid[0][j+1];if(a[1]>YW-.4)L2([sd*a[0],a[1],a[2]-.01],[sd*b[0],b[1],b[2]-.01]);} }
+  // decks: the waist, the quarterdeck and the forecastle, each inside the bulwarks
+  const deckStrip=(z0,z1,fy,n)=>{const P=[],I=[];for(let i=0;i<=n;i++){const z=z0+(z1-z0)*i/n,y=fy(z),w=Math.max(0,hx(z,y)-.22);P.push(w,y,z,-w,y,z);if(i<n){const a=i*2;I.push(a,a+2,a+1,a+1,a+2,a+3);}}mesh(P,I,deckMat,()=>.1);};
+  deckStrip(QB-.3,FB+.3,deckW,30);deckStrip(zA(QDY)+.12,QB,()=>QDY,16);deckStrip(FB,zF(FCY)-.3,()=>FCY,14);
+  // the breaks: bulkheads across the ship where the quarterdeck and forecastle rise from the waist
+  for(const[zb,y1]of[[QB,QDY],[FB,FCY]]){const P=[],I=[],y0=deckW(zb)-.05,n=6;for(let i=0;i<=n;i++){const y=y0+(y1-y0)*i/n,w=hx(zb,y)-.2;P.push(w,y,zb,-w,y,zb);if(i<n){const a=i*2;I.push(a,a+2,a+1,a+1,a+2,a+3);}}mesh(P,I,boxMat);
+    L2([-3,y1,zb+(zb<0?.02:-.02)],[3,y1,zb+(zb<0?.02:-.02)]);}
+  { const z=QB+.03;for(const x of[-.55,.55])L2([x,2.4,z],[x,3.95,z]);L2([-.55,3.95,z],[.55,3.95,z]);
+    for(const x of[-1.8,1.8]){L2([x-.3,3.0,z],[x+.3,3.0,z]);L2([x-.3,3.5,z],[x+.3,3.5,z]);L2([x-.3,3.0,z],[x-.3,3.5,z]);L2([x+.3,3.0,z],[x+.3,3.5,z]);} }
+  // bulwarks: the inboard face painted red as was the custom, a rail capping their head
+  { const zs=[];const z0=zA(railY(-12))+.06,z1=zF(railY(12))-.32;for(let i=0;i<=120;i++)zs.push(z0+(z1-z0)*i/120);zs.push(QB-.001,QB+.001,FB-.001,FB+.001);zs.sort((a,b)=>a-b);
+    for(const sd of[1,-1]){const P=[],I=[],C=[],CI=[];zs.forEach((z,i)=>{const y0=deckAt(z)-.05,y1=railY(z),xo=hx(z,y1);P.push(sd*(hx(z,y0)-.2),y0,z,sd*(xo-.2),y1,z);C.push(sd*(xo+.02),y1+.06,z,sd*(xo-.24),y1+.06,z);
+        if(i<zs.length-1){const a=i*2;I.push(a,a+2,a+1,a+1,a+2,a+3);CI.push(a,a+2,a+1,a+1,a+2,a+3);}});
+      mesh(P,I,R.bulwMat||boxMat);mesh(C,CI,mastMat);
+      let prev=null;zs.forEach(z=>{const p=[sd*(hx(z,railY(z))-.24),railY(z)+.07,z];if(prev)L2(prev,p);prev=p;});} }
+  // gun ports cut in the bulwarks of the waist: sixteen guns, eight a side, their lids triced up
+  const PZ=[-4.4,-3.0,-1.6,-.2,1.2,2.6,4.0,5.4],ports=[];
+  { const pp=[],w=.34,h=.27;for(const z of PZ)for(const sd of[1,-1]){const yc=deckW(z)+.62,x=sd*(hx(z,yc-h)+.04);ports.push({x,y:yc,z,sd});
+      pp.push(x,yc-h,z-w,x,yc-h,z+w,x,yc+h,z+w,x,yc-h,z-w,x,yc+h,z+w,x,yc+h,z-w);
+      L2([x,yc-h,z-w],[x,yc-h,z+w]);L2([x,yc+h,z-w],[x,yc+h,z+w]);L2([x,yc-h,z-w],[x,yc+h,z-w]);L2([x,yc-h,z+w],[x,yc+h,z+w]);}
     const pg2=new THREE.BufferGeometry();pg2.setAttribute("position",new THREE.Float32BufferAttribute(pp,3));bob.add(new THREE.Mesh(pg2,new THREE.MeshBasicMaterial({color:0x2a2018,side:THREE.DoubleSide,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2}))); }
-  // stern transom, windows
-  { const s0=st[0];for(let k=0;k<5;k++){const x=-2.2+k*1.1;segs.push(x,s0.sheer-.5,s0.z-.02,x,s0.sheer-1.5,s0.z-.02);}
-    segs.push(-2.6,s0.sheer-.5,s0.z-.02,2.6,s0.sheer-.5,s0.z-.02,-2.6,s0.sheer-1.5,s0.z-.02,2.6,s0.sheer-1.5,s0.z-.02);}
-  // stern cap
-  { const cp=[],ci=[];for(let j=0;j<PS;j++)cp.push(pos[j*3],pos[j*3+1],pos[j*3+2]);cp.push(0,st[0].sheer,st[0].z);for(let j=0;j<PS-1;j++)ci.push(j,j+1,PS);
-    const cg=new THREE.BufferGeometry();cg.setAttribute("position",new THREE.Float32BufferAttribute(cp,3));cg.setIndex(ci);cg.computeVertexNormals();bob.add(new THREE.Mesh(cg,hullMat)); }
-  // deck
-  { const dp=[],di=[];for(let i=0;i<ST;i++){const s=st[i],bd=s.b*.93;dp.push(bd,s.sheer-.08,s.z,-bd,s.sheer-.08,s.z);}
-    for(let i=0;i<ST-1;i++){const a=i*2;di.push(a,a+2,a+1,a+1,a+2,a+3);}
-    const dg=new THREE.BufferGeometry();dg.setAttribute("position",new THREE.Float32BufferAttribute(dp,3));dg.setAttribute("aTone",new THREE.Float32BufferAttribute(dp.map(()=>.1).slice(0,dp.length/3),1));dg.setIndex(di);dg.computeVertexNormals();bob.add(new THREE.Mesh(dg,deckMat));
-    for(let k=-6;k<=8;k+=1.5){segs.push(-st[0].b*.4,3,k,st[0].b*.4,3,k);} }
+  // stern: five lights of the great cabin across the transom under the quarterdeck, a moulding below and the taffrail above
+  { const gl=[],tz=y=>zA(y)-.035;for(let k=0;k<5;k++){const x=-2.0+k*1.0,y0=2.95,y1=3.85;
+      gl.push(x-.36,y0,tz(y0),x+.36,y0,tz(y0),x+.36,y1,tz(y1),x-.36,y0,tz(y0),x+.36,y1,tz(y1),x-.36,y1,tz(y1));
+      L2([x-.4,y0-.04,tz(y0)-.01],[x+.4,y0-.04,tz(y0)-.01]);L2([x-.4,y1+.04,tz(y1)-.01],[x+.4,y1+.04,tz(y1)-.01]);L2([x,y0,tz(y0)-.01],[x,y1,tz(y1)-.01]);L2([x-.36,3.4,tz(3.4)-.01],[x+.36,3.4,tz(3.4)-.01]);}
+    const gg=new THREE.BufferGeometry();gg.setAttribute("position",new THREE.Float32BufferAttribute(gl,3));bob.add(new THREE.Mesh(gg,new THREE.MeshBasicMaterial({color:0x2a2018,side:THREE.DoubleSide,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2})));
+    for(const y of[2.75,2.55,YW])L2([-hx(tz(y)+.04,y),y,tz(y)-.01],[hx(tz(y)+.04,y),y,tz(y)-.01]); }
   const box=(w,h,d,x,y,z)=>{const g=new THREE.BoxGeometry(w,h,d);const m=new THREE.Mesh(g,boxMat);m.position.set(x,y,z);bob.add(m);const e=new THREE.LineSegments(new THREE.EdgesGeometry(g),lineMat);e.position.copy(m.position);bob.add(e);};
-  box(6.3,1.4,6.6,0,3.55,-8.6);box(5.2,.35,5,0,4.4,-9.0);box(3.2,.9,3.6,0,3.5,8.4);
+  const spar=(a,b,r,mat,n)=>{const A=new THREE.Vector3(...a),B=new THREE.Vector3(...b),d=B.clone().sub(A),m=new THREE.Mesh(new THREE.CylinderGeometry(r,r,d.length(),n||6),mat);m.position.copy(A).add(B).multiplyScalar(.5);m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),d.normalize());bob.add(m);return m;};
+  // a flat profile in the ship's centreline plane (z along, y up), given a thickness athwartships
+  const profile=(pts,th,mat,tn)=>{const s=new THREE.Shape();pts.forEach((p,i)=>i?s.lineTo(p[0],p[1]):s.moveTo(p[0],p[1]));const g=new THREE.ExtrudeGeometry(s,{depth:th,bevelEnabled:false});g.rotateY(-PI/2);g.translate(th/2,0,0);
+    if(tn!=null){const n=g.attributes.position.count;g.setAttribute("aTone",new THREE.Float32BufferAttribute(new Array(n).fill(tn),1));}const m=new THREE.Mesh(g,mat);bob.add(m);const e=new THREE.LineSegments(new THREE.EdgesGeometry(g,40),lineMat);bob.add(e);return m;};
+  // knee of the head: the cutwater carried forward of the stem up to the figure under the bowsprit
+  { const P=[];for(let y=-1.3;y<=3.95;y+=.25)P.push([zF(y)-.15,y]);P.push([zF(3.95)+.3,4.2],[14.0,3.95]);
+    for(let y=3.6;y>=-1.3;y-=.25)P.push([zF(y)+1.45*sstep(-1.3,3.4,y)-.02,y]);profile(P,.3,hullMat,rise(12));
+    // a scroll (billet) head carved and gilded at the top of the knee
+    const sc=new THREE.Mesh(new THREE.TorusGeometry(.26,.085,6,14),boxMat);sc.rotation.y=PI/2;sc.position.set(0,3.95,13.85);bob.add(sc);
+    // head rails sweeping from the bows to the back of the figure, with the head timbers between them
+    const bz=(a,c,b,t)=>a.map((v,i)=>(1-t)*(1-t)*v+2*(1-t)*t*c[i]+t*t*b[i]);
+    for(const sd of[1,-1]){const rails=[[onHull(11.0,3.9,sd,.03),[sd*1.2,3.55,12.9],[sd*.17,3.75,13.75]],[onHull(11.3,3.0,sd,.03),[sd*.9,2.85,12.8],[sd*.17,3.2,13.6]]];
+      for(const[a,c,b]of rails){let prev=null;for(let i=0;i<=10;i++){const p=bz(a,c,b,i/10);if(prev)L2(prev,p);prev=p;}}
+      for(const t of[.35,.6,.82])L2(bz(...rails[0],t),bz(...rails[1],t)); } }
+  // rudder hung on the raked sternpost, broad at the heel and narrowing to the head where it passes in under the counter
+  { const yk=keelY(-10.6),yt=YW+.75,P=[];for(let i=0;i<=8;i++){const y=yk+(yt-yk)*i/8;P.push([zS(y)-.03,y]);}
+    for(let i=8;i>=0;i--){const y=yk+(yt-yk)*i/8,s=i/8;P.push([zS(y)-.03-(s>.8?.38:1.1-.55*s),y]);}profile(P,.3,hullMat,rise(-11));
+    for(let i=1;i<6;i++){const y=yk+(yt-yk)*i/7;for(const sd of[1,-1])L2([sd*.16,y,zS(y)+.25],[sd*.16,y,zS(y)-.75]);} }
+  const chanAt=z=>{const y=railY(z)-.16,xi=hx(z,y);return{y,xi,x1:xi+.72};}; // channels: planks outboard just under the rail
   // bowsprit, masts
   const cyl=(rt,rb,h,x,y,z,rx,rz)=>{const m=new THREE.Mesh(new THREE.CylinderGeometry(rt,rb,h,8),mastMat);m.position.set(x,y,z);m.rotation.x=rx||0;m.rotation.z=rz||0;bob.add(m);return m;};
   cyl(.16,.3,10.5,0,4.7,12.7,1.22,0);
@@ -2055,7 +2114,7 @@ function buildShip(R){
   const LEV=[{y:11,sh:5.4},{y:17.6,sh:5.6},{y:22.8,sh:3.9}];
   R.sails=[];R.yardGroups=[];
   for(const m of masts){cyl(.2,.34,m.h,0,2.3+m.h/2,m.z);
-    for(const sy of[.55,.8])for(const sd of[1,-1])segs.push(0,2.3+m.h*sy,m.z,sd*3.1,2.95,m.z+(m.z>0?1.4:-1.4));
+    for(const sy of[.55,.8])for(const sd of[1,-1])segs.push(0,2.3+m.h*sy,m.z,sd*(chanAt(m.z).xi+.3),chanAt(m.z).y+.1,m.z+(m.z>0?1.4:-1.4));
     LEV.forEach((lv,li)=>{
       const grp=new THREE.Group();grp.position.set(0,lv.y,m.z);bob.add(grp);
       const yard=new THREE.Mesh(new THREE.CylinderGeometry(.12,.12,m.yw[li],6),mastMat);yard.rotation.z=PI/2;grp.add(yard);
@@ -2083,7 +2142,7 @@ function buildShip(R){
     // furled: the sail lies in pleats along the boom, the gaff lowered on top of it
     const bun=new THREE.Mesh(new THREE.CylinderGeometry(.28,.28,8.4,8),sailMat);bun.rotation.x=PI/2;bun.position.set(0,6.85,-5.0);g.add(bun);
     // sheet and topping lift
-    const ln=[0,6.5,-9.6,0,3.2,-9.0,0,13.8,-6.3,0,23.5,0.1,0,6.4,-9.6,0,5.0,-11.0];
+    const ln=[0,6.5,-9.6,0,4.35,-10.2,0,13.8,-6.3,0,23.5,0.1,0,6.4,-9.6,0,5.0,-11.0];
     g.add(new THREE.LineSegments(new THREE.BufferGeometry().setAttribute("position",new THREE.Float32BufferAttribute(ln,3)),lineMat));
     R.gaff={g,sm,el:el2,gf,bun,lp,NU,NV,TH,PK,CL,TK,ang:0,side:1};updateGaff(R.gaff,1); }
   // spritsail yard slung under the bowsprit, sail furled along it
@@ -2125,10 +2184,10 @@ function buildShip(R){
       for(const ag of[aL,aR]){ag.add(mkMesh(gUp,shirtM,0,-.115,0));ag.add(mkMesh(gFore,jacket?boxMat:boxMat,0,-.345,0));ag.add(mkMesh(gHand,boxMat,0,-.49,0));g.add(ag);}
       const sc=mkMesh(gScope,solidInk,0,-.78,0);sc.visible=false;aR.add(sc);
       return{m:g,sc,lL,lR,aL,aR,x,y,z,role,wp:null,wait:Math.random()*3,ph:Math.random()*6,yaw:0,state:"idle",q:[],route:null,task:null};};
-    R.crew=[mk(0,4.27,-6.05,"helm"),mk(0,4.58,-9.2,"cap"),mk(.4,16.8,5.5,"look")];
+    R.crew=[mk(0,4.27,-6.05,"helm"),mk(0,4.27,-9.2,"cap"),mk(.4,16.8,5.5,"look")];
     for(let i=0;i<16;i++)R.crew.push(mk((Math.random()-.5)*2.4,2.15,-4.6+Math.random()*6,"hand"+i));
     R.yardInfo={};
-    for(const[pre,mz,top]of[["f",5.5,2.3+24*.6],["m",-2.5,2.3+27*.6]]){const sc=st[Math.round((mz+L/2)/L*(ST-1))],yC=sc.sheer-.2,x1=sc.b+1.15;
+    for(const[pre,mz,top]of[["f",5.5,2.3+24*.6],["m",-2.5,2.3+27*.6]]){const ch=chanAt(mz),yC=ch.y,x1=ch.x1;
       [["c",11,pre==="f"?13:15],["t",17.6,pre==="f"?10:11.5],["g",22.8,pre==="f"?7:8]].forEach(([lv,y,w])=>R.yardInfo[pre+lv]={z:mz,y,w,x1,yC,top}); } }
   // jib
   { const H=new THREE.Vector3(0,23.5,6.4),T=new THREE.Vector3(0,5.0,16.4),C=new THREE.Vector3(0,5.6,9.8);
@@ -2146,55 +2205,52 @@ function buildShip(R){
     const circ=(cx,cy,cz,r,pl,n)=>{n=n||8;for(let k=0;k<n;k++){const a0=k/n*2*PI,a1=(k+1)/n*2*PI;
       const f=a=>pl==="xy"?[cx+Math.cos(a)*r,cy+Math.sin(a)*r,cz]:pl==="xz"?[cx+Math.cos(a)*r,cy,cz+Math.sin(a)*r]:[cx,cy+Math.cos(a)*r,cz+Math.sin(a)*r];L2(f(a0),f(a1));}};
     const rect=(x0,x1,y,z0,z1)=>{L2([x0,y,z0],[x1,y,z0]);L2([x1,y,z0],[x1,y,z1]);L2([x1,y,z1],[x0,y,z1]);L2([x0,y,z1],[x0,y,z0]);};
-    // bulwark rails and stanchions along both sides
-    for(const sd of[1,-1]){for(let i=0;i<ST-1;i++){const a=st[i],b=st[i+1];
-        L2([sd*a.b*.97,a.sheer+.95,a.z],[sd*b.b*.97,b.sheer+.95,b.z]);L2([sd*a.b*.97,a.sheer+.45,a.z],[sd*b.b*.97,b.sheer+.45,b.z]);}
-      for(let i=1;i<ST-1;i+=2){const a=st[i];L2([sd*a.b*.97,a.sheer,a.z],[sd*a.b*.97,a.sheer+.95,a.z]);}}
     // gun barrels poking from the ports, with a muzzle ring
-    for(let i=4;i<=13;i++)for(const sd of[1,-1]){const c=hullPt(i,phAt(i,.95));c.x*=sd;
+    for(const c of ports){const sd=c.sd;
       L2([c.x,c.y+.07,c.z],[c.x+sd*.75,c.y+.07,c.z]);L2([c.x,c.y-.07,c.z],[c.x+sd*.75,c.y-.07,c.z]);L2([c.x+sd*.75,c.y+.1,c.z],[c.x+sd*.75,c.y-.1,c.z]);}
     // channels, deadeyes, shrouds and ratlines for each mast
-    for(const m of masts){const top=2.3+m.h*.6;const zi=Math.round((m.z+L/2)/L*(ST-1)),sc=st[zi];
-      for(const sd of[1,-1]){const x0=sd*sc.b*.98,x1=sd*(sc.b+1.15),yC=sc.sheer-.2;
-        rect(Math.min(x0,x1),Math.max(x0,x1),yC,m.z-1.7,m.z+1.7);
-        const dx=[];for(let k=0;k<4;k++){const z=m.z-1.3+k*.87;dx.push(z);circ(x1,yC+.12,z,.17,"xz",6);
+    for(const m of masts){const top=2.3+m.h*.6,ch=chanAt(m.z);
+      for(const sd of[1,-1]){const x0=sd*ch.xi,x1=sd*ch.x1,yC=ch.y;
+        { const g=new THREE.BoxGeometry(.8,.1,3.0),c=new THREE.Mesh(g,mastMat);c.position.set(sd*(ch.xi+.36),yC,m.z);bob.add(c);const e=new THREE.LineSegments(new THREE.EdgesGeometry(g),lineMat);e.position.copy(c.position);bob.add(e); }
+        const dx=[];for(let k=0;k<4;k++){const z=m.z-1.3+k*.87;dx.push(z);circ(x1,yC+.12,z,.17,"xz",6);L2([x1,yC-.05,z],onHull(z,yC-1.25,sd,.03));
           L2([x1,yC+.12,z],[sd*.5,top,m.z+(z-m.z)*.12]);}
         for(let r=0;r<9;r++){const t=(r+1)/10,y=yC+.12+(top-yC-.12)*t*.85;
           const xa=x1+(sd*.5-x1)*t*.85,xb=xa;L2([xa,y,dx[0]+(m.z-dx[0])*t*.85],[xb,y,dx[3]+(m.z-dx[3])*t*.85]);}}
       // top (platform) and cross-trees
-      const g2=new THREE.BoxGeometry(2.3,.22,1.9);const tp=new THREE.Mesh(g2,inkMat);tp.position.set(0,top,m.z);bob.add(tp);
-      const te=new THREE.LineSegments(new THREE.EdgesGeometry(g2),lineMat);te.position.copy(tp.position);bob.add(te);
+      const ts=new THREE.Shape();ts.moveTo(-1.3,-.85);ts.lineTo(1.3,-.85);ts.lineTo(1.3,.1);ts.absarc(0,.1,1.3,0,PI,false);ts.lineTo(-1.3,-.85);
+      const g2=new THREE.ExtrudeGeometry(ts,{depth:.2,bevelEnabled:false,curveSegments:10});g2.rotateX(PI/2);g2.translate(0,top+.1,m.z);const tp=new THREE.Mesh(g2,mastMat);bob.add(tp);
+      const te=new THREE.LineSegments(new THREE.EdgesGeometry(g2,30),lineMat);bob.add(te);
       for(const sd of[1,-1]){L2([sd*1.15,top+.11,m.z-.95],[sd*1.15,top+.11,m.z+.95]);}
       // topmast cap and truck
       circ(0,2.3+m.h+.15,m.z,.32,"xz",8);L2([0,2.3+m.h,m.z],[0,2.3+m.h+1.3,m.z]);}
     // topmast and topgallant shrouds with ratlines, long backstays from the topmast heads to the channels
-    for(const m of masts){const top=2.3+m.h*.6,head=2.3+m.h*.94,zi2=Math.round((m.z+L/2)/L*(ST-1)),sc2=st[zi2];
+    for(const m of masts){const top=2.3+m.h*.6,head=2.3+m.h*.94,ch2=chanAt(m.z);
       for(const sd of[1,-1]){for(const dz of[-.6,.6]){L2([sd*1.05,top+.12,m.z+dz],[sd*.18,head,m.z+dz*.12]);}
         for(let r=0;r<5;r++){const t=(r+1)/6,y=top+.12+(head-top-.12)*t,xa=sd*(1.05-.87*t);L2([xa,y,m.z-.6+.5*t],[xa,y,m.z+.6-.5*t]);}
-        L2([sd*.18,head,m.z],[sd*(sc2.b+1.1),sc2.sheer-.2,m.z-1.6]);L2([sd*.18,2.3+m.h*.82,m.z],[sd*(sc2.b+1.1),sc2.sheer-.2,m.z-.9]);}
+        L2([sd*.18,head,m.z],[sd*(ch2.x1-.05),ch2.y+.1,m.z-1.6]);L2([sd*.18,2.3+m.h*.82,m.z],[sd*(ch2.x1-.05),ch2.y+.1,m.z-.9]);}
       L2([0,2.3+m.h*.97,m.z],[0,2.3+m.h*.97-.0,m.z-.0]); }
     L2([0,2.3+27*.97,-2.5],[0,2.3+25,5.5]);L2([0,2.3+27*.9,-2.5],[0,2.3+19,5.5]);
     for(const sd of[1,-1]){L2([sd*.3,2.3+24*.9,5.5],[sd*.5,6.4,16.8]);L2([0,2.3+23,5.6],[sd*1.0,5.3,14.4]);}
     // stays: fore stay to the bowsprit, main stay to the foremast, backstays to the rails
     L2([0,2.3+24,5.5],[0,6.4,17.3]);L2([0,2.3+23.4,5.6],[0,5.5,13.8]);
     L2([0,2.3+26,-2.5],[0,2.3+17,5.5]);L2([0,2.3+19,-2.5],[0,2.3+9,5.5]);
-    for(const sd of[1,-1]){L2([0,2.3+26,-2.5],[sd*3.1,2.9,-6.2]);L2([0,2.3+23,5.5],[sd*3.0,2.9,2.3]);}
+    for(const sd of[1,-1]){L2([0,2.3+26,-2.5],onHull(-6.2,railY(-6.2),sd,-.1));L2([0,2.3+23,5.5],onHull(2.3,railY(2.3),sd,-.1));}
     // quarterdeck rail and posts, wheel, binnacle, ensign staff, lantern
-    { const y=4.62;rect(-2.5,2.5,y+.7,-11.3,-6.3);for(const x of[-2.5,2.5])for(const z of[-11.3,-6.3,-8.8])L2([x,y,z],[x,y+.7,z]);
-      for(const z of[-11.3,-6.3])for(const x of[-1.25,1.25])L2([x,y,z],[x,y+.7,z]);
+    { const y=4.62,ry=QDY+.5,z0=zA(ry)+.12,rail=(z,sd)=>[sd*(hx(z,ry)-.12),ry+.55,z];
+      for(const sd of[1,-1]){let prev=null;for(let z=z0;z<=QB-.15;z+=.3){const p=rail(z,sd);if(prev)L2(prev,p);prev=p;if(Math.abs((z-z0)/.9-Math.round((z-z0)/.9))<.2)L2([p[0],ry+.06,z],p);}}
+      L2(rail(z0,1),rail(z0,-1));for(const x of[-1.2,0,1.2])L2([x,ry+.06,z0+.02],[x,ry+.55,z0+.02]);
+      for(const sd of[1,-1]){const a=rail(QB-.15,sd);L2(a,[sd*.7,ry+.55,QB-.15]);L2([sd*.7,QDY,QB-.15],[sd*.7,ry+.55,QB-.15]);}
       circ(0,y+.75,-6.8,.55,"xy",12);for(let k=0;k<8;k++){const a=k/8*2*PI;L2([0,y+.75,-6.8],[Math.cos(a)*.7,y+.75+Math.sin(a)*.7,-6.8]);}
       L2([0,y,-6.8],[0,y+.75,-6.8]);
       L2([0,y+.7,-11.5],[0,y+4.2,-11.8]);rect(-.25,.25,y+4.0,-12.05,-11.55);
       // stairs up the quarterdeck from the waist
       for(let k=0;k<4;k++){const z=-5.2+k*.35;L2([-.9,2.2+k*.5,z],[.9,2.2+k*.5,z]);}}
     // forecastle rail, windlass, anchors on the cathead
-    { rect(-1.55,1.55,4.45,6.7,10.1);for(const x of[-1.55,1.55])for(const z of[6.7,8.4,10.1])L2([x,3.95,z],[x,4.45,z]);
+    { for(const sd of[1,-1]){const a=[sd*(hx(FB+.15,FCY+.5)-.25),FCY+.55,FB+.15];L2(a,[sd*.6,FCY+.55,FB+.15]);L2([sd*.6,FCY,FB+.15],[sd*.6,FCY+.55,FB+.15]);L2([a[0],FCY,a[2]],a);}
       circ(0,2.9,5.0,.35,"yz",8);L2([-1.2,2.9,5.0],[1.2,2.9,5.0]);
-      for(const sd of[1,-1]){L2([sd*1.8,3.9,9.0],[sd*3.4,3.7,9.9]);const ax=sd*3.4;
-        L2([ax,3.7,9.9],[ax,1.6,9.9]);L2([ax-.5,1.7,9.9],[ax+.5,1.7,9.9]);L2([ax-.5,1.7,9.9],[ax-.3,1.3,9.9]);L2([ax+.5,1.7,9.9],[ax+.3,1.3,9.9]);L2([ax-.25,3.1,9.9],[ax+.25,3.1,9.9]);}
-      // beakhead rails and figurehead
-      for(const sd of[1,-1]){L2([sd*.9,2.8,11.2],[sd*.1,3.4,13.1]);L2([sd*1.1,1.9,11.0],[sd*.1,2.7,12.9]);}
-      L2([0,2.4,12.6],[0,3.3,13.0]);circ(0,3.5,13.1,.2,"xy",6); }
+      for(const sd of[1,-1]){const cy=railY(10.4)+.12,c0=[sd*1.3,cy,9.6],c1=[sd*(hx(10.9,cy-.1)+.75),cy+.15,10.9];spar(c0,c1,.11,mastMat,4);
+        const ax=c1[0],az=c1[2],ay=c1[1]-.2;
+        L2([ax,ay,az],[ax,ay-2.1,az]);L2([ax-.5,ay-2.0,az],[ax+.5,ay-2.0,az]);L2([ax-.5,ay-2.0,az],[ax-.3,ay-2.4,az]);L2([ax+.5,ay-2.0,az],[ax+.3,ay-2.4,az]);L2([ax-.25,ay-.6,az],[ax+.25,ay-.6,az]);} }
     // capstan, gratings and the ship's boat in the waist
     circ(0,2.4,-4.2,.55,"xz",10);L2([0,2.1,-4.2],[0,2.7,-4.2]);
     rect(-1.1,1.1,2.14,-0.2,1.9);for(let k=0;k<5;k++)L2([-1.1+k*.55,2.14,-.2],[-1.1+k*.55,2.14,1.9]);for(let k=0;k<4;k++)L2([-1.1,2.14,-.2+k*.57],[1.1,2.14,-.2+k*.57]);
@@ -2202,12 +2258,11 @@ function buildShip(R){
       for(let k=0;k<12;k++){for(const sd of[1,-1])L2(bp(k/12,sd),bp((k+1)/12,sd));L2([bp(k/12,1)[0],2.55,bp(k/12,1)[2]],[bp((k+1)/12,1)[0],2.55,bp((k+1)/12,1)[2]]);}
       for(const t of[.2,.4,.6,.8]){L2(bp(t,1),bp(t,-1));L2([bp(t,1)[0],2.9,bp(t,1)[2]],[bp(t,1)[0]*.4,2.2,bp(t,1)[2]]);L2([bp(t,-1)[0],2.9,bp(t,-1)[2]],[bp(t,-1)[0]*.4,2.2,bp(t,-1)[2]]);}}
     // gunport lids hinged open above each port, with the gun's breeching rope looped inboard
-    for(let i=4;i<=13;i++)for(const sd of[1,-1]){const c=hullPt(i,phAt(i,.95));c.x*=sd;
+    for(const c0 of ports){const sd=c0.sd,c={x:c0.x,y:c0.y,z:c0.z};
       L2([c.x,c.y+.26,c.z-.42],[c.x+sd*.12,c.y+.62,c.z-.42]);L2([c.x,c.y+.26,c.z+.42],[c.x+sd*.12,c.y+.62,c.z+.42]);L2([c.x+sd*.12,c.y+.62,c.z-.42],[c.x+sd*.12,c.y+.62,c.z+.42]);
       L2([c.x-sd*.05,c.y-.26,c.z-.3],[c.x-sd*.7,c.y-.1,c.z-.45]);L2([c.x-sd*.05,c.y-.26,c.z+.3],[c.x-sd*.7,c.y-.1,c.z+.45]);}
     // hammock nettings: the crew's rolled hammocks stowed in the netting above the rail
-    for(const sd of[1,-1])for(let i=2;i<ST-1;i+=1){const a=st[i],b=st[i+1];if(a.z>-5.8&&a.z<4.4&&false)continue;
-      const zc=(a.z+b.z)/2,xc=sd*(a.b+b.b)/2*.97,yc=(a.sheer+b.sheer)/2+.72;circ(xc,yc,zc,.2,"yz",6);L2([xc,yc+.2,zc-.12],[xc,yc+.2,zc+.12]);}
+    for(const sd of[1,-1])for(let zc=QB+.6;zc<FB-.5;zc+=1.15){const yc=railY(zc)+.28,xc=sd*(hx(zc,railY(zc))-.12);circ(xc,yc,zc,.2,"yz",6);L2([xc,yc+.2,zc-.5],[xc,yc+.2,zc+.5]);}
     // pumps abaft the mainmast, belaying-pin racks round the masts, the bell on the forecastle
     for(const sd of[1,-1]){L2([sd*.45,2.15,-1.5],[sd*.45,3.1,-1.5]);L2([sd*.45,3.1,-1.5],[sd*.9,2.9,-1.1]);L2([sd*.9,2.9,-1.1],[sd*.9,2.7,-1.1]);}
     for(const m of masts){for(const sd of[1,-1]){const zr=m.z;L2([sd*1.0,3.1,zr-.9],[sd*1.0,3.1,zr+.9]);L2([sd*1.0,2.15,zr-.9],[sd*1.0,3.1,zr-.9]);L2([sd*1.0,2.15,zr+.9],[sd*1.0,3.1,zr+.9]);
@@ -2215,19 +2270,12 @@ function buildShip(R){
     L2([-.5,4.45,7.2],[.5,4.45,7.2]);L2([-.5,4.45,7.2],[-.5,5.3,7.2]);L2([.5,4.45,7.2],[.5,5.3,7.2]);L2([-.5,5.3,7.2],[.5,5.3,7.2]);
     L2([-.2,5.2,7.2],[-.28,4.75,7.2]);L2([.2,5.2,7.2],[.28,4.75,7.2]);L2([-.28,4.75,7.2],[.28,4.75,7.2]);
     // skylight on the quarterdeck, hatch coamings in the waist
-    box(.9,.3,1.1,0,4.78,-9.4);L2([-.45,4.93,-9.4],[.45,4.93,-9.4]);L2([0,4.93,-9.95],[0,4.93,-8.85]);
+    box(.9,.3,1.1,0,QDY+.15,-9.4);L2([-.45,QDY+.31,-9.4],[.45,QDY+.31,-9.4]);L2([0,QDY+.31,-9.95],[0,QDY+.31,-8.85]);
     rect(-.45,.45,2.45,-2.6,-1.9);
     // dolphin striker under the bowsprit and the bowsprit's gammoning, hawse-holes for the anchor cables
     L2([0,5.4,12.8],[0,3.9,13.0]);L2([0,3.9,13.0],[0,5.5,16.5]);L2([0,3.9,13.0],[0,6.2,10.4]);
     for(let k=0;k<3;k++)circ(0,5.6+k*.18,12.6+k*.5,.2,"xy",6);
-    for(const sd of[1,-1]){const c=hullPt(ST-3,phAt(ST-3,1.9));c.x*=sd;circ(c.x,c.y,c.z,.17,"yz",6);}
-    // stern windows given mullions and a gallery rail
-    { const s0=st[0];for(let k=0;k<5;k++){const x=-2.2+k*1.1;segs.push(x-.45,s0.sheer-.55,s0.z-.03,x+.45,s0.sheer-.55,s0.z-.03,x-.45,s0.sheer-1.45,s0.z-.03,x+.45,s0.sheer-1.45,s0.z-.03,x-.45,s0.sheer-.55,s0.z-.03,x-.45,s0.sheer-1.45,s0.z-.03,x+.45,s0.sheer-.55,s0.z-.03,x+.45,s0.sheer-1.45,s0.z-.03);}
-      segs.push(-2.7,s0.sheer+.2,s0.z-.04,2.7,s0.sheer+.2,s0.z-.04,-2.7,s0.sheer-.1,s0.z-.04,2.7,s0.sheer-.1,s0.z-.04); }
-    // rudder and quarter galleries
-    { const s0=st[0];L2([0,s0.sheer-.3,s0.z-.05],[0,-s0.d-.2,s0.z-.5]);L2([-.15,s0.sheer-.3,s0.z-.05],[-.2,-s0.d-.2,s0.z-.5]);L2([.15,s0.sheer-.3,s0.z-.05],[.2,-s0.d-.2,s0.z-.5]);L2([-.2,-s0.d-.2,s0.z-.5],[.2,-s0.d-.2,s0.z-.5]);
-      for(const sd of[1,-1])box(.8,1.2,1.5,sd*(s0.b+.25),s0.sheer+.2,-10.9);
-      for(let k=-1;k<=1;k++)box(.4,.5,.3,k*1.0,s0.sheer+1.45,s0.z-.15); }
+    for(const sd of[1,-1]){const c=onHull(11.2,3.25,sd,.03);circ(c[0],c[1],c[2],.17,"yz",6);}
   }
   const lg=new THREE.BufferGeometry();lg.setAttribute("position",new THREE.Float32BufferAttribute(segs,3));
   const ls=new THREE.LineSegments(lg,lineMat);ls.frustumCulled=false;bob.add(ls);
@@ -2492,7 +2540,7 @@ function update3D(dt,now){
   // crew
   { const C=R.crew;if(C){const sp=clamp(speedMult,1,8),cdt=Math.min(dt,.1)*sp,t=R.wt,working={};
       for(const j of sh.q)working[j.id]=1;for(const k of SAILIDS)if(Math.abs(sh.sls[k]-sh.sa[k])>.02)working[k]=1;
-      const ground=(x,z)=>z<-5.4?(z<-6.6&&z>-11.5&&Math.abs(x)<2.5?4.58:4.27):z<-4.4?2.15+(4.27-2.15)*(-4.4-z)/1.0:z>6.6?3.95:z>4.6?2.15+(3.95-2.15)*(z-4.6)/2.0:2.15;
+      const ground=(x,z)=>z<-5.4?4.27:z<-4.4?2.15+(4.27-2.15)*(-4.4-z)/1.0:z>6.6?3.95:z>4.6?2.15+(3.95-2.15)*(z-4.6)/2.0:2.15;
       const hip=(c,a)=>{c.lL.rotation.x=a;c.lR.rotation.x=-a;};
       // route from the deck up the shrouds to a yard slot: shroud foot, up the ratlines, along the yard on the footrope
       const routeFor=(sid,slot)=>{const Y=R.yardInfo[sid];
@@ -2502,7 +2550,7 @@ function update3D(dt,now){
           if(ty<=Y.top)r.push({p:onSh(ty),m:"climb"});else{r.push({p:onSh(Y.top),m:"climb"});r.push({p:[tx2*.8,ty,Y.z],m:"climb"});}
           r.push({p:[xo*Math.cos(th2),ty,Y.z-xo*Math.sin(th2)],m:"yard"});return r;}
         if(sid==="jib")return[{p:[slot*.5,3.95,9.7],m:"walk"}];
-        return[{p:[slot*1.0,4.58,-8.4],m:"walk"}];};
+        return[{p:[slot*1.0,4.27,-8.4],m:"walk"}];};
       const go=(c,x,y,z,spd,climb,dtc)=>{const m=c.m.position,dx=x-m.x,dy=y-m.y,dz=z-m.z,d=Math.hypot(dx,dy,dz),st2=Math.min(d,spd*dtc);
         if(d>1e-4){m.x+=dx/d*st2;m.y+=dy/d*st2;m.z+=dz/d*st2;const tyaw=climb?Math.atan2(-Math.sign(x||1),0)+0:Math.atan2(dx,dz);
           if(!climb&&Math.hypot(dx,dz)>.02){let dy2=tyaw-c.yaw;dy2=Math.atan2(Math.sin(dy2),Math.cos(dy2));c.yaw+=clamp(dy2,-7*dtc,7*dtc);}
