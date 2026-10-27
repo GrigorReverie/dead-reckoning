@@ -311,8 +311,10 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-
   .bookbtn{left:calc(50% + var(--ic) + 1.5*var(--icg) - var(--sh))!important}
   #ctlIcon{display:flex!important;position:fixed;z-index:16;left:calc(50% + var(--ic) + 1.5*var(--icg) + var(--sh));bottom:max(16px,calc(env(safe-area-inset-bottom,0px) + 10px))}
   .side .dock-all.collapsed{display:none!important}
-  /* the wheel icon opens the ship controls as a panel above the icon row; tap it again to close */
-  .side .dock-all:not(.collapsed){position:fixed;left:8px;right:8px;bottom:calc(max(16px,env(safe-area-inset-bottom,0px) + 10px) + var(--ic) + 12px);max-height:calc(100vh - var(--bar-h,48px) - var(--ic) - 80px);overflow-y:auto;z-index:15;background:var(--paper);border:1px solid var(--ink);border-radius:3px;box-shadow:0 8px 28px rgba(20,14,10,.4);padding:10px 12px;width:auto!important}
+  /* icons open their panel below the 3D view (the view shrinks to make room); tap the icon again to close */
+  .side .dock-all:not(.collapsed),.bookbody,.shipv{position:fixed!important;left:0!important;right:0!important;top:var(--ptop,50%)!important;bottom:var(--pbot,70px)!important;width:auto!important;max-height:none!important;transform:none!important;overflow-y:auto;z-index:15;background:var(--paper);border:0!important;border-top:6px solid var(--desk-2)!important;border-radius:0!important;box-shadow:none!important}
+  .side .dock-all:not(.collapsed){padding:10px 14px}
+  .bookbody{padding:0 8px}
   .dock-all .ctog[data-dock="all"]{display:none!important}
   .side:has(.dock-all.collapsed){display:none}
 }
@@ -3211,10 +3213,17 @@ $("bookBtn").onclick=()=>{const bx=$("bookBox"),o=!bx.classList.contains("open")
   const sync=()=>ci.setAttribute("aria-pressed",String(!dk.classList.contains("collapsed")));sync();new MutationObserver(sync).observe(dk,{attributes:true,attributeFilter:["class"]});
   ci.onclick=()=>{document.querySelector('.ctog[data-dock="all"]').click();};
   if(matchMedia("(max-width:860px)").matches)dk.classList.add("collapsed");sync();
-  // with the controls folded away the view takes all the room down to the icon row
-  const cw=document.querySelector(".chartwrap");
-  const fit=()=>{if(!matchMedia("(max-width:860px)").matches||!dk.classList.contains("collapsed")){if(cw.style.height)cw.style.height="";return;}const h=Math.max(260,Math.round(innerHeight-cw.getBoundingClientRect().top-ci.offsetHeight-34));if(cw.style.height!==h+"px")cw.style.height=h+"px";};
-  setInterval(fit,400);new MutationObserver(fit).observe(dk,{attributes:true,attributeFilter:["class"]});fit();}
+  // a panel open below the view takes about 60% of the room; closed, the view fills it down to the icon row
+  const cw=document.querySelector(".chartwrap"),bx=$("bookBox"),root=document.documentElement;
+  const fit=()=>{if(!matchMedia("(max-width:860px)").matches){if(cw.style.height)cw.style.height="";return;}
+    const open=!dk.classList.contains("collapsed")||bx.classList.contains("open")||(typeof SV!=="undefined"&&SV.open);
+    const top=cw.getBoundingClientRect().top,avail=Math.max(260,Math.round(innerHeight-top-ci.offsetHeight-34));
+    const h=open?Math.max(190,Math.round(avail*.4)):avail;if(cw.style.height!==h+"px"){cw.style.height=h+"px";try{resize();resize3D();}catch(e){}}
+    root.style.setProperty("--ptop",Math.round(top+h)+"px");root.style.setProperty("--pbot",Math.round(innerHeight-ci.getBoundingClientRect().top+8)+"px");};
+  ci.addEventListener("click",()=>{bx.classList.remove("open");$("bookBtn").setAttribute("aria-expanded","false");if(SV.open)openShip(false);setTimeout(fit,0);},true);
+  $("bookBtn").addEventListener("click",()=>{if(!matchMedia("(max-width:860px)").matches)return;dk.classList.add("collapsed");if(SV.open)openShip(false);setTimeout(fit,0);},true);
+  ['bShip','bShip2'].forEach(id=>$(id).addEventListener("click",()=>{if(!matchMedia("(max-width:860px)").matches)return;if(!SV.open){dk.classList.add("collapsed");bx.classList.remove("open");}setTimeout(fit,0);},true));
+  setInterval(fit,400);new MutationObserver(fit).observe(dk,{attributes:true,attributeFilter:["class"]});new MutationObserver(fit).observe(bx,{attributes:true,attributeFilter:["class"]});addEventListener("resize",fit);fit();}
 {const h=document.querySelector(".dockhead b.dh");h.onclick=()=>document.querySelector('.ctog[data-dock="all"]').click();}
 for(const b of document.querySelectorAll("#sailSteps5 button"))b.onclick=()=>setSail(+b.dataset.n);
 $("bHeave").onclick=openHeave;$("bNip").onclick=nip;
