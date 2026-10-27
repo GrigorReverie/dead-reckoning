@@ -67,9 +67,10 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-
 .cbfoot{align-self:stretch;display:flex;align-items:center;justify-content:space-between;gap:6px;padding:0 calc(var(--stW) + var(--gp)) 0 calc(var(--baroW) + var(--gp))}
 #bHeave,#bNip{width:38px;height:38px;padding:0;display:flex;align-items:center;justify-content:center;flex:none}
 .cbfoot:has(#logbox:not([hidden])) .ws,.cbfoot #glassMsg{display:none}.cbfoot #logbox #glass{position:static!important;flex:none;width:22px!important;height:34px!important}.cbfoot #logbox .mono{font-size:15px!important}.cbfoot #bNip{width:30px;height:30px}
-.cbtop{align-self:stretch;display:flex;justify-content:space-between;padding:0 calc(var(--stW) + var(--gp)) 0 calc(var(--baroW) + var(--gp));margin-bottom:-4px}
+.cbtop{align-self:stretch;display:flex;justify-content:space-between;padding:0 calc(var(--stW) + var(--gp)) 0 calc(var(--baroW) + var(--gp));margin-bottom:-14px;position:relative;z-index:1}
 .cbtop button{border:0;background:none;color:var(--ink);padding:0 4px;font-size:13px;line-height:1;cursor:pointer;touch-action:manipulation;min-width:28px;height:26px}.cbtop button:hover{color:var(--red,#a8452c)}
 .compassbox.collapsed .cbtop{display:none}
+@media (max-width:860px){.cbtog{display:none!important}}
 .cbfoot-l{display:flex;gap:4px;flex:none}.cbfoot .ws{flex:1;min-width:0;text-align:center}.cbfoot .btn.ico{flex:none;width:38px;height:38px;padding:0;display:flex;align-items:center;justify-content:center}
 .compassbox .cbtog{position:absolute;left:4px;top:4px;z-index:2;width:26px;height:26px;padding:0;display:flex;align-items:center;justify-content:center;background:var(--paper);color:var(--ink);border:1px solid var(--ink);border-radius:50%;cursor:pointer}
 .compassbox.collapsed{padding:0;border:0;background:none;box-shadow:none}.compassbox.collapsed .cbrow,.compassbox.collapsed .ws{display:none}
@@ -3183,6 +3184,7 @@ $("sUp").onclick=()=>setSail(S.ship.sail+1);
   sd.addEventListener("mouseleave",()=>{pick.textContent="Click sails to pick them (as many as you like), then tap how much to set.";}); }
 function braceBy(d){if(!S||S.done)return;S.ship.braceCmd=clamp(S.ship.braceCmd+d,-50,50);updateUI(true);}
 $("brL").onclick=()=>braceBy(5);$("brR").onclick=()=>braceBy(-5);$("sDn").onclick=()=>setSail(S.ship.sail-1);
+if(matchMedia("(max-width:860px)").matches)$("compassBox").classList.remove("collapsed");
 $("cbBtn").onclick=()=>{const c=$("compassBox"),o=c.classList.toggle("collapsed");$("cbBtn").setAttribute("aria-expanded",String(!o));};
 { const mp=$("menuPop"),mb=$("bMenu"),shut=()=>{mp.hidden=true;mb.setAttribute("aria-expanded","false");};
   mb.onclick=e=>{e.stopPropagation();mp.hidden=!mp.hidden;mb.setAttribute("aria-expanded",String(!mp.hidden));};
@@ -3222,7 +3224,7 @@ function fillHelpIcons(){
   row(svgOf("bShip")||"Ship","<b>The ship.</b> A cutaway with crew quarters, watches, hold stores and any leak.");
   row(svgOf("bookBtn")||"Book","<b>Navigator's book.</b> Dead reckoning, the noon sight, landmarks and the log book.");
   hh("The compass");
-  row(svgOf("cbBtn")||"Dial","<b>Fold the compass</b> away or bring it back.");
+  row(svgOf("cbBtn")||"Dial","<b>Fold the compass</b> away or bring it back (desktop only).");
   const d=cv("dial","56px");if(d)row(d,"<b>The compass.</b> Your brig seen from above. The <b>red arrow</b> is your ordered course, the <b>blue arrow</b> the wind, the <b>shaded wedge</b> the no-go zone where she stalls, and the <b>dashed line</b> across the yards the best angle. Tap the outer card to steer; tap inside to point the sails.");
   const g=cv("baro","auto");if(g)row(g,"<b>The glass.</b> A barometer left of the compass, in inches of mercury. The arrow shows if it is rising or falling; the words beside the scale say what to expect. A fast fall means foul weather.");
   [...document.querySelectorAll("#sailSteps5 button")].forEach(b=>{const t=(b.title||"").split(": ");row(svgOf(b)||b.textContent,"<b>"+t[0]+".</b> "+(t[1]||"").replace(/\.?$/,".")+" Sets all sails to this level at once.");});
@@ -3248,7 +3250,7 @@ $("bVoy").onclick=()=>{$("ovStart").hidden=false;modalOpen=true;};
   hb.innerHTML='<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="7.5" r="4"/><path d="M7 3.5v8M3 7.5h8"/><path d="M10.2 10.8C12.6 13 14 13.8 15.2 15.2" stroke-dasharray="1.1 1.7"/><path d="M14 15.6h6.4a6.4 6.4 0 0 1-6.4 6.4z" fill="currentColor" fill-opacity=".35"/></svg>';
   hb.onclick=()=>{if(!$("bHeave").disabled)openHeave();};new MutationObserver(()=>{hb.disabled=$("bHeave").disabled;}).observe($("bHeave"),{attributes:true,attributeFilter:["disabled"]});
   const lb=document.createElement("div");lb.className="cbfoot-l";lb.append($("bDrop"),hb);ft.append(lb,$("logbox"),ws,$("bFish"));
-  {const tp=document.createElement("div");tp.className="cbtop";const L=$("cL5"),R=$("cR5");L.textContent="◄";R.textContent="►";L.setAttribute("aria-label","Port 5 degrees");R.setAttribute("aria-label","Starboard 5 degrees");L.className=R.className="";L.removeAttribute("id");R.removeAttribute("id");L.id="cL5";R.id="cR5";tp.append(L,R);$("compassBox").querySelector(".cbrow").before(tp);}
+  {const tp=document.createElement("div");tp.className="cbtop";const L=$("cL5"),R=$("cR5");L.textContent="◄ 5°";R.textContent="5° ►";L.setAttribute("aria-label","Port 5 degrees");R.setAttribute("aria-label","Starboard 5 degrees");L.className=R.className="";L.removeAttribute("id");R.removeAttribute("id");L.id="cL5";R.id="cR5";tp.append(L,R);$("compassBox").querySelector(".cbrow").before(tp);}
   $("logbox").style.cssText+=";flex:1;min-width:0;padding:0 4px;gap:6px;border:0;justify-content:center;";} // the log-heaving panel opens under the compass // anchor and fishing sit at the bottom left and right of the compass
 $("paneV3").after($("paneTools")); // the icon row lives outside the pane so nothing in the pane can cover it
 const applyDark=()=>{document.documentElement.dataset.theme=DARK?"dark":"light";$("bDark").textContent=DARK?"Light mode":"Dark mode";$("bDark").setAttribute("aria-pressed",String(DARK));try{localStorage.setItem('drDark',DARK?'1':'0');}catch(e){}if(S){try{updateUI(true);}catch(e){}if(SV&&SV.open)try{svDraw();}catch(e){}}};
