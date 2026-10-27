@@ -703,6 +703,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-
 </div>
 
 <div class="ov" id="ovCrisis" hidden style="z-index:25"><div class="card" role="dialog" aria-labelledby="crTitle"><h2 id="crTitle" style="margin:0"></h2><p id="crText" style="margin:0"></p><div id="crBtns" style="display:flex;flex-direction:column;gap:8px"></div></div></div>
+<div id="fadeBlack" style="position:fixed;inset:0;background:#000;opacity:0;pointer-events:none;z-index:40"></div>
 <div class="ov" id="ovHelp" hidden>
   <div class="card">
     <h3>How to sail the Hesper</h3>
@@ -1042,8 +1043,8 @@ function step(dt){
   { // at anchor: she brings up, swings head to wind and rides to her cable; a drag anchor in deep water only slows her
     const A=sh.anch;
     if(A.mode==="holding"||A.mode==="weighing"){sh.v+=(0-sh.v)*(1-Math.exp(-dt/.003));
-      if(A.mode==="holding"){sh.heading=norm(sh.heading+angDiff(sh.heading,w.from)*(1-Math.exp(-dt/.015)));sh.ordered=sh.heading;sh.wander=0;sh.turnDir=0;
-        A.drag=w.kn>30?(w.kn-30)*.12:0;if(A.drag>0&&!A.dragWarned){A.dragWarned=true;say("The anchor is dragging in this wind! Veer more cable or get under way.",{slow:true});}if(A.drag===0)A.dragWarned=false;}
+      if(A.mode==="holding"){if(!s.docked){sh.heading=norm(sh.heading+angDiff(sh.heading,w.from)*(1-Math.exp(-dt/.015)));sh.ordered=sh.heading;sh.wander=0;sh.turnDir=0;}
+        A.drag=!s.docked&&w.kn>30?(w.kn-30)*.12:0;if(A.drag>0&&!A.dragWarned){A.dragWarned=true;say("The anchor is dragging in this wind! Veer more cable or get under way.",{slow:true});}if(A.drag===0)A.dragWarned=false;}
       if(A.mode==="weighing"&&s.t>=A.t0+60/3600){A.mode="up";say("Anchor's aweigh! The hands cat and fish it.",{});updateUI(true);}}
     else if(A.mode==="trailing")sh.v+=(sh.v*.4-sh.v)*(1-Math.exp(-dt/.004)); }
   if(inIrons&&sh.v<.5&&!rw&&Math.abs(angDiff(sh.heading,target))>4){
@@ -1095,7 +1096,7 @@ function step(dt){
   if(near<1.6&&s.t-s.breakersWarned>1){s.breakersWarned=s.t;say(`Breakers ahead! The leadsman finds bottom fast. ${s.mode==="lost"?"Land close aboard.":nearName+" close aboard."} Haul off!`,{pause:true});}
   // arrival
   const pk=s.v.to||nearestPort(sh).k,P=PORTS[pk];const dp=Math.hypot(P.x-sh.x,P.y-sh.y);
-  if(dp<5&&!s.arrivedNear){s.arrivedNear=pk;say(`${P.name} is open ahead. You can come to anchor.`,{pause:!s.v.free});updateUI(true);}
+  if(dp<5&&!s.arrivedNear){s.arrivedNear=pk;say(`${P.name} is open ahead. You can dock at port.`,{pause:!s.v.free});updateUI(true);}
   if(dp>7)s.arrivedNear=false;
 }
 const nearestPort=(p)=>{let k=null,d=1e9;for(const q in PORTS){const e=Math.hypot(PORTS[q].x-p.x,PORTS[q].y-p.y);if(e<d){d=e;k=q;}}return{k,d};};
@@ -1157,8 +1158,21 @@ function runAground(isl){
 function depthFm(x,y){let dm=1e9;for(const I of islands){const rx=x-I.c.x,ry=y-I.c.y;if(Math.hypot(rx,ry)>I.r+40)continue;const P=I.pts;for(let i=0;i<P.length;i++){const q=closestOnSeg({x,y},P[i],P[(i+1)%P.length]);dm=Math.min(dm,Math.hypot(x-q.x,y-q.y));}
     if(inPoly({x,y},P))dm=0;}
   return dm>=1e9?150:Math.round(clamp(1.5+7*dm,1.5,150));}
+/* docking: fade to black, set the ship alongside the quay, fade back in */
+const fadeTo=(v,ms)=>new Promise(r=>{const f=$("fadeBlack");f.style.transition=`opacity ${ms}ms ease`;f.style.opacity=v;setTimeout(r,ms+40);});
+async function dockAtPort(){if(!S||S.done||S.docking)return;S.docking=true;const mission=!S.v.free,k=S.arrivedNear||nearestPort(S.ship).k,P=PORTS[k];
+  modalOpen=true;if(mission){endVoyage(true);$("ovEnd").hidden=true;} // the grade is worked out from where she really is, before she is moved
+  await fadeTo(1,800);
+  const sh=S.ship,A=sh.anch,tw=R3&&R3.towns&&R3.towns[k];sh.x=P.x;sh.y=P.y;sh.v=0;
+  if(tw){const c=tw.isl.c,dx=c.x-tw.coast.x,dy=c.y-tw.coast.y,dl=Math.hypot(dx,dy)||1;sh.x=tw.coast.x-dx/dl*.05;sh.y=tw.coast.y-dy/dl*.05;sh.heading=norm(Math.atan2(dx,dy)/D2R-90);} // alongside the shore, the town to starboard
+  sh.ordered=sh.heading;sh.wander=0;sh.turnDir=0;sh.q=[];for(const id of SAILIDS){sh.sls[id]=0;sh.sa[id]=0;}
+  A.mode="holding";A.depth=Math.max(2,Math.round(depthFm(sh.x,sh.y)));A.drag=0;A.dragWarned=false;A.t0=S.t;
+  S.docked=k;S.arrivedNear=k;S.fishing=false;if(S.est){S.est.x=sh.x;S.est.y=sh.y;}
+  await new Promise(r=>setTimeout(r,500));await fadeTo(0,900);
+  S.docking=false;if(mission)$("ovEnd").hidden=false;else{modalOpen=false;say(`Made fast alongside the quay at ${P.name}. Sails furled and the anchor down.`,{});}
+  updateUI(true);}
 function dropAnchor(){if(!S||S.done)return;const sh=S.ship,A=sh.anch;
-  if(A.mode==="holding"||A.mode==="trailing"){A.mode="weighing";A.t0=S.t;say("Heave round, lads! Weighing anchor.",{});updateUI();return;}
+  if(A.mode==="holding"||A.mode==="trailing"){S.docked=null;A.mode="weighing";A.t0=S.t;say("Cast off! Heave round, lads, weighing anchor.",{});updateUI();return;}
   if(A.mode==="weighing")return;
   if(sh.v>3.5){say("She is making too much way to let go the anchor. Shorten sail and slow to under 3 knots first.",{});return;}
   const d=depthFm(sh.x,sh.y);A.depth=d;A.t0=S.t;A.drag=0;A.dragWarned=false;
@@ -1935,7 +1949,7 @@ function updateUI(force){
   $("hdgTxt").textContent=`Ship's head ${Math.round(sh.heading)}°`;
   { const fb=$("bFish");{const t=S.fishing?`Stop fishing · ${Math.round(S.catchTotal)} lb (F)`:"Put hand-lines over the side (F)";fb.title=t;fb.setAttribute("aria-label",t);}fb.setAttribute("aria-pressed",String(!!S.fishing)); }
   { const A=sh.anch,b=$("bDrop");{const t=A.mode==="up"?"Drop anchor (X)":A.mode==="weighing"?"Weighing anchor…":"Weigh anchor (X)";b.title=t;b.setAttribute("aria-label",t);b.setAttribute("aria-pressed",String(A.mode!=="up"));}b.disabled=A.mode==="weighing";
-    $("anchTxt").textContent=A.mode==="holding"?`At anchor in ${A.depth} fathoms${A.drag>0?" · dragging":""}`:A.mode==="trailing"?`Anchor trailing: no bottom (${A.depth} fathoms)`:A.mode==="weighing"?"Heaving up the anchor…":sh.row&&sh.row.on?`Under ${SHIP.oars&&SHIP.oars.sweeps?"sweeps":"oars"}`:sh.sailSet<.5&&sh.v>.3?"Bare poles: drifting before the wind":""; }
+    $("anchTxt").textContent=S.docked&&A.mode==="holding"?`Docked at ${PORTS[S.docked].name}`:A.mode==="holding"?`At anchor in ${A.depth} fathoms${A.drag>0?" · dragging":""}`:A.mode==="trailing"?`Anchor trailing: no bottom (${A.depth} fathoms)`:A.mode==="weighing"?"Heaving up the anchor…":sh.row&&sh.row.on?`Under ${SHIP.oars&&SHIP.oars.sweeps?"sweeps":"oars"}`:sh.sailSet<.5&&sh.v>.3?"Bare poles: drifting before the wind":""; }
   { const pe=$("sailPips");if(!pe.firstChild)for(let i=0;i<4;i++)pe.appendChild(document.createElement("i")).appendChild(document.createElement("b"));
     [...pe.children].forEach((el,i)=>{el.firstChild.style.height=(clamp(sh.sailSet-i,0,1)*100).toFixed(0)+"%";el.classList.toggle("tgt",false);});
     const moving=SAILIDS.some(k=>Math.abs(sh.sl[k]-sh.sls[k])>.03);
@@ -1959,8 +1973,8 @@ function updateUI(force){
     $("posTxt").innerHTML=`By reckoning <b class="mono">${fmtLat(eg.lat)} ${fmtLon(eg.lon)}</b><br>Could be off by about <b class="mono">${miles(S.est.sx)}</b> east–west and <b class="mono">${miles(S.est.sy)}</b> north–south.${$("peek").checked?`<br>True: <span class="mono">${fmtLat(tg.lat)} ${fmtLon(tg.lon)}</span>, ${Math.hypot(S.est.x-sh.x,S.est.y-sh.y).toFixed(1)} miles off.`:""}`;}
   else{$("modeTag").textContent="sea trial";$("posTxt").innerHTML=`Ship at <b class="mono">${fmtLat(tg.lat)} ${fmtLon(tg.lon)}</b>`;}
   const ref=S.mode==="lost"?S.est:sh;const P=PORTS[S.v.to||nearestPort(ref).k];const db=norm(Math.atan2(P.x-ref.x,P.y-ref.y)*R2D),dd=Math.hypot(P.x-ref.x,P.y-ref.y);
-  $("destTxt").innerHTML=S.arrivedNear?`<span class="warn">${P.name} is open ahead.</span> <button class="btn primary sm" id="bAnchor">Come to anchor</button>`:`${S.v.free?"Nearest port, ":""}${P.name} bears <b>${pointName(db)}</b> (${Math.round(db)}°), <b class="mono">${dd.toFixed(0)}</b> miles${S.mode==="lost"?" by reckoning":""}.`;
-  const ba=$("bAnchor");if(ba)ba.onclick=()=>{if(S.v.free){if(S.ship.anch.mode==="up")dropAnchor();}else endVoyage(true);};
+  $("destTxt").innerHTML=S.docked?`<span class="warn">Docked at ${PORTS[S.docked].name}.</span> Cast off with the anchor button to put to sea.`:S.arrivedNear?`<span class="warn">${P.name} is open ahead.</span> <button class="btn primary sm" id="bAnchor">Dock at Port</button>`:`${S.v.free?"Nearest port, ":""}${P.name} bears <b>${pointName(db)}</b> (${Math.round(db)}°), <b class="mono">${dd.toFixed(0)}</b> miles${S.mode==="lost"?" by reckoning":""}.`;
+  const ba=$("bAnchor");if(ba)ba.onclick=()=>{dockAtPort();};
   // noon
   const na=noonAvailable();
   $("noonState").textContent=S.noon.observing?"observing":na.ok?"ready":"—";
@@ -2387,7 +2401,7 @@ function buildIslands(R){
   for(const k in PORTS){const p=PORTS[k];let best=null,bd=1e9,bi=null;
     for(const isl of islands){const pt=isl.pts;for(let i=0,j=pt.length-1;i<pt.length;j=i++){const q=closestOnSeg(p,pt[j],pt[i]);const d=Math.hypot(q.x-p.x,q.y-p.y);if(d<bd){bd=d;best=q;bi=isl;}}}
     if(!bi)continue;
-    const dx=bi.c.x-best.x,dy=bi.c.y-best.y,dl=Math.hypot(dx,dy)||1;const ix=best.x+dx/dl*.3,iy=best.y+dy/dl*.3;
+    const dx=bi.c.x-best.x,dy=bi.c.y-best.y,dl=Math.hypot(dx,dy)||1;const ix=best.x+dx/dl*.1,iy=best.y+dy/dl*.1;
     const town=new THREE.Group();
     for(let i=0;i<9;i++){const w=14+Math.random()*10,h=10+Math.random()*8,d=12+Math.random()*10;
       const geo=new THREE.BoxGeometry(w,h+14,d);const m=new THREE.Mesh(geo,inkMat);const ox=(Math.random()-.5)*140,oz=(Math.random()-.5)*110;
@@ -2395,7 +2409,7 @@ function buildIslands(R){
       const roof=new THREE.Mesh(new THREE.ConeGeometry(Math.max(w,d)*.72,7,4),inkMat);roof.rotation.y=PI/4;roof.position.set(ox,h+3.5+3,oz);town.add(roof);
       const re=new THREE.LineSegments(new THREE.EdgesGeometry(roof.geometry),lineMat);re.rotation.y=PI/4;re.position.copy(roof.position);town.add(re);}
     const fp=new THREE.Mesh(new THREE.CylinderGeometry(.5,.7,45,6),R.solidInk);fp.position.set(70,20,0);town.add(fp);
-    town.position.set((ix-bi.c.x)*NM,6,-(iy-bi.c.y)*NM);bi.grp.add(town);R.towns[k]={town,isl:bi,x:ix,y:iy};
+    town.position.set((ix-bi.c.x)*NM,6,-(iy-bi.c.y)*NM);bi.grp.add(town);R.towns[k]={town,isl:bi,x:ix,y:iy,coast:{x:best.x,y:best.y}};
   }
 }
 
@@ -3664,7 +3678,7 @@ function genFish(s){const F=[],xs=islands.map(i=>i.c.x),ys=islands.map(i=>i.c.y)
   { const a=rng()*2*PI;mkP(s.ship.x+Math.sin(a)*7,s.ship.y+Math.cos(a)*7);F[F.length-1].kind="dolphinfish";F[F.length-1].rate=35; }
   F.forEach((f,i)=>f.id=i);return F;}
 function portsNear(s){const sh=s.ship;let best=null;for(const k in PORTS){const P=PORTS[k],g=geo(P.lat,P.lon),d=Math.hypot(g.x-sh.x,g.y-sh.y);if(!best||d<best.d)best={k,d,name:P.name};}return best;}
-function atPort(s){const b=portsNear(s);return b&&b.d<1.6&&(s.ship.anch.mode==="holding"||s.ship.v<.4)?b:null;}
+function atPort(s){if(s.docked&&s.ship.anch.mode==="holding")return{k:s.docked,d:0,name:PORTS[s.docked].name};const b=portsNear(s);return b&&b.d<1.6&&(s.ship.anch.mode==="holding"||s.ship.v<.4)?b:null;}
 const FISHD={bridgetown:1.25,stjohns:1.2,basseterre:1.1,castries:.85,kingstown:.9}; // plantation islands pay most for salt fish
 const priceOf=(s,item,k)=>item==="fish"?PRICE0.fish*(FISHD[k]||1)*(1+.12*Math.sin(dayIndex(s)*.9+(k.length*1.7))):PRICE0[item]*(PORTF[k]||1)*(1+.08*Math.sin(dayIndex(s)*.7+k.length*2.3+item.length*1.9));
 const QTY={bis:100,meat:100,beer:100,lime:50,rum:20,med:20},ITEMN={bis:"lb of biscuit",meat:"lb of salt meat",beer:"gallons of beer",lime:"lb of limes",rum:"gallons of rum",med:"doses of physic and dressings"};
@@ -4523,7 +4537,7 @@ function oarsUI(sh,bf){const O=SHIP.oars;if(!O||!$("bOars"))return;const r=rowOf
   $("oarMinus").disabled=h<=Math.min(O.n,av);$("oarPlus").disabled=h>=Math.min(need,av);
   for(const id of["oarBP","oarBS"])$(id).disabled=!on&&(!calm||anch);$("oarRel").checked=r.relieve!==false;
   if(on){$("windSpd").innerHTML=`<b style="color:var(--ink)">${r.pivot?"Turning":st.n}</b><br>${st.spm?st.spm+" strokes a minute":"blades still"}`;}}
-window.__DR={showCrisis,crisisKind,punish,loadState,packState,decS,toggleOars,setStroke,oarPivot,STROKES,pickShip,get SHIP(){return SHIP},SHIPDEFS,SPEC,useShip,applyShip,crewOf,rigOf,linesOf,get shipPick(){return shipPick},set shipPick(v){shipPick=v},svMove,svCtx,sx,sy,openPortCard,openPortPlan,get R3(){return R3},setMain,update3D,get S(){return S},VOYAGES,PORTS,islands,reefs,LMS,step,startVoyage,setCourse,tackOrWear,setSail,assistStep,noonAvailable,windAt:(x,y,t)=>windAt(S,x,y,t),inPoly,crossFix,plotFix,takeBearing,markNoon,startObserve,noonAvailable,endVoyage,toGeo,geo,atPort:()=>atPort(S),buyStore,sellFish,toggleFish};
+window.__DR={dockAtPort,showCrisis,crisisKind,punish,loadState,packState,decS,toggleOars,setStroke,oarPivot,STROKES,pickShip,get SHIP(){return SHIP},SHIPDEFS,SPEC,useShip,applyShip,crewOf,rigOf,linesOf,get shipPick(){return shipPick},set shipPick(v){shipPick=v},svMove,svCtx,sx,sy,openPortCard,openPortPlan,get R3(){return R3},setMain,update3D,get S(){return S},VOYAGES,PORTS,islands,reefs,LMS,step,startVoyage,setCourse,tackOrWear,setSail,assistStep,noonAvailable,windAt:(x,y,t)=>windAt(S,x,y,t),inPoly,crossFix,plotFix,takeBearing,markNoon,startObserve,noonAvailable,endVoyage,toGeo,geo,atPort:()=>atPort(S),buyStore,sellFish,toggleFish};
 })();
 </script>
 <script>if("serviceWorker" in navigator&&location.protocol.startsWith("http"))window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
