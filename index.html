@@ -387,6 +387,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-
 .svs{grid-column:1/-1;font:11px var(--f-data);color:var(--ink-soft)}
 @media (max-width:860px){.shipv{grid-template-columns:minmax(0,1fr);overflow:auto;grid-template-rows:auto auto;align-content:start}.sv-main{overflow:visible}.sv-side{border-left:0;border-top:2px solid var(--ink);overflow:visible}.svw button{width:34px;height:32px}.svbtns button{padding:9px 12px}}
 @media (prefers-reduced-motion: reduce){.toast{transition:none}}
+#freePick{display:flex;flex-direction:column;gap:10px}#freePick[hidden]{display:none}
 </style>
 
 <div class="app">
@@ -664,8 +665,9 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-
     <p class="lede">Bridgetown, Barbados, March 1745. You are master of the brig <i>Hesper</i>, 160 tons. The trade wind blows steady from the east. Choose your orders.</p>
     <div id="contBox" hidden style="display:flex;flex-direction:column;gap:6px"><button class="btn" id="bCont" style="padding:10px 12px;text-align:left;font-size:14px"></button><div class="muted" id="contNote"></div></div>
     <div class="voylist" id="voyList"></div>
+    <div id="freePick" hidden></div>
     <div><button class="btn" id="bSavesStart">Saved games and sync</button></div>
-    <p class="muted">Sea trials show your true position so you can learn the ship. On the Lost at sea voyages the chart shows only your own reckoning.</p>
+    <p class="muted">Free sailing has no end: anchor at any port to trade. Sea trials show your true position so you can learn the ship. On the Lost at sea voyages the chart shows only your own reckoning.</p>
   </div>
 </div>
 
@@ -1064,10 +1066,11 @@ function step(dt){
   let near=1e9,nearName="";for(const isl of islands.concat(reefs)){const d=distPoly(sh,isl.pts);if(d<near){near=d;nearName=isl.name;}}
   if(near<1.6&&s.t-s.breakersWarned>1){s.breakersWarned=s.t;say(`Breakers ahead! The leadsman finds bottom fast. ${s.mode==="lost"?"Land close aboard.":nearName+" close aboard."} Haul off!`,{pause:true});}
   // arrival
-  const P=PORTS[s.v.to];const dp=Math.hypot(P.x-sh.x,P.y-sh.y);
-  if(dp<5&&!s.arrivedNear){s.arrivedNear=true;say(`${P.name} is open ahead. You can come to anchor.`,{pause:true});updateUI(true);}
+  const pk=s.v.to||nearestPort(sh).k,P=PORTS[pk];const dp=Math.hypot(P.x-sh.x,P.y-sh.y);
+  if(dp<5&&!s.arrivedNear){s.arrivedNear=pk;say(`${P.name} is open ahead. You can come to anchor.`,{pause:!s.v.free});updateUI(true);}
   if(dp>7)s.arrivedNear=false;
 }
+const nearestPort=(p)=>{let k=null,d=1e9;for(const q in PORTS){const e=Math.hypot(PORTS[q].x-p.x,PORTS[q].y-p.y);if(e<d){d=e;k=q;}}return{k,d};};
 function isNight(s){const g=shipGeo(s);const lh=((localHours(s,s.t)%24)+24)%24;return sunAlt(g.lat,lh,dayIndex(s))<-4;}
 function mateHeave(s){const m=Math.max(0,Math.round(s.ship.v*(1+gauss()*.07)*2)/2);s.estSpeed=m;s.lastLog={v:m,t:s.t,by:"mate"};}
 /* ---------- assists: hands on board doing the small jobs ---------- */
@@ -1292,6 +1295,7 @@ function startVoyage(v){
   setSpeed(1);setPaused(false);follow=true;$("follow").setAttribute("aria-pressed","true");
   cam.zoom=v.mode==="lost"?2.6:3.2;cam.x=S.ship.x;cam.y=S.ship.y;
   S.log=[];renderLog();
+  if(v.free)say(`${v.from in PORTS?"Weighed anchor from "+PORTS[v.from].name:"Hove to"}. No orders: the sea is yours.${v.mode==="lost"?" The chart shows only your reckoning.":""}`);else
   say(v.mode==="lost"?`Weighed anchor from ${placeOf(v.from).name}. From here on the chart shows only your reckoning.`:`${v.from in PORTS?"Weighed anchor from "+PORTS[v.from].name:"Hove to in the "+placeOf(v.from).name}. Bound for ${PORTS[v.to].name}.`);
   S.estSpeed=0;S.lastLog=null;
   {const w=windAt(S,S.ship.x,S.ship.y,S.t);S.ship.brace=S.ship.braceCmd=optBrace(angDiff(S.ship.heading,w.from));}
@@ -1300,7 +1304,7 @@ function startVoyage(v){
 function endVoyage(ok,where){
   const s=S;s.done=true;setPaused(true);
   const hrs=s.t-s.t0;const miss=Math.hypot(s.est.x-s.ship.x,s.est.y-s.ship.y);
-  $("endTitle").textContent=ok?`Anchored at ${PORTS[s.v.to].name}`:`Wrecked on ${where}`;
+  $("endTitle").textContent=ok?`Anchored at ${PORTS[s.v.to||nearestPort(s.ship).k].name}`:`Wrecked on ${where}`;
   let grade="",text="";
   if(!ok){grade="The voyage is lost";text=s.mode==="lost"?"Your reckoning had you somewhere else. Look at the chart: the red line is where the ship really went.":"Give the land a wider berth. Islands have reefs that reach well offshore.";}
   else if(s.mode==="lost"){grade=miss<3?"Master navigator":miss<8?"Able navigator":miss<15?"Fair reckoning":"A lucky landfall";
@@ -1575,9 +1579,9 @@ function updateUI(force){
   if(S.mode==="lost"){$("modeTag").textContent="lost at sea";
     $("posTxt").innerHTML=`By reckoning <b class="mono">${fmtLat(eg.lat)} ${fmtLon(eg.lon)}</b><br>Could be off by about <b class="mono">${miles(S.est.sx)}</b> east–west and <b class="mono">${miles(S.est.sy)}</b> north–south.${$("peek").checked?`<br>True: <span class="mono">${fmtLat(tg.lat)} ${fmtLon(tg.lon)}</span>, ${Math.hypot(S.est.x-sh.x,S.est.y-sh.y).toFixed(1)} miles off.`:""}`;}
   else{$("modeTag").textContent="sea trial";$("posTxt").innerHTML=`Ship at <b class="mono">${fmtLat(tg.lat)} ${fmtLon(tg.lon)}</b>`;}
-  const ref=S.mode==="lost"?S.est:sh;const P=PORTS[S.v.to];const db=norm(Math.atan2(P.x-ref.x,P.y-ref.y)*R2D),dd=Math.hypot(P.x-ref.x,P.y-ref.y);
-  $("destTxt").innerHTML=S.arrivedNear?`<span class="warn">${P.name} is open ahead.</span> <button class="btn primary sm" id="bAnchor">Come to anchor</button>`:`${P.name} bears <b>${pointName(db)}</b> (${Math.round(db)}°), <b class="mono">${dd.toFixed(0)}</b> miles${S.mode==="lost"?" by reckoning":""}.`;
-  const ba=$("bAnchor");if(ba)ba.onclick=()=>endVoyage(true);
+  const ref=S.mode==="lost"?S.est:sh;const P=PORTS[S.v.to||nearestPort(ref).k];const db=norm(Math.atan2(P.x-ref.x,P.y-ref.y)*R2D),dd=Math.hypot(P.x-ref.x,P.y-ref.y);
+  $("destTxt").innerHTML=S.arrivedNear?`<span class="warn">${P.name} is open ahead.</span> <button class="btn primary sm" id="bAnchor">Come to anchor</button>`:`${S.v.free?"Nearest port, ":""}${P.name} bears <b>${pointName(db)}</b> (${Math.round(db)}°), <b class="mono">${dd.toFixed(0)}</b> miles${S.mode==="lost"?" by reckoning":""}.`;
+  const ba=$("bAnchor");if(ba)ba.onclick=()=>{if(S.v.free){if(S.ship.anch.mode==="up")dropAnchor();}else endVoyage(true);};
   // noon
   const na=noonAvailable();
   $("noonState").textContent=S.noon.observing?"observing":na.ok?"ready":"—";
@@ -2695,7 +2699,7 @@ function drawHud(now,sq,w){
   mk(sh.heading,(x,e)=>{c.fillStyle=ink(e?.45:1);c.beginPath();c.moveTo(x,y0+hh+6);c.lineTo(x-5,y0+hh+15);c.lineTo(x+5,y0+hh+15);c.closePath();c.fill();});
   mk(sh.ordered,(x,e)=>{c.fillStyle=e?"rgba(178,69,44,.5)":"#b2452c";c.beginPath();c.moveTo(x,y0+hh);c.lineTo(x-4,y0+hh-7);c.lineTo(x+4,y0+hh-7);c.closePath();c.fill();});
   mk(w.from,(x,e)=>{c.strokeStyle=e?"rgba(45,107,214,.5)":"#2d6bd6";c.fillStyle=c.strokeStyle;c.lineWidth=2;c.beginPath();c.moveTo(x,y0+hh+2);c.lineTo(x,y0+hh+10);c.stroke();c.font="8.5px 'IBM Plex Mono',monospace";c.fillText("WIND",x,y0+hh+20);});
-  if(S.mode==="trial"){const P=PORTS[S.v.to];const b=norm(Math.atan2(P.x-sh.x,P.y-sh.y)*R2D);mk(b,(x,e)=>{c.fillStyle=e?"rgba(178,69,44,.5)":"#b2452c";c.beginPath();c.moveTo(x,y0+hh+2);c.lineTo(x+5,y0+hh+8);c.lineTo(x,y0+hh+14);c.lineTo(x-5,y0+hh+8);c.closePath();c.fill();});}
+  if(S.mode==="trial"&&S.v.to){const P=PORTS[S.v.to];const b=norm(Math.atan2(P.x-sh.x,P.y-sh.y)*R2D);mk(b,(x,e)=>{c.fillStyle=e?"rgba(178,69,44,.5)":"#b2452c";c.beginPath();c.moveTo(x,y0+hh+2);c.lineTo(x+5,y0+hh+8);c.lineTo(x,y0+hh+14);c.lineTo(x-5,y0+hh+8);c.closePath();c.fill();});}
   // landmark labels
   c.font="italic 14px 'IM Fell English',Georgia,serif";c.textAlign="center";
   for(const lm of LMS){if(!lm.vis)continue;const v=new THREE.Vector3((lm.x-sh.x)*NM,lm.h*VEX,-(lm.y-sh.y)*NM).project(R.camera);if(v.z>1||Math.abs(v.x)>1)continue;
@@ -3520,6 +3524,14 @@ window.addEventListener("keydown",e=>{
 });
 $("voyList").innerHTML=VOYAGES.map((v,i)=>`<button class="voycard" data-v="${i}"><span class="tag">${v.tag}</span><b>${v.title}</b><span class="d">${v.desc}</span></button>`).join("");
 $("voyList").querySelectorAll("button").forEach(b=>b.onclick=()=>startVoyage(VOYAGES[+b.dataset.v]));
+{const fb=document.createElement("button");fb.className="voycard";fb.id="freeCard";fb.innerHTML='<span class="tag">No orders</span><b>Free sailing</b><span class="d">Start from any port and sail where you like. No mission, no end: trade, fish, explore the islands and come to anchor when you please.</span>';
+  $("voyList").append(fb);const fp=$("freePick");
+  fp.innerHTML='<b style="font-family:var(--f-display);font-weight:400;font-size:17px">Free sailing: where do you weigh from?</b><div class="voylist" id="freePorts" style="grid-template-columns:repeat(auto-fill,minmax(130px,1fr))"></div><label class="chk"><input type="checkbox" id="freeLost"> <span>Navigate by dead reckoning only<small style="display:block;color:var(--ink-soft)">Hides your true position, as on the lost-at-sea voyages.</small></span></label><div><button class="btn" id="freeBack">Back</button></div>';
+  $("freePorts").innerHTML=Object.keys(PORTS).map(k=>`<button class="voycard" data-p="${k}" style="padding:8px 10px"><b style="font-size:16px">${PORTS[k].name}</b></button>`).join("");
+  fb.onclick=()=>{fp.hidden=false;$("voyList").hidden=true;fp.scrollIntoView({block:"nearest"});};
+  $("freeBack").onclick=()=>{fp.hidden=true;$("voyList").hidden=false;};
+  $("freePorts").querySelectorAll("button").forEach(b=>b.onclick=()=>{const k=b.dataset.p,lost=$("freeLost").checked;fp.hidden=true;$("voyList").hidden=false;
+    startVoyage({id:"free",tag:"Free sailing",title:"From "+PORTS[k].name,from:k,to:null,mode:lost?"lost":"trial",hdg:280,free:true,desc:""});});}
 { const mq=matchMedia("(max-width:860px)"),box=document.querySelector(".compassbox"),home=$("paneV3");
   const place=()=>{const tgt=mq.matches?document.querySelector(".dock-all .dockbody"):home;if(box.parentNode!==tgt)mq.matches?tgt.insertBefore(box,tgt.firstChild):tgt.appendChild(box);};
   place();mq.addEventListener("change",()=>{place();resize();resize3D();}); }
