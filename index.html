@@ -1165,7 +1165,7 @@ async function dockAtPort(){if(!S||S.done||S.docking)return;S.docking=true;const
   await fadeTo(1,800);
   const sh=S.ship,A=sh.anch,tw=R3&&R3.towns&&R3.towns[k];sh.x=P.x;sh.y=P.y;sh.v=0;
   if(tw){const c=tw.isl.c,dx=c.x-tw.coast.x,dy=c.y-tw.coast.y,dl=Math.hypot(dx,dy)||1;sh.x=tw.coast.x-dx/dl*.05;sh.y=tw.coast.y-dy/dl*.05;sh.heading=norm(Math.atan2(dx,dy)/D2R-90);} // alongside the shore, the town to starboard
-  sh.ordered=sh.heading;sh.wander=0;sh.turnDir=0;sh.q=[];for(const id of SAILIDS){sh.sls[id]=0;sh.sa[id]=0;}
+  sh.ordered=sh.heading;sh.wander=0;sh.turnDir=0;sh.q=[];for(const id of SAILIDS){sh.sls[id]=0;sh.sa[id]=0;}if(sh.row)sh.row.on=false;
   A.mode="holding";A.depth=Math.max(2,Math.round(depthFm(sh.x,sh.y)));A.drag=0;A.dragWarned=false;A.t0=S.t;
   S.docked=k;S.arrivedNear=k;S.fishing=false;if(S.est){S.est.x=sh.x;S.est.y=sh.y;}
   await new Promise(r=>setTimeout(r,500));await fadeTo(0,900);
