@@ -312,15 +312,29 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-
   #ctlIcon{display:flex!important;position:fixed;z-index:16;left:calc(50% + var(--ic) + 1.5*var(--icg) + var(--sh));bottom:max(16px,calc(env(safe-area-inset-bottom,0px) + 10px))}
   .side .dock-all.collapsed{display:none!important}
   /* icons open their panel below the 3D view (the view shrinks to make room); tap the icon again to close */
-  .side .dock-all:not(.collapsed),.bookbody,.shipv{position:fixed!important;left:0!important;right:0!important;top:var(--ctop,100px)!important;bottom:var(--pbot,70px)!important;width:auto!important;max-height:none!important;transform:none!important;overflow-y:auto;z-index:15;border:0!important;border-radius:0!important;box-shadow:none!important;pointer-events:none;
-    background:linear-gradient(to bottom,transparent var(--vh,200px),var(--desk-2) var(--vh,200px),var(--desk-2) calc(var(--vh,200px) + 6px),var(--paper) calc(var(--vh,200px) + 6px))!important;background-attachment:local!important;padding-top:calc(var(--vh,200px) + 6px)!important}
-  .side .dock-all:not(.collapsed)>*,.bookbody>*,.shipv>*{pointer-events:auto}
-  .side .dock-all:not(.collapsed){padding-left:14px;padding-right:14px;padding-bottom:10px}
-  .bookbody{padding-left:8px;padding-right:8px}
+  .side .dock-all:not(.collapsed),.bookbody,.shipv{position:fixed!important;left:0!important;right:0!important;top:var(--ctop,100px)!important;bottom:var(--pbot,70px)!important;width:auto!important;max-height:none!important;transform:none!important;overflow-y:auto!important;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;z-index:15;background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important;backdrop-filter:none!important;padding:var(--vh,200px) 0 0!important}
+  .sheet{background:var(--paper);border-top:6px solid var(--desk-2);min-height:var(--smin,200px);box-sizing:border-box;flex:none}
+  .shipv:not([hidden]){display:block!important}
+  .side .dock-all .sheet{display:flex;flex-direction:column;gap:6px;padding:10px 14px 14px}
+  .bookbody .sheet{display:block;padding:0 8px 8px}
+  .shipv .sheet{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto;align-content:start}
+  /* the five icons sit in a bottom menu bar, evenly spaced, each with its name */
+  #tabbar{display:block;position:fixed;left:0;right:0;bottom:0;height:calc(var(--ic) + 30px + env(safe-area-inset-bottom,0px));background:var(--paper);border-top:1px solid var(--ink);z-index:14}
+  #tabbar span{position:absolute;bottom:calc(env(safe-area-inset-bottom,0px) + 6px);transform:translateX(-50%);font:10px/1 var(--f-data);letter-spacing:.06em;text-transform:uppercase;color:var(--ink-soft)}
+  .ptools .tbicon,.bookbtn,.shipchart,#paneChart.small,#ctlIcon{bottom:calc(env(safe-area-inset-bottom,0px) + 22px)!important;border-color:transparent!important;background:transparent!important;box-shadow:none!important;border-radius:6px}
+  .ptools .tbicon[aria-pressed="true"],.bookbox.open .bookbtn,#ctlIcon[aria-pressed="true"]{background:var(--ink)!important;color:var(--paper)!important}
+  #paneChart.small .mapicon{background:transparent!important}
+  #paneChart.small{left:calc(10% - var(--ic)/2)!important;border:0!important}
+  .ptools{left:calc(30% - var(--ic)/2)!important;gap:calc(20vw - var(--ic))!important}
+  .shipchart{left:calc(50% - var(--ic)/2)!important}
+  .bookbtn{left:calc(70% - var(--ic)/2)!important}
+  #ctlIcon{display:flex!important;position:fixed;z-index:16;left:calc(90% - var(--ic)/2)!important}
+  .app{padding-bottom:calc(var(--ic) + 40px)}
   .dock-all .ctog[data-dock="all"]{display:none!important}
   .side:has(.dock-all.collapsed){display:none}
 }
 #ctlIcon{display:none;width:var(--ic);height:var(--ic)}
+.sheet{display:contents}@media (min-width:861px){#tabbar{display:none}}
 #ctlIcon svg{width:20px;height:20px}
 .ptools .tbicon svg,.bookbtn svg,#paneChart.small .mapicon svg,#ctlIcon svg{stroke-width:1.7!important}
 #paneChart.small{border:1px solid var(--ink)!important;border-radius:3px;box-shadow:0 4px 14px rgba(20,14,10,.3)}
@@ -3215,13 +3229,15 @@ $("bookBtn").onclick=()=>{const bx=$("bookBox"),o=!bx.classList.contains("open")
   const sync=()=>ci.setAttribute("aria-pressed",String(!dk.classList.contains("collapsed")));sync();new MutationObserver(sync).observe(dk,{attributes:true,attributeFilter:["class"]});
   ci.onclick=()=>{document.querySelector('.ctog[data-dock="all"]').click();};
   if(matchMedia("(max-width:860px)").matches)dk.classList.add("collapsed");sync();
-  // a panel open below the view takes about 60% of the room; closed, the view fills it down to the icon row
+  // a panel open below the view takes about 60% of the room and slides up over the view when scrolled; closed, the view fills it down to the bottom menu
   const cw=document.querySelector(".chartwrap"),bx=$("bookBox"),root=document.documentElement;
+  [dk,$("bookBody"),$("shipView")].forEach(el=>{const sh=document.createElement("div");sh.className="sheet";while(el.firstChild)sh.append(el.firstChild);el.append(sh);});
+  const tb=document.createElement("div");tb.id="tabbar";tb.setAttribute("aria-hidden","true");["Chart","View","Ship","Book","Helm"].forEach((t,i)=>{const sp=document.createElement("span");sp.textContent=t;sp.style.left=(10+20*i)+"%";tb.append(sp);});document.body.append(tb);
   const fit=()=>{if(!matchMedia("(max-width:860px)").matches){if(cw.style.height)cw.style.height="";return;}
-    const open=!dk.classList.contains("collapsed")||bx.classList.contains("open")||(typeof SV!=="undefined"&&SV.open);
-    const top=cw.getBoundingClientRect().top,avail=Math.max(260,Math.round(innerHeight-top-ci.offsetHeight-34));
+    const open=!dk.classList.contains("collapsed")||bx.classList.contains("open")||SV.open;
+    const top=cw.getBoundingClientRect().top,barTop=tb.getBoundingClientRect().top,avail=Math.max(260,Math.round(barTop-top));
     const h=open?Math.max(190,Math.round(avail*.4)):avail;if(cw.style.height!==h+"px"){cw.style.height=h+"px";try{resize();resize3D();}catch(e){}}
-    root.style.setProperty("--ctop",Math.round(top)+"px");root.style.setProperty("--vh",h+"px");root.style.setProperty("--pbot",Math.round(innerHeight-ci.getBoundingClientRect().top+8)+"px");};
+    root.style.setProperty("--ctop",Math.round(top)+"px");root.style.setProperty("--vh",h+"px");root.style.setProperty("--pbot",Math.round(innerHeight-barTop)+"px");root.style.setProperty("--smin",(avail-h)+"px");};
   ci.addEventListener("click",()=>{bx.classList.remove("open");$("bookBtn").setAttribute("aria-expanded","false");if(SV.open)openShip(false);setTimeout(fit,0);},true);
   $("bookBtn").addEventListener("click",()=>{if(!matchMedia("(max-width:860px)").matches)return;dk.classList.add("collapsed");if(SV.open)openShip(false);setTimeout(fit,0);},true);
   ['bShip','bShip2'].forEach(id=>$(id).addEventListener("click",()=>{if(!matchMedia("(max-width:860px)").matches)return;if(!SV.open){dk.classList.add("collapsed");bx.classList.remove("open");}setTimeout(fit,0);},true));
