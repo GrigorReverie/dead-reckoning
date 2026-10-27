@@ -655,7 +655,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-
         <div class="svbtns" id="svJobs"><button type="button" data-j="caulk"></button><button type="button" data-j="rig"></button><button type="button" data-j="sails"></button></div>
         <p class="svhint" id="svJobTxt"></p></div>
       <div class="svp" id="svHirePanel" hidden><h3>Hands for hire</h3><p class="svhint" id="svHireHint"></p><div class="svbtns" id="svHire"></div><div class="svbtns"><button type="button" id="svLeave" title="Let the hands ashore for the day: spirits rise, but some may not come back">Grant shore leave</button></div></div>
-      <div class="svp"><h3>Purse and port</h3><div class="sveff" id="svPurse"></div><p class="svhint" id="svPortHint"></p><p class="svhint" id="svNews"></p><div class="svbtns" id="svTrade" hidden><button type="button" id="svB1"></button><button type="button" id="svB2"></button><button type="button" id="svB3"></button><button type="button" id="svB4"></button><button type="button" id="svB5"></button><button type="button" id="svSell"></button><button type="button" data-s="timber"></button><button type="button" data-s="canvas"></button><button type="button" data-s="rope"></button><button type="button" data-s="pitch"></button></div></div>
+      <div class="svp"><h3>Purse and port</h3><div class="sveff" id="svPurse"></div><p class="svhint" id="svPortHint"></p><p class="svhint" id="svNews"></p><div class="svbtns" id="svTrade" hidden><button type="button" id="svB1"></button><button type="button" id="svB2"></button><button type="button" id="svB3"></button><button type="button" id="svB4"></button><button type="button" id="svB5"></button><button type="button" id="svB6"></button><button type="button" id="svSell"></button><button type="button" data-s="timber"></button><button type="button" data-s="canvas"></button><button type="button" data-s="rope"></button><button type="button" data-s="pitch"></button></div></div>
       <div class="svp"><h3>Crew</h3><div id="svSel"></div><div id="svRoster" class="svroster"></div></div>
     </aside>
   </section>
@@ -832,7 +832,7 @@ function newState(v){
     ship:{x:p.x,y:p.y,heading:v.hdg,ordered:v.hdg,v:0,turnDir:0,wander:0,bias:gauss()*1.2,anch:{mode:"up",t0:0,depth:0},rig:1,sail:3,sailSet:3,sl:planOf(3),sa:planOf(3),sls:planOf(3),q:[],brace:0,braceCmd:0,autoBrace:false},trim:1,aback:false,
     est:{x:p.x,y:p.y,sx:.5,sy:.5},estSpeed:0,lastLog:null,
     track:[{x:p.x,y:p.y}],estTrack:[{x:p.x,y:p.y}],bearings:[],latLines:[],seen:new Set(),log:[],
-    route:{pts:[],follow:false,t:0},crew:mkCrew(),stores:{bis:900,meat:900,beer:900,fish:0,lime:0,rum:30},ration:1,purse:600,hull:1,leak:0,water:0,canvas:1,spares:{timber:4,canvas:3,rope:4,pitch:3},jobs:{},pumpMode:"auto",pumping:false,pumpMen:0,fmarks:{},fishing:false,catchTotal:0,fishAcc:0,fish:null,callAll:false,allHands:false,eff:1,fat:0,squall:null,nextSquall:0,squallWarned:false,day:{},noon:{observing:false,readings:[],doneDay:-1},
+    route:{pts:[],follow:false,t:0},crew:mkCrew(),stores:{bis:900,meat:900,beer:900,fish:0,lime:0,rum:30,med:40},ration:1,purse:600,hull:1,leak:0,water:0,canvas:1,spares:{timber:4,canvas:3,rope:4,pitch:3},jobs:{},pumpMode:"auto",pumping:false,pumpMen:0,fmarks:{},fishing:false,catchTotal:0,fishAcc:0,fish:null,callAll:false,allHands:false,eff:1,fat:0,squall:null,nextSquall:0,squallWarned:false,day:{},noon:{observing:false,readings:[],doneDay:-1},
     distance:0,maxV:0,done:false,arrivedNear:false,breakersWarned:0,strain:0,missed:0,
     heaves:0,fixes:0,sights:0,lastHalfHour:null,lastHour:null};
   // start 07:00 local
@@ -2848,7 +2848,7 @@ function portFish(k){return Math.round(PRICE0.fish*(FISHD[k]||1)*100);}
 function portInfoHTML(k){const P=PORTS[k],X=PORTX[k],f=PORTF[k]||1,usual=i=>Math.round(PRICE0[i]*f),tod=S&&atPort(S)&&atPort(S).k===k;
   const row=(n,v,u,t)=>`<div><span>${n}</span><span>${v}s ${u}${t?` <em>(today ${t}s)</em>`:""}</span></div>`,pr=i=>tod?Math.round(priceOf(S,i,k)):0;
   const sp=i=>Math.round(SPAREP[i]*f);
-  return `<div class="ptbl"><h4>For sale to the ship</h4>${row("Biscuit",usual("bis"),"/100 lb",pr("bis"))}${row("Salt meat",usual("meat"),"/100 lb",pr("meat"))}${row("Small beer",usual("beer"),"/100 gal",pr("beer"))}${row("Limes",usual("lime"),"/100 lb",pr("lime"))}${row("Rum",usual("rum"),"/100 gal",pr("rum"))}${row("Timber (plank sets)",sp("timber"),"each")}${row("Canvas (bolt)",sp("canvas"),"each")}${row("Cordage (coil)",sp("rope"),"each")}${row("Pitch (keg)",sp("pitch"),"each")}</div>
+  return `<div class="ptbl"><h4>For sale to the ship</h4>${row("Biscuit",usual("bis"),"/100 lb",pr("bis"))}${row("Salt meat",usual("meat"),"/100 lb",pr("meat"))}${row("Small beer",usual("beer"),"/100 gal",pr("beer"))}${row("Limes",usual("lime"),"/100 lb",pr("lime"))}${row("Rum",usual("rum"),"/100 gal",pr("rum"))}${row("Physic and dressings",usual("med"),"/100 doses",pr("med"))}${row("Timber (plank sets)",sp("timber"),"each")}${row("Canvas (bolt)",sp("canvas"),"each")}${row("Cordage (coil)",sp("rope"),"each")}${row("Pitch (keg)",sp("pitch"),"each")}</div>
   <div class="ptbl"><h4>Buys from the ship</h4>${row("Salt fish",portFish(k),"/100 lb",tod?Math.round(priceOf(S,"fish",k)*100):0)}</div>
   <p class="pnote">Wants ashore: ${X.wants}. Prices are the usual ones; the quay sets today's.</p>`;}
 let portSel=null;
@@ -2959,7 +2959,7 @@ function damageStep(s,dt,w){const sh=s.ship,H=s.wx.H;
         if(J.p>=.9999){D.done(s);delete s.jobs[id];say(`${D.n}: finished.`,{});}}}}}
 
 /* ---------- ports, provisions and fishing ---------- */
-const PRICE0={bis:18,meat:34,beer:22,fish:.24,lime:28,rum:190}; // shillings per 100 lb or gallons; salt fish per lb (Newfoundland cod fetched about 2.5d a pound in the islands)
+const PRICE0={bis:18,meat:34,beer:22,fish:.24,lime:28,rum:190,med:300}; // shillings per 100 lb or gallons; salt fish per lb (Newfoundland cod fetched about 2.5d a pound in the islands)
 const PORTF={bridgetown:.9,castries:1.1,stjohns:1,kingstown:1.05,basseterre:1.15},STORECAP=1500;
 const FISHN={bank:"snapper and grouper from the bank",dolphinfish:"dolphinfish",bonito:"bonito",tuna:"tunny"};
 const FISHSIGN={bank:"Gannets and boobies diving over a bank",dolphinfish:"Dolphinfish leaping, with birds working above them",bonito:"A bonito school breaking the surface, terns working over it",tuna:"Water boiling where a school of tunny is feeding"};
@@ -2974,7 +2974,7 @@ function portsNear(s){const sh=s.ship;let best=null;for(const k in PORTS){const 
 function atPort(s){const b=portsNear(s);return b&&b.d<1.6&&(s.ship.anch.mode==="holding"||s.ship.v<.4)?b:null;}
 const FISHD={bridgetown:1.25,stjohns:1.2,basseterre:1.1,castries:.85,kingstown:.9}; // plantation islands pay most for salt fish
 const priceOf=(s,item,k)=>item==="fish"?PRICE0.fish*(FISHD[k]||1)*(1+.12*Math.sin(dayIndex(s)*.9+(k.length*1.7))):PRICE0[item]*(PORTF[k]||1)*(1+.08*Math.sin(dayIndex(s)*.7+k.length*2.3+item.length*1.9));
-const QTY={bis:100,meat:100,beer:100,lime:50,rum:20},ITEMN={bis:"lb of biscuit",meat:"lb of salt meat",beer:"gallons of beer",lime:"lb of limes",rum:"gallons of rum"};
+const QTY={bis:100,meat:100,beer:100,lime:50,rum:20,med:20},ITEMN={bis:"lb of biscuit",meat:"lb of salt meat",beer:"gallons of beer",lime:"lb of limes",rum:"gallons of rum",med:"doses of physic and dressings"};
 function buyStore(item){if(!S)return;const p=atPort(S);if(!p){say("You must be in port to trade.",{log:false});return;}const c=Math.round(priceOf(S,item,p.k)*QTY[item]/100);
   if(S.purse<c){say("The purse is too light for that.",{log:false});return;}if((S.stores[item]||0)+QTY[item]>STORECAP){say("The casks are full.",{log:false});return;}
   S.purse-=c;S.stores[item]=(S.stores[item]||0)+QTY[item];say(`Bought ${QTY[item]} ${ITEMN[item]} at ${p.name} for ${money(c)}.`,{});svBill();}
@@ -3011,20 +3011,22 @@ function drawFish(){const M=S.fmarks;if(!M)return;ctx.save();ctx.font="11px 'IBM
 /* ---------- crew, watches, quarters ---------- */
 // Three-watch system: four-hour watches, the two dog watches (16-18, 18-20) are two hours each, so seven watches a day and the rota shifts by one each day.
 const WB=[0,4,8,12,16,18,20,24],WNAME=["Fore watch","Main watch","Quarter watch","Day work"],WSH=["F","M","Q","D"];
-const DUTYRATE={"Captain":.03,"Mate":.06,"Bosun":.065,"Carpenter":.03,"Cook":.03,"Cabin boy":.03,"Seaman":.075};
+const DUTYRATE={"Captain":.03,"Mate":.06,"Bosun":.065,"Carpenter":.03,"Cook":.03,"Cabin boy":.03,"Seaman":.075,"Surgeon":.035,"Surgeon's mate":.045};
 const BERTHS=(()=>{const B=[],add=(room,label,x,tier,lv,q)=>B.push({room,label,x,tier,lv,q});
   add("cab","Aft cabin cot 1",125,0,1,1);add("cab","Aft cabin cot 2",195,0,1,1);
   for(const[x,i]of[[285,0],[350,1]])for(const t of[0,1])add("ste",`Steerage bunk ${i*2+t+1}`,x,t,1,.92);
   for(let t=0;t<2;t++)for(let i=0;i<5;i++)add("fore",`Forecastle hammock ${t*5+i+1}`,745+i*36,t,1,t?.8:.78);
   for(let i=0;i<4;i++)add("hold",`Hold berth ${i+1} (among the stores)`,300+i*42,0,2,.6);
+  add("cab","Surgeon's cot",160,0,1,1);add("cab","Surgeon's mate's cot",160,1,1,.9);
   return B;})();
 const CREWN=[["Capt. Josiah Hale","Captain",3],["Thos. Marlowe","Mate",0],["Edmund Pryce","Bosun",2],["Abel Crane","Carpenter",3],["Nat Dobbs","Cook",3],["Jemmy Fox","Cabin boy",3]];
 const SEAN=["Will Ashby","Hugh Teague","Sam Loder","Peter Voss","Ned Garrick","Isaac Bell","Josh Penhallow","Dan Mercer","Tom Rudge","Eli Corbin","Matt Quill","Ben Starke","Robt. Finch","Kit Harlow"];
 function mkCrew(){const C=[];CREWN.forEach(([n,r,w])=>C.push({n,r,w}));SEAN.forEach((n,i)=>C.push({n,r:"Seaman",w:i%3}));
-  const bs=[0,1,2,3,4,15,5,6,7,8,9,10,11,12,13,14,16,17,18,19];C.forEach((m,i)=>{m.b=bs[i];m.f=.05+Math.random()*.2;m.mode=undefined;m.ov=null;});return C;}
+  const bs=[0,1,2,3,4,15,5,6,7,8,9,10,11,12,13,14,16,17,18,19];C.forEach((m,i)=>{m.b=bs[i];m.f=.05+Math.random()*.2;m.mode=undefined;m.ov=null;});
+  C.push({n:"Dr. Ambrose Whitlock",r:"Surgeon",w:3,b:20,f:.1,mode:undefined,ov:null,med:.75,sk:.5},{n:"Jos. Pell",r:"Surgeon's mate",w:3,b:21,f:.1,mode:undefined,ov:null,med:.45,sk:.35});return C;}
 function watchInfo(s){const lh=((localHours(s,s.t)%24)+24)%24;let i=0;while(i<6&&lh>=WB[i+1])i++;return{lh,i,w:(dayIndex(s)*7+i)%3,left:WB[i+1]-lh,key:dayIndex(s)*7+i};}
 function isDuty(m,wi,all){if(m.sick)return false;if(S&&S.strikeUntil>S.t&&m.r!=="Captain"&&m.r!=="Mate"&&m.r!=="Bosun")return false;if(m.ov==="on")return true;if(m.ov==="off")return false;if(all)return true;if(m.w===3)return wi.lh>=6&&wi.lh<18;return m.w===wi.w;}
-const effOfMan=m=>(1-.55*Math.pow(m.f,1.5))*(m.sk==null?1:(.75+.5*m.sk)*(.8+.3*m.mo)*(m.scv>.3?1-.4*(m.scv-.3):1)); // fatigue, skill, spirits and scurvy
+const effOfMan=m=>(1-.55*Math.pow(m.f,1.5))*(m.sk==null?1:(.75+.5*m.sk)*(.8+.3*m.mo)*(m.scv>.3?1-.4*(m.scv-.3):1))*(m.maim?.75:1); // fatigue, skill, spirits and scurvy
 /* ---- crew life: morale, skill and health ---- */
 const SKILL0={Captain:.7,Mate:.6,Bosun:.65,Carpenter:.5,Cook:.5,"Cabin boy":.15};
 const TRAITS={steady:"steady",drinker:"fond of the bottle",troublemaker:"a troublemaker",leader:"a born leader",timid:"timid aloft",hardy:"hardy"};
@@ -3032,41 +3034,53 @@ function pickTrait(r){if(r==='Captain'||r==='Mate')return'steady';if(r==='Bosun'
 function crewX(s){const C=s.crew,T=s.stores;if(!C)return;
   for(const m of C)if(m.tr===undefined)m.tr=pickTrait(m.r);
   if(!s.relDone&&C.length>10){s.relDone=true;const pool=C.filter(m=>m.r!=='Captain'&&m.r!=='Mate').sort(()=>Math.random()-.5);for(let i=0;i+1<pool.length&&i<10;i+=2){const a=pool[i],b=pool[i+1];if(i<6){a.fr=b.n;b.fr=a.n;}else{a.rv=b.n;b.rv=a.n;}}}
-if(T.lime==null)T.lime=0;if(T.rum==null)T.rum=20;if(s.noFresh==null)s.noFresh=0;
+if(T.lime==null)T.lime=0;if(T.rum==null)T.rum=20;if(T.med==null)T.med=40;if(s.noFresh==null)s.noFresh=0;
   for(const m of C)if(m.mo==null){m.mo=.7;m.sk=SKILL0[m.r]??.25+Math.random()*.5;m.hp=1;m.scv=0;m.sus=.75+Math.random()*.5;m.sick=false;m.why="";}}
 const pcx=v=>Math.round(v*100)+"%";
 function crewInfo(m){const mood=m.mo>.75?"cheerful":m.mo>.5?"content":m.mo>.3?"sullen":"mutinous";
   const fr=m.fr&&S.crew.find(o=>o.n===m.fr),rv=m.rv&&S.crew.find(o=>o.n===m.rv);
-  return `<div class="svhint">Temper: <b>${TRAITS[m.tr]||"steady"}</b>${fr?` · friend of ${fr.n.split(" ").pop()}`:""}${rv?` · has a grudge against ${rv.n.split(" ").pop()}`:""}</div><div class="svhint">Spirits <b>${pcx(m.mo)}</b> (${mood}) · Skill <b>${pcx(m.sk)}</b> · Health <b>${pcx(Math.min(m.hp,1-m.scv*.6))}</b>${m.scv>.15?` · Scurvy <b>${pcx(m.scv)}</b>`:""}${m.sick?` · <b>laid up</b>`:""}</div>`;}
+  return `<div class="svhint">Temper: <b>${TRAITS[m.tr]||"steady"}</b>${fr?` · friend of ${fr.n.split(" ").pop()}`:""}${rv?` · has a grudge against ${rv.n.split(" ").pop()}`:""}</div><div class="svhint">Spirits <b>${pcx(m.mo)}</b> (${mood}) · Skill <b>${pcx(m.sk)}</b> · Health <b>${pcx(Math.min(m.hp,1-m.scv*.6))}</b>${m.scv>.15?` · Scurvy <b>${pcx(m.scv)}</b>`:""}${m.fev>0?` · Fever <b>${pcx(m.fev)}</b>`:""}${m.maim?" · <b>maimed</b>":""}${m.sick?` · <b>laid up</b>`:""}</div>`;}
 function crewExtra(){const C=S.crew,T=S.stores,av=C.reduce((a,m)=>a+m.mo,0)/C.length,sick=C.filter(m=>m.sick).length,hm=C.find(m=>m.n===S.helmN);
-  return `<div><span>Spirits of the crew</span><b>${pcx(av)}</b></div><div><span>Laid up sick or hurt</span><b>${sick}</b></div><div><span>Best helmsman</span><b>${hm?hm.n.split(" ").pop()+" "+pcx(hm.sk):"none"}</b></div><div><span>Days without fresh food · limes · rum</span><b>${Math.floor(S.noFresh/24)} · ${Math.round(T.lime)} lb · ${T.rum.toFixed(1)} gal</b></div>`;}
+  return `<div><span>Spirits of the crew</span><b>${pcx(av)}</b></div><div><span>Laid up sick or hurt</span><b>${sick}</b></div><div><span>Surgeon · mate · medicine chest</span><b>${(()=>{const md=medTeam(S),nm=x=>x?x.n.split(" ").pop()+" "+pcx(x.med||0):"none";return nm(md.sg)+" · "+nm(md.mt)+" · "+Math.round(T.med)+" doses";})()}</b></div><div><span>Best helmsman</span><b>${hm?hm.n.split(" ").pop()+" "+pcx(hm.sk):"none"}</b></div><div><span>Days without fresh food · limes · rum</span><b>${Math.floor(S.noFresh/24)} · ${Math.round(T.lime)} lb · ${T.rum.toFixed(1)} gal</b></div>`;}
 function issueRum(){if(!S||!S.crew)return;crewX(S);const T=S.stores,need=S.crew.length*.06;
   if(S.t-(S.rumT??-99)<8){say("The hands have had their tot already; the purser will not serve another so soon.",{log:false});return;}
   if(T.rum<need){say("There is not enough rum in the spirit room.",{log:false});return;}
   T.rum-=need;S.rumT=S.t;for(const m of S.crew)m.mo=Math.min(1,m.mo+(m.tr==="drinker"?.25:.12));say("The purser serves out a tot of rum to every hand. Spirits lift on deck.",{});svBill();}
-function crewLife(s,dt,w,wi){const C=s.crew,T=s.stores,n=C.length,pt=atPort(s),anch=s.ship.anch.mode==="holding",ashore=!!(pt&&anch);
+function medTeam(s){const ok=m=>m&&!m.sick&&m.hp>.5&&m.scv<.6&&!(m.fev>.3),sg=s.crew.find(m=>m.r==="Surgeon"&&ok(m)),mt=s.crew.find(m=>m.r==="Surgeon's mate"&&ok(m));
+  return{sg,mt,q:clamp((sg?sg.med||.5:0)+(mt?(mt.med||.3)*.6:0),0,1.2),cap:(sg?4:0)+(mt?2:0)};}
+function crewLife(s,dt,w,wi){const C=s.crew;if(!C.some(m=>m.r==="Surgeon")){const mt=C.find(m=>m.r==="Surgeon's mate");if(mt){mt.r="Surgeon";say(`${mt.n} takes the surgeon's place and the care of the sick.`,{});}}
+  const T=s.stores,n=C.length,pt=atPort(s),anch=s.ship.anch.mode==="holding",ashore=!!(pt&&anch);
   // fresh food: a daily issue of limes, or a stay in port
   if(ashore)s.noFresh=0;else if(T.lime>0){T.lime=Math.max(0,T.lime-n*.1*dt/24);s.noFresh=Math.max(0,s.noFresh-dt*3);if(T.lime<=0)say("The last of the limes is gone. There is no more juice against the scurvy.",{});}else s.noFresh+=dt;
   const trShip=clamp(.025*C.filter(m=>m.tr==='leader').length,0,.05)-clamp(.025*C.filter(m=>m.tr==='troublemaker'&&!(m.cow>s.t)).length,0,.075);
-  const prot=ashore||T.lime>0,nSick=C.filter(m=>m.sick).length,rough=clamp((w.kn-20)/12,0,1)+(s.squall?.4:0);let avg=0,best=null;
+  const out_=[],prot=ashore||T.lime>0,nSick=C.filter(m=>m.sick).length,rough=clamp((w.kn-20)/12,0,1)+(s.squall?.4:0);let avg=0,best=null;
+  const med=medTeam(s);let np=0;for(const m of C)if(m.sick||m.fev>0)np++;if(np&&med.q>0&&T.med>0)T.med=Math.max(0,T.med-np*dt*.02);
+  if(np&&!med.q&&!s.noMedSaid){s.noMedSaid=true;say("There is no one aboard fit to tend the sick.",{});}else if(med.q>0)s.noMedSaid=false;
   for(const m of C){
+    const eff=med.q*(T.med>0?1:.5)*Math.min(1,(med.cap||4)/Math.max(1,np)),ill=m.sick||m.fev>0;
+    if(ashore&&!(m.fev>0)&&Math.random()<dt*.0012){m.fev=.35;say(`${m.n} comes down with a fever caught ashore.`,{});}
+    if(m.fev>0){m.fev=Math.max(0,m.fev+dt*(.003-.0075*eff));if(m.fev>=1){if(Math.random()<.75){out_.push(m);m.fev=1;}else m.fev=.5;}}
+    if(m.hp<.3&&!m.surgSeen){m.surgSeen=true;(s.medQueue=s.medQueue||[]).push(m.n);}else if(m.hp>.6)m.surgSeen=false;
+    if(m.hp<.2&&!eff&&Math.random()<dt*.004)out_.push(m);
+    if(ill&&eff>0)m.hp=Math.min(1,m.hp+dt*.02*eff);
+    if(m.scv>0&&prot&&eff>0)m.scv=Math.max(0,m.scv-dt*.004*eff);
     if(prot)m.scv=Math.max(0,m.scv-dt*.006*(ashore?2:1));else if(s.noFresh>900)m.scv=Math.min(1,m.scv+dt*.0016*m.sus*(m.tr==="hardy"?.75:1)*(1+.6*m.f));
     if(m.scv>.3&&!m.scvSaid){m.scvSaid=true;say(`${m.n} has the first signs of scurvy: swollen gums and old wounds opening. Fresh food or limes would cure it.`,{});}else if(m.scv<.1)m.scvSaid=false;
     if(m.mode==="duty"){m.sk+=dt*.0012*(1-m.sk);
-      if(rough>0&&m.r!=="Cook"&&m.r!=="Captain"&&Math.random()<dt*.0025*rough*(1.4-m.sk)*(m.tr==="timid"?.5:m.tr==="hardy"?.6:1)){m.hp-=.25+Math.random()*.35;say(`${m.n} is hurt in a fall in the working of the ship.`,{});}
+      if(rough>0&&m.r!=="Cook"&&m.r!=="Captain"&&Math.random()<dt*.0025*rough*(1.4-m.sk)*(m.tr==="timid"?.5:m.tr==="hardy"?.6:1)){const sev=Math.random()<.15;m.hp-=sev?.7:.25+Math.random()*.35;say(sev?`${m.n} falls from the yard and is horribly crushed on the deck.`:`${m.n} is hurt in a fall in the working of the ship.`,{});}
       if(m.r==="Seaman"||m.r==="Bosun"){if(!best||m.sk>best.sk)best=m;}}
     if(m.rv&&m.mode==="duty"&&m.n<m.rv){const o=C.find(x=>x.n===m.rv);if(o&&o.mode==="duty"&&Math.random()<dt*.012){m.hp-=.12;o.hp-=.12;m.mo=Math.max(0,m.mo-.1);o.mo=Math.max(0,o.mo-.1);say(`${m.n} and ${o.n} come to blows over an old grudge before the watch can part them.`,{});}}
     m.hp=Math.min(1,m.hp+dt*(m.sick?.012:.004));
-    const was=m.sick;m.sick=was?!(m.hp>.8&&m.scv<.45):(m.hp<.5||m.scv>=.6);
-    if(m.sick){m.why=m.scv>=.6?"Scurvy":"Hurt";m.mode="sleep";}
-    if(m.sick&&!was)say(m.scv>=.6?`${m.n} is too weak with scurvy to stand a watch and is carried to the sick berth.`:`${m.n} is badly hurt and is carried to the sick berth.`,{});
+    const was=m.sick;m.sick=was?!(m.hp>.8&&m.scv<.45&&!(m.fev>.1)):(m.hp<.5||m.scv>=.6||m.fev>.3);
+    if(m.sick){m.why=m.fev>.3?"Fever":m.scv>=.6?"Scurvy":"Hurt";m.mode="sleep";}
+    if(m.sick&&!was)say(m.fev>.3?`${m.n} is burning with fever and is carried to the sick berth.`:m.scv>=.6?`${m.n} is too weak with scurvy to stand a watch and is carried to the sick berth.`:`${m.n} is badly hurt and is carried to the sick berth.`,{});
     if(!m.sick&&was)say(`${m.n} is on his feet again and back on the watch bill.`,{});
     // spirits drift toward what the ship gives them
     const so=m.fr&&C.find(o=>o.n===m.fr&&o.w===m.w),ro=m.rv&&C.find(o=>o.n===m.rv&&o.w===m.w);
     const mt=clamp(.62+(m.tr==="steady"?.05:m.tr==="leader"?.04:m.tr==="troublemaker"&&!(m.cow>s.t)?-.04:0)+(m.tr==="drinker"&&T.rum<n*.06?-.06:0)+trShip+(so?.04:0)-(ro?.06:0)+(s.ration<1?-.14:.04)-(s.hungry?.3:0)-(m.mode==="duty"?.25*Math.max(0,m.f-.55):0)-(s.pumping?.07:0)-.03*Math.min(3,nSick)-(s.squall||w.kn>=30?.06:0)+(ashore?.18:0)-(!prot&&s.noFresh>600?.08:0),0,1);
     m.mo+=(mt-m.mo)*(1-Math.exp(-dt/6));avg+=m.mo;}
-  { const out=[];for(const m of C){if(m.scv>=.98&&m.sick&&Math.random()<dt*.004)out.push([m,"died"]);else if(ashore&&m.mo<.25&&m.r!=="Captain"&&Math.random()<dt*.01)out.push([m,"ran"]);}
-    for(const[m,k]of out){if(C.length<=MINCREW&&k==="ran")continue;removeHand(m);say(k==="died"?`${m.n} dies of the scurvy and is committed to the sea.`:`${m.n} has deserted in the night, sick of the ship.`,{});} }
+  { const out=out_.map(m=>[m,"died"]);for(const m of C){if(out_.includes(m))continue;if(m.scv>=.98&&m.sick&&Math.random()<dt*.004)out.push([m,"died"]);else if(ashore&&m.mo<.25&&m.r!=="Captain"&&Math.random()<dt*.01)out.push([m,"ran"]);}
+    for(const[m,k]of out){if(C.length<=MINCREW&&k==="ran")continue;removeHand(m);say(k==="died"?`${m.n} dies ${m.fev>=1?"of the fever":m.hp<.3?"of his injuries":"of the scurvy"} and is committed to the sea.`:`${m.n} has deserted in the night, sick of the ship.`,{});} }
   avg/=n;if(avg<.3&&!s.sullenSaid){s.sullenSaid=true;say("The hands are sullen. Mutterings in the forecastle: better food, rest or a tot of rum would mend it.",{});}else if(avg>.45)s.sullenSaid=false;
   s.helmN=best?best.n:null;s.helmF=best?clamp(1.3-.6*best.sk,.7,1.3):1.2;
   crisisStep(s,dt,w,rough,avg);}
@@ -3075,16 +3089,18 @@ const HN1=["John","William","Thomas","James","Richard","Robert","Henry","Samuel"
 function hireList(s){const pt=atPort(s);if(!pt)return[];const d=dayIndex(s);let h=0;for(const c of pt.k+d)h=(h*31+c.charCodeAt(0))>>>0;
   const r=()=>{h=(h*1664525+1013904223)>>>0;return h/4294967296;},out=[];
   for(let i=0;i<4;i++){const sk=.2+r()*.6,n=HN1[Math.floor(r()*16)]+" "+HN2[Math.floor(r()*20)];const tx=r();out.push({id:pt.k+"|"+d+"|"+i,n,sk,tr:['steady','steady','drinker','troublemaker','leader','timid','hardy'][Math.floor(tx*7)],cost:Math.round(15+60*sk)});}
+  { const x1=r(),x2=r(),x3=r(),x4=r(),hasS=s.crew.some(m=>m.r==="Surgeon"),hasM=s.crew.some(m=>m.r==="Surgeon's mate");
+    if(x1<.55&&(!hasS||!hasM)){const role=hasS?"Surgeon's mate":"Surgeon",med=role==="Surgeon"?.5+x2*.4:.25+x2*.4;out.push({id:pt.k+"|"+d+"|doc",n:(role==="Surgeon"?"Dr. ":"")+HN1[Math.floor(x3*16)]+" "+HN2[Math.floor(x4*20)],sk:.3,med,role,tr:'steady',cost:Math.round(role==="Surgeon"?120+120*med:50+90*med)});} }
   return out.filter(c=>!(s.hired||[]).includes(c.id));}
 function removeHand(m){const C=S.crew,i=C.indexOf(m);if(i<0||m.r==="Captain")return;C.splice(i,1);if(SV.sel===i)SV.sel=-1;else if(SV.sel>i)SV.sel--;if($("svRoster")){svBuild();svBuildSel();}}
 function hireHand(id){if(!S||!S.crew)return;const c=hireList(S).find(x=>x.id===id);if(!c)return;
   if(S.crew.length>=MAXCREW){say("There is no room in the ship for another hand.",{log:false});return;}
   if(S.purse<c.cost){say("The purse is too light to pay his advance.",{log:false});return;}
   const cnt=[0,0,0];S.crew.forEach(m=>{if(m.r==="Seaman"&&m.w<3)cnt[m.w]++;});
-  const m={n:c.n,r:"Seaman",w:cnt.indexOf(Math.min(...cnt)),f:.1,mode:undefined,ov:null,mo:.65,sk:c.sk,tr:c.tr,hp:1,scv:0,sus:.75+Math.random()*.5,sick:false,why:""};
+  const m={n:c.n,r:c.role||"Seaman",med:c.med,w:c.role?3:cnt.indexOf(Math.min(...cnt)),f:.1,mode:undefined,ov:null,mo:.65,sk:c.sk,tr:c.tr,hp:1,scv:0,sus:.75+Math.random()*.5,sick:false,why:""};
   m.b=BERTHS.findIndex((b,bi)=>berthOwner(bi)<0);if(m.b<0)m.b=null;
   S.purse-=c.cost;(S.hired=S.hired||[]).push(id);S.crew.push(m);
-  say(`${c.n} signs on as a ${c.sk>.55?"able":"ordinary"} seaman for an advance of ${money(c.cost)}.`,{});if($("svRoster")){svBuild();svBuildSel();}svBill();}
+  say(`${c.n} signs on as ${c.role?(c.role==="Surgeon"?"the ship's surgeon":"surgeon's mate"):(c.sk>.55?"an able":"an ordinary")+" seaman"} for an advance of ${money(c.cost)}.`,{});if($("svRoster")){svBuild();svBuildSel();}svBill();}
 function payOff(m){if(!S)return;if(!atPort(S)){say("You can only pay a man off in port.",{log:false});return;}if(m.r==="Captain")return;if(S.crew.length<=MINCREW){say("You cannot sail her with fewer hands.",{log:false});return;}
   removeHand(m);for(const o of S.crew)o.mo=Math.max(0,o.mo-.02);say(`${m.n} is paid off and goes ashore.`,{});svBill();}
 function shoreLeave(){if(!S||!S.crew)return;const pt=atPort(S);if(!pt){say("Shore leave is only given in port.",{log:false});return;}
@@ -3095,7 +3111,7 @@ function shoreLeave(){if(!S||!S.crew)return;const pt=atPort(S);if(!pt){say("Shor
 function hireUI(){const pt=atPort(S),pan=$("svHirePanel");if(!pan)return;pan.hidden=!pt;if(!pt)return;
   const hl=hireList(S),key=hl.map(h=>h.id).join()+"|"+S.crew.length+"|"+(S.purse>=60?1:0),box=$("svHire");
   $("svHireHint").textContent=`${S.crew.length} of ${MAXCREW} hands aboard. Sailors come to the quay at ${pt.name}; an advance is paid on signing.`;
-  if(box.dataset.k!==key){box.dataset.k=key;box.innerHTML=hl.length?hl.map(h=>`<button type="button" data-h="${h.id}">Hire ${h.n} · skill ${pcx(h.sk)} · ${h.cost}s</button>`).join(""):"<span class=\"svhint\">No one is looking for a berth today.</span>";box.querySelectorAll("[data-h]").forEach(b=>b.onclick=()=>hireHand(b.dataset.h));}
+  if(box.dataset.k!==key){box.dataset.k=key;box.innerHTML=hl.length?hl.map(h=>`<button type="button" data-h="${h.id}">Hire ${h.n} · ${h.role?(h.role+", medical skill "+pcx(h.med)):"skill "+pcx(h.sk)} · ${h.cost}s</button>`).join(""):"<span class=\"svhint\">No one is looking for a berth today.</span>";box.querySelectorAll("[data-h]").forEach(b=>b.onclick=()=>hireHand(b.dataset.h));}
   $("svLeave").disabled=S.t-(S.leaveT??-99)<24;}
 /* ---- discipline and crisis moments ---- */
 function punish(m){if(!S||m.r==="Captain")return;m.mo=Math.max(0,m.mo-.3);m.hp=Math.max(.3,m.hp-.12);m.cow=S.t+72;
@@ -3105,7 +3121,11 @@ const rnd=a=>a[Math.floor(Math.random()*a.length)];
 function showCrisis(c){S.crisis=c;$("crTitle").textContent=c.title;$("crText").textContent=c.text;const box=$("crBtns");box.innerHTML="";
   c.opts.forEach(o=>{const b=document.createElement("button");b.type="button";b.className="btn";b.style.textAlign="left";b.innerHTML=`<b>${o.label}</b><br><small>${o.sub}</small>`;b.onclick=()=>{const msg=o.fn();S.crisis=null;S.crNext=S.t+36;$("ovCrisis").hidden=true;modalOpen=!$("ovStart").hidden||!$("ovEnd").hidden||!$("ovHelp").hidden||!$("ovPort").hidden;if(msg)say(msg,{});if($("svRoster"))svBuildSel();svBill();};box.append(b);});
   $("ovCrisis").hidden=false;modalOpen=true;say(c.title,{pause:true});}
-function crisisKind(k){const C=S.crew,sea=S.wx?clamp((S.wx.H-2)/4,0,1):0,duty=C.filter(m=>m.mode==="duty"),mate=C.find(m=>m.r==="Mate"),bos=C.find(m=>m.r==="Bosun"),avgSk=duty.length?duty.reduce((a,m)=>a+m.sk,0)/duty.length:.4;
+function crisisKind(k,arg){const C=S.crew,sea=S.wx?clamp((S.wx.H-2)/4,0,1):0,duty=C.filter(m=>m.mode==="duty"),mate=C.find(m=>m.r==="Mate"),bos=C.find(m=>m.r==="Bosun"),avgSk=duty.length?duty.reduce((a,m)=>a+m.sk,0)/duty.length:.4;
+  if(k==="surgery"){const m=C.find(x=>x.n===arg);if(!m||m.hp>=.3)return null;const md=medTeam(S),cut=md.sg?md.sg.med||.5:(md.mt&&(md.mt.med||0)>=.5?md.mt.med*.8:0),q=md.q,opts=[];
+    if(cut>0)opts.push({label:`Amputate (${md.sg?"the surgeon":"the surgeon's mate"} operates)`,sub:"Cuts away the ruined limb. It will probably save him, but he will be maimed for good.",fn:()=>{S.stores.med=Math.max(0,S.stores.med-4);if(Math.random()<clamp(.45+.45*cut,.3,.92)){m.hp=.45;m.maim=true;return `${m.n} lives through the surgeon's saw. He will be a cripple, but he is alive.`;}removeHand(m);return `${m.n} dies under the knife.`;}});
+    opts.push({label:"Dress the wound and nurse him",sub:q>0?"The surgeon's care gives him a fair chance without the knife.":"No one aboard has the skill; it is down to his strength and luck.",fn:()=>{if(Math.random()<clamp(.35+.4*q,.3,.8)){m.hp=.42;return `${m.n} turns the corner and the wound slowly heals.`;}removeHand(m);return `${m.n}'s wound turns bad and he dies in the night.`;}});
+    return{title:`${m.n} is crushed`,text:`${m.n} lies where he fell with a limb mangled, barely conscious. ${q>0?"The surgeon says it must be decided now.":"There is no surgeon fit to see him."}`,opts};}
   if(k==="mob"){const pool=duty.filter(m=>m.r==="Seaman"||m.r==="Bosun"||m.r==="Mate");if(!pool.length)return null;const m=rnd(pool),kn=S.ship.v;
     return{title:"Man overboard!",text:`${m.n} has been thrown from the rigging into the sea. The ship is making ${kn.toFixed(0)} knots in a ${sea>.6?"rough":sea>.3?"lumpy":"moderate"} sea and he is already astern, shouting.`,opts:[
       {label:"Heave to and lower the boat",sub:"The best chance, but it takes the ship off her course and risks the boat's crew.",fn:()=>{const ch=clamp(.85-.35*sea-.01*kn+.2*(avgSk-.5),.15,.95);
@@ -3132,6 +3152,7 @@ function crisisStep(s,dt,w,rough,avg){
   if(s.crisis&&$("ovCrisis").hidden)s.crisis=null;
   if(s.strikeUntil&&s.t>=s.strikeUntil){s.strikeUntil=null;say("The strike is over; the hands turn to again.",{});}
   s.mutH=avg<.28?(s.mutH||0)+dt:Math.max(0,(s.mutH||0)-dt*2);
+  if(!s.crisis&&!modalOpen&&!s.done&&s.medQueue&&s.medQueue.length){const c=crisisKind("surgery",s.medQueue.shift());if(c){showCrisis(c);return;}}
   if(s.crisis||modalOpen||s.done||s.t<(s.crNext??0)||s.strikeUntil)return;
   const C=s.crew;let k=null;
   if(s.mutH>10)k="mutiny";
@@ -3172,6 +3193,7 @@ function svTarget(m,i,ctx){
   if(m.mode==="rest"){if(m.r==="Captain")return{x:150,lv:0,in:true,up:0,act:"Off duty in the great cabin",key:"cr",wander:[90,260]};return{x:500,lv:1,up:0,act:"Off watch, at leisure",key:"rest",wander:[430,600]};}
   if(m.r==="Captain")return{x:150,lv:0,up:0,act:"On the quarterdeck",key:"cap",wander:[150,265]};
   if(m.r==="Mate")return{x:225,lv:0,up:0,act:"Officer of the watch",key:"mate",wander:[200,265]};
+  if(m.r==="Surgeon"||m.r==="Surgeon's mate"){const pt=S.crew.find(o=>o.sick&&o.b!=null);if(pt){const b=BERTHS[pt.b];return{x:b.x+(m.r==="Surgeon"?-22:22),lv:b.lv,up:0,act:"Tending "+pt.n.split(" ").pop(),key:"med"+pt.n};}return{x:200,lv:1,up:0,act:"In the surgeon's cabin",key:"med",wander:[95,250]};}
   if(m.r==="Cook")return{x:655,lv:1,up:0,act:"In the galley",key:"cook",wander:[620,700]};
   if(m.r==="Carpenter"){if(S.jobs.caulk&&!S.jobs.caulk.why)return{x:380,lv:2,up:0,act:"Caulking the seams",key:"caulk",wander:[360,420]};return{x:790,lv:2,up:0,act:"In the carpenter's store",key:"carp",wander:[730,860]};}
   if(m.r==="Cabin boy")return{x:420,lv:0,up:0,act:"Running errands on deck",key:"boy",wander:[330,760]};
@@ -3355,7 +3377,7 @@ function svDraw(now){const c=$("shipCv"),par=c.parentElement,dpr=Math.min(2,devi
     g.save();g.translate(x,y);g.scale(1.55,1.55);g.translate(-x,-y);
     if(i===sel){g.beginPath();g.arc(x,y-17,19,0,2*PI);L(1.4,K.och);g.stroke();}
     const fc=m.f>.65?K.och:m.f>.4?K.brass:null;
-    const coat=rk==="Captain"?'#2f4a7d':rk==="Mate"?'#6a3a2a':rk==="Bosun"?'#4a3a26':rk==="Carpenter"?'#8a6a3e':rk==="Cook"?'#9a9a86':rk==="Cabin boy"?'#7a8a5a':SHIRT[i%4],
+    const coat=rk==="Surgeon"?'#4a3a5a':rk==="Surgeon's mate"?'#6a5a68':rk==="Captain"?'#2f4a7d':rk==="Mate"?'#6a3a2a':rk==="Bosun"?'#4a3a26':rk==="Carpenter"?'#8a6a3e':rk==="Cook"?'#9a9a86':rk==="Cabin boy"?'#7a8a5a':SHIRT[i%4],
       trs=rk==="Captain"?'#e8dfc4':rk==="Cook"?'#3a3128':TROUS[i%3],hat=rk==="Captain"?'tri':rk==="Cook"?'cap':(i%3===0?'round':i%3===1?'knit':'none');
     const dk=day?1:.8;g.globalAlpha=dk;
     const head=(hx,hy,rot)=>{g.save();g.translate(hx,hy);g.rotate(rot||0);g.fillStyle=SKIN;g.beginPath();g.arc(0,0,4.1,0,2*PI);g.fill();L(.9,col);g.stroke();
@@ -3402,7 +3424,7 @@ function svBuild(){const R=$("svRoster");R.innerHTML=S.crew.map((m,i)=>`<div cla
   R.onclick=e=>{const row=e.target.closest(".svrow");if(!row)return;const i=+row.dataset.i,b=e.target.closest("button[data-w]");if(b){S.crew[i].w=+b.dataset.w;S.crew[i].ov=null;}SV.sel=i;svBuildSel();svRows();};}
 function svRows(){if(!S||!S.crew)return;const wi=watchInfo(S);$("svRoster").querySelectorAll(".svrow").forEach((row,i)=>{const m=S.crew[i];row.classList.toggle("sel",i===SV.sel);row.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.w===m.w)));
   row.querySelector(".svf i").style.width=Math.round(m.f*100)+"%";row.querySelector(".svf i").style.background=m.f>.65?"var(--ochre)":m.f>.4?"var(--brass)":"var(--ink)";
-  row.querySelector(".svs").textContent=m.sick?(m.why||"Laid up")+", in the sick berth":m.act||"";});
+  row.querySelector(".svs").textContent=m.sick?(m.why||"Laid up")+(medTeam(S).q>0?", tended in the sick berth":", untended in the sick berth"):m.act||"";});
   crewX(S);{const q=$("svQ");if(q&&SV.sel>=0&&S.crew[SV.sel])q.innerHTML=crewInfo(S.crew[SV.sel]);}}
 function svBuildSel(){const box=$("svSel");if(SV.sel<0||!S){box.innerHTML='<p class="svhint">Select a hand in the cutaway or the list. Then click a berth in the ship to assign it, or pick a watch.</p>';return;}
   const m=S.crew[SV.sel];box.innerHTML=`<div class="svcard"><b>${m.n}</b> <span>${m.r}</span><label>Berth <select id="svBerth"><option value="-1">No berth (sleeps on the lower deck)</option>${BERTHS.map((b,id)=>{const o=berthOwner(id);return`<option value="${id}"${m.b===id?" selected":""}>${b.label}${o>=0&&o!==SV.sel?" · "+S.crew[o].n.split(" ").pop():""}</option>`;}).join("")}</select></label><div class="svbtns"><button type="button" id="svOn">Turn out</button><button type="button" id="svOff">Stand down</button><button type="button" id="svPay" title="Discharge this hand, in port">Pay off</button><button type="button" id="svPun" title="Flog this hand at the gangway: it quiets a troublemaker but the hands do not like it">Punish</button></div><div class="svq" id="svQ"></div></div>`;
@@ -3422,7 +3444,7 @@ function svBill(){const wi=watchInfo(S),n=S.crew.filter(m=>m.mode==="duty").leng
   }
   { const T=S.stores,pt=atPort(S),near=portsNear(S);$("svPurse").innerHTML=`<div><span>Purse</span><b>${money(S.purse)}</b></div><div><span>Salt fish aboard</span><b>${Math.floor(T.fish)} lb</b></div><div><span>Caught this voyage</span><b>${Math.round(S.catchTotal)} lb</b></div>`;
     $("svNews").textContent="Salt fish per 100 lb: "+Object.keys(PORTS).map(k=>`${PORTS[k].name} ${Math.round(priceOf(S,'fish',k)*100)}s`).join(", ")+". The plantation islands pay most.";$("svTrade").hidden=!pt;$("svPortHint").textContent=pt?`In ${pt.name}. Prices are per 100 lb or gallons.`:`Not in port. Come to anchor within a mile and a half of a town to buy and sell (${near.name} is ${near.d.toFixed(0)} miles off).`;
-    if(pt){document.querySelectorAll("#svTrade [data-s]").forEach(b=>{b.textContent=`${SPAREN[b.dataset.s].split(" (")[0]} +1 · ${Math.round(SPAREP[b.dataset.s]*(PORTF[pt.k]||1))}s`;});const pr=i=>Math.round(priceOf(S,i,pt.k));$("svB1").textContent=`Biscuit +100 · ${pr("bis")}s`;$("svB2").textContent=`Salt meat +100 · ${pr("meat")}s`;$("svB3").textContent=`Beer +100 · ${pr("beer")}s`;$("svB4").textContent=`Limes +50 · ${Math.round(pr("lime")/2)}s`;$("svB5").textContent=`Rum +20 gal · ${Math.round(pr("rum")/5)}s`;$("svSell").textContent=`Sell ${Math.floor(T.fish)} lb fish · ${Math.round(priceOf(S,"fish",pt.k)*100)}s per 100 lb`;} }
+    if(pt){document.querySelectorAll("#svTrade [data-s]").forEach(b=>{b.textContent=`${SPAREN[b.dataset.s].split(" (")[0]} +1 · ${Math.round(SPAREP[b.dataset.s]*(PORTF[pt.k]||1))}s`;});const pr=i=>Math.round(priceOf(S,i,pt.k));$("svB1").textContent=`Biscuit +100 · ${pr("bis")}s`;$("svB2").textContent=`Salt meat +100 · ${pr("meat")}s`;$("svB3").textContent=`Beer +100 · ${pr("beer")}s`;$("svB4").textContent=`Limes +50 · ${Math.round(pr("lime")/2)}s`;$("svB5").textContent=`Rum +20 gal · ${Math.round(pr("rum")/5)}s`;$("svB6").textContent=`Physic +20 · ${Math.round(pr("med")/5)}s`;$("svSell").textContent=`Sell ${Math.floor(T.fish)} lb fish · ${Math.round(priceOf(S,"fish",pt.k)*100)}s per 100 lb`;} }
   hireUI();$("svAll").setAttribute("aria-pressed",String(!!S.callAll));}
 function svBalance(){const C=S.crew,keep=C.filter(m=>m.w!==3||m.r==="Seaman"||m.r==="Mate"||m.r==="Bosun");let i=0;
   for(const m of[...keep.filter(m=>m.r==="Mate"),...keep.filter(m=>m.r==="Bosun"),...keep.filter(m=>m.r==="Seaman")]){m.w=i%3;i++;}
@@ -3432,7 +3454,7 @@ function svFrame(dt,now){if(!S||!S.crew)return;const ctx=svCtx();S.crew.forEach(
 function openShip(on){SV.open=on;$("shipView").hidden=!on;$("bShip").setAttribute("aria-pressed",String(on));$("bShip").title=on?"Back to the helm":"The ship: cutaway, crew quarters and watches";
   if(on){const b=document.querySelector(".bar");document.documentElement.style.setProperty("--bar-h",b.offsetHeight+"px");if(S){svBuildSel();svRows();}}}
 function svNew(){SV.sel=-1;SV.rowT=0;if(S&&S.crew){svBuild();svBuildSel();}}
-function initShip(){$("bShip").onclick=$("bShip2").onclick=()=>openShip(!SV.open);$("svClose").onclick=()=>openShip(false);$("svAll").onclick=()=>{if(S){S.callAll=!S.callAll;svBill();}};$("svBal").onclick=()=>{if(S)svBalance();};document.querySelectorAll("#svTrade [data-s]").forEach(b=>b.onclick=()=>buySpare(b.dataset.s));document.querySelectorAll("#svJobs button").forEach(b=>b.onclick=()=>startJob(b.dataset.j));$("svPump").onclick=()=>{if(S){S.pumpMode=S.pumpMode==="auto"?"on":S.pumpMode==="on"?"off":"auto";svBill();}};$("svB1").onclick=()=>buyStore("bis");$("svB2").onclick=()=>buyStore("meat");$("svB3").onclick=()=>buyStore("beer");$("svB4").onclick=()=>buyStore("lime");$("svB5").onclick=()=>buyStore("rum");$("svRum").onclick=issueRum;$("svLeave").onclick=shoreLeave;$("svSell").onclick=sellFish;$("svRat").onclick=()=>{if(S){S.ration=S.ration<1?1:.66;svBill();}};
+function initShip(){$("bShip").onclick=$("bShip2").onclick=()=>openShip(!SV.open);$("svClose").onclick=()=>openShip(false);$("svAll").onclick=()=>{if(S){S.callAll=!S.callAll;svBill();}};$("svBal").onclick=()=>{if(S)svBalance();};document.querySelectorAll("#svTrade [data-s]").forEach(b=>b.onclick=()=>buySpare(b.dataset.s));document.querySelectorAll("#svJobs button").forEach(b=>b.onclick=()=>startJob(b.dataset.j));$("svPump").onclick=()=>{if(S){S.pumpMode=S.pumpMode==="auto"?"on":S.pumpMode==="on"?"off":"auto";svBill();}};$("svB1").onclick=()=>buyStore("bis");$("svB2").onclick=()=>buyStore("meat");$("svB3").onclick=()=>buyStore("beer");$("svB4").onclick=()=>buyStore("lime");$("svB5").onclick=()=>buyStore("rum");$("svB6").onclick=()=>buyStore("med");$("svRum").onclick=issueRum;$("svLeave").onclick=shoreLeave;$("svSell").onclick=sellFish;$("svRat").onclick=()=>{if(S){S.ration=S.ration<1?1:.66;svBill();}};
   const c=$("shipCv");c.addEventListener("pointermove",e=>{if(!S)return;const h=svHit(svXY(e));SV.hoverB=SV.sel>=0?h.bi:-1;c.style.cursor=h.mi>=0||SV.hoverB>=0?"pointer":"";});
   c.addEventListener("pointerleave",()=>{SV.hoverB=-1;});
   c.addEventListener("click",e=>{if(!S||!S.crew)return;const h=svHit(svXY(e));
