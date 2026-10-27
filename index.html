@@ -3194,6 +3194,7 @@ function waveH(R,x,z){let h=0;for(const w of WAVES)h+=(w.A==null?R.amp*w.a:w.A)*
    Near land: man-of-war birds (frigatebirds) hanging high over the coast, a sign of land within a day's sail; brown pelicans flying in lines and plunge-diving;
    laughing gulls and royal terns; green and hawksbill turtles coming up to breathe.
    True sizes, flat washes with a hairline pen outline, like the ship plates. Everything is pooled and capped so it stays light on phones. */
+const FAUNA_DEPTH={dolphin:5,humpback:16,sperm:16,turtle:3.5}; // how deep each can still be made out from the deck
 const FAUNA_TINT=c=>[((c>>16)&255)/255,((c>>8)&255)/255,(c&255)/255];
 function coastNm(x,y){let dm=99;for(const I of islands){if(Math.hypot(x-I.c.x,y-I.c.y)>I.r*2+dm)continue;const P=I.pts;if(inPoly({x,y},P))return 0;
     for(let i=0;i<P.length;i++){const q=closestOnSeg({x,y},P[i],P[(i+1)%P.length]);dm=Math.min(dm,Math.hypot(x-q.x,y-q.y));}}return dm;}
@@ -3276,6 +3277,8 @@ function buildFauna(R){
   F.splashTex=faPaint(64,64,(g,w,h)=>{g.strokeStyle="rgba(250,247,238,.9)";g.lineWidth=2;for(let i=0;i<14;i++){const a=PI*(.15+.7*Math.random()),r=10+18*Math.random();g.beginPath();g.moveTo(w/2,h*.92);g.quadraticCurveTo(w/2+Math.cos(a)*r*.6,h*.92-Math.sin(a)*r*1.3,w/2+Math.cos(a)*r,h*.92-Math.sin(a)*r*.7);g.stroke();}
     g.strokeStyle="rgba(60,48,36,.4)";g.lineWidth=.8;g.beginPath();g.ellipse(w/2,h*.92,22,4,0,0,2*PI);g.stroke();});
   F.fx=[];for(let i=0;i<10;i++){const s=new THREE.Sprite(new THREE.SpriteMaterial({map:F.splashTex,transparent:true,depthWrite:false}));s.visible=false;R.scene.add(s);F.fx.push({s,t:0,life:0,sz:1,spout:false});}
+  // seen through clear water: a flattened shadow of the animal on the surface, fainter the deeper it swims
+  F.ghost=[.09,.16,.24,.32].map(o=>new THREE.MeshBasicMaterial({color:0x2a4250,transparent:true,opacity:o,depthWrite:false,side:THREE.DoubleSide}));
   F.spawn=(kind,o)=>faSpawn(R,kind,o);
 }
 // one animal: a group with fill + pen outline for the body, wash + hairlines for fins and wings
@@ -3285,9 +3288,10 @@ function faMake(R,kind){const F=R.fauna,G=F.geo[kind],g=new THREE.Group();g.rota
   const o={kind,g,x:0,y:0,z:0,yaw:0,pitch:0,roll:0,t:0};
   if(BIRDS[kind]){o.w=[1,-1].map(sd=>{const sh=new THREE.Group(),wr=new THREE.Group();sh.rotation.order="YXZ";wr.rotation.order="YXZ";sh.position.set(0,.01,BIRDS[kind].len*.06);sh.scale.x=sd;g.add(sh);
       add(G.arm,F.fillFlat,sh);add(G.armE,R.lineMat,sh);wr.position.x=G.armL;sh.add(wr);add(G.hand,F.fillFlat,wr);add(G.handE,R.lineMat,wr);return{sh,wr,sd};});}
+  if(FAUNA_DEPTH[kind]){const gh=new THREE.Group();gh.add(new THREE.Mesh(G.b,F.ghost[0]));if(G.f)gh.add(new THREE.Mesh(G.f,F.ghost[0]));gh.visible=false;gh.renderOrder=2;R.scene.add(gh);o.gh=gh;}
   R.scene.add(g);return o;}
 function faSpawn(R,kind,o){const F=R.fauna,p=F.pool[kind]||(F.pool[kind]=[]);const a=p.pop()||faMake(R,kind);a.g.visible=true;
-  for(const k of Object.keys(a))if(!["kind","g","w"].includes(k))delete a[k];Object.assign(a,{x:0,y:-50,z:0,yaw:0,pitch:0,roll:0,t:0,mode:"",life:0},o||{});F.list.push(a);return a;}
+  for(const k of Object.keys(a))if(!["kind","g","w","gh"].includes(k))delete a[k];Object.assign(a,{x:0,y:-50,z:0,yaw:0,pitch:0,roll:0,t:0,mode:"",life:0},o||{});F.list.push(a);return a;}
 function faFx(R,x,z,sz,spout,lean){const F=R.fauna,f=F.fx.find(f=>f.life<=0);if(!f)return;f.x=x;f.z=z;f.t=0;f.life=spout?2.8:1.1;f.sz=sz;f.spout=!!spout;
   f.s.material.map=spout?F.spoutTex:F.splashTex;f.s.material.rotation=lean||0;f.s.visible=true;}
 // where things are relative to the ship, in plain words for the log
@@ -3300,6 +3304,7 @@ function updateFauna(R,dt,gain,wdx,wdz,nightF){
   const F=R.fauna;if(!F||!S)return;F._wdx=wdx;F._wdz=wdz;const sh=S.ship,rdt=Math.min(dt,.1)*gain,day=1-nightF,kn=sh.v||0,shV=kn*.5144;
   const hdg=sh.heading*D2R,fx=Math.sin(hdg),fz=-Math.cos(hdg),sx=Math.cos(hdg),sz=Math.sin(hdg),bow=(R.hawse?R.hawse[0]:12)+2;
   const live=speedMult<=3,rnd=Math.random;
+  for(const m of F.ghost)m.color.setRGB(.165*lerp(1,.6,nightF),.26*lerp(1,.7,nightF),.31*lerp(1,.9,nightF));
   F.outU.uPx.value=1.15*2*Math.tan(R.camera.fov*D2R/2)/Math.max(200,R.H);
   const tint=[lerp(1,.28,nightF),lerp(1,.34,nightF),lerp(1,.5,nightF)];F.fill.color.setRGB(...tint);F.fillFlat.color.setRGB(...tint);
   if((F.dcT-=dt)<=0){F.dcT=2;F.dc=coastNm(sh.x,sh.y);}
@@ -3347,8 +3352,10 @@ function updateFauna(R,dt,gain,wdx,wdz,nightF){
     else faBirdStep(R,a,rdt,surf,{fx,fz,bow,day});
     a.g.position.set(a.x,a.y,a.z);a.g.rotation.set(a.pitch,a.yaw,a.roll);
     const dcam=Math.hypot(a.x-camP.x,a.z-camP.z);if(a.g.visible&&dcam>(a.kind==="humpback"||a.kind==="sperm"?4000:900))a.g.visible=false;else if(a.kind!=="ffish"&&!a.hide)a.g.visible=true;
+    if(a.gh){const md=FAUNA_DEPTH[a.kind],dp=surf-a.y,on=dp>.35&&dp<md&&dcam<(md>10?1500:400)&&Math.abs(a.pitch)<.9;a.gh.visible=on;
+      if(on){const m=F.ghost[clamp(3-Math.floor(dp/md*4),0,3)];for(const c of a.gh.children)c.material=m;a.gh.position.set(a.x,surf+.06,a.z);a.gh.rotation.set(0,a.yaw,0);const k=1+dp/md*.25;a.gh.scale.set(k,.03,k);}}
     if(Math.hypot(a.x,a.z)>2600&&!(a.kind==="humpback"||a.kind==="sperm"))a.dead=1;}
-  for(const a of F.list)if(a.dead){a.g.visible=false;(F.pool[a.kind]||(F.pool[a.kind]=[])).push(a);if(F.whale===a)F.whale=null;}
+  for(const a of F.list)if(a.dead){a.g.visible=false;if(a.gh)a.gh.visible=false;(F.pool[a.kind]||(F.pool[a.kind]=[])).push(a);if(F.whale===a)F.whale=null;}
   F.list=F.list.filter(a=>!a.dead);
   for(const f of F.fx){if(f.life<=0)continue;f.t+=rdt;f.x-=wdx;f.z-=wdz;const u=f.t/f.life;if(u>=1){f.life=0;f.s.visible=false;continue;}
     const s=f.spout?f.sz*(.5+.7*smooth(0,.25,u)):f.sz*(.6+.8*u),y=waveH(R,f.x,f.z);f.s.scale.set(f.spout?s*.5:s,s,1);f.s.position.set(f.x,y+s*.5-(f.spout?0:.1),f.z);
@@ -3380,7 +3387,7 @@ function faWhale(R,a,rdt,surf){const L=a.kind==="sperm"?14:13,hump=a.kind==="hum
     const u=a.t/4.5;a.pitch=lerp(-1.3,-.2,smooth(.2,.9,u));a.roll=2.2*smooth(.35,.95,u);a.y=surf-L*.55+L*.62*Math.sin(PI*Math.min(1,u*1.05));
     if(u>.82&&!a.spl){a.spl=1;faFx(R,a.x,a.z,9);faFx(R,a.x+3,a.z-2,7);}
     if(u>=1){a.spl=0;a.mode="sound";a.t=3.5;a.roll=0;}}
-  else if(a.mode==="deep"){a.y=surf-L;a.hide=1;a.g.visible=false;if(a.t>a.dive){a.hide=0;a.t=0;a.mode="blow";a.n=2+Math.floor(Math.random()*5);a.yaw+=(Math.random()-.5)*.8;a.told=0;
+  else if(a.mode==="deep"){a.y=surf-Math.min(L*1.3,3+a.t*.25,3+(a.dive-a.t)*.4);a.pitch=0;a.hide=1;a.g.visible=false;if(a.t>a.dive){a.hide=0;a.t=0;a.mode="blow";a.n=2+Math.floor(Math.random()*5);a.yaw+=(Math.random()-.5)*.8;a.told=0;
       if(++a.sign>2||Math.hypot(a.x,a.z)>3000){a.dead=1;}}}}
 // birds: fly to a place, circle over it, dive on fish, sit on the water, go home
 function faBird(R,k){const b=BIRDS[k],rnd=Math.random,ang=rnd()*2*PI,d=350+rnd()*250,x=Math.sin(ang)*d,z=Math.cos(ang)*d;
