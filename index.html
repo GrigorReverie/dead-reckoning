@@ -5691,5 +5691,128 @@ function oarsUI(sh,bf){const O=SHIP.oars;if(!O||!$("bOars"))return;const r=rowOf
 window.__DR={cam:()=>R3,footAt,PF,portGeom,openPortCard,openPortPlan,tideLvl,tideTable,tideStream,plotFix,LMS,currentAt,landInit,WINDK,CURK,dockAtPort,showCrisis,crisisKind,punish,loadState,packState,decS,toggleOars,setStroke,oarPivot,STROKES,pickShip,get SHIP(){return SHIP},SHIPDEFS,SPEC,useShip,applyShip,crewOf,rigOf,linesOf,get shipPick(){return shipPick},set shipPick(v){shipPick=v},svMove,svCtx,sx,sy,openPortCard,openPortPlan,get R3(){return R3},setMain,update3D,get S(){return S},VOYAGES,PORTS,islands,reefs,LMS,step,startVoyage,setCourse,tackOrWear,setSail,assistStep,noonAvailable,windAt:(x,y,t)=>windAt(S,x,y,t),inPoly,crossFix,plotFix,takeBearing,markNoon,startObserve,noonAvailable,endVoyage,toGeo,geo,atPort:()=>atPort(S),buyStore,sellFish,toggleFish,coastNm,fishStep};
 })();
 </script>
+<script>
+/* Layout editor: Menu > Edit layout. Moves/resizes the real controls with CSS translate/scale, saved on this device. */
+(()=>{
+const $=id=>document.getElementById(id),KEY="drLayout.v1";
+const cls=()=>matchMedia("(max-width:860px)").matches?"phone":"desk";
+let L;try{L=JSON.parse(localStorage.getItem(KEY))||{}}catch(e){L={}}
+L.phone=L.phone||{};L.desk=L.desk||{};
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(L))}catch(e){}};
+const st=document.createElement("style");st.id="drLayout";(document.head||document.documentElement).appendChild(st);
+const FIX='@media (max-width:860px){body.lay-custom .cbfoot{height:34px}body.lay-custom .cbfoot .ws{max-height:34px;overflow:hidden;font-size:10px;line-height:1.1}body.lay-custom #legendBox[hidden]{display:flex!important;visibility:hidden}body.lay-custom #sailSl[style*="display:none"],body.lay-custom #sailSl[style*="display: none"]{display:flex!important;visibility:hidden}body.lay-custom .side .compassbox{width:370px;max-width:none}body.lay-custom .side .dock-all:not(.collapsed){overflow-x:hidden!important}body.lay-custom .side .dock-all .dockbody{align-items:stretch}}\n';
+const M=()=>L[cls()];
+function apply(){const m=M();let o="";for(const k in m){const[x,y,s]=m[k];o+=k+"{translate:"+x+"px "+y+"px"+(s!==1?";transform-origin:0 0;scale:"+s:"")+"}\n"}
+ st.textContent=o+FIX;document.body.classList.toggle("lay-custom",E.on||Object.keys(m).length>0)}
+function sel(el){const p=[];let e=el;while(e&&e!==document.body&&e.parentElement){if(e.id&&document.querySelectorAll("#"+CSS.escape(e.id)).length===1){p.unshift("#"+CSS.escape(e.id));break}
+ const sib=[...e.parentElement.children].filter(c=>c.tagName===e.tagName);p.unshift(e.tagName.toLowerCase()+(sib.length>1?":nth-of-type("+(sib.indexOf(e)+1)+")":""));e=e.parentElement}
+ return(p[0][0]==="#"?"":"body>")+p.join(">")}
+const r1=v=>Math.round(v*10)/10;
+function ent(k){return(M()[k]||[0,0,1]).slice()}
+function put(k,v){const m=M();if(!v[0]&&!v[1]&&v[2]===1)delete m[k];else m[k]=[r1(v[0]),r1(v[1]),Math.round(v[2]*1000)/1000];apply();save()}
+const E={on:false,el:null,k:null,kids:[],mode:"move",drag:null,hist:[],orig:null,allow:false,top:true,timer:0,raf:0};
+const snap=()=>{E.hist.push(JSON.stringify(M()));if(E.hist.length>60)E.hist.shift()};
+const click=el=>{if(!el)return;E.allow=true;try{el.click()}finally{E.allow=false}};
+const fire=el=>{if(!el)return;E.allow=true;try{el.dispatchEvent(new MouseEvent("click",{bubbles:true}))}finally{E.allow=false}};
+const sailSel=()=>$("sailSl")&&$("sailSl").style.display!=="none";
+
+/* ---------- ui ---------- */
+const ui=document.createElement("div");ui.id="edUI";
+ui.innerHTML=`<style>
+#edUI{display:none}body.ed #edUI{display:block}
+#edBar{position:fixed;left:0;right:0;z-index:2147483000;background:#f3ead2;border:2px solid #2a2016;font:11px/1.2 system-ui,sans-serif;color:#2a2016;padding:4px;display:flex;flex-direction:column;gap:3px;box-shadow:0 4px 18px rgba(0,0,0,.4);max-height:44vh;overflow:auto}
+#edBar.t{top:0;padding-top:calc(env(safe-area-inset-top,0px) + 4px)}#edBar.b{bottom:0;padding-bottom:calc(env(safe-area-inset-bottom,0px) + 4px)}
+#edBar.min .r.x{display:none}#edBar .r{display:flex;gap:3px;flex-wrap:wrap;align-items:center}
+#edBar button{font:inherit;font-size:11px;min-height:30px;min-width:28px;padding:0 6px;background:#fffaf0;border:1px solid #2a2016;color:#2a2016;border-radius:3px}
+#edBar button.on{background:#2a2016;color:#fffaf0}#edBar b{font-weight:600}
+#edInfo{flex:1;min-width:120px;font:11px/1.2 ui-monospace,monospace;word-break:break-all;opacity:.8}
+#edBox{position:fixed;z-index:2147482990;border:2px dashed #d4540f;background:rgba(212,84,15,.08);pointer-events:none;display:none}
+#edHdl{position:absolute;right:-14px;bottom:-14px;width:28px;height:28px;border-radius:50%;background:#d4540f;border:2px solid #fff;pointer-events:auto;touch-action:none}
+body.ed.edmove *{touch-action:none!important}
+</style>
+<div id="edBox"><div id="edHdl"></div></div>
+<div id="edBar" class="t">
+<div class="r"><b>Edit</b><button data-go="3D">3D</button><button data-go="Chart">Chart</button><button data-go="Ship">Ship</button><button data-go="Book">Book</button><button data-go="Helm" id="edGoHelm">Helm</button><button id="edMode" class="on">Move</button><button id="edDock">⇅</button><button id="edMin">▴</button></div>
+<div class="r x"><button id="edPar">⬆ Parent</button><button id="edKid">⬇ Child</button><button id="edMinus">−</button><button id="edPlus">+</button><button data-n="-1,0">◀</button><button data-n="0,-1">▲</button><button data-n="0,1">▼</button><button data-n="1,0">▶</button><button id="edUndo">Undo</button></div>
+<div class="r x"><button id="edRItem">Reset item</button><button id="edRScr">Reset screen</button><button id="edRAll">Reset all</button><button id="edExp">Export</button><button id="edDone" class="on">Done</button><span id="edInfo">Tap a control to select it, then drag.</span></div>
+</div>`;
+document.body.appendChild(ui);
+const bar=$("edBar"),box=$("edBox"),info=$("edInfo");
+const inUI=t=>t&&t.closest&&t.closest("#edBar,#edHdl");
+
+function select(el){if(!el||el===document.body||el===document.documentElement||inUI(el)){E.el=null;E.k=null;E.kids=[];return}
+ if(el.ownerSVGElement)el=el.ownerSVGElement;E.el=el;E.k=sel(el);E.kids=[];label()}
+function label(){if(!E.el){info.textContent="Tap a control to select it, then drag.";return}const v=ent(E.k);info.textContent=E.k.split(">").slice(-2).join(">")+"  x"+v[0]+" y"+v[1]+" ×"+v[2]}
+function track(){if(!E.on)return;if(E.el&&E.el.isConnected){const r=E.el.getBoundingClientRect();if(r.width||r.height){box.style.display="block";Object.assign(box.style,{left:r.left+"px",top:r.top+"px",width:r.width+"px",height:r.height+"px"})}else box.style.display="none"}else box.style.display="none";E.raf=requestAnimationFrame(track)}
+
+/* ---------- show the fullest version of every screen ---------- */
+function force(){
+ const sl=$("sailSl");
+ if(sl&&!sailSel()&&Date.now()-(E.sailAt||0)>1500){E.sailAt=Date.now();fire(document.querySelector('#sailShapes [data-s="mc"]'));E.did.sail=true}
+ const lb=$("legendBox");if(lb&&lb.hidden){click($("bLegend"));E.did.legend=true}
+ const lg=$("logbox");if(lg&&lg.hidden){lg.hidden=false;lg.style.display="flex";E.did.log=true}
+ const ib=$("ibTog");if(ib&&ib.getAttribute("aria-expanded")==="false"){click(ib);E.did.strip=true}
+ const t=$("toast");if(t){if(t.classList.contains("hide")){E.did.toast=true;t.classList.remove("hide")}if(E.did.toast&&!t.textContent)t.textContent="Land ho! The lookout sights the Pitons."}
+}
+function relax(){const d=E.did;
+ if(d.sail&&sailSel())fire(document.querySelector('#sailShapes [data-s="mc"]'));
+ if(d.legend&&!$("legendBox").hidden)click($("bLegend"));
+ if(d.log&&$("bHeave")&&!$("bHeave").disabled){const lg=$("logbox");lg.hidden=true;lg.style.display="none"}
+ if(d.strip&&$("ibTog").getAttribute("aria-expanded")==="true")click($("ibTog"));
+ if(d.toast){$("toast").classList.add("hide");$("toast").textContent=""}}
+function go(n){const v=$("tbView");click(v);
+ const m={Chart:"tbChart",Ship:"tbShip",Book:"tbBook",Helm:"ctlIcon"}[n];if(m)setTimeout(()=>click($(m)),250);setTimeout(force,500)}
+
+/* ---------- editing ---------- */
+function enter(){if(E.on)return;E.on=true;E.did={};E.hist=[];E.el=null;E.k=null;
+ document.body.classList.add("ed","edmove");apply();E.mode="move";$("edMode").textContent="Move";$("edMode").classList.add("on");
+ bar.className="t";E.top=true;$("edMin").textContent="▴";$("edGoHelm").style.display=cls()==="phone"?"":"none";
+ for(const id of["menuPop","assistPop"]){const e=$(id);if(e)e.hidden=true}
+ force();E.timer=setInterval(force,700);track();label()}
+function leave(){if(!E.on)return;E.on=false;clearInterval(E.timer);cancelAnimationFrame(E.raf);document.body.classList.remove("ed","edmove");box.style.display="none";relax();E.did={};apply()}
+const swallow=e=>{if(!E.on||E.allow||inUI(e.target))return;e.stopImmediatePropagation();if(e.cancelable&&(E.mode==="move"||e.type==="click"||e.type==="contextmenu"))e.preventDefault()};
+["click","dblclick","contextmenu","mousedown","mouseup","touchend","touchmove","touchstart","wheel"].forEach(t=>window.addEventListener(t,swallow,{capture:true,passive:false}));
+window.addEventListener("keydown",e=>{if(E.on&&e.key==="Escape"){leave()}else if(E.on&&!inUI(e.target)){e.stopImmediatePropagation()}},true);
+function down(e){if(!E.on||E.allow)return;const hd=e.target&&e.target.id==="edHdl";if(inUI(e.target)&&!hd)return;
+ e.stopImmediatePropagation();
+ if(E.mode!=="move"&&!hd)return;
+ if(e.cancelable)e.preventDefault();
+ if(!hd){const prev=E.el;box.style.visibility="hidden";let t=document.elementFromPoint(e.clientX,e.clientY);box.style.visibility="";select(t);if(!E.el)return}
+ snap();const v=ent(E.k);E.drag={id:e.pointerId,x:e.clientX,y:e.clientY,v,hd,w:Math.max(1,E.el.getBoundingClientRect().width),moved:false}}
+function move(e){if(!E.on||!E.drag)return;if(e.pointerId!==E.drag.id){return}e.stopImmediatePropagation();if(e.cancelable)e.preventDefault();
+ const d=E.drag,dx=e.clientX-d.x,dy=e.clientY-d.y;d.moved=true;
+ if(d.hd){const s=Math.max(.2,Math.min(4,d.v[2]*(d.w+dx)/d.w));put(E.k,[d.v[0],d.v[1],s])}else put(E.k,[d.v[0]+dx,d.v[1]+dy,d.v[2]]);label()}
+function up(e){if(E.on&&!E.allow&&!inUI(e.target))e.stopImmediatePropagation();if(!E.drag)return;if(E.drag.id===e.pointerId){if(!E.drag.moved)E.hist.pop();E.drag=null}}
+window.addEventListener("pointerdown",down,{capture:true,passive:false});
+window.addEventListener("pointermove",move,{capture:true,passive:false});
+window.addEventListener("pointerup",up,{capture:true});window.addEventListener("pointercancel",up,{capture:true});
+
+bar.addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;
+ if(b.dataset.go){go(b.dataset.go);return}
+ if(b.dataset.n&&E.k){snap();const[a,c]=b.dataset.n.split(",").map(Number),v=ent(E.k);put(E.k,[v[0]+a,v[1]+c,v[2]]);label();return}
+ switch(b.id){
+ case"edMode":E.mode=E.mode==="move"?"scroll":"move";b.textContent=E.mode==="move"?"Move":"Scroll";b.classList.toggle("on",E.mode==="move");document.body.classList.toggle("edmove",E.mode==="move");break;
+ case"edMin":bar.classList.toggle("min");b.textContent=bar.classList.contains("min")?"▾":"▴";break;
+ case"edDock":E.top=!E.top;bar.className=(E.top?"t":"b")+(bar.classList.contains("min")?" min":"");break;
+ case"edPar":if(E.el&&E.el.parentElement&&E.el.parentElement!==document.body){const c=E.el;select(E.el.parentElement);E.kids=[c]}break;
+ case"edKid":if(E.el){const c=E.kids&&E.kids.pop?E.kids.pop():null;const k=E.kids;if(c&&E.el.contains(c)){select(c);E.kids=k}else{const f=[...E.el.children].find(x=>x.getBoundingClientRect().width>0&&!inUI(x));if(f)select(f)}}break;
+ case"edMinus":case"edPlus":if(E.k){snap();const v=ent(E.k);put(E.k,[v[0],v[1],Math.max(.2,v[2]+(b.id==="edPlus"?.05:-.05))]);label()}break;
+ case"edUndo":if(E.hist.length){L[cls()]=JSON.parse(E.hist.pop());apply();save();label()}break;
+ case"edRItem":if(E.k){snap();put(E.k,[0,0,1]);label()}break;
+ case"edRScr":snap();for(const k of Object.keys(M())){let el;try{el=document.querySelector(k)}catch(x){}if(el){const r=el.getBoundingClientRect();if(r.width>0&&r.height>0)delete M()[k]}}apply();save();label();break;
+ case"edRAll":if(confirm("Reset every moved control on this device?")){snap();L[cls()]={};apply();save();label()}break;
+ case"edExp":{const txt="DR LAYOUT "+JSON.stringify({device:cls(),w:innerWidth,h:innerHeight,layout:M()});
+  const ok=()=>{info.textContent="Copied "+Object.keys(M()).length+" moves. Paste it to Claude."};
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(txt).then(ok,()=>prompt("Copy this:",txt));else prompt("Copy this:",txt);break}
+ case"edDone":leave();break}});
+
+addEventListener("resize",apply);
+const mb=document.createElement("button");mb.className="tb";mb.id="bEdit";mb.textContent="Edit layout";
+mb.addEventListener("click",()=>setTimeout(enter,0));
+const mp=$("menuPop");if(mp)mp.insertBefore(mb,$("bFull"));
+apply();
+window.__drEdit={enter,leave,E,L,go};
+})();
+</script>
 <script>if("serviceWorker" in navigator&&location.protocol.startsWith("http"))window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </body></html>
