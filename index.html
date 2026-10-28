@@ -307,10 +307,13 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-
 .bar{padding-top:calc(env(safe-area-inset-top,0px) + 4px)}
 /* the glass sits left of the compass; on a phone it shrinks with the dial */
 @media (max-width:860px){.compassbox{--baroW:calc((min(230px,64vw) - 28px)*.24);--stW:32px;--gp:6px}#baro{height:calc(min(230px,64vw) - 28px)}.cbrow{gap:6px}}
-/* Helm sheet laid out with the UI Layout Tuner (phone). Offsets are from where each control sat, so they follow the flow. */
+/* Helm sheet laid out with the UI Layout Tuner (phone). Offsets are from where each control sits in the flow.
+   The content column is stretched so the flow matches in every state, and the sheet never scrolls sideways. */
 @media (max-width:860px){
+.side .dock-all .dockbody{align-items:stretch}
+.side .dock-all:not(.collapsed){overflow-x:hidden!important}
 #spdTxt{display:inline-block;translate:9.2px 0px}
-body>div:nth-of-type(1)>div.main:nth-of-type(3)>aside.side:nth-of-type(1)>section.dock:nth-of-type(1)>div.sheet:nth-of-type(1)>div.dockgrid:nth-of-type(3)>div.sub:nth-of-type(1)>div.dockbody:nth-of-type(2)>div.dockctl:nth-of-type(2)>div.mono:nth-of-type(3){translate:162px -28px}
+body>div:nth-of-type(1)>div.main:nth-of-type(3)>aside.side:nth-of-type(1)>section.dock:nth-of-type(1)>div.sheet:nth-of-type(1)>div.dockgrid:nth-of-type(3)>div.sub:nth-of-type(1)>div.dockbody:nth-of-type(2)>div.dockctl:nth-of-type(2)>div.mono:nth-of-type(3){translate:162px -28px;width:214px}
 body>div:nth-of-type(1)>div.main:nth-of-type(3)>aside.side:nth-of-type(1)>section.dock:nth-of-type(1)>div.sheet:nth-of-type(1)>div.dockhead:nth-of-type(1)>b.dh:nth-of-type(1)>svg:nth-of-type(1){translate:0px -2px}
 body>div:nth-of-type(1)>div.main:nth-of-type(3)>aside.side:nth-of-type(1)>section.dock:nth-of-type(1)>div.sheet:nth-of-type(1)>div.dockhead:nth-of-type(1)>b.dh:nth-of-type(1)>span.dht:nth-of-type(1){translate:0px -1.5px}
 #cL5{translate:23.8px -9px;transform-origin:0 0;scale:1.077 1.077}
@@ -353,7 +356,7 @@ body>div:nth-of-type(1)>div.main:nth-of-type(3)>aside.side:nth-of-type(1)>sectio
 #legendBox>span:nth-of-type(3)>i:nth-of-type(1){translate:-15px -0.7px}
 #legendBox>span:nth-of-type(4){translate:7px 11px}
 #legendBox>span:nth-of-type(4)>i:nth-of-type(1){translate:-15px -0.7px}
-#legendBox>span:nth-of-type(5){translate:282px -6px}
+#legendBox>span:nth-of-type(5){translate:279px -6px}
 #legendBox>span:nth-of-type(5)>i:nth-of-type(1){translate:-15px -1.7px}
 #oarSec{translate:0px 19px}
 #oarState>span.muted:nth-of-type(1){display:inline-block;translate:0px 0.5px}
@@ -366,6 +369,7 @@ body>div:nth-of-type(1)>div.main:nth-of-type(3)>aside.side:nth-of-type(1)>sectio
 #logKn{display:inline-block;translate:0px 0px}
 #logAge{display:inline-block;translate:0px 0px}
 #ibTog{translate:0px -1.8px}
+#hdgTxt{position:relative;z-index:3}
 #brOrd,#sailOrd,body>div:nth-of-type(1)>div.main:nth-of-type(3)>aside.side:nth-of-type(1)>section.dock:nth-of-type(1)>div.sheet:nth-of-type(1)>div.dockgrid:nth-of-type(3)>div.sub:nth-of-type(1)>div.subhead:nth-of-type(1){display:none!important}
 }
 /* the four view icons (chart, camera, ship, book) share one centred row along the bottom */
