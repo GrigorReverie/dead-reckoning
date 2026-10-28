@@ -338,6 +338,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-
   .shipv .sheet{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto;align-content:start}
   /* the five icons sit in a bottom menu bar, evenly spaced, each with its name */
   #tabbar{display:block;position:fixed;left:0;right:0;bottom:0;height:calc(var(--ic) + 30px + env(safe-area-inset-bottom,0px));background:var(--paper);border-top:1px solid var(--ink);z-index:14}
+  html,body{background:var(--paper)}.app{height:100dvh}#tabbar::after{content:"";position:absolute;left:0;right:0;top:100%;height:200px;background:var(--paper)} /* no darker band under the menu bar, whatever the browser leaves below the page */
   #tabbar span{position:absolute;bottom:calc(env(safe-area-inset-bottom,0px) + 6px);transform:translateX(-50%);font:10px/1 var(--f-data);letter-spacing:.06em;text-transform:uppercase;color:var(--ink-soft)}
   .ptools .tbicon,.bookbtn,.shipchart,#paneChart.small,#ctlIcon{bottom:calc(env(safe-area-inset-bottom,0px) + 22px)!important;border-color:transparent!important;background:transparent!important;box-shadow:none!important;border-radius:6px}
   .ptools .tbicon[aria-pressed="true"],.bookbox.open .bookbtn,#ctlIcon[aria-pressed="true"]{background:var(--ink)!important;color:var(--paper)!important}
