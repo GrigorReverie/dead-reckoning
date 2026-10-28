@@ -478,6 +478,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-
           <button id="zIn" title="Zoom in">+</button>
           <button id="zOut" title="Zoom out">−</button>
           <button id="follow" aria-pressed="true" title="Follow the ship">◎</button>
+          <button id="curTog" aria-pressed="false" title="Show ocean currents on the chart" aria-label="Show ocean currents on the chart"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8c3-3 6 3 9 0s6 3 9 0M3 15c3-3 6 3 9 0s6 3 9 0"/></svg></button>
         </div>
         <button class="ctog ptog" data-pane="paneChart" aria-expanded="true" title="Collapse or expand">–</button><button class="swapbtn" id="swap2" title="Make this the main view (M)">⤢</button><span class="plabel">Chart</span>
       </div>
@@ -1801,7 +1802,7 @@ function drawChart(){
     ctx.save();ctx.strokeStyle=S.mode==="lost"?"#a8452c":"rgba(46,37,25,.55)";ctx.lineWidth=S.mode==="lost"?1.8:1.2;ctx.beginPath();S.track.forEach((p,i)=>i?ctx.lineTo(sx(p.x),sy(p.y)):ctx.moveTo(sx(p.x),sy(p.y)));ctx.lineTo(sx(S.ship.x),sy(S.ship.y));ctx.stroke();ctx.restore();
     drawShip(sx(S.ship.x),sy(S.ship.y),S.ship.heading);
   }
-  drawFish();drawRoute();drawProj();
+  drawCurrents();drawFish();drawRoute();drawProj();
   // scale bar
   drawScale();
   // night wash
@@ -2867,6 +2868,18 @@ function buildShip(R){
 }
 
 // the crew as articulated ink figures (torso, two legs, two arms) so they can walk, climb and work; the geometry is shared by every figure
+// a hand-line over the side: from the fisherman's hand down to the water, with a cork float and a lead; hidden when he is not fishing
+const FLV=new THREE.Vector3(0,1,0),FLD=new THREE.Vector3(),FLM=new THREE.MeshBasicMaterial({color:0xe9dfc2}),FLC=new THREE.MeshBasicMaterial({color:0xa8452c}),FLG=new THREE.CylinderGeometry(1,1,1,5),FLS=new THREE.SphereGeometry(1,8,6);
+function fishSeg(o,x1,y1,z1,x2,y2,z2,w){FLD.set(x2-x1,y2-y1,z2-z1);const L=FLD.length()||.01;o.position.set((x1+x2)/2,(y1+y2)/2,(z1+z2)/2);o.scale.set(w,L,w);o.quaternion.setFromUnitVectors(FLV,FLD.normalize());}
+function fishLn(R,c,t,on){
+  if(!on){if(c.fl)c.fl.visible=c.fl2.visible=c.fk.visible=false;return;}
+  const m=c.m;if(!c.fl){c.fl=new THREE.Mesh(FLG,FLM);c.fl2=new THREE.Mesh(FLG,FLM);c.fk=new THREE.Mesh(FLS,FLC);m.parent.add(c.fl,c.fl2,c.fk);}
+  const sd=c.sd||1,P=m.position,ph=t*.9+(c.ph||0),ax=Math.abs(P.x),
+    hx=P.x+sd*.45,hy=P.y+1.05+Math.max(0,Math.sin(ph))*.16,hz=P.z, // the hand
+    xo=sd*(Math.max((R.bAt?R.bAt(P.z):ax)*1.15+.3,ax+.6)+.08*Math.sin(ph*.7)),rx=xo,ry=P.y+.85,                // over the rail and out past the widest of the topsides
+    wx=xo,wy=-.05+Math.sin(ph*1.3)*.07,wz=P.z+.2*Math.sin(ph*.5+1); // straight down to the water
+  fishSeg(c.fl,hx,hy,hz,rx,ry,hz,.03);fishSeg(c.fl2,rx,ry,hz,wx,wy,wz,.03);
+  c.fk.position.set(wx,wy+.03,wz);c.fk.scale.setScalar(.13);c.fl.visible=c.fl2.visible=c.fk.visible=true;}
 function figKit(R){if(R.figKit)return R.figKit;
   const {boxMat,solidInk}=R;
   const mkG=(pts)=>{const g=new THREE.BufferGeometry();g.setAttribute("position",new THREE.Float32BufferAttribute(pts,3));return g;};
@@ -3745,6 +3758,7 @@ function update3D(dt,now){
               else if(c.act==="coil"){c.lean=.7;c.drop=.2;hip(c,-.35);const a=Math.sin(t*3.2+c.ph);c.aL.rotation.x=-1.25+a*.4;c.aR.rotation.x=-1.25-a*.4;}
               else if(c.act==="swab"){face(c,Math.PI*.15*Math.sin(t*.6+c.ph)+.4);const a=Math.sin(t*2.4+c.ph);c.lean=.45+a*.06;hip(c,0);c.aL.rotation.x=-.85+a*.2;c.aR.rotation.x=-.95+a*.2;}
               else if(c.act==="chat"&&c.pt){const q=c.pt.m.position;face(c,Math.atan2(q.x-m.position.x,q.z-m.position.z));hip(c,0);const g1=Math.max(0,Math.sin(t*1.1+c.ph*3));c.aR.rotation.x=-.9*g1;c.aL.rotation.x=-.25*Math.max(0,Math.sin(t*.7+c.ph));c.lean=.03;}}}} }
+      fishLn(R,c,t,c.role.startsWith("hand")&&c.act==="fish"&&c.state==="idle"&&c.m.visible&&!!S.fishing);
       { const yw=m.rotation.y,hnd=c.role.startsWith("hand"),deck=c.role==="helm"||c.role==="cap"||(hnd&&(c.state==="idle"||((c.state==="going"||c.state==="returning")&&c.q[0]&&c.q[0].m==="walk")));
         QZ.setFromAxisAngle(VZ,deck?-R.bob.rotation.z*.8:0);QY.setFromAxisAngle(VY,yw);QX.setFromAxisAngle(VX,c.lean);m.quaternion.copy(QZ).multiply(QY).multiply(QX);
         if(c.drop){c.dp=c.drop;m.position.y-=c.drop;} } }); } }
@@ -4154,11 +4168,23 @@ const FISHN={bank:"snapper and grouper from the bank",dolphinfish:"dolphinfish",
 const FISHSIGN={bank:"Gannets and boobies diving over a bank",dolphinfish:"Dolphinfish leaping, with birds working above them",bonito:"A bonito school breaking the surface, terns working over it",tuna:"Water boiling where a school of tunny is feeding"};
 const money=sh=>{sh=Math.round(sh);return `£${Math.floor(sh/20)} ${sh%20}s`;};
 function genFish(s){const F=[],xs=islands.map(i=>i.c.x),ys=islands.map(i=>i.c.y),x0=Math.min(...xs)-20,x1=Math.max(...xs)+20,y0=Math.min(...ys)-20,y1=Math.max(...ys)+20,kinds=["dolphinfish","bonito","tuna"],RT={dolphinfish:35,bonito:28,tuna:22};
-  for(const I of islands){if(I.small&&rng()<.5)continue;const a=rng()*2*PI,d=I.r+3+rng()*3;F.push({kind:"bank",x:I.c.x+Math.sin(a)*d,y:I.c.y+Math.cos(a)*d,r:2.2,amt:500+rng()*500,rate:45,vx:0,vy:0});}
+  for(const I of islands){if(I.small&&rng()<.5)continue;let x,y,tries=0;do{const a=rng()*2*PI,d=I.r+3+rng()*3+tries*.5;x=I.c.x+Math.sin(a)*d;y=I.c.y+Math.cos(a)*d;tries++;}while(coastNm(x,y)<1.2&&tries<40);
+    if(coastNm(x,y)<1.2)continue;F.push({kind:"bank",x,y,r:2.2,amt:500+rng()*500,rate:45,vx:0,vy:0});}
   const mkP=(x,y)=>{const kind=kinds[Math.floor(rng()*3)],a=rng()*2*PI;F.push({kind,x,y,r:1.2,amt:300+rng()*300,rate:RT[kind],vx:Math.sin(a)*.4,vy:Math.cos(a)*.4});};
-  for(let i=0;i<16;i++)mkP(x0+rng()*(x1-x0),y0+rng()*(y1-y0));
-  { const a=rng()*2*PI;mkP(s.ship.x+Math.sin(a)*7,s.ship.y+Math.cos(a)*7);F[F.length-1].kind="dolphinfish";F[F.length-1].rate=35; }
-  F.forEach((f,i)=>f.id=i);return F;}
+  for(let i=0;i<16;i++){let x,y,t=0;do{x=x0+rng()*(x1-x0);y=y0+rng()*(y1-y0);t++;}while(coastNm(x,y)<3&&t<60);mkP(x,y);}
+  { let x,y,t=0;do{const a=rng()*2*PI;x=s.ship.x+Math.sin(a)*7;y=s.ship.y+Math.cos(a)*7;t++;}while(coastNm(x,y)<2&&t<60);mkP(x,y);F[F.length-1].kind="dolphinfish";F[F.length-1].rate=35; }
+  F.forEach((f,i)=>f.id=i);s.fish=F;s.grounds=genGrounds(s);return F;}
+// Light grey patches on the chart, 12 to 16 miles across and irregular, where fish may be: four in five hold a school or bank (off-centre in the patch), the rest are empty water
+function groundShape(){const n=22,p1=rng()*6.3,p2=rng()*6.3,p3=rng()*6.3,a1=.16+rng()*.12,a2=.1+rng()*.1,a3=.05+rng()*.06,e=.8+rng()*.4,ro=rng()*PI,R=6.2+rng()*1.6,cr=Math.cos(ro),sr=Math.sin(ro),o=[];
+  for(let i=0;i<n;i++){const t=i/n*2*PI,k=1+a1*Math.sin(2*t+p1)+a2*Math.sin(3*t+p2)+a3*Math.sin(5*t+p3),ex=Math.cos(t)*k*R*e,ey=Math.sin(t)*k*R/e;o.push(+(ex*cr-ey*sr).toFixed(2),+(ex*sr+ey*cr).toFixed(2));}
+  return o;}
+function genGrounds(s){const G=[],R=5;
+  for(const f of s.fish){if(f.amt<=25||coastNm(f.x,f.y)<.6)continue;let cx=f.x,cy=f.y;
+    for(let t=0;t<12;t++){const a=rng()*2*PI,d=(.15+rng()*.35)*R*(f.kind==="bank"?.8:1),x=f.x+Math.sin(a)*d,y=f.y+Math.cos(a)*d;if(coastNm(x,y)>1){cx=x;cy=y;break;}}
+    G.push({x:cx,y:cy,fid:f.id,o:groundShape()});}
+  const n=Math.max(1,Math.round(G.length/4)),xs=islands.map(i=>i.c.x),ys=islands.map(i=>i.c.y),x0=Math.min(...xs)-20,x1=Math.max(...xs)+20,y0=Math.min(...ys)-20,y1=Math.max(...ys)+20;
+  for(let i=0;i<n;i++){let x,y,t=0;do{x=x0+rng()*(x1-x0);y=y0+rng()*(y1-y0);t++;}while(coastNm(x,y)<4&&t<80);if(coastNm(x,y)>=4)G.push({x,y,fid:null,o:groundShape()});}
+  return G;}
 function portsNear(s){const sh=s.ship;let best=null;for(const k in PORTS){const P=PORTS[k],g=geo(P.lat,P.lon),d=Math.hypot(g.x-sh.x,g.y-sh.y);if(!best||d<best.d)best={k,d,name:P.name};}return best;}
 function atPort(s){if(s.docked&&s.ship.anch.mode==="holding")return{k:s.docked,d:0,name:PORTS[s.docked].name};const b=portsNear(s);return b&&b.d<1.6&&(s.ship.anch.mode==="holding"||s.ship.v<.4)?b:null;}
 const FISHD={bridgetown:1.25,stjohns:1.2,basseterre:1.1,castries:.85,kingstown:.9}; // plantation islands pay most for salt fish
@@ -4175,13 +4201,21 @@ function toggleFish(){if(!S||S.done)return;const sh=S.ship;
   if(S.nDuty<4){say("There are not enough hands on watch to work the lines.",{});return;}
   S.fishing=true;S.noBite=0;say("Lines over the side!",{});updateUI(true);}
 function fishStep(s,dt,w){if(!s.fish)return;const sh=s.ship,P=s.mode==="trial"?s.ship:s.est;
-  for(const f of s.fish){f.x+=f.vx*dt;f.y+=f.vy*dt;if(f.vx||f.vy){if(rng()<dt*.15){const a=rng()*2*PI;f.vx=Math.sin(a)*.4;f.vy=Math.cos(a)*.4;}}}
+  if(!s.grounds){for(const f of s.fish)if(coastNm(f.x,f.y)<.6)f.amt=0;s.grounds=genGrounds(s);}
+  const GB=new Map();for(const g of s.grounds)if(g.fid!=null)GB.set(g.fid,g);
+  for(const f of s.fish){if(!(f.vx||f.vy))continue;const ox=f.x,oy=f.y;f.x+=f.vx*dt;f.y+=f.vy*dt;
+    const g=GB.get(f.id),away=g&&Math.hypot(f.x-g.x,f.y-g.y)>3.2; // a school stays under its patch, and turns back from the shore
+    if(away||coastNm(f.x,f.y)<1){f.x=ox;f.y=oy;if(away&&g){const a=Math.atan2(g.x-f.x,g.y-f.y);f.vx=Math.sin(a)*.4;f.vy=Math.cos(a)*.4;}else{f.vx=-f.vx;f.vy=-f.vy;}}
+    else if(rng()<dt*.15){const a=rng()*2*PI;f.vx=Math.sin(a)*.4;f.vy=Math.cos(a)*.4;}}
   // the lookout watches the water for birds and breaking fish
   if(s.t>=(s.spotT||0)){s.spotT=s.t+1/30;const lh=((localHours(s,s.t)%24)+24)%24,dl=lh>=6.5&&lh<17.5?1:lh>=5.5&&lh<18.5?.5:0,range=4.5*dl*(1-.5*((s.wx&&s.wx.rain)||0));
     for(const f of s.fish){const d=Math.hypot(f.x-sh.x,f.y-sh.y),m=s.fmarks[f.id];
       if(f.amt<=25){if(m&&d<range){delete s.fmarks[f.id];}continue;}
       if(d<range){const first=!m;s.fmarks[f.id]={x:P.x+(f.x-sh.x),y:P.y+(f.y-sh.y),t:s.t,kind:f.kind,bank:f.kind==="bank"};
-        if(first){const b=norm(Math.atan2(f.x-sh.x,f.y-sh.y)/D2R);say(`Lookout: ${FISHSIGN[f.kind].toLowerCase()}, ${pointName(b)}, about ${Math.max(1,Math.round(d))} mile${Math.round(d)>1?"s":""}.`,{});}}}}
+        if(first){const b=norm(Math.atan2(f.x-sh.x,f.y-sh.y)/D2R);say(`Lookout: ${FISHSIGN[f.kind].toLowerCase()}, ${pointName(b)}, about ${Math.max(1,Math.round(d))} mile${Math.round(d)>1?"s":""}.`,{});}}}
+    if(range>0)for(const g of s.grounds){if(g.fid!=null||Math.hypot(g.x-sh.x,g.y-sh.y)>range*.75)continue;g.gone=true;
+      const b=norm(Math.atan2(g.x-sh.x,g.y-sh.y)/D2R);say(`Lookout: no birds and no breaking fish ${pointName(b)}. Nothing there today.`,{});}
+    s.grounds=s.grounds.filter(g=>!g.gone&&(g.fid==null||(s.fish[g.fid]&&s.fish[g.fid].amt>25)));}
   if(!s.fishing)return;
   if(sh.v>5.5||w.kn>25||s.allHands){s.fishing=false;say(s.allHands?"All hands are needed. The lines are hauled in.":"Too much way on her: the lines are hauled in.",{});return;}
   const sch=s.fish.find(f=>f.amt>0&&Math.hypot(f.x-sh.x,f.y-sh.y)<f.r&&(f.kind==="bank"?sh.v<=1.2:sh.v<=5));
@@ -4190,7 +4224,27 @@ function fishStep(s,dt,w){if(!s.fish)return;const sh=s.ship,P=s.mode==="trial"?s
   if(s.fishAcc>=25){s.fishAcc=0;say(sch?`The lines come in heavy: ${FISHN[sch.kind]}. About ${Math.round(sch.rate>30?30:25)} lb more in the tubs.`:"A fish or two on the lines.",{});}
   if(!sch){s.noBite=(s.noBite||0)+dt;if(s.noBite>2){s.noBite=0;say("Nothing is biting here. Look to the lookout for birds working on the water.",{});}}
   else if(sch.amt<=0){say("The school has gone down.",{});}}
-function drawFish(){const M=S.fmarks;if(!M)return;ctx.save();ctx.font="11px 'IBM Plex Mono',monospace";
+// the pilot chart's currents: arrows on a grid of the sea, set and drift in knots from the game's own current model
+function drawCurrents(){if(!showCur||!S)return;
+  const nm=[5,10,20,40,80].find(n=>n*cam.zoom>=56)||80,spx=nm*cam.zoom,x0=cam.x-CW/2/cam.zoom,x1=cam.x+CW/2/cam.zoom,yT=cam.y+CYC/cam.zoom,yB=cam.y-(CH-CYC)/cam.zoom;
+  ctx.save();ctx.lineCap="round";ctx.lineJoin="round";ctx.font="10px 'IBM Plex Mono',monospace";ctx.textAlign="center";
+  for(let gx=Math.floor(x0/nm)*nm;gx<=x1+nm;gx+=nm)for(let gy=Math.floor(yB/nm)*nm;gy<=yT+nm;gy+=nm){
+    const odd=Math.round(gy/nm)&1,X=gx+(odd?nm/2:0),Y=gy;if(coastNm(X,Y)<1.5)continue;
+    const c=currentAt(X,Y),px=sx(X),py=sy(Y),h=c.set*D2R,L=Math.min(spx*.8,10+c.drift*50),ux=Math.sin(h),uy=-Math.cos(h),ax=px-ux*L/2,ay=py-uy*L/2,bx=px+ux*L/2,by=py+uy*L/2,
+      col=c.drift>.7?"#1a5c78":c.drift>.45?"#2a7a8c":"#4c8e96";
+    ctx.strokeStyle=col;ctx.fillStyle=col;ctx.lineWidth=c.drift>.7?2:1.4;ctx.globalAlpha=.85;
+    ctx.beginPath();ctx.moveTo(ax,ay);ctx.lineTo(bx,by);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(bx,by);ctx.lineTo(bx-ux*6-uy*3.4,by-uy*6+ux*3.4);ctx.lineTo(bx-ux*6+uy*3.4,by-uy*6-ux*3.4);ctx.closePath();ctx.fill();
+    if(spx>=56){ctx.globalAlpha=.95;ctx.fillText(c.drift.toFixed(1)+" kn",px-uy*0+(uy>.7||uy<-.7?14:0),py+(Math.abs(uy)>.7?0:12)+3);}}
+  ctx.globalAlpha=1;ctx.restore();}
+function drawFish(){const M=S.fmarks;if(!M)return;
+  if(S.grounds&&S.grounds.length){const sh=S.ship,P=S.mode==="trial"?sh:S.est,lost=S.mode==="lost";ctx.save();
+    if(!lost){ctx.beginPath();ctx.rect(-1e5,-1e5,2e5,2e5);for(const I of islands){const q=I.pts;ctx.moveTo(sx(q[0].x),sy(q[0].y));for(let i=1;i<q.length;i++)ctx.lineTo(sx(q[i].x),sy(q[i].y));ctx.closePath();}ctx.clip("evenodd");} // never over the land
+    for(const g of S.grounds){const gx=lost?P.x+(g.x-sh.x):g.x,gy=lost?P.y+(g.y-sh.y):g.y,o=g.o;ctx.beginPath();
+      for(let i=0;i<o.length;i+=2){const x=sx(gx+o[i]),y=sy(gy+o[i+1]);i?ctx.lineTo(x,y):ctx.moveTo(x,y);}ctx.closePath();
+      ctx.fillStyle="rgba(120,120,116,.2)";ctx.fill();ctx.strokeStyle="rgba(100,100,96,.4)";ctx.lineWidth=1;ctx.stroke();}
+    ctx.restore();}
+  ctx.save();ctx.font="11px 'IBM Plex Mono',monospace";
   for(const id in M){const m=M[id],age=S.t-m.t;if(age>24){delete M[id];continue;}const x=sx(m.x),y=sy(m.y),a=clamp(1-age/24,.25,1);ctx.globalAlpha=a;ctx.strokeStyle="#a8452c";ctx.fillStyle="#a8452c";ctx.lineWidth=1.3;
     ctx.setLineDash([3,3]);ctx.beginPath();ctx.arc(x,y,Math.max(8,.9*cam.zoom),0,2*PI);ctx.stroke();ctx.setLineDash([]);
     ctx.beginPath();ctx.moveTo(x-8,y);ctx.quadraticCurveTo(x-2,y-6,x+4,y);ctx.quadraticCurveTo(x-2,y+6,x-8,y);ctx.moveTo(x+4,y);ctx.lineTo(x+9,y-4);ctx.lineTo(x+9,y+4);ctx.closePath();ctx.stroke();
@@ -4461,7 +4515,8 @@ function svDrawGen(now){const c=$("shipCv"),par=c.parentElement,dpr=Math.min(2,d
   const yards=[];if(work)for(const s of rig.sails)if(s.kind==="sq"){const M=rig.masts[s.mast];for(const sd of[-1,1])yards.push(M.W([0,s.yard.y,0]).map((v,j)=>j===2?v+sd*.01:v).concat([sd*s.yard.w*.25]));}
   const nDeck=Math.min(duty.length,Math.max(6,Math.round((z1-z0)*1.1))),seen=new Set();
   duty.slice(0,nDeck).forEach((i,j)=>{const m=C[i];let T;seen.add(i);
-    if(work&&j>=2&&j-2<Math.min(yards.length,8)){const Y=yards[j-2];T={z:Y[2]+((j%3)-1)*.35,y:Y[1]+.1,fl:-1,aloft:true,act:"Aloft handling sail"};}
+    if(S.fishing&&!work&&j>=2&&j<6){T={z:z0+(z1-z0)*(.3+.1*(j-2)),fl:-1,act:"Fishing over the side"};}
+    else if(work&&j>=2&&j-2<Math.min(yards.length,8)){const Y=yards[j-2];T={z:Y[2]+((j%3)-1)*.35,y:Y[1]+.1,fl:-1,aloft:true,act:"Aloft handling sail"};}
     else if(j===0)T={z:z0+.6,fl:-1,act:m.r==="Captain"?"On the quarterdeck":"At the helm"};
     else T={z:z0+1.4+(z1-z0-2)*((j*.618)%1),fl:-1,wander:[z0+1,z1-1],key:"deck",act:m.r==="Captain"?"On the quarterdeck":"On deck, on watch"};
     stepFig(m,T);});
@@ -4479,7 +4534,7 @@ function svDrawGen(now){const c=$("shipCv"),par=c.parentElement,dpr=Math.min(2,d
   const sc=clamp(1.75*G.s/41,.3,1.7);
   C.forEach((m,i)=>{const f=m.gf;if(!f)return;const p=G.P(f.z,f.y),ly=m.mode==="sleep"&&!f.mov&&f.cl==null&&f.fl>=0;
     figs.push({i,x:p[0],y:p[1],lying:ly});
-    const fo={face:f.face,mov:f.mov,ph:f.ph,cl:f.cl,up:f.up,lying:ly};
+    const fo={face:f.face,mov:f.mov,ph:f.ph,cl:f.cl,up:f.up,lying:ly,wy:G.P(f.z,0)[1]};
     g.save();svPerson(g,K,m,i,fo,p[0],p[1],tm,day,SV.sel,ly?p[1]:null,sc);g.restore();});
   SVG.figs=figs;}
 function svHitGen(e){const c=$("shipCv"),r=c.getBoundingClientRect(),k=SVW/r.width,x=(e.clientX-r.left)*k,y=(e.clientY-r.top)*k;let best=-1,bd=24;for(const f of SVG.figs){const d=Math.hypot(f.x-x,f.y-(f.lying?6:20)-y);if(d<bd){bd=d;best=f.i;}}return best;}
@@ -4506,7 +4561,9 @@ function svPerson(g,K,m,i,f,x,y,tm,day,sel,lyY,sc){const SHIRT=SV_SHIRT,SKIN=SV_
       g.fillStyle=SHIRT[1];g.beginPath();g.ellipse(x+3,yy-1,17,4.6,0,0,2*PI);g.fill();L(.9,col);g.stroke(); // blanket
       head(x-14,yy-3,0);g.strokeStyle='rgba(255,255,255,.25)';g.lineWidth=.8;g.beginPath();g.moveTo(x-6,yy-3);g.lineTo(x+16,yy-2);g.stroke();
       g.fillStyle=K.soft;g.font="italic 11px 'IM Fell English',serif";const zz=(tm*.6+i)%1;g.globalAlpha=1-zz;g.fillText("z",x-4+zz*8,yy-14-zz*10);g.globalAlpha=1;}
-    else{if(m.act==="Fishing over the side"&&!f.mov){L(.8,K.soft);line(x+5,y-16,x+9,300);}
+    else{if(m.act==="Fishing over the side"&&!f.mov){const hx=x+fd*7,hy=y-15,wy=f.wy!=null?y+(f.wy-y)/(sc||1.55):y+58,sw=Math.sin(tm*1.3+i)*2.5,bob=Math.sin(tm*2.1+i*2)*.8; // the line runs from his hand down to the water, with a cork
+        L(1,day?'#6a5a40':K.soft);g.beginPath();g.moveTo(hx,hy);g.quadraticCurveTo(hx+fd*6,(hy+wy)/2,hx+fd*8+sw,wy+bob);g.stroke();
+        g.fillStyle='#a8452c';g.beginPath();g.arc(hx+fd*8+sw,wy+bob-1.5,2.2,0,2*PI);g.fill();L(.7,K.soft);g.beginPath();g.ellipse(hx+fd*8+sw,wy+bob+1,7,1.6,0,0,2*PI);g.stroke();}
       const sw=f.mov?Math.sin(f.ph):0,cl=f.cl!=null||(f.up>0&&f.mov),lim=(x1,y1,x2,y2,w,c)=>{g.strokeStyle=c;g.lineWidth=w;g.lineCap='round';g.beginPath();g.moveTo(x1,y1);g.lineTo(x2,y2);g.stroke();};
       const legs=(ax,bx)=>{lim(x-1.8,y-13,ax,y-1,3.6,trs);lim(x+1.8,y-13,bx,y-1,3.6,trs);g.fillStyle='#2a231d';g.fillRect(ax-2.2+fd*1,y-1.6,4.4+fd*1,2.4);g.fillRect(bx-2.2+fd*1,y-1.6,4.4+fd*1,2.4);};
       if(cl)legs(x-3+sw*3,x+3-sw*3);else legs(x-sw*6,x+sw*6);
@@ -4757,6 +4814,9 @@ cv.addEventListener("pointerup",endPtr);cv.addEventListener("pointercancel",endP
 function zoomAt(f,px,py){const bx=wx(px),by=wy(py);cam.zoom=clamp(cam.zoom*f,.8,14);cam.x=bx-(px-CW/2)/cam.zoom;cam.y=by+(py-CYC)/cam.zoom;}
 cv.addEventListener("wheel",e=>{e.preventDefault();zoomAt(Math.exp(-e.deltaY*.0015),e.offsetX,e.offsetY);},{passive:false});
 $("zIn").onclick=()=>zoomAt(1.4,CW/2,CYC);$("zOut").onclick=()=>zoomAt(1/1.4,CW/2,CYC);
+let showCur=false;try{showCur=localStorage.getItem("drCur")==="1";}catch(e){}
+function setCur(v){showCur=v;$("curTog").setAttribute("aria-pressed",String(v));const t=v?"Hide ocean currents (pilot chart)":"Show ocean currents on the chart";$("curTog").title=t;$("curTog").setAttribute("aria-label",t);try{localStorage.setItem("drCur",v?"1":"0");}catch(e){}}
+$("curTog").onclick=()=>setCur(!showCur);setCur(showCur);
 $("follow").onclick=()=>{follow=!follow;$("follow").setAttribute("aria-pressed",String(follow));};
 initRoute();initShip();
 $("rTog").onclick=()=>{const f=$("routePanel").classList.toggle("folded");$("rTog").textContent=f?"▼":"▲";$("rTog").setAttribute("aria-expanded",String(!f));};
@@ -5042,7 +5102,7 @@ function oarsUI(sh,bf){const O=SHIP.oars;if(!O||!$("bOars"))return;const r=rowOf
   $("oarMinus").disabled=h<=Math.min(O.n,av);$("oarPlus").disabled=h>=Math.min(need,av);
   for(const id of["oarBP","oarBS"])$(id).disabled=!on&&(!calm||anch);$("oarRel").checked=r.relieve!==false;
   if(on){$("windSpd").innerHTML=`<b style="color:var(--ink)">${r.pivot?"Turning":st.n}</b><br>${st.spm?st.spm+" strokes a minute":"blades still"}`;}}
-window.__DR={footAt,PF,portGeom,openPortCard,openPortPlan,tideLvl,tideTable,tideStream,plotFix,LMS,currentAt,dockAtPort,showCrisis,crisisKind,punish,loadState,packState,decS,toggleOars,setStroke,oarPivot,STROKES,pickShip,get SHIP(){return SHIP},SHIPDEFS,SPEC,useShip,applyShip,crewOf,rigOf,linesOf,get shipPick(){return shipPick},set shipPick(v){shipPick=v},svMove,svCtx,sx,sy,openPortCard,openPortPlan,get R3(){return R3},setMain,update3D,get S(){return S},VOYAGES,PORTS,islands,reefs,LMS,step,startVoyage,setCourse,tackOrWear,setSail,assistStep,noonAvailable,windAt:(x,y,t)=>windAt(S,x,y,t),inPoly,crossFix,plotFix,takeBearing,markNoon,startObserve,noonAvailable,endVoyage,toGeo,geo,atPort:()=>atPort(S),buyStore,sellFish,toggleFish};
+window.__DR={footAt,PF,portGeom,openPortCard,openPortPlan,tideLvl,tideTable,tideStream,plotFix,LMS,currentAt,dockAtPort,showCrisis,crisisKind,punish,loadState,packState,decS,toggleOars,setStroke,oarPivot,STROKES,pickShip,get SHIP(){return SHIP},SHIPDEFS,SPEC,useShip,applyShip,crewOf,rigOf,linesOf,get shipPick(){return shipPick},set shipPick(v){shipPick=v},svMove,svCtx,sx,sy,openPortCard,openPortPlan,get R3(){return R3},setMain,update3D,get S(){return S},VOYAGES,PORTS,islands,reefs,LMS,step,startVoyage,setCourse,tackOrWear,setSail,assistStep,noonAvailable,windAt:(x,y,t)=>windAt(S,x,y,t),inPoly,crossFix,plotFix,takeBearing,markNoon,startObserve,noonAvailable,endVoyage,toGeo,geo,atPort:()=>atPort(S),buyStore,sellFish,toggleFish,coastNm,fishStep};
 })();
 </script>
 <script>if("serviceWorker" in navigator&&location.protocol.startsWith("http"))window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
