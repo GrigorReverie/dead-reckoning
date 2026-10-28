@@ -434,6 +434,8 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-
         <label class="chk"><input type="checkbox" id="aNoon"> <span>Navigator shoots the noon sight<small>Takes the sun up from the forenoon watch and marks noon when it dips.</small></span></label>
         <label class="chk"><input type="checkbox" id="aFix"> <span>Lookout takes the bearings<small>Takes bearings on landmarks as they come in sight and plots the fix.</small></span></label>
         <div id="aPeekSlot"></div>
+        <b class="ah">Sky</b>
+        <label class="chk"><input type="checkbox" id="aSky" checked> <span>Sky chart<small>Draws the altitude and bearing grid, the constellation lines and their names over the sky.</small></span></label>
       </div></div>
     <div class="menuwrap"><button class="tb" id="bMenu" aria-expanded="false" aria-haspopup="true" title="Voyages, help and sound"><span class="mtxt">Menu </span>☰</button>
       <div class="menupop" id="menuPop" hidden><button class="tb" id="bVoy">Voyages</button><button class="tb" id="bHelp">How to sail</button><button class="tb" id="bSave">Save game</button><button class="tb" id="bLoad">Load game</button><button class="tb" id="bDark" aria-pressed="false">Dark mode</button><button class="tb" id="bSound" aria-pressed="false">Sound off</button><button class="tb" id="bFull" title="Use the whole screen">Full screen</button></div></div>
@@ -1152,7 +1154,7 @@ function assistStep(s,dt,w){
     if(crossFix())plotFix();
   }
 }
-const ASSIST_IDS=["aSail","aCrew","aNoon","aFix","bosun","mateLog"];
+const ASSIST_IDS=["aSail","aCrew","aNoon","aFix","bosun","mateLog","aSky"];
 function initAssists(){
   $("aBosunSlot").append($("bosun").closest("label"));$("aLogSlot").append($("mateRow"));$("aPeekSlot").append($("peekWrap"));
   const bl=$("bosun").closest("label");bl.querySelector("input").insertAdjacentElement("afterend",Object.assign(document.createElement("span"),{innerHTML:"Bosun trims the yards<small>Braces the yards to the best angle for the wind, always.</small>"}));[...bl.childNodes].filter(n=>n.nodeType===3).forEach(n=>n.remove());
@@ -2596,9 +2598,8 @@ function init3D(){
     for(let i=0;i<130;i++){const m=new THREE.Sprite(new THREE.SpriteMaterial({map:R.tex.cloudD,fog:false,depthWrite:false,transparent:true}));
       m.userData.v=[m,...[R.tex.cloudN,R.tex.cloudDD,R.tex.cloudDN].map(t=>{const q=new THREE.Sprite(new THREE.SpriteMaterial({map:t,fog:false,depthWrite:false,transparent:true}));scene.add(q);return q;})];
       const sz=800+Math.random()*1300;m.scale.set(sz,sz*.55,1);const ra=Math.random()*2*PI,rr=3000+Math.random()*14000;Object.assign(m.userData,{x:Math.cos(ra)*rr,z:Math.sin(ra)*rr,y:1100+Math.random()*1500,th:Math.random()*.96,dk:Math.random(),sz:sz,dkv:0,ph:Math.random()*6.283,op:0});scene.add(m);R.clouds.push(m);}
-    // stars
-    const sp=[];for(let i=0;i<500;i++){const a=Math.random()*2*PI,e=Math.asin(.05+Math.random()*.95);sp.push(new THREE.Vector3(Math.cos(a)*Math.cos(e)*90000,Math.sin(e)*90000,Math.sin(a)*Math.cos(e)*90000));}
-    R.stars=new THREE.Points(new THREE.BufferGeometry().setFromPoints(sp),new THREE.PointsMaterial({size:2,sizeAttenuation:false,color:0xeadfb4,fog:false,transparent:true,opacity:0,depthWrite:false}));scene.add(R.stars);
+    // sky: shaded dome, stars, constellations and grid
+    initSky(R);
     buildIslands(R);seaFx(R);buildShip3D(R);buildFauna(R);
     // destination beacon
     const bg=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,0),new THREE.Vector3(0,4000,0),new THREE.Vector3(0,4000,0),new THREE.Vector3(260,3900,0),new THREE.Vector3(260,3900,0),new THREE.Vector3(0,3800,0)]);
@@ -3713,6 +3714,236 @@ function shadowPass(R){
   sc.overrideMaterial=R.shDepth;rd.setRenderTarget(R.smRT);rd.setClearColor(0xffffff,0);rd.render(sc,lc);rd.setRenderTarget(null);rd.setClearColor(oc,oa);
   sc.overrideMaterial=null;for(const o of away)o.visible=true;for(const o of hide)o.visible=true;
 }
+/* ---- the sky: a shaded dome, real stars joined into constellations, and an altitude and bearing grid. Values come from Grigor's Sky Tuner settings of 2026-10-28. ---- */
+const SKY={year:1745,nightMid:-4,nightWid:12,dayZen:"#7fa3c4",dayHor:"#e9dfc2",nightZen:"#0b1534",nightHor:"#2b4585",grad:0.85,hazeAmt:1,hazeH:11.5,hazeGrid:0.35,hazeStars:0.85,glowAmt:0.5,glowSize:32,glowCol:"#fff0c0",duskCol:"#e8a070",duskAmt:0.8,duskWid:9,hColD:"#3a4a63",hColN:"#ffdbd8",hOpac:0.57,hSp:1.5,hW:0.2,hFull:16.5,altStep:15,azStep:13,azBold:2,gridCol:"#9fb4e8",gridOp:0.15,gridBoldOp:0.26,gridLabSize:8,starBase:0.4,starK:1.18,starBright:0.62,starCol:"#fff4dc",starTint:0.7,starHalo:0.6,starDark:0,lineCol:"#b8c9f0",lineOp:0.57,lineGap:2.5,conSize:8,conCol:"#d8e2ff",conOp:0.5,stSize:7,stCol:"#c9d3ea",navCol:"#ffd98a",stOp:0.5,sphR:90000};
+const SKY_ST={
+"Polaris":[2.530,89.264,2.0,0.6],"Kochab":[14.845,74.156,2.1,1.47],"Pherkad":[15.345,71.834,3.0,0.05],"Yildun":[17.537,86.586,4.4,0.1],"Epsilon Ursae Minoris":[16.766,82.037,4.2,0.9],"Zeta Ursae Minoris":[15.734,77.795,4.3,0.04],"Eta Ursae Minoris":[16.292,75.755,5.0,0.4],
+"Dubhe":[11.062,61.751,1.8,1.06],"Merak":[11.031,56.382,2.3,0.0],"Phecda":[11.897,53.695,2.4,0.0],"Megrez":[12.257,57.033,3.3,0.08],"Alioth":[12.900,55.960,1.8,-0.02],"Mizar":[13.399,54.925,2.2,0.02],"Alkaid":[13.792,49.313,1.9,-0.1],
+"Schedar":[0.675,56.537,2.2,1.17],"Caph":[0.153,59.150,2.3,0.34],"Navi":[0.945,60.717,2.5,-0.05],"Ruchbah":[1.430,60.235,2.7,0.13],"Segin":[1.907,63.670,3.4,-0.15],
+"Betelgeuse":[5.919,7.407,0.5,1.85],"Rigel":[5.242,-8.202,0.1,-0.03],"Bellatrix":[5.419,6.350,1.6,-0.22],"Saiph":[5.796,-9.670,2.1,-0.17],"Alnitak":[5.679,-1.943,1.8,-0.2],"Alnilam":[5.604,-1.202,1.7,-0.18],"Mintaka":[5.533,-0.299,2.2,-0.2],
+"Sirius":[6.752,-16.716,-1.46,0.0],"Mirzam":[6.378,-17.956,2.0,-0.24],"Adhara":[6.977,-28.972,1.5,-0.21],"Wezen":[7.140,-26.393,1.8,0.67],"Aludra":[7.402,-29.303,2.4,-0.08],
+"Procyon":[7.655,5.225,0.4,0.42],"Gomeisa":[7.452,8.289,2.9,-0.09],
+"Castor":[7.577,31.888,1.6,0.03],"Pollux":[7.755,28.026,1.1,1.0],"Alhena":[6.629,16.399,1.9,0.0],
+"Aldebaran":[4.599,16.509,0.9,1.54],"Elnath":[5.438,28.608,1.7,-0.13],"Zeta Tauri":[5.627,21.143,3.0,-0.2],"Alcyone":[3.791,24.105,2.9,-0.09],"Gamma Tauri":[4.330,15.628,3.6,0.98],"Epsilon Tauri":[4.477,19.180,3.5,1.0],
+"Capella":[5.278,45.998,0.1,0.8],"Menkalinan":[5.992,44.947,1.9,0.03],"Theta Aurigae":[5.995,37.213,2.6,-0.08],"Iota Aurigae":[4.950,33.166,2.7,1.5],
+"Regulus":[10.139,11.967,1.4,-0.11],"Denebola":[11.818,14.572,2.1,0.09],"Algieba":[10.333,19.842,2.0,1.15],"Zosma":[11.235,20.524,2.6,0.12],"Rasalas":[9.879,26.007,3.9,0.9],
+"Spica":[13.420,-11.161,1.0,-0.23],"Porrima":[12.694,-1.449,2.7,0.36],"Vindemiatrix":[13.036,10.959,2.8,0.94],
+"Arcturus":[14.261,19.182,0.0,1.23],"Izar":[14.750,27.074,2.4,0.97],"Seginus":[14.535,38.308,3.0,0.19],"Nekkar":[15.032,40.391,3.5,0.97],
+"Vega":[18.616,38.784,0.0,0.0],"Zeta Lyrae":[18.746,37.605,4.3,0.2],"Sheliak":[18.835,33.363,3.5,0.0],"Sulafat":[18.982,32.690,3.2,-0.05],
+"Deneb":[20.690,45.280,1.25,0.09],"Sadr":[20.370,40.257,2.2,0.67],"Albireo":[19.512,27.960,3.1,1.1],"Gienah":[20.770,33.970,2.5,1.0],"Delta Cygni":[19.750,45.131,2.9,-0.03],
+"Altair":[19.846,8.868,0.8,0.22],"Tarazed":[19.771,10.613,2.7,1.5],"Alshain":[19.922,6.407,3.7,0.85],
+"Antares":[16.490,-26.432,1.0,1.83],"Graffias":[16.090,-19.805,2.6,-0.07],"Dschubba":[16.000,-22.622,2.3,-0.12],"Pi Scorpii":[15.981,-26.114,2.9,-0.2],"Sigma Scorpii":[16.353,-25.593,2.9,0.13],"Tau Scorpii":[16.598,-28.216,2.8,-0.25],"Epsilon Scorpii":[16.836,-34.293,2.3,1.15],"Sargas":[17.622,-42.998,1.9,0.4],"Shaula":[17.560,-37.104,1.6,-0.22],
+"Acrux":[12.443,-63.099,0.8,-0.24],"Mimosa":[12.795,-59.689,1.3,-0.23],"Gacrux":[12.519,-57.113,1.6,1.59],"Delta Crucis":[12.252,-58.749,2.8,-0.24],
+"Rigil Kentaurus":[14.660,-60.835,0.0,0.7],"Hadar":[14.064,-60.373,0.6,-0.23],
+"Canopus":[6.399,-52.696,-0.7,0.15],"Miaplacidus":[9.220,-69.717,1.7,0.0],"Avior":[8.375,-59.510,1.9,1.2],"Aspidiske":[9.285,-59.275,2.2,0.18],"Suhail":[8.745,-54.709,1.8,-0.2],
+"Achernar":[1.629,-57.237,0.5,-0.16],"Fomalhaut":[22.961,-29.622,1.2,0.09],
+"Markab":[23.079,15.205,2.5,-0.04],"Scheat":[23.063,28.083,2.4,1.67],"Algenib":[0.220,15.184,2.8,-0.2],"Alpheratz":[0.139,29.091,2.1,-0.11],
+"Mirach":[1.162,35.621,2.1,1.58],"Almach":[2.065,42.330,2.3,1.37],
+"Mirfak":[3.405,49.861,1.8,0.48],"Algol":[3.136,40.956,2.1,-0.05],
+"Hamal":[2.120,23.463,2.0,1.15],"Sheratan":[1.911,20.808,2.6,0.13],
+"Diphda":[0.727,-17.987,2.0,1.02],"Menkar":[3.038,4.090,2.5,1.64],
+"Alphard":[9.460,-8.659,2.0,1.44],
+"Kaus Australis":[18.403,-34.385,1.8,-0.03],"Nunki":[18.921,-26.297,2.0,-0.2],"Ascella":[19.043,-29.880,2.6,0.08],"Kaus Media":[18.350,-29.830,2.7,1.4],"Kaus Borealis":[18.466,-25.422,2.8,1.0],
+"Deneb Algedi":[21.784,-16.127,2.9,0.3],"Dabih":[20.350,-14.781,3.1,0.8],
+"Zubenelgenubi":[14.848,-16.042,2.8,0.15],"Zubeneschamali":[15.283,-9.383,2.6,-0.11],
+"Rasalhague":[17.582,12.560,2.1,0.15],"Alphecca":[15.578,26.715,2.2,0.03],
+"Atria":[16.811,-69.028,1.9,1.45],"Alnair":[22.137,-46.961,1.7,-0.13],"Peacock":[20.427,-56.735,1.9,-0.2]
+};
+const SKY_CONS=[
+["Ursa Minor",[["Polaris","Yildun"],["Yildun","Epsilon Ursae Minoris"],["Epsilon Ursae Minoris","Zeta Ursae Minoris"],["Zeta Ursae Minoris","Eta Ursae Minoris"],["Eta Ursae Minoris","Pherkad"],["Pherkad","Kochab"],["Kochab","Zeta Ursae Minoris"]]],
+["Ursa Major, the Plough",[["Dubhe","Merak"],["Merak","Phecda"],["Phecda","Megrez"],["Megrez","Dubhe"],["Megrez","Alioth"],["Alioth","Mizar"],["Mizar","Alkaid"]]],
+["Cassiopeia",[["Caph","Schedar"],["Schedar","Navi"],["Navi","Ruchbah"],["Ruchbah","Segin"]]],
+["Orion",[["Betelgeuse","Bellatrix"],["Bellatrix","Mintaka"],["Mintaka","Alnilam"],["Alnilam","Alnitak"],["Alnitak","Betelgeuse"],["Alnitak","Saiph"],["Mintaka","Rigel"],["Rigel","Saiph"]]],
+["Canis Major",[["Sirius","Mirzam"],["Sirius","Wezen"],["Wezen","Adhara"],["Wezen","Aludra"]]],
+["Canis Minor",[["Procyon","Gomeisa"]]],
+["Gemini",[["Castor","Pollux"],["Pollux","Alhena"]]],
+["Taurus",[["Aldebaran","Gamma Tauri"],["Gamma Tauri","Epsilon Tauri"],["Epsilon Tauri","Elnath"],["Aldebaran","Zeta Tauri"],["Epsilon Tauri","Alcyone"]]],
+["Auriga",[["Capella","Menkalinan"],["Menkalinan","Theta Aurigae"],["Theta Aurigae","Elnath"],["Elnath","Iota Aurigae"],["Iota Aurigae","Capella"]]],
+["Leo",[["Regulus","Algieba"],["Algieba","Rasalas"],["Algieba","Zosma"],["Zosma","Denebola"],["Denebola","Regulus"]]],
+["Virgo",[["Vindemiatrix","Porrima"],["Porrima","Spica"]]],
+["Bootes",[["Arcturus","Izar"],["Izar","Nekkar"],["Nekkar","Seginus"],["Seginus","Arcturus"]]],
+["Lyra",[["Vega","Zeta Lyrae"],["Zeta Lyrae","Sheliak"],["Sheliak","Sulafat"],["Sulafat","Zeta Lyrae"]]],
+["Cygnus, the Swan",[["Deneb","Sadr"],["Sadr","Albireo"],["Delta Cygni","Sadr"],["Sadr","Gienah"]]],
+["Aquila",[["Tarazed","Altair"],["Altair","Alshain"]]],
+["Scorpius",[["Graffias","Dschubba"],["Dschubba","Pi Scorpii"],["Dschubba","Sigma Scorpii"],["Sigma Scorpii","Antares"],["Antares","Tau Scorpii"],["Tau Scorpii","Epsilon Scorpii"],["Epsilon Scorpii","Sargas"],["Sargas","Shaula"]]],
+["Crux, the Southern Cross",[["Acrux","Gacrux"],["Mimosa","Delta Crucis"]]],
+["Centaurus",[["Rigil Kentaurus","Hadar"]]],
+["Argo Navis",[["Canopus","Avior"],["Avior","Aspidiske"],["Aspidiske","Miaplacidus"],["Avior","Suhail"]]],
+["Pegasus",[["Markab","Scheat"],["Scheat","Alpheratz"],["Alpheratz","Algenib"],["Algenib","Markab"]]],
+["Andromeda",[["Alpheratz","Mirach"],["Mirach","Almach"]]],
+["Perseus",[["Mirfak","Algol"]]],
+["Aries",[["Hamal","Sheratan"]]],
+["Cetus",[["Diphda","Menkar"]]],
+["Sagittarius",[["Kaus Australis","Kaus Media"],["Kaus Media","Kaus Borealis"],["Kaus Borealis","Nunki"],["Nunki","Ascella"],["Ascella","Kaus Australis"]]],
+["Capricornus",[["Dabih","Deneb Algedi"]]],
+["Libra",[["Zubenelgenubi","Zubeneschamali"]]],
+["Eridanus",[],["Achernar"]],["Piscis Austrinus",[],["Fomalhaut"]],["Hydra",[],["Alphard"]],["Ophiuchus",[],["Rasalhague"]],["Corona Borealis",[],["Alphecca"]],["Triangulum Australe",[],["Atria"]],["Grus, the Crane",[],["Alnair"]],["Pavo, the Peacock",[],["Peacock"]]
+];
+const SKY_NAV=new Set(["Polaris","Sirius","Canopus","Arcturus","Vega","Capella","Rigel","Procyon","Betelgeuse","Achernar","Altair","Aldebaran","Antares","Spica","Fomalhaut","Regulus","Pollux","Deneb","Acrux","Hadar","Rigil Kentaurus","Alphard","Dubhe","Castor"]);
+const SKY_NAMES=Object.keys(SKY_ST),SKY_IDX={};SKY_NAMES.forEach((n,i)=>SKY_IDX[n]=i);
+const SKY_CL=SKY_CONS.map(c=>{const set=new Set(c[2]||[]);c[1].forEach(p=>{set.add(p[0]);set.add(p[1]);});return{name:c[0],lines:c[1].map(p=>[SKY_IDX[p[0]],SKY_IDX[p[1]]]),stars:[...set].map(n=>SKY_IDX[n])};});
+const skyHex=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16)/255);
+const skyMix=(a,b,t)=>[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t,a[2]+(b[2]-a[2])*t];
+const SKY_EPS=23.4393*D2R;
+const SKY_EQ=SKY_NAMES.map(n=>{ // J2000 positions carried to the voyage's year, once
+  const s=SKY_ST[n],a=s[0]*15*D2R,d=s[1]*D2R;
+  const x=Math.cos(d)*Math.cos(a),y=Math.cos(d)*Math.sin(a),z=Math.sin(d);
+  const ye=y*Math.cos(SKY_EPS)+z*Math.sin(SKY_EPS),ze=-y*Math.sin(SKY_EPS)+z*Math.cos(SKY_EPS);
+  let lon=Math.atan2(ye,x);const lat=Math.asin(ze);lon+=0.013969*(SKY.year-2000)*D2R;
+  const xe=Math.cos(lat)*Math.cos(lon),yy=Math.cos(lat)*Math.sin(lon),zz=Math.sin(lat);
+  const y2=yy*Math.cos(SKY_EPS)-zz*Math.sin(SKY_EPS),z2=yy*Math.sin(SKY_EPS)+zz*Math.cos(SKY_EPS);
+  return[((Math.atan2(y2,xe)*R2D/15)+24)%24,Math.asin(z2)*R2D];
+});
+const skyTint=bv=>{const st=[[-0.25,[170,196,255]],[0,[205,222,255]],[0.35,[255,245,225]],[0.8,[255,226,170]],[1.4,[255,182,120]],[1.9,[255,150,100]]];
+  for(let k=1;k<st.length;k++)if(bv<=st[k][0]){const t=clamp((bv-st[k-1][0])/(st[k][0]-st[k-1][0]),0,1);return skyMix(st[k-1][1],st[k][1],t).map(v=>v/255);}
+  return st[st.length-1][1].map(v=>v/255);};
+const SKY_VS="varying vec3 vD;void main(){vD=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}";
+const SKY_FS_DOME=`
+varying vec3 vD;
+uniform vec3 uZen,uHor,uHaze,uGlow,uDusk,uHatCol,uSun;
+uniform float uGrad,uHazeAmt,uHazeH,uGlowAmt,uGlowSz,uGlowK,uDuskK,uHatOp,uHatSp,uHatW,uHatFull;
+void main(){
+  vec3 d=normalize(vD);
+  float alt=degrees(asin(clamp(d.y,-1.0,1.0)));
+  float a=max(alt,0.0);
+  vec3 col=mix(uHor,uZen,pow(clamp(a/90.0,0.0,1.0),uGrad));
+  col=mix(col,uHaze,exp(-a/uHazeH)*uHazeAmt);
+  float ang=degrees(acos(clamp(dot(d,uSun),-1.0,1.0)));
+  col=mix(col,uGlow,clamp(exp(-pow(ang/uGlowSz,2.0))*uGlowAmt*uGlowK,0.0,1.0));
+  float dAz=degrees(acos(clamp(dot(normalize(d.xz+1e-6),normalize(uSun.xz+1e-6)),-1.0,1.0)));
+  float dk=uDuskK*(0.3+0.7*exp(-pow(dAz/55.0,2.0)))*exp(-a/(uHazeH*1.8));
+  col=mix(col,uDusk,clamp(dk,0.0,1.0));
+  float aa=max(fwidth(alt),1e-4);
+  float dist=abs(fract(alt/uHatSp+0.5)-0.5)*uHatSp;
+  float ln=1.0-smoothstep(0.0,aa*1.2,dist);
+  float s=smoothstep(0.0,uHatFull,a)*uHatOp*step(0.0,alt)*min(1.0,uHatW);
+  col=mix(col,uHatCol,s*ln);
+  gl_FragColor=vec4(col,1.0);
+}`;
+const SKY_VS_PT="attribute float aSize,aAlpha;attribute vec3 aCol;uniform float uDpr;varying vec3 vC;varying float vA;void main(){vC=aCol;vA=aAlpha;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);gl_PointSize=aSize*uDpr;}";
+const SKY_FS_PT="uniform float uHalo;varying vec3 vC;varying float vA;void main(){float d=length(gl_PointCoord*2.0-1.0);float a=uHalo>0.5?pow(clamp(1.0-d,0.0,1.0),2.0):1.0-smoothstep(0.5,1.0,d);gl_FragColor=vec4(vC,vA*a);}";
+const SKY_VS_LN="attribute float aAlpha;varying float vA;void main(){vA=aAlpha;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}";
+const SKY_FS_LN="uniform vec3 uCol;varying float vA;void main(){gl_FragColor=vec4(uCol,vA);}";
+function skyDir(az,alt,r,out){const a=az*D2R,h=alt*D2R;return out.set(Math.cos(h)*Math.sin(a)*r,Math.sin(h)*r,-Math.cos(h)*Math.cos(a)*r);}
+function skyHoriz(raH,decD,lstH,latD){
+  const H=(lstH-raH)*15*D2R,d=decD*D2R,f=latD*D2R;
+  const alt=Math.asin(clamp(Math.sin(f)*Math.sin(d)+Math.cos(f)*Math.cos(d)*Math.cos(H),-1,1));
+  const az=Math.atan2(-Math.cos(d)*Math.sin(H),Math.sin(d)*Math.cos(f)-Math.cos(d)*Math.sin(f)*Math.cos(H));
+  return[((az*R2D)+360)%360,alt*R2D];
+}
+function initSky(R){
+  const K=SKY,sc=R.scene,N=SKY_NAMES.length,dpr=R.renderer.getPixelRatio();
+  const C=h=>new THREE.Vector3(...skyHex(h));
+  const du={uZen:{value:new THREE.Vector3()},uHor:{value:new THREE.Vector3()},uHaze:{value:new THREE.Vector3()},uGlow:{value:C(K.glowCol)},uDusk:{value:C(K.duskCol)},uHatCol:{value:new THREE.Vector3()},uSun:{value:new THREE.Vector3(0,1,0)},
+    uGrad:{value:K.grad},uHazeAmt:{value:K.hazeAmt},uHazeH:{value:K.hazeH},uGlowAmt:{value:K.glowAmt},uGlowSz:{value:K.glowSize},uGlowK:{value:1},uDuskK:{value:0},uHatOp:{value:K.hOpac},uHatSp:{value:K.hSp},uHatW:{value:K.hW},uHatFull:{value:K.hFull}};
+  const dome=new THREE.Mesh(new THREE.SphereGeometry(95000,32,20),new THREE.ShaderMaterial({uniforms:du,vertexShader:SKY_VS,fragmentShader:SKY_FS_DOME,side:THREE.BackSide,depthTest:false,depthWrite:false,fog:false,extensions:{derivatives:true}}));
+  dome.renderOrder=-100;dome.frustumCulled=false;sc.add(dome);
+  const ptGeo=n=>{const g=new THREE.BufferGeometry();g.setAttribute("position",new THREE.BufferAttribute(new Float32Array(n*3),3));g.setAttribute("aCol",new THREE.BufferAttribute(new Float32Array(n*3),3));g.setAttribute("aSize",new THREE.BufferAttribute(new Float32Array(n),1));g.setAttribute("aAlpha",new THREE.BufferAttribute(new Float32Array(n),1));return g;};
+  const ptMat=h=>new THREE.ShaderMaterial({uniforms:{uDpr:{value:dpr},uHalo:{value:h}},vertexShader:SKY_VS_PT,fragmentShader:SKY_FS_PT,transparent:true,depthWrite:false,fog:false});
+  const pts=new THREE.Points(ptGeo(N),ptMat(0));pts.renderOrder=-50;pts.frustumCulled=false;sc.add(pts);
+  const halos=[];SKY_NAMES.forEach((n,i)=>{if(SKY_ST[n][2]<1.6)halos.push(i);});
+  const hp=new THREE.Points(ptGeo(halos.length),ptMat(1));hp.renderOrder=-51;hp.frustumCulled=false;sc.add(hp);
+  let nl=0;for(const c of SKY_CL)nl+=c.lines.length;
+  const lg=new THREE.BufferGeometry();lg.setAttribute("position",new THREE.BufferAttribute(new Float32Array(nl*6),3));lg.setAttribute("aAlpha",new THREE.BufferAttribute(new Float32Array(nl*2),1));
+  const lu={uCol:{value:new THREE.Vector3()}};
+  const lines=new THREE.LineSegments(lg,new THREE.ShaderMaterial({uniforms:lu,vertexShader:SKY_VS_LN,fragmentShader:SKY_FS_LN,transparent:true,depthWrite:false,fog:false}));lines.renderOrder=-49;lines.frustumCulled=false;sc.add(lines);
+  // grid: altitude circles and bearing lines, fixed to the compass; fainter toward the horizon
+  const gp=[],ga=[],gr=K.sphR*0.98,hz=a=>1-K.hazeGrid*0.9*Math.exp(-a/K.hazeH),v=new THREE.Vector3();
+  const push=(az,alt,op)=>{skyDir(az,alt,gr,v);gp.push(v.x,v.y,v.z);ga.push(op*hz(alt));};
+  for(let alt=K.altStep;alt<90;alt+=K.altStep)for(let a=0;a<360;a+=3){push(a,alt,K.gridBoldOp);push(a+3,alt,K.gridBoldOp);}
+  const nAz=Math.round(360/K.azStep);
+  for(let i=0;i<nAz;i++){const az=i*K.azStep,op=i%K.azBold===0?K.gridBoldOp:K.gridOp;for(let alt=0;alt<90;alt+=5){push(az,alt,op);push(az,alt+5,op);}}
+  const gg=new THREE.BufferGeometry();gg.setAttribute("position",new THREE.BufferAttribute(new Float32Array(gp),3));gg.setAttribute("aAlpha",new THREE.BufferAttribute(new Float32Array(ga),1));
+  const gu={uCol:{value:new THREE.Vector3()}};
+  const grid=new THREE.LineSegments(gg,new THREE.ShaderMaterial({uniforms:gu,vertexShader:SKY_VS_LN,fragmentShader:SKY_FS_LN,transparent:true,depthWrite:false,fog:false}));grid.renderOrder=-52;grid.frustumCulled=false;sc.add(grid);
+  R.sky={dome,du,pts,hp,halos,lines,lu,grid,gu,st:SKY_NAMES.map(()=>({az:0,alt:-90,a:0,r:0,x:0,y:0,z:0})),D:0,on:true};
+}
+function updateSky(R,alt,lh,di,pa,pf,cover,sq,sunDir,lat){
+  const S_=R.sky;if(!S_)return;const K=SKY;
+  const D=smooth(K.nightMid-K.nightWid/2,K.nightMid+K.nightWid/2,alt);S_.D=D;
+  const wk=0.35*sq+0.25*cover*(1-pf),grey=[0.78,0.76,0.68];
+  const wx=c=>c.map((v,i)=>lerp(v,lerp(grey[i],v*0.8,pf),wk));
+  const du=S_.du;
+  du.uZen.value.set(...wx(skyMix(skyHex(K.nightZen),skyHex(K.dayZen),D)));
+  du.uHor.value.set(...wx(skyMix(skyHex(K.nightHor),skyHex(K.dayHor),D)));
+  du.uHaze.value.set(pa[0],pa[1],pa[2]); // the horizon haze is the game's own paper colour, so the sea fades into it
+  du.uHatCol.value.set(...skyMix(skyHex(K.hColN),skyHex(K.hColD),D));
+  du.uSun.value.copy(sunDir);
+  du.uGlowK.value=smooth(-12,0,alt)*(1-0.6*clamp(cover,0,1));
+  du.uDuskK.value=K.duskAmt*Math.exp(-Math.pow((alt+1)/K.duskWid,2))*(1-0.5*clamp(cover,0,1));
+  const cam=R.camera.position;
+  S_.dome.position.copy(cam);S_.pts.position.copy(cam);S_.hp.position.copy(cam);S_.lines.position.copy(cam);S_.grid.position.copy(cam);
+  const dk=x=>skyMix(x,x.map(v=>v*0.28),D);
+  S_.gu.uCol.value.set(...dk(skyHex(K.gridCol)));S_.lu.uCol.value.set(...dk(skyHex(K.lineCol)));
+  const chart=$("aSky").checked;
+  S_.on=chart;S_.grid.visible=chart;S_.lines.visible=chart;
+  /* stars */
+  const lam=0.9856*(69+di-80)*D2R,sra=((Math.atan2(Math.cos(SKY_EPS)*Math.sin(lam),Math.cos(lam))*R2D/15)+24)%24;
+  const LST=((sra+lh-12)%24+24)%24;
+  const darkT=smooth(-(2+K.starDark),-(2+K.starDark)-14,alt);
+  const lim=-1.6+8.4*darkT,sky=(1-0.9*clamp((cover-0.45)/0.45,0,1))*(1-sq);
+  const tmp=new THREE.Vector3(),pp=S_.pts.geometry.attributes,sz=K.starBase;
+  const base=skyHex(K.starCol),rad=mag=>clamp(sz*Math.pow(K.starK,3-mag),sz*0.45,sz*7);
+  for(let i=0;i<SKY_NAMES.length;i++){
+    const s=SKY_ST[SKY_NAMES[i]],[az,al]=skyHoriz(SKY_EQ[i][0],SKY_EQ[i][1],LST,lat);
+    const q=S_.st[i];q.az=az;q.alt=al;
+    const a=clamp((lim-s[2])/1.3,0,1)*(1-K.hazeStars*Math.exp(-Math.max(al,0)/K.hazeH)*0.85)*K.starBright*(al>-0.5?1:0)*sky;
+    const r=rad(s[2]);q.a=a;q.r=r;
+    skyDir(az,al,K.sphR,tmp);q.x=tmp.x;q.y=tmp.y;q.z=tmp.z;
+    pp.position.setXYZ(i,tmp.x,tmp.y,tmp.z);
+    const tc=skyTint(s[3]),col=skyMix(base,tc,K.starTint);
+    pp.aCol.setXYZ(i,col[0],col[1],col[2]);
+    const dia=2*r;pp.aSize.setX(i,Math.max(1.6,dia));pp.aAlpha.setX(i,a*Math.min(1,(dia/1.6)*(dia/1.6)));
+  }
+  pp.position.needsUpdate=pp.aCol.needsUpdate=pp.aSize.needsUpdate=pp.aAlpha.needsUpdate=true;
+  const hh=S_.hp.geometry.attributes;
+  S_.halos.forEach((i,k)=>{const q=S_.st[i],c=pp.aCol;hh.position.setXYZ(k,q.x,q.y,q.z);hh.aCol.setXYZ(k,c.getX(i),c.getY(i),c.getZ(i));hh.aSize.setX(k,q.r*11);hh.aAlpha.setX(k,0.55*K.starHalo*q.a);});
+  hh.position.needsUpdate=hh.aCol.needsUpdate=hh.aSize.needsUpdate=hh.aAlpha.needsUpdate=true;
+  /* constellation lines, each shortened a few pixels at both stars */
+  if(chart){
+    const lp=S_.lines.geometry.attributes,gapAng=K.lineGap/(R.H/(2*Math.tan(R.camera.fov*D2R/2)));
+    let k=0;const A=new THREE.Vector3(),B=new THREE.Vector3();
+    for(const c of SKY_CL)for(const [ia,ib] of c.lines){
+      const a=S_.st[ia],b=S_.st[ib];A.set(a.x,a.y,a.z);B.set(b.x,b.y,b.z);
+      const ang=Math.acos(clamp(A.dot(B)/(K.sphR*K.sphR),-1,1)),f=ang>1e-5?clamp((gapAng+rad(SKY_ST[SKY_NAMES[ia]][2])*0.6/(R.H/(2*Math.tan(R.camera.fov*D2R/2))))/ang,0,0.45):0;
+      const f2=ang>1e-5?clamp((gapAng+rad(SKY_ST[SKY_NAMES[ib]][2])*0.6/(R.H/(2*Math.tan(R.camera.fov*D2R/2))))/ang,0,0.45):0;
+      const al=Math.min(a.a,b.a)*K.lineOp;
+      lp.position.setXYZ(k*2,A.x+(B.x-A.x)*f,A.y+(B.y-A.y)*f,A.z+(B.z-A.z)*f);
+      lp.position.setXYZ(k*2+1,B.x+(A.x-B.x)*f2,B.y+(A.y-B.y)*f2,B.z+(A.z-B.z)*f2);
+      lp.aAlpha.setX(k*2,al);lp.aAlpha.setX(k*2+1,al);k++;
+    }
+    lp.position.needsUpdate=lp.aAlpha.needsUpdate=true;
+  }
+}
+/* names, degree numbers and the zenith mark go on the flat overlay */
+function skyLabels(c,R,W,H){
+  const S_=R.sky;if(!S_||!S_.on)return;const K=SKY,D=S_.D,v=new THREE.Vector3(),cam=R.camera.position;
+  const day=h=>{const b=skyHex(h);return skyMix(b,b.map(x=>x*0.28),D);};
+  const scr=(az,alt)=>{skyDir(az,alt,K.sphR,v).add(cam).project(R.camera);if(v.z>=1||v.z<-1)return null;return[(v.x+1)/2*W,(1-v.y)/2*H];};
+  const on=p=>p&&p[0]>8&&p[0]<W-8&&p[1]>26&&p[1]<H-8;
+  c.textBaseline="middle";c.lineJoin="round";
+  const put=(t,x,y,font,col,al,align)=>{if(al<0.01)return;c.font=font;c.textAlign=align;c.lineWidth=3;c.strokeStyle=cssRGB(R.paperA,0.35*al);c.strokeText(t,x,y);c.fillStyle=cssRGB(col,al);c.fillText(t,x,y);};
+  // grid numbers
+  const gc=day(K.gridCol),gf=`${K.gridLabSize}px 'IBM Plex Mono',monospace`,la=Math.min(1,K.gridBoldOp+0.4);
+  const laz=Math.round(R.camBrg/K.azStep)*K.azStep+K.azStep*0.5;
+  for(let alt=K.altStep;alt<90;alt+=K.altStep){const p=scr(laz,alt);if(on(p))put(alt+"°",p[0],p[1],gf,gc,la,"center");}
+  for(let i=0;i<Math.round(360/K.azStep);i+=K.azBold){const az=i*K.azStep,p=scr(az,3.5);if(on(p))put(az+"°",p[0],p[1],gf,gc,la,"center");}
+  const z=scr(0,90);
+  if(z&&z[0]>-20&&z[0]<W+20&&z[1]>-20&&z[1]<H+20){c.strokeStyle=cssRGB(gc,K.gridBoldOp+0.2);c.lineWidth=0.8;c.beginPath();c.arc(z[0],z[1],5,0,7);c.moveTo(z[0]-9,z[1]);c.lineTo(z[0]+9,z[1]);c.moveTo(z[0],z[1]-9);c.lineTo(z[0],z[1]+9);c.stroke();}
+  // navigation star names
+  const nc=day(K.navCol),sn=`${K.stSize}px 'IBM Plex Mono',monospace`;
+  const ps=S_.st.map(q=>q.alt>-1?scr(q.az,q.alt):null);
+  SKY_NAMES.forEach((nm,i)=>{const q=S_.st[i];if(!SKY_NAV.has(nm)||q.a<0.05||q.alt<1||!on(ps[i]))return;
+    put(nm,ps[i][0]+q.r+5,ps[i][1]-1,sn,nc,K.stOp*Math.min(1,q.a*1.4),"left");});
+  // constellation names, set just below each group
+  const cc=day(K.conCol),cf=`italic ${K.conSize}px 'IM Fell English',Georgia,serif`;
+  for(const con of SKY_CL){let x=0,y=0,zz=0,n=0,al=0,vis=0;
+    for(const i of con.stars){const q=S_.st[i],ar=q.az*D2R,hh=q.alt*D2R;x+=Math.cos(hh)*Math.sin(ar);y+=Math.cos(hh)*Math.cos(ar);zz+=Math.sin(hh);n++;if(q.alt>2&&on(ps[i])){al+=q.a;vis++;}}
+    if(vis<Math.max(1,Math.ceil(n/2)))continue;
+    const p=scr(((Math.atan2(x,y)*R2D)+360)%360,Math.atan2(zz,Math.hypot(x,y))*R2D);if(!p||p[0]<20||p[0]>W-20||p[1]<30||p[1]>H-12)continue;
+    put(con.name,p[0],p[1]+K.conSize*0.9+10,cf,cc,K.conOp*Math.min(1,(al/vis)*1.3),"center");}
+}
+
 function update3D(dt,now){
   const R=R3;if(!R||!S)return;
   if((R.frame++&31)===0){const rr=v3c.getBoundingClientRect(),d=document.querySelector(".bookbox").getBoundingClientRect();R.cover=Math.max(0,Math.min(rr.height*.55,rr.bottom-d.top+10));}
@@ -3744,7 +3975,7 @@ function update3D(dt,now){
   // sun/clouds/stars
   R.sun.position.copy(R.camera.position).addScaledVector(sunDir,85000);R.sun.material.map=nightF>.5?R.tex.sunN:R.tex.sunD;R.sun.visible=alt>-4||nightF>.5;
   R.sun.material.opacity=alt>-4?1-.9*clamp((S.wx.cover-.45)/.45,0,1):.0;if(nightF>.5){R.sun.visible=true;R.sun.material.opacity=.9;R.sun.position.set(-30000,70000,-40000).add(R.camera.position);}
-  R.stars.position.copy(R.camera.position);R.stars.material.opacity=nightF;R.stars.material.color.setRGB(ia[0],ia[1],ia[2]);
+  updateSky(R,alt,lh,di,pa,pf,S.wx.cover,sq,sunDir,g.lat);
   // waves
   const gain=paused?0:Math.min(speedMult,3);R.wt+=dt*gain;
   const tgtAmp=S.wx.sea.amp;R.amp+=(tgtAmp-R.amp)*(1-Math.exp(-dt*.8));
@@ -4062,6 +4293,7 @@ function update3D(dt,now){
 function drawHud(now,sq,w){
   const R=R3,c=hctx,W=R.W,H=R.H,sh=S.ship;
   c.setTransform(R.dpr,0,0,R.dpr,0,0);c.clearRect(0,0,W,H);
+  skyLabels(c,R,W,H);
   if(!$("paneV3").classList.contains("big"))return;
   const ink=(a)=>cssRGB(R.inkA,a),paper=(a)=>cssRGB(R.paperA,a);
   // lightning: a pale flash over the whole view and a forked bolt to the horizon
