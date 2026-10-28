@@ -1875,13 +1875,13 @@ function chartGrid(par){const nm=[5,10,20,40,80].find(n=>n*cam.zoom>=56)||80,spx
   return{nm,spx,pts};}
 function chartArrow(px,py,ux,uy,L,lw,col){const ax=px-ux*L/2,ay=py-uy*L/2,bx=px+ux*L/2,by=py+uy*L/2;
   ctx.strokeStyle=col;ctx.fillStyle=col;ctx.lineWidth=lw;ctx.beginPath();ctx.moveTo(ax,ay);ctx.lineTo(bx,by);ctx.stroke();
-  ctx.beginPath();ctx.moveTo(bx,by);ctx.lineTo(bx-ux*7-uy*4,by-uy*7+ux*4);ctx.lineTo(bx-ux*7+uy*4,by-uy*7-ux*4);ctx.closePath();ctx.fill();}
+  ctx.beginPath();ctx.moveTo(bx,by);ctx.lineTo(bx-ux*5-uy*2.8,by-uy*5+ux*2.8);ctx.lineTo(bx-ux*5+uy*2.8,by-uy*5-ux*2.8);ctx.closePath();ctx.fill();}
 function drawWindField(){if(!showWind||!S)return;
-  const G=chartGrid(1),th=Math.floor(S.t),L=Math.min(G.spx*.8,30);ctx.save();ctx.lineCap="round";ctx.lineJoin="round";ctx.font="10px 'IBM Plex Mono',monospace";ctx.textAlign="center";
+  const G=chartGrid(1),th=Math.floor(S.t),L=Math.min(G.spx*.56,21);ctx.save();ctx.lineCap="round";ctx.lineJoin="round";ctx.font="10px 'IBM Plex Mono',monospace";ctx.textAlign="center";
   for(const[X,Y]of G.pts){if(X<0||Y<0||X>W_NM||Y>H_NM)continue;
     const w=windAt(S,X,Y,th),a=(w.from+180)*D2R,px=sx(X),py=sy(Y),ux=Math.sin(a),uy=-Math.cos(a);ctx.globalAlpha=.8;
-    chartArrow(px,py,ux,uy,L,w.kn>20?2:1.4,"#2e2519");
-    const f=beaufort(w.kn);ctx.lineWidth=1.2;for(let k=0;k<Math.floor(f/2);k++){const bx=px-ux*(L/2-k*3.5),by=py-uy*(L/2-k*3.5);ctx.beginPath();ctx.moveTo(bx,by);ctx.lineTo(bx+uy*6,by-ux*6);ctx.stroke();}
+    chartArrow(px,py,ux,uy,L,w.kn>20?1.4:1,"#2e2519");
+    const f=beaufort(w.kn);ctx.lineWidth=.85;for(let k=0;k<Math.floor(f/2);k++){const bx=px-ux*(L/2-k*2.5),by=py-uy*(L/2-k*2.5);ctx.beginPath();ctx.moveTo(bx,by);ctx.lineTo(bx+uy*4.2,by-ux*4.2);ctx.stroke();}
     if(G.spx>=56){ctx.globalAlpha=.95;ctx.fillText(Math.round(w.kn)+" kn",px+(Math.abs(uy)>.7?14:0),py+(Math.abs(uy)>.7?0:12)+3);}}
   ctx.globalAlpha=1;ctx.restore();}
 // cloud cover on the chart: patches drift downwind and thicken or thin with the game's own cover (and darken with rain), refreshed each game hour
@@ -4766,9 +4766,9 @@ function fishStep(s,dt,w){if(!s.fish)return;const sh=s.ship,P=s.mode==="trial"?s
 function drawCurrents(){if(!showCur||!S)return;
   const G=chartGrid(0),th=Math.floor(S.t);ctx.save();ctx.lineCap="round";ctx.lineJoin="round";ctx.font="10px 'IBM Plex Mono',monospace";ctx.textAlign="center";
   for(const[X,Y]of G.pts){if(coastNm(X,Y)<1.5)continue;
-    const c=currentAt(X,Y,th),px=sx(X),py=sy(Y),h=c.set*D2R,L=Math.min(G.spx*.8,30),ux=Math.sin(h),uy=-Math.cos(h),
+    const c=currentAt(X,Y,th),px=sx(X),py=sy(Y),h=c.set*D2R,L=Math.min(G.spx*.56,21),ux=Math.sin(h),uy=-Math.cos(h),
       col=c.drift>.7?"#1a5c78":c.drift>.45?"#2a7a8c":"#4c8e96";
-    ctx.globalAlpha=.85;chartArrow(px,py,ux,uy,L,c.drift>.7?2:1.4,col);
+    ctx.globalAlpha=.85;chartArrow(px,py,ux,uy,L,c.drift>.7?1.4:1,col);
     if(G.spx>=56){ctx.globalAlpha=.95;ctx.fillText(c.drift.toFixed(1)+" kn",px+(Math.abs(uy)>.7?14:0),py+(Math.abs(uy)>.7?0:12)+3);}}
   ctx.globalAlpha=1;ctx.restore();}
 function drawFish(){const M=S.fmarks;if(!M)return;
