@@ -833,9 +833,9 @@ function tideLvl(k,t){const X=TIDEX[k],a=X.r/2*(1+.3*Math.cos(2*PI*(t-40)/TSN));
 function tideStream(k,t){const X=TIDEX[k],f=1+.3*Math.cos(2*PI*(t-40)/TSN);return PORTX[k].tide*f*-Math.sin(2*PI*(t-X.ph)/TPER);} // knots, flood (into the harbour) positive
 function tideSpring(t){const c=Math.cos(2*PI*(t-40)/TSN);return c>.5?"springs":c<-.5?"neaps":"between springs and neaps";}
 function tideTable(k,t0,hrs){const out=[];let pv=tideLvl(k,t0-.1),cu=tideLvl(k,t0);for(let t=t0;t<t0+hrs;t+=.05){const nx=tideLvl(k,t+.05);if(cu>pv&&cu>=nx)out.push({t,hw:true,l:cu});else if(cu<pv&&cu<=nx)out.push({t,hw:false,l:cu});pv=cu;cu=nx;}return out;}
-// land and thermal tuning (from the Wind and Current Tuner): 1 is the realistic default for each
-const WINDK={block:1,venturi:1,shadow:1,shadowLen:1,seaBreeze:1,landBreeze:1,thermal:1,diurnal:1};
-const CURK={steer:1,passage:1,eddy:1,windDrift:1};
+// land and thermal tuning: Grigor's Wind and Current Tuner settings (1 is the realistic default for each)
+const WINDK={block:1.4,venturi:1.25,shadow:1.25,shadowLen:1.25,seaBreeze:1.25,landBreeze:1.25,thermal:1.3,diurnal:1.3};
+const CURK={steer:1.45,passage:1.4,eddy:1.45,windDrift:1.45};
 // the islands as the wind and sea feel them: height of the peaks (high islands block the trade and throw long wind shadows) and the passages between neighbours
 let LAND=null;
 function landInit(){if(LAND)return LAND;
