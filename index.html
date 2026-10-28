@@ -4430,7 +4430,7 @@ const ptr3=new Map();let drag3=null,pinch3=null,tap3=0;
 const CAM0={yaw:60,pitch:16,dist:58},wrap360=a=>a-360*Math.round(a/360);
 const anchor3=()=>{ // restart the gesture from where the fingers are now, so lifting or adding a finger never makes the view jump
   const R=R3,p=[...ptr3.values()];drag3=pinch3=null;if(!R||!p.length)return;
-  if(p.length>=2)pinch3={d:Math.max(8,Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y)),td:R.td};
+  if(p.length>=2)pinch3={d:Math.max(8,Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y)),td:R.td,mx:(p[0].x+p[1].x)/2,my:(p[0].y+p[1].y)/2,ty:R.ty,tp:R.tp};
   else drag3={x:p[0].x,y:p[0].y,ty:R.ty,tp:R.tp,live:false};};
 const end3=e=>{if(!ptr3.delete(e.pointerId))return;v3c.classList.toggle("drag",ptr3.size>0);anchor3();
   if(!ptr3.size&&e.type==="pointerup"&&e.pointerType!=="mouse"&&R3){ // double tap resets the view like a double click
@@ -4444,7 +4444,8 @@ v3c.addEventListener("pointerdown",e=>{if(!R3)return;if(e.pointerType==="mouse"&
 v3c.addEventListener("pointermove",e=>{const R=R3;if(!R||!ptr3.has(e.pointerId))return;
   if(e.pointerType==="mouse"&&!e.buttons){end3(e);return;} // button was released outside the window
   ptr3.set(e.pointerId,{x:e.clientX,y:e.clientY});const p=[...ptr3.values()];
-  if(p.length>=2&&pinch3){R.tapMoved=true;const d=Math.max(8,Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y));R.td=clamp(pinch3.td*pinch3.d/d,25,500);return;}
+  if(p.length>=2&&pinch3){R.tapMoved=true;const d=Math.max(8,Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y));R.td=clamp(pinch3.td*pinch3.d/d,25,500);
+    R.tp=clamp(pinch3.tp+((p[0].y+p[1].y)/2-pinch3.my)*.3,3,75);R.ty=pinch3.ty-((p[0].x+p[1].x)/2-pinch3.mx)*.12;return;} // two fingers: spread to zoom, slide up or down for camera height, slide sideways to turn slowly
   if(drag3){const dx=p[0].x-drag3.x,dy=p[0].y-drag3.y;
     if(!drag3.live){if(Math.hypot(dx,dy)<5)return;drag3.live=true;R.tapMoved=true;drag3.x=p[0].x;drag3.y=p[0].y;drag3.ty=R.ty;drag3.tp=R.tp;return;} // a small slop so a tap never nudges the view
     R.ty=drag3.ty-dx*.4;R.tp=clamp(drag3.tp+dy*.3,3,75);}});
