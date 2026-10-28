@@ -372,6 +372,18 @@ body>div:nth-of-type(1)>div.main:nth-of-type(3)>aside.side:nth-of-type(1)>sectio
 #hdgTxt{position:relative;z-index:3}
 #brOrd,#sailOrd,body>div:nth-of-type(1)>div.main:nth-of-type(3)>aside.side:nth-of-type(1)>section.dock:nth-of-type(1)>div.sheet:nth-of-type(1)>div.dockgrid:nth-of-type(3)>div.sub:nth-of-type(1)>div.subhead:nth-of-type(1){display:none!important}
 }
+/* Helm sheet keeps the same layout whether or not a sail is picked, the legend is open or the log is out */
+@media (max-width:860px){
+.cbfoot{height:34px}
+.cbfoot .ws{max-height:34px;overflow:hidden;font-size:10px;line-height:1.1}
+#legendBox[hidden]{display:flex!important;visibility:hidden}
+}
+@media (max-width:860px){
+#sailSl[style*="display:none"],#sailSl[style*="display: none"]{display:flex!important;visibility:hidden}
+}
+@media (max-width:860px){
+.side .compassbox{width:370px;max-width:none}
+}
 /* the four view icons (chart, camera, ship, book) share one centred row along the bottom */
 :root{--ic:38px;--icg:22px}
 #paneV3.small ~ #paneTools{display:none!important}
