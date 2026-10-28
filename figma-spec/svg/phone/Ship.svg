@@ -1,0 +1,1627 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="390" height="3664" viewBox="0 0 390 3664" xmlns:c2pa="http://c2pa.org/manifest"><metadata><c2pa:manifest>AAAWgmp1bWIAAAAeanVtZGMycGEAEQAQgAAAqgA4m3EDYzJwYQAAABZcanVtYgAAAEdqdW1kYzJtYQARABCAAACqADibcQN1cm46YzJwYToyMGU3NzRmYi00YTk4LTQ2NWEtYTc5Yi0zMWM2MDlkM2FhNWYAAAADl2p1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAALxqdW1iAAAARGp1bWRjYm9yABEAEIAAAKoAOJtxE2MycGEuaW5ncmVkaWVudC52MwAAAAAYYzJzaCKB/zr1oEfYJ8eVWLKGNc8AAABwY2JvcqNpZGM6Zm9ybWF0bWltYWdlL3N2Zyt4bWxqaW5zdGFuY2VJRHgseG1wOmlpZDowMGZjYWNkNi05ZGY4LTQyOWEtODM1My0wOGUxMmYzNDMzMzRscmVsYXRpb25zaGlwaHBhcmVudE9mAAAB4mp1bWIAAABBanVtZGNib3IAEQAQgAAAqgA4m3ETYzJwYS5hY3Rpb25zLnYyAAAAABhjMnNoMXoPbpCvhw8FOUgr6BUYqwAAAZljYm9yomdhY3Rpb25zgqJmYWN0aW9ua2MycGEub3BlbmVkanBhcmFtZXRlcnOha2luZ3JlZGllbnRzgaJjdXJseC1zZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmluZ3JlZGllbnQudjNkaGFzaFggtO4Or8xiwAAF6nn0qzpZAjHOK7zcYVmqWcIatgjZecqkZmFjdGlvbngdY29tLmFudGhyb3BpYy5jbGF1ZGUucHJvdmlkZWRqcGFyYW1ldGVyc6F4H2NvbS5hbnRocm9waWMub3JpZ2luLWNvbmZpZGVuY2VndW5rbm93bmtkZXNjcmlwdGlvbnhmQ2xhdWRlIHByb3ZpZGVkIHRoaXMgZmlsZSBhdCB0aGUgcmVxdWVzdCBvZiBhIHVzZXIgYW5kIG1heSBoYXZlIGNyZWF0ZWQgb3IgbW9kaWZpZWQgdGhlIGZpbGUgY29udGVudHMubXNvZnR3YXJlQWdlbnShZG5hbWVmQ2xhdWRlcmFsbEFjdGlvbnNJbmNsdWRlZPUAAADIanVtYgAAAEBqdW1kY2JvcgARABCAAACqADibcRNjMnBhLmhhc2guZGF0YQAAAAAYYzJzaOhMoLsLi9dpHbGbYC4IfJ8AAACAY2JvcqVjYWxnZnNoYTI1NmNwYWRNAAAAAAAAAAAAAAAAAGRoYXNoWCD2it1PmQZxWaAyKUA9/d5bmBw2Cc7FT6B7fQusRZjFD2RuYW1lbmp1bWJmIG1hbmlmZXN0amV4Y2x1c2lvbnOBomVzdGFydBi/Zmxlbmd0aBkeBAAAAj5qdW1iAAAAJ2p1bWRjMmNsABEAEIAAAKoAOJtxA2MycGEuY2xhaW0udjIAAAACD2Nib3KlY2FsZ2ZzaGEyNTZpc2lnbmF0dXJleE1zZWxmI2p1bWJmPS9jMnBhL3VybjpjMnBhOjIwZTc3NGZiLTRhOTgtNDY1YS1hNzliLTMxYzYwOWQzYWE1Zi9jMnBhLnNpZ25hdHVyZWppbnN0YW5jZUlEeCx4bXA6aWlkOjkxM2JiYjNkLTBlM2YtNGE3OC1hOGUzLTM5MzM3MmI3NDY1MXJjcmVhdGVkX2Fzc2VydGlvbnODomN1cmx4LXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuaW5ncmVkaWVudC52M2RoYXNoWCC07g6vzGLAAAXqefSrOlkCMc4rvNxhWapZwhq2CNl5yqJjdXJseCpzZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmFjdGlvbnMudjJkaGFzaFgg9Mk1FceXnHjokWy0pe9bkeD6MKeJze75CMppWy/AjdeiY3VybHgpc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5oYXNoLmRhdGFkaGFzaFggJcDN9ETLS7aPVvud/nnv2aLsIQcgwB5O2sNcqz5QQBV0Y2xhaW1fZ2VuZXJhdG9yX2luZm+jZG5hbWVvQW50aHJvcGljIEZpbGVzZ3ZlcnNpb25lMS4wLjBrc3BlY1ZlcnNpb25lMi40LjAAABA4anVtYgAAAChqdW1kYzJjcwARABCAAACqADibcQNjMnBhLnNpZ25hdHVyZQAAABAIY2JvctKEWQISogEmGCFZAgowggIGMIIBjaADAgECAhRA5aAK7sI50L64g/oGQgU9Z1UTADAKBggqhkjOPQQDAzBJMRcwFQYDVQQKEw5BbnRocm9waWMsIFBCQzEuMCwGA1UEAxMlQW50aHJvcGljIENvbnRlbnQgQ3JlZGVudGlhbHMgUm9vdCBDQTAeFw0yNjA4MDcxODQzNTZaFw0yODA4MDYxOTQzNTZaMEQxFzAVBgNVBAoTDkFudGhyb3BpYywgUEJDMSkwJwYDVQQDEyBBbnRocm9waWMgQ2xhdWRlIENvbnRlbnQgU2lnbmluZzBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABJh6CmvLUBgFFNU0vUKlOVtE6djd17L5SuwX0LemFisBM3dkd/3cyjxFA3Qo5S46fX0/ihY0VZ7mfb9KF703t5OjWDBWMA4GA1UdDwEB/wQEAwIHgDAVBgNVHSUEDjAMBgorBgEEAYPoXgIBMAwGA1UdEwEB/wQCMAAwHwYDVR0jBBgwFoAUzlHiBIFOZFsj+OPEz5o+nMHXXMIwCgYIKoZIzj0EAwMDZwAwZAIwMXMdFJ4BetLLVY7ORuE9noqbbAZOZn/aArXyTwFAZfKrPzxF2vPoJNf1+UCdg1XGAjBwX1zd9WGqYkqmL5SFqw1QySjr1zJfpJM9+1rdDwSPLMOPOjKuiXjoU/pUUeG9RwmhY3BhZFkNngAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPZYQFd+zUi5jl1xHFqShgHFVWbOB9S7CZAxUJ0zbeV61qMAxSKp1S1XFcL2YN503Hmp5tsRfqwY38m+s0C0YFZqGo4=</c2pa:manifest></metadata>
+<title>phone / Ship (cutaway, crew)</title>
+<g id="phone__Ship-(cutaway,-crew)">
+  <rect id="page-background" x="0" y="0" width="390" height="3664" fill="#ebdfc2"/>
+  <g id="bar-0" data-selector="div:0&gt;div.bar:0">
+    <rect id="bar-0__bg" x="0.0" y="0.0" width="390.0" height="80.8" rx="0.0" fill="#ebdfc2"/>
+    <line id="bar-0__border-bottom" x1="0.0" y1="79.8" x2="390.0" y2="79.8" stroke="#2e2519" stroke-width="2.0"/>
+    <g id="barTog" data-selector="#barTog" data-label="Fold the top bar up or down">
+      <rect id="barTog__bg" x="27.9" y="52.9" width="20.0" height="20.0" rx="2.0" fill="#f6eed9" stroke="#2e2519" stroke-width="1.0"/>
+      <text id="barTog__text" font-family="Spectral" font-size="10.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+        <tspan x="37.9" y="66.4">▲</tspan>
+      </text>
+    </g>
+    <g id="bar-0__seg-0" data-selector="div:0&gt;div.bar:0&gt;div.seg:0" data-label="Time">
+      <rect id="bar-0__seg-0__border" x="52.9" y="51.0" width="101.8" height="23.8" rx="3.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+      <g id="tPause" data-selector="#tPause" data-label="Pause (Space)">
+        <line id="tPause__border-right" x1="77.1" y1="52.0" x2="77.1" y2="73.8" stroke="#2e2519" stroke-width="1.0"/>
+        <text id="tPause__text" font-family="IBM Plex Mono" font-size="10.5" font-weight="400" fill="#2e2519" text-anchor="middle">
+          <tspan x="65.8" y="66.6">❚❚</tspan>
+        </text>
+      </g>
+      <g id="t1" data-selector="#t1" data-label="Real time (1)">
+        <rect id="t1__bg" x="77.5" y="52.0" width="23.6" height="21.8" rx="0.0" fill="#2e2519"/>
+        <line id="t1__border-right" x1="100.6" y1="52.0" x2="100.6" y2="73.8" stroke="#2e2519" stroke-width="1.0"/>
+        <text id="t1__text" font-family="IBM Plex Mono" font-size="10.5" font-weight="400" fill="#f6eed9" text-anchor="middle">
+          <tspan x="89.3" y="66.6">1×</tspan>
+        </text>
+      </g>
+      <g id="t3" data-selector="#t3" data-label="3× real time (2)">
+        <line id="t3__border-right" x1="124.2" y1="52.0" x2="124.2" y2="73.8" stroke="#2e2519" stroke-width="1.0"/>
+        <text id="t3__text" font-family="IBM Plex Mono" font-size="10.5" font-weight="400" fill="#2e2519" text-anchor="middle">
+          <tspan x="112.9" y="66.6">3×</tspan>
+        </text>
+      </g>
+      <g id="t60" data-selector="#t60" data-label="60×: one minute per second (3)">
+        <text id="t60__text" font-family="IBM Plex Mono" font-size="10.5" font-weight="400" fill="#2e2519" text-anchor="middle">
+          <tspan x="139.1" y="66.6">60×</tspan>
+        </text>
+      </g>
+    </g>
+    <g id="bar-0__seg-1" data-selector="div:0&gt;div.bar:0&gt;div.seg:1" data-label="Skip ahead">
+      <rect id="bar-0__seg-1__border" x="159.6" y="51.0" width="122.2" height="23.8" rx="3.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+      <g id="bSkip" data-selector="#bSkip" data-label="Skip ahead three hours (K)">
+        <line id="bSkip__border-right" x1="196.3" y1="52.0" x2="196.3" y2="73.8" stroke="#2e2519" stroke-width="1.0"/>
+        <text id="bSkip__text" font-family="IBM Plex Mono" font-size="10.5" font-weight="400" fill="#2e2519" text-anchor="middle">
+          <tspan x="178.7" y="66.6">+3 h</tspan>
+        </text>
+      </g>
+      <g id="bSkip12" data-selector="#bSkip12" data-label="Skip ahead twelve hours (Shift+K)">
+        <line id="bSkip12__border-right" x1="238.8" y1="52.0" x2="238.8" y2="73.8" stroke="#2e2519" stroke-width="1.0"/>
+        <text id="bSkip12__text" font-family="IBM Plex Mono" font-size="10.5" font-weight="400" fill="#2e2519" text-anchor="middle">
+          <tspan x="218.1" y="66.6">+12 h</tspan>
+        </text>
+      </g>
+      <g id="bSkip24" data-selector="#bSkip24" data-label="Skip ahead a day (Alt+K)">
+        <text id="bSkip24__text" font-family="IBM Plex Mono" font-size="10.5" font-weight="400" fill="#2e2519" text-anchor="middle">
+          <tspan x="260.1" y="66.6">+24 h</tspan>
+        </text>
+      </g>
+    </g>
+    <g id="bAssist" data-selector="#bAssist" data-label="Crew assists: sails, watches, speed log and navigation">
+      <rect id="bAssist__border" x="286.8" y="51.0" width="68.7" height="23.8" rx="3.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+      <text id="bAssist__text" font-family="IBM Plex Mono" font-size="10.5" font-weight="400" fill="#2e2519" text-anchor="middle">
+        <tspan x="321.2" y="66.6">Assists ✦</tspan>
+      </text>
+    </g>
+    <g id="bMenu" data-selector="#bMenu" data-label="Voyages, help and sound">
+      <rect id="bMenu__border" x="360.6" y="51.0" width="21.4" height="23.8" rx="3.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+      <text id="bMenu__text" font-family="IBM Plex Mono" font-size="10.5" font-weight="400" fill="#2e2519" text-anchor="middle">
+        <tspan x="371.3" y="66.6">☰</tspan>
+      </text>
+    </g>
+  </g>
+  <g id="infobar-1" data-selector="div:0&gt;div.infobar:1" data-label="Date, wind and weather">
+    <rect id="infobar-1__bg" x="0.0" y="80.8" width="390.0" height="27.0" rx="0.0" fill="#f6eed9"/>
+    <line id="infobar-1__border-bottom" x1="0.0" y1="107.3" x2="390.0" y2="107.3" stroke="#2e2519" stroke-width="1.0"/>
+    <g id="clock" data-selector="#clock">
+      <text id="clock__text" font-family="IM Fell English SC" font-size="16.0" font-weight="400" fill="#2e2519" text-anchor="start">
+        <tspan x="16.0" y="99.4">10 March 1745 · 07:00:06</tspan>
+      </text>
+    </g>
+    <g id="ibTog" data-selector="#ibTog" data-label="Fold the information strip up or down">
+      <rect id="ibTog__bg" x="356.0" y="85.8" width="22.0" height="22.0" rx="2.0" fill="#f6eed9" stroke="#2e2519" stroke-width="1.0"/>
+      <text id="ibTog__text" font-family="Spectral" font-size="11.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+        <tspan x="367.0" y="100.6">▼</tspan>
+      </text>
+    </g>
+  </g>
+  <g id="chartwrap-0" data-selector="div:0&gt;div.main:2&gt;div.chartwrap:0">
+    <rect id="chartwrap-0__bg" x="0.0" y="107.8" width="390.0" height="254.0" rx="0.0" fill="#f6eed9"/>
+    <g id="paneV3" data-selector="#paneV3">
+      <rect id="paneV3__bg" x="0.0" y="107.8" width="390.0" height="254.0" rx="0.0" fill="#f6eed9"/>
+      <g id="view3d" data-selector="#view3d" data-label="3D view from the ship">
+        <rect id="view3d__canvas" x="0.0" y="107.8" width="390.0" height="254.0" fill="#9fb3c8" fill-opacity="0.35" stroke="#4a6a8a" stroke-dasharray="6 4"/>
+        <text x="6.0" y="123.8" font-family="IBM Plex Mono" font-size="11" fill="#4a6a8a">live canvas · #view3d (drawn by the game)</text>
+      </g>
+      <g id="hud" data-selector="#hud">
+        <rect id="hud__canvas" x="0.0" y="107.8" width="390.0" height="254.0" fill="#9fb3c8" fill-opacity="0.35" stroke="#4a6a8a" stroke-dasharray="6 4"/>
+        <text x="6.0" y="139.8" font-family="IBM Plex Mono" font-size="11" fill="#4a6a8a">live canvas · #hud (drawn by the game)</text>
+      </g>
+    </g>
+    <g id="toast" data-selector="#toast">
+      <rect id="toast__bg" x="97.5" y="181.8" width="195.0" height="76.0" rx="2.0" fill="#2e2519" opacity="0.00"/>
+      <text id="toast__text" font-family="IM Fell English" font-size="16.0" font-weight="400" fill="#f6eed9" text-anchor="start">
+        <tspan x="111.5" y="225.4">Man-of-war birds hang high over the ship. Land cannot be far off.</tspan>
+      </text>
+    </g>
+    <g id="tbChart" data-selector="#tbChart" data-label="Sea chart: tap again to come back to the 3D view">
+      <svg width="26.0" height="26.0" id="tbChart__icon" x="26.0" y="756.0" viewBox="0 0 24 24" fill="none" stroke="#2e2519" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6.5l6-2.300 6 2.300 6-2.300v13l-6 2.300-6-2.300-6 2.300z"></path><path d="M9 4.200v13M15 6.800v13"></path></svg>
+    </g>
+    <g id="tbView" data-selector="#tbView" data-label="3D view, full screen">
+      <svg width="24.0" height="24.0" id="tbView__icon" x="105.0" y="757.0" viewBox="0 0 24 24" fill="none" stroke="#2e2519" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M3 8h4l1.5-2.5h7L17 8h4v11H3z"></path><circle cx="12" cy="13.5" r="3.6"></circle></svg>
+    </g>
+    <g id="tbShip" data-selector="#tbShip" data-label="The ship: cutaway, crew quarters and watches; tap again to c">
+      <rect id="tbShip__bg" x="176.0" y="750.0" width="38.0" height="38.0" rx="6.0" fill="#2e2519"/>
+      <svg width="24.0" height="24.0" id="tbShip__icon" x="183.0" y="757.0" viewBox="0 0 24 24" fill="none" stroke="#f6eed9" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M2.5 16.5h19l-3 4.5h-13z"></path><path d="M8 16V3.500M16 16V6"></path><path d="M8 5h-4.500v8H8M8 5h3.500v8H8M16 8h-3.500v6H16M16 8h3.500v6H16" stroke-width="1.2"></path></svg>
+    </g>
+    <g id="tbBook" data-selector="#tbBook" data-label="Navigator&#x27;s book: reckoning, noon sight, landmarks and log">
+      <svg width="24.0" height="24.0" id="tbBook__icon" x="261.0" y="757.0" viewBox="0 0 24 24" fill="none" stroke="#2e2519" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.5C10 5 7 4.5 3.5 5v13c3.5-.5 6.5 0 8.5 1.5 2-1.5 5-2 8.5-1.5V5C17 4.5 14 5 12 6.5zM12 6.5v13"></path><path d="M6 8.5c1.5 0 3 .2 4.2.8M6 11.5c1.5 0 3 .2 4.2.8M14 9.3c1.2-.6 2.700-.8 4-.8M14 12.3c1.2-.6 2.700-.8 4-.8"></path></svg>
+    </g>
+  </g>
+  <g id="tabbar" data-selector="#tabbar">
+    <rect id="tabbar__bg" x="0.0" y="742.0" width="390.0" height="102.0" rx="0.0" fill="#f6eed9"/>
+    <line id="tabbar__border-top" x1="0.0" y1="742.5" x2="390.0" y2="742.5" stroke="#2e2519" stroke-width="1.0"/>
+    <g id="tabbar__span-0" data-selector="#tabbar&gt;span:0">
+      <text id="tabbar__span-0__text" font-family="IBM Plex Mono" font-size="10.0" font-weight="400" fill="#7b6a55" text-anchor="start" letter-spacing="0.6">
+        <tspan x="22.5" y="802.5">CHART</tspan>
+      </text>
+    </g>
+    <g id="tabbar__span-1" data-selector="#tabbar&gt;span:1">
+      <text id="tabbar__span-1__text" font-family="IBM Plex Mono" font-size="10.0" font-weight="400" fill="#7b6a55" text-anchor="start" letter-spacing="0.6">
+        <tspan x="110.4" y="802.5">3D</tspan>
+      </text>
+    </g>
+    <g id="tabbar__span-2" data-selector="#tabbar&gt;span:2">
+      <text id="tabbar__span-2__text" font-family="IBM Plex Mono" font-size="10.0" font-weight="400" fill="#7b6a55" text-anchor="start" letter-spacing="0.6">
+        <tspan x="181.8" y="802.5">SHIP</tspan>
+      </text>
+    </g>
+    <g id="tabbar__span-3" data-selector="#tabbar&gt;span:3">
+      <text id="tabbar__span-3__text" font-family="IBM Plex Mono" font-size="10.0" font-weight="400" fill="#7b6a55" text-anchor="start" letter-spacing="0.6">
+        <tspan x="259.8" y="802.5">BOOK</tspan>
+      </text>
+    </g>
+    <g id="tabbar__span-4" data-selector="#tabbar&gt;span:4">
+      <text id="tabbar__span-4__text" font-family="IBM Plex Mono" font-size="10.0" font-weight="400" fill="#7b6a55" text-anchor="start" letter-spacing="0.6">
+        <tspan x="337.8" y="802.5">HELM</tspan>
+      </text>
+    </g>
+  </g>
+  <g id="ctlIcon" data-selector="#ctlIcon" data-label="Ship controls">
+    <rect id="ctlIcon__border" x="332.0" y="750.0" width="38.0" height="38.0" rx="6.0" fill="none" stroke="#000000" stroke-width="1.0"/>
+    <svg width="22.0" height="22.0" id="ctlIcon__icon" x="340.0" y="758.0" viewBox="0 0 24 24" fill="none" stroke="#2e2519" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="6.6"></circle><circle cx="12" cy="12" r="2"></circle><path d="M12 1.5v21M1.5 12h21M4.6 4.6l14.8 14.8M19.4 4.6L4.6 19.4"></path></svg>
+  </g>
+  <g id="shipView__sheet-0" data-selector="#shipView&gt;div.sheet:0">
+    <rect id="shipView__sheet-0__bg" x="0.0" y="362.0" width="390.0" height="3302.4" rx="0.0" fill="#f6eed9"/>
+    <line id="shipView__sheet-0__border-top" x1="0.0" y1="365.0" x2="390.0" y2="365.0" stroke="#d9c9a2" stroke-width="6.0"/>
+    <g id="shipView__sheet-0__sv-main-0__sv-top-0__h2-0" data-selector="#shipView&gt;div.sheet:0&gt;div.sv-main:0&gt;div.sv-top:0&gt;h2:0">
+      <text id="shipView__sheet-0__sv-main-0__sv-top-0__h2-0__text" font-family="IM Fell English SC" font-size="20.0" font-weight="400" fill="#2e2519" text-anchor="start">
+        <tspan x="14.0" y="397.5">Brig Hesper, in section</tspan>
+      </text>
+    </g>
+    <g id="shipView__sheet-0__sv-main-0__sv-cv-1" data-selector="#shipView&gt;div.sheet:0&gt;div.sv-main:0&gt;div.sv-cv:1">
+      <rect id="shipView__sheet-0__sv-main-0__sv-cv-1__bg" x="14.0" y="411.0" width="362.0" height="565.0" rx="0.0" fill="#f6eed9" stroke="#2e2519" stroke-width="1.0"/>
+      <g id="shipCv" data-selector="#shipCv" data-label="Side profile of the brig with her rooms and crew">
+        <rect id="shipCv__canvas" x="15.0" y="412.0" width="720.0" height="563.0" fill="#9fb3c8" fill-opacity="0.35" stroke="#4a6a8a" stroke-dasharray="6 4"/>
+        <text x="21.0" y="428.0" font-family="IBM Plex Mono" font-size="11" fill="#4a6a8a">live canvas · #shipCv (drawn by the game)</text>
+      </g>
+    </g>
+    <g id="shipView__sheet-0__sv-main-0__plate-3__i-0" data-selector="#shipView&gt;div.sheet:0&gt;div.sv-main:0&gt;div.plate:3&gt;i:0">
+      <text id="shipView__sheet-0__sv-main-0__plate-3__i-0__text" font-family="IM Fell English" font-size="14.0" font-weight="400" fill="#2b2119" text-anchor="middle" font-style="italic">
+        <tspan x="195.0" y="999.9">Merchant brig</tspan>
+      </text>
+    </g>
+    <g id="shipView__sheet-0__sv-main-0__plate-3__b-0" data-selector="#shipView&gt;div.sheet:0&gt;div.sv-main:0&gt;div.plate:3&gt;b:0">
+      <text id="shipView__sheet-0__sv-main-0__plate-3__b-0__text" font-family="IM Fell English" font-size="30.0" font-weight="400" fill="#2b2119" text-anchor="middle" font-style="italic">
+        <tspan x="195.0" y="1031.0">Hesper</tspan>
+      </text>
+    </g>
+    <g id="shipView__sheet-0__sv-main-0__plate-3__i-1" data-selector="#shipView&gt;div.sheet:0&gt;div.sv-main:0&gt;div.plate:3&gt;i:1">
+      <text id="shipView__sheet-0__sv-main-0__plate-3__i-1__text" font-family="IM Fell English" font-size="14.0" font-weight="400" fill="#2b2119" text-anchor="middle" font-style="italic">
+        <tspan x="195.0" y="1050.9">1745</tspan>
+      </text>
+    </g>
+    <g id="shipView__sheet-0__sv-main-0__svhint-0" data-selector="#shipView&gt;div.sheet:0&gt;div.sv-main:0&gt;p.svhint:0">
+      <text id="shipView__sheet-0__sv-main-0__svhint-0__text" font-family="IM Fell English" font-size="13.0" font-weight="400" fill="#7b6a55" text-anchor="start">
+        <tspan x="14.0" y="1093.0">Bow to the right (swipe the picture sideways on a phone). Men on watch work the weather deck and the rigging; the rest sleep, eat or idle below. Tired men work slowly, so give the sleepers good berths.</tspan>
+      </text>
+    </g>
+    <g id="shipView__sheet-0__sv-side-0" data-selector="#shipView&gt;div.sheet:0&gt;aside.sv-side:0">
+      <rect id="shipView__sheet-0__sv-side-0__bg" x="0.0" y="1132.0" width="390.0" height="2532.4" rx="0.0" fill="#ece2c8"/>
+      <line id="shipView__sheet-0__sv-side-0__border-top" x1="0.0" y1="1133.0" x2="390.0" y2="1133.0" stroke="#2e2519" stroke-width="2.0"/>
+      <g id="shipView__sheet-0__sv-side-0__svp-0" data-selector="#shipView&gt;div.sheet:0&gt;aside.sv-side:0&gt;div.svp:0">
+        <line id="shipView__sheet-0__sv-side-0__svp-0__border-bottom" x1="12.0" y1="1330.9" x2="378.0" y2="1330.9" stroke="#cbbd98" stroke-width="1.0"/>
+        <g id="shipView__sheet-0__sv-side-0__svp-0__h3-0" data-selector="#shipView&gt;div.sheet:0&gt;aside.sv-side:0&gt;div.svp:0&gt;h3:0">
+          <text id="shipView__sheet-0__sv-side-0__svp-0__h3-0__text" font-family="IM Fell English SC" font-size="16.0" font-weight="400" fill="#2e2519" text-anchor="start">
+            <tspan x="12.0" y="1163.6">Watch bill</tspan>
+          </text>
+        </g>
+        <g id="svBill" data-selector="#svBill">
+          <text id="svBill__text" font-family="Spectral" font-size="13.0" font-weight="400" fill="#2e2519" text-anchor="start">
+            <tspan x="12.0" y="1196.7">11 men at work · relieved in 1 h 00 min by the quarter watch</tspan>
+          </text>
+          <g id="svBill__b-0" data-selector="#svBill&gt;b:0">
+            <text id="svBill__b-0__text" font-family="Spectral" font-size="13.0" font-weight="700" fill="#2e2519" text-anchor="start">
+              <tspan x="12.0" y="1187.5">Main watch has the deck</tspan>
+            </text>
+          </g>
+        </g>
+        <g id="svStrip" data-selector="#svStrip">
+          <rect id="svStrip__border" x="12.0" y="1218.4" width="366.0" height="22.0" rx="0.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+          <g id="svStrip__sw-0" data-selector="#svStrip&gt;span.sw:0" data-label="00:00 to 04:00, Fore watch">
+            <rect id="svStrip__sw-0__bg" x="13.0" y="1219.4" width="60.7" height="20.0" rx="0.0" fill="#2e2519" fill-opacity="0.22"/>
+            <line id="svStrip__sw-0__border-right" x1="73.2" y1="1219.4" x2="73.2" y2="1239.4" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svStrip__sw-0__text" font-family="IBM Plex Mono" font-size="10.0" font-weight="400" fill="#2e2519" text-anchor="start">
+              <tspan x="13.0" y="1232.9">F</tspan>
+            </text>
+          </g>
+          <g id="svStrip__sw-1" data-selector="#svStrip&gt;span.sw:1" data-label="04:00 to 08:00, Main watch">
+            <rect id="svStrip__sw-1__bg" x="73.7" y="1219.4" width="60.7" height="20.0" rx="0.0" fill="#b2452c" fill-opacity="0.22"/>
+            <line id="svStrip__sw-1__border-right" x1="133.9" y1="1219.4" x2="133.9" y2="1239.4" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svStrip__sw-1__text" font-family="IBM Plex Mono" font-size="10.0" font-weight="700" fill="#2e2519" text-anchor="start">
+              <tspan x="73.7" y="1232.9">M</tspan>
+            </text>
+          </g>
+          <g id="svStrip__sw-2" data-selector="#svStrip&gt;span.sw:2" data-label="08:00 to 12:00, Quarter watch">
+            <rect id="svStrip__sw-2__bg" x="134.3" y="1219.4" width="60.7" height="20.0" rx="0.0" fill="#b8862a" fill-opacity="0.28"/>
+            <line id="svStrip__sw-2__border-right" x1="194.5" y1="1219.4" x2="194.5" y2="1239.4" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svStrip__sw-2__text" font-family="IBM Plex Mono" font-size="10.0" font-weight="400" fill="#2e2519" text-anchor="start">
+              <tspan x="134.3" y="1232.9">Q</tspan>
+            </text>
+          </g>
+          <g id="svStrip__sw-3" data-selector="#svStrip&gt;span.sw:3" data-label="12:00 to 16:00, Fore watch">
+            <rect id="svStrip__sw-3__bg" x="195.0" y="1219.4" width="60.7" height="20.0" rx="0.0" fill="#2e2519" fill-opacity="0.22"/>
+            <line id="svStrip__sw-3__border-right" x1="255.2" y1="1219.4" x2="255.2" y2="1239.4" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svStrip__sw-3__text" font-family="IBM Plex Mono" font-size="10.0" font-weight="400" fill="#2e2519" text-anchor="start">
+              <tspan x="195.0" y="1232.9">F</tspan>
+            </text>
+          </g>
+          <g id="svStrip__sw-4" data-selector="#svStrip&gt;span.sw:4" data-label="16:00 to 18:00, Main watch">
+            <rect id="svStrip__sw-4__bg" x="255.6" y="1219.4" width="30.3" height="20.0" rx="0.0" fill="#b2452c" fill-opacity="0.22"/>
+            <line id="svStrip__sw-4__border-right" x1="285.4" y1="1219.4" x2="285.4" y2="1239.4" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svStrip__sw-4__text" font-family="IBM Plex Mono" font-size="10.0" font-weight="400" fill="#2e2519" text-anchor="start">
+              <tspan x="255.6" y="1232.9">M</tspan>
+            </text>
+          </g>
+          <g id="svStrip__sw-5" data-selector="#svStrip&gt;span.sw:5" data-label="18:00 to 20:00, Quarter watch">
+            <rect id="svStrip__sw-5__bg" x="286.0" y="1219.4" width="30.3" height="20.0" rx="0.0" fill="#b8862a" fill-opacity="0.28"/>
+            <line id="svStrip__sw-5__border-right" x1="315.8" y1="1219.4" x2="315.8" y2="1239.4" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svStrip__sw-5__text" font-family="IBM Plex Mono" font-size="10.0" font-weight="400" fill="#2e2519" text-anchor="start">
+              <tspan x="286.0" y="1232.9">Q</tspan>
+            </text>
+          </g>
+          <g id="svStrip__sw-6" data-selector="#svStrip&gt;span.sw:6" data-label="20:00 to 24:00, Fore watch">
+            <rect id="svStrip__sw-6__bg" x="316.3" y="1219.4" width="60.7" height="20.0" rx="0.0" fill="#2e2519" fill-opacity="0.22"/>
+            <line id="svStrip__sw-6__border-right" x1="376.5" y1="1219.4" x2="376.5" y2="1239.4" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svStrip__sw-6__text" font-family="IBM Plex Mono" font-size="10.0" font-weight="400" fill="#2e2519" text-anchor="start">
+              <tspan x="316.3" y="1232.9">F</tspan>
+            </text>
+          </g>
+          <g id="svStrip__now-0" data-selector="#svStrip&gt;i.now:0">
+            <rect id="svStrip__now-0__bg" x="119.2" y="1216.4" width="2.0" height="26.0" rx="0.0" fill="#b2452c"/>
+          </g>
+        </g>
+        <g id="svAll" data-selector="#svAll" data-label="Turn everyone out">
+          <rect id="svAll__border" x="12.0" y="1246.4" width="90.8" height="35.0" rx="3.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+          <text id="svAll__text" font-family="IBM Plex Mono" font-size="12.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+            <tspan x="57.4" y="1268.1">All hands</tspan>
+          </text>
+        </g>
+        <g id="svBal" data-selector="#svBal">
+          <rect id="svBal__border" x="108.8" y="1246.4" width="134.0" height="35.0" rx="3.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+          <text id="svBal__text" font-family="IBM Plex Mono" font-size="12.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+            <tspan x="175.8" y="1268.1">Balance watches</tspan>
+          </text>
+        </g>
+        <g id="svRat" data-selector="#svRat" data-label="Short rations stretch the stores by a third but men rest les">
+          <rect id="svRat__border" x="248.8" y="1246.4" width="112.4" height="35.0" rx="3.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+          <text id="svRat__text" font-family="IBM Plex Mono" font-size="12.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+            <tspan x="305.0" y="1268.1">Full rations</tspan>
+          </text>
+        </g>
+        <g id="svRum" data-selector="#svRum" data-label="Serve a tot of rum to every hand: lifts spirits for a while">
+          <rect id="svRum__border" x="12.0" y="1287.4" width="90.8" height="35.0" rx="3.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+          <text id="svRum__text" font-family="IBM Plex Mono" font-size="12.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+            <tspan x="57.4" y="1309.1">Issue rum</tspan>
+          </text>
+        </g>
+      </g>
+      <g id="shipView__sheet-0__sv-side-0__svp-1" data-selector="#shipView&gt;div.sheet:0&gt;aside.sv-side:0&gt;div.svp:1">
+        <line id="shipView__sheet-0__sv-side-0__svp-1__border-bottom" x1="12.0" y1="1635.9" x2="378.0" y2="1635.9" stroke="#cbbd98" stroke-width="1.0"/>
+        <g id="shipView__sheet-0__sv-side-0__svp-1__h3-0" data-selector="#shipView&gt;div.sheet:0&gt;aside.sv-side:0&gt;div.svp:1&gt;h3:0">
+          <text id="shipView__sheet-0__sv-side-0__svp-1__h3-0__text" font-family="IM Fell English SC" font-size="16.0" font-weight="400" fill="#2e2519" text-anchor="start">
+            <tspan x="12.0" y="1355.0">Readiness</tspan>
+          </text>
+        </g>
+        <g id="svEff__span-0" data-selector="#svEff&gt;div:0&gt;span:0">
+          <text id="svEff__span-0__text" font-family="Spectral" font-size="13.0" font-weight="400" fill="#2e2519" text-anchor="start">
+            <tspan x="12.0" y="1381.0">Hands at work</tspan>
+          </text>
+        </g>
+        <g id="svEff__b-0" data-selector="#svEff&gt;div:0&gt;b:0">
+          <text id="svEff__b-0__text" font-family="IBM Plex Mono" font-size="13.0" font-weight="600" fill="#2e2519" text-anchor="start">
+            <tspan x="315.6" y="1381.0">11 of 22</tspan>
+          </text>
+        </g>
+        <g id="svEff__div-1__span-0" data-selector="#svEff&gt;div:1&gt;span:0">
+          <text id="svEff__div-1__span-0__text" font-family="Spectral" font-size="13.0" font-weight="400" fill="#2e2519" text-anchor="start">
+            <tspan x="12.0" y="1403.0">Asleep</tspan>
+          </text>
+        </g>
+        <g id="svEff__div-1__b-0" data-selector="#svEff&gt;div:1&gt;b:0">
+          <text id="svEff__div-1__b-0__text" font-family="IBM Plex Mono" font-size="13.0" font-weight="600" fill="#2e2519" text-anchor="start">
+            <tspan x="370.2" y="1403.0">5</tspan>
+          </text>
+        </g>
+        <g id="svEff__div-2__span-0" data-selector="#svEff&gt;div:2&gt;span:0">
+          <text id="svEff__div-2__span-0__text" font-family="Spectral" font-size="13.0" font-weight="400" fill="#2e2519" text-anchor="start">
+            <tspan x="12.0" y="1425.0">Average fatigue on watch</tspan>
+          </text>
+        </g>
+        <g id="svEff__div-2__b-0" data-selector="#svEff&gt;div:2&gt;b:0">
+          <text id="svEff__div-2__b-0__text" font-family="IBM Plex Mono" font-size="13.0" font-weight="600" fill="#2e2519" text-anchor="start">
+            <tspan x="354.6" y="1425.0">12%</tspan>
+          </text>
+        </g>
+        <g id="svEff__div-3__span-0" data-selector="#svEff&gt;div:3&gt;span:0">
+          <text id="svEff__div-3__span-0__text" font-family="Spectral" font-size="13.0" font-weight="400" fill="#2e2519" text-anchor="start">
+            <tspan x="12.0" y="1447.0">Sail handling pace</tspan>
+          </text>
+        </g>
+        <g id="svEff__div-3__b-0" data-selector="#svEff&gt;div:3&gt;b:0">
+          <text id="svEff__div-3__b-0__text" font-family="IBM Plex Mono" font-size="13.0" font-weight="600" fill="#2e2519" text-anchor="start">
+            <tspan x="354.6" y="1447.0">94%</tspan>
+          </text>
+        </g>
+        <g id="svEff__div-4__span-0" data-selector="#svEff&gt;div:4&gt;span:0">
+          <text id="svEff__div-4__span-0__text" font-family="Spectral" font-size="13.0" font-weight="400" fill="#2e2519" text-anchor="start">
+            <tspan x="12.0" y="1469.0">Helm steadiness</tspan>
+          </text>
+        </g>
+        <g id="svEff__div-4__b-0" data-selector="#svEff&gt;div:4&gt;b:0">
+          <text id="svEff__div-4__b-0__text" font-family="IBM Plex Mono" font-size="13.0" font-weight="600" fill="#2e2519" text-anchor="start">
+            <tspan x="346.8" y="1469.0">100%</tspan>
+          </text>
+        </g>
+        <g id="svEff__div-5__span-0" data-selector="#svEff&gt;div:5&gt;span:0">
+          <text id="svEff__div-5__span-0__text" font-family="Spectral" font-size="13.0" font-weight="400" fill="#2e2519" text-anchor="start">
+            <tspan x="12.0" y="1491.0">Spirits of the crew</tspan>
+          </text>
+        </g>
+        <g id="svEff__div-5__b-0" data-selector="#svEff&gt;div:5&gt;b:0">
+          <text id="svEff__div-5__b-0__text" font-family="IBM Plex Mono" font-size="13.0" font-weight="600" fill="#2e2519" text-anchor="start">
+            <tspan x="354.6" y="1491.0">70%</tspan>
+          </text>
+        </g>
+        <g id="svEff__div-6__span-0" data-selector="#svEff&gt;div:6&gt;span:0">
+          <text id="svEff__div-6__span-0__text" font-family="Spectral" font-size="13.0" font-weight="400" fill="#2e2519" text-anchor="start">
+            <tspan x="12.0" y="1513.0">Laid up sick or hurt</tspan>
+          </text>
+        </g>
+        <g id="svEff__div-6__b-0" data-selector="#svEff&gt;div:6&gt;b:0">
+          <text id="svEff__div-6__b-0__text" font-family="IBM Plex Mono" font-size="13.0" font-weight="600" fill="#2e2519" text-anchor="start">
+            <tspan x="370.2" y="1513.0">0</tspan>
+          </text>
+        </g>
+        <g id="svEff__div-7__span-0" data-selector="#svEff&gt;div:7&gt;span:0">
+          <text id="svEff__div-7__span-0__text" font-family="Spectral" font-size="13.0" font-weight="400" fill="#2e2519" text-anchor="start">
+            <tspan x="12.0" y="1545.0">Surgeon · mate · medicine chest</tspan>
+          </text>
+        </g>
+        <g id="svEff__div-7__b-0" data-selector="#svEff&gt;div:7&gt;b:0">
+          <text id="svEff__div-7__b-0__text" font-family="IBM Plex Mono" font-size="13.0" font-weight="600" fill="#2e2519" text-anchor="start">
+            <tspan x="160.7" y="1545.0">Whitlock 75% · Pell 45% · 44 doses</tspan>
+          </text>
+        </g>
+        <g id="svEff__div-8__span-0" data-selector="#svEff&gt;div:8&gt;span:0">
+          <text id="svEff__div-8__span-0__text" font-family="Spectral" font-size="13.0" font-weight="400" fill="#2e2519" text-anchor="start">
+            <tspan x="12.0" y="1577.0">Best helmsman</tspan>
+          </text>
+        </g>
+        <g id="svEff__div-8__b-0" data-selector="#svEff&gt;div:8&gt;b:0">
+          <text id="svEff__div-8__b-0__text" font-family="IBM Plex Mono" font-size="13.0" font-weight="600" fill="#2e2519" text-anchor="start">
+            <tspan x="300.0" y="1577.0">Teague 70%</tspan>
+          </text>
+        </g>
+        <g id="svEff__div-9__span-0" data-selector="#svEff&gt;div:9&gt;span:0">
+          <text id="svEff__div-9__span-0__text" font-family="Spectral" font-size="13.0" font-weight="400" fill="#2e2519" text-anchor="start">
+            <tspan x="12.0" y="1599.0">Days without fresh food · limes · rum</tspan>
+          </text>
+        </g>
+        <g id="svEff__div-9__b-0" data-selector="#svEff&gt;div:9&gt;b:0">
+          <text id="svEff__div-9__b-0__text" font-family="IBM Plex Mono" font-size="13.0" font-weight="600" fill="#2e2519" text-anchor="start">
+            <tspan x="229.8" y="1599.0">0 · 0 lb · 33.0 gal</tspan>
+          </text>
+        </g>
+        <g id="svEff__div-10__span-0" data-selector="#svEff&gt;div:10&gt;span:0">
+          <text id="svEff__div-10__span-0__text" font-family="Spectral" font-size="13.0" font-weight="400" fill="#2e2519" text-anchor="start">
+            <tspan x="12.0" y="1621.0">Biscuit · salt meat · beer</tspan>
+          </text>
+        </g>
+        <g id="svEff__div-10__b-0" data-selector="#svEff&gt;div:10&gt;b:0">
+          <text id="svEff__div-10__b-0__text" font-family="IBM Plex Mono" font-size="13.0" font-weight="600" fill="#2e2519" text-anchor="start">
+            <tspan x="245.4" y="1621.0">44 · 44 · 44 days</tspan>
+          </text>
+        </g>
+      </g>
+      <g id="shipView__sheet-0__sv-side-0__svp-2" data-selector="#shipView&gt;div.sheet:0&gt;aside.sv-side:0&gt;div.svp:2">
+        <line id="shipView__sheet-0__sv-side-0__svp-2__border-bottom" x1="12.0" y1="2061.9" x2="378.0" y2="2061.9" stroke="#cbbd98" stroke-width="1.0"/>
+        <g id="shipView__sheet-0__sv-side-0__svp-2__h3-0" data-selector="#shipView&gt;div.sheet:0&gt;aside.sv-side:0&gt;div.svp:2&gt;h3:0">
+          <text id="shipView__sheet-0__sv-side-0__svp-2__h3-0__text" font-family="IM Fell English SC" font-size="16.0" font-weight="400" fill="#2e2519" text-anchor="start">
+            <tspan x="12.0" y="1660.0">Condition and repairs</tspan>
+          </text>
+        </g>
+        <g id="svCond__span-0" data-selector="#svCond&gt;div:0&gt;span:0">
+          <text id="svCond__span-0__text" font-family="Spectral" font-size="13.0" font-weight="400" fill="#2e2519" text-anchor="start">
+            <tspan x="12.0" y="1686.0">Hull</tspan>
+          </text>
+        </g>
+        <g id="svCond__b-0" data-selector="#svCond&gt;div:0&gt;b:0">
+          <text id="svCond__b-0__text" font-family="IBM Plex Mono" font-size="13.0" font-weight="600" fill="#2e2519" text-anchor="start">
+            <tspan x="346.8" y="1686.0">100%</tspan>
+          </text>
+        </g>
+        <g id="svCond__div-1__span-0" data-selector="#svCond&gt;div:1&gt;span:0">
+          <text id="svCond__div-1__span-0__text" font-family="Spectral" font-size="13.0" font-weight="400" fill="#2e2519" text-anchor="start">
+            <tspan x="12.0" y="1708.0">Rigging</tspan>
+          </text>
+        </g>
+        <g id="svCond__div-1__b-0" data-selector="#svCond&gt;div:1&gt;b:0">
+          <text id="svCond__div-1__b-0__text" font-family="IBM Plex Mono" font-size="13.0" font-weight="600" fill="#2e2519" text-anchor="start">
+            <tspan x="346.8" y="1708.0">100%</tspan>
+          </text>
+        </g>
+        <g id="svCond__div-2__span-0" data-selector="#svCond&gt;div:2&gt;span:0">
+          <text id="svCond__div-2__span-0__text" font-family="Spectral" font-size="13.0" font-weight="400" fill="#2e2519" text-anchor="start">
+            <tspan x="12.0" y="1730.0">Canvas</tspan>
+          </text>
+        </g>
+        <g id="svCond__div-2__b-0" data-selector="#svCond&gt;div:2&gt;b:0">
+          <text id="svCond__div-2__b-0__text" font-family="IBM Plex Mono" font-size="13.0" font-weight="600" fill="#2e2519" text-anchor="start">
+            <tspan x="346.8" y="1730.0">100%</tspan>
+          </text>
+        </g>
+        <g id="svCond__div-3__span-0" data-selector="#svCond&gt;div:3&gt;span:0">
+          <text id="svCond__div-3__span-0__text" font-family="Spectral" font-size="13.0" font-weight="400" fill="#2e2519" text-anchor="start">
+            <tspan x="12.0" y="1752.0">Leaking</tspan>
+          </text>
+        </g>
+        <g id="svCond__div-3__b-0" data-selector="#svCond&gt;div:3&gt;b:0">
+          <text id="svCond__div-3__b-0__text" font-family="IBM Plex Mono" font-size="13.0" font-weight="600" fill="#2e2519" text-anchor="start">
+            <tspan x="300.0" y="1752.0">0.1 tons/h</tspan>
+          </text>
+        </g>
+        <g id="svCond__div-4__span-0" data-selector="#svCond&gt;div:4&gt;span:0">
+          <text id="svCond__div-4__span-0__text" font-family="Spectral" font-size="13.0" font-weight="400" fill="#2e2519" text-anchor="start">
+            <tspan x="12.0" y="1774.0">Water in the bilge</tspan>
+          </text>
+        </g>
+        <g id="svCond__div-4__b-0" data-selector="#svCond&gt;div:4&gt;b:0">
+          <text id="svCond__div-4__b-0__text" font-family="IBM Plex Mono" font-size="13.0" font-weight="600" fill="#2e2519" text-anchor="start">
+            <tspan x="315.6" y="1774.0">0.0 tons</tspan>
+          </text>
+        </g>
+        <g id="svCond__div-5__span-0" data-selector="#svCond&gt;div:5&gt;span:0">
+          <text id="svCond__div-5__span-0__text" font-family="Spectral" font-size="13.0" font-weight="400" fill="#2e2519" text-anchor="start">
+            <tspan x="12.0" y="1806.0">Spares: timber · canvas · cordage · pitch</tspan>
+          </text>
+        </g>
+        <g id="svCond__div-5__b-0" data-selector="#svCond&gt;div:5&gt;b:0">
+          <text id="svCond__div-5__b-0__text" font-family="IBM Plex Mono" font-size="13.0" font-weight="600" fill="#2e2519" text-anchor="start">
+            <tspan x="223.9" y="1806.0">4.0 · 3.0 · 4.0 · 3.0</tspan>
+          </text>
+        </g>
+        <g id="svPump" data-selector="#svPump" data-label="Pumps: Auto starts when water is gaining">
+          <rect id="svPump__border" x="12.0" y="1828.4" width="105.2" height="35.0" rx="3.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+          <text id="svPump__text" font-family="IBM Plex Mono" font-size="12.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+            <tspan x="64.6" y="1850.1">Pumps: Auto</tspan>
+          </text>
+        </g>
+        <g id="svJobs__button-0" data-selector="#svJobs&gt;button:0">
+          <rect id="svJobs__button-0__border" x="12.0" y="1869.4" width="270.8" height="35.0" rx="3.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+          <text id="svJobs__button-0__text" font-family="IBM Plex Mono" font-size="12.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+            <tspan x="147.4" y="1891.1">Caulk the seams and patch the hull</tspan>
+          </text>
+        </g>
+        <g id="svJobs__button-1" data-selector="#svJobs&gt;button:1">
+          <rect id="svJobs__button-1__border" x="12.0" y="1910.4" width="227.6" height="35.0" rx="3.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+          <text id="svJobs__button-1__text" font-family="IBM Plex Mono" font-size="12.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+            <tspan x="125.8" y="1932.1">Splice and reeve the rigging</tspan>
+          </text>
+        </g>
+        <g id="svJobs__button-2" data-selector="#svJobs&gt;button:2">
+          <rect id="svJobs__button-2__border" x="12.0" y="1951.4" width="184.4" height="35.0" rx="3.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+          <text id="svJobs__button-2__text" font-family="IBM Plex Mono" font-size="12.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+            <tspan x="104.2" y="1973.1">Patch and bend on sail</tspan>
+          </text>
+        </g>
+        <g id="svJobTxt" data-selector="#svJobTxt">
+          <text id="svJobTxt__text" font-family="IM Fell English" font-size="13.0" font-weight="400" fill="#7b6a55" text-anchor="start">
+            <tspan x="12.0" y="2024.5">Jobs use up spares as the work goes on. Timber, canvas, cordage and pitch are all sold in port. Work aloft stops in a fresh wind, and the carpenter only works while he is on watch.</tspan>
+          </text>
+        </g>
+      </g>
+      <g id="shipView__sheet-0__sv-side-0__svp-4" data-selector="#shipView&gt;div.sheet:0&gt;aside.sv-side:0&gt;div.svp:4">
+        <line id="shipView__sheet-0__sv-side-0__svp-4__border-bottom" x1="12.0" y1="2262.9" x2="378.0" y2="2262.9" stroke="#cbbd98" stroke-width="1.0"/>
+        <g id="shipView__sheet-0__sv-side-0__svp-4__h3-0" data-selector="#shipView&gt;div.sheet:0&gt;aside.sv-side:0&gt;div.svp:4&gt;h3:0">
+          <text id="shipView__sheet-0__sv-side-0__svp-4__h3-0__text" font-family="IM Fell English SC" font-size="16.0" font-weight="400" fill="#2e2519" text-anchor="start">
+            <tspan x="12.0" y="2086.0">Purse and port</tspan>
+          </text>
+        </g>
+        <g id="svPurse__span-0" data-selector="#svPurse&gt;div:0&gt;span:0">
+          <text id="svPurse__span-0__text" font-family="Spectral" font-size="13.0" font-weight="400" fill="#2e2519" text-anchor="start">
+            <tspan x="12.0" y="2112.0">Purse</tspan>
+          </text>
+        </g>
+        <g id="svPurse__b-0" data-selector="#svPurse&gt;div:0&gt;b:0">
+          <text id="svPurse__b-0__text" font-family="IBM Plex Mono" font-size="13.0" font-weight="600" fill="#2e2519" text-anchor="start">
+            <tspan x="323.4" y="2112.0">£31 15s</tspan>
+          </text>
+        </g>
+        <g id="svPurse__div-1__span-0" data-selector="#svPurse&gt;div:1&gt;span:0">
+          <text id="svPurse__div-1__span-0__text" font-family="Spectral" font-size="13.0" font-weight="400" fill="#2e2519" text-anchor="start">
+            <tspan x="12.0" y="2134.0">Salt fish aboard</tspan>
+          </text>
+        </g>
+        <g id="svPurse__div-1__b-0" data-selector="#svPurse&gt;div:1&gt;b:0">
+          <text id="svPurse__div-1__b-0__text" font-family="IBM Plex Mono" font-size="13.0" font-weight="600" fill="#2e2519" text-anchor="start">
+            <tspan x="346.8" y="2134.0">0 lb</tspan>
+          </text>
+        </g>
+        <g id="svPurse__div-2__span-0" data-selector="#svPurse&gt;div:2&gt;span:0">
+          <text id="svPurse__div-2__span-0__text" font-family="Spectral" font-size="13.0" font-weight="400" fill="#2e2519" text-anchor="start">
+            <tspan x="12.0" y="2156.0">Caught this voyage</tspan>
+          </text>
+        </g>
+        <g id="svPurse__div-2__b-0" data-selector="#svPurse&gt;div:2&gt;b:0">
+          <text id="svPurse__div-2__b-0__text" font-family="IBM Plex Mono" font-size="13.0" font-weight="600" fill="#2e2519" text-anchor="start">
+            <tspan x="346.8" y="2156.0">0 lb</tspan>
+          </text>
+        </g>
+        <g id="svPortHint" data-selector="#svPortHint">
+          <text id="svPortHint__text" font-family="IM Fell English" font-size="13.0" font-weight="400" fill="#7b6a55" text-anchor="start">
+            <tspan x="12.0" y="2192.0">Not in port. Come to anchor within a mile and a half of a town to buy and sell (Bridgetown is 0 miles off).</tspan>
+          </text>
+        </g>
+        <g id="svNews" data-selector="#svNews">
+          <text id="svNews__text" font-family="IM Fell English" font-size="13.0" font-weight="400" fill="#7b6a55" text-anchor="start">
+            <tspan x="12.0" y="2234.0">Salt fish per 100 lb: Bridgetown 27s, Castries 23s, St John&#x27;s 27s, Kingstown 23s, Basseterre 23s. The plantation islands pay most.</tspan>
+          </text>
+        </g>
+      </g>
+      <g id="shipView__sheet-0__sv-side-0__svp-5" data-selector="#shipView&gt;div.sheet:0&gt;aside.sv-side:0&gt;div.svp:5">
+        <line id="shipView__sheet-0__sv-side-0__svp-5__border-bottom" x1="12.0" y1="3647.9" x2="378.0" y2="3647.9" stroke="#cbbd98" stroke-width="1.0"/>
+        <g id="shipView__sheet-0__sv-side-0__svp-5__h3-0" data-selector="#shipView&gt;div.sheet:0&gt;aside.sv-side:0&gt;div.svp:5&gt;h3:0">
+          <text id="shipView__sheet-0__sv-side-0__svp-5__h3-0__text" font-family="IM Fell English SC" font-size="16.0" font-weight="400" fill="#2e2519" text-anchor="start">
+            <tspan x="12.0" y="2287.0">Crew</tspan>
+          </text>
+        </g>
+        <g id="svSel__svhint-0" data-selector="#svSel&gt;p.svhint:0">
+          <text id="svSel__svhint-0__text" font-family="IM Fell English" font-size="13.0" font-weight="400" fill="#7b6a55" text-anchor="start">
+            <tspan x="12.0" y="2321.0">Select a hand in the cutaway or the list. Then click a berth in the ship to assign it, or pick a watch.</tspan>
+          </text>
+        </g>
+        <g id="svRoster__svrow-0" data-selector="#svRoster&gt;div.svrow:0">
+          <line id="svRoster__svrow-0__border-bottom" x1="12.0" y1="2399.9" x2="378.0" y2="2399.9" stroke="#cbbd98" stroke-width="1.0"/>
+          <g id="svRoster__svrow-0__svn-0__b-0" data-selector="#svRoster&gt;div.svrow:0&gt;div.svn:0&gt;b:0">
+            <text id="svRoster__svrow-0__svn-0__b-0__text" font-family="Spectral" font-size="13.0" font-weight="700" fill="#2e2519" text-anchor="start">
+              <tspan x="16.0" y="2360.4">Capt. Josiah Hale</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-0__svn-0__span-0" data-selector="#svRoster&gt;div.svrow:0&gt;div.svn:0&gt;span:0">
+            <text id="svRoster__svrow-0__svn-0__span-0__text" font-family="Spectral" font-size="11.0" font-weight="400" fill="#7b6a55" text-anchor="start" font-style="italic">
+              <tspan x="16.0" y="2374.0">Captain</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-0__svw-1__button-0" data-selector="#svRoster&gt;div.svrow:0&gt;div.svw:1&gt;button:0" data-label="Fore watch">
+            <rect id="svRoster__svrow-0__svw-1__button-0__border" x="189.0" y="2346.4" width="34.0" height="32.0" rx="0.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-0__svw-1__button-0__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+              <tspan x="206.0" y="2366.2">F</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-0__svw-1__button-1" data-selector="#svRoster&gt;div.svrow:0&gt;div.svw:1&gt;button:1" data-label="Main watch">
+            <rect id="svRoster__svrow-0__svw-1__button-1__border" x="222.0" y="2346.4" width="34.0" height="32.0" rx="0.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-0__svw-1__button-1__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+              <tspan x="239.0" y="2366.2">M</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-0__svw-1__button-2" data-selector="#svRoster&gt;div.svrow:0&gt;div.svw:1&gt;button:2" data-label="Quarter watch">
+            <rect id="svRoster__svrow-0__svw-1__button-2__border" x="255.0" y="2346.4" width="34.0" height="32.0" rx="0.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-0__svw-1__button-2__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+              <tspan x="272.0" y="2366.2">Q</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-0__svw-1__button-3" data-selector="#svRoster&gt;div.svrow:0&gt;div.svw:1&gt;button:3" data-label="Day work">
+            <rect id="svRoster__svrow-0__svw-1__button-3__bg" x="288.0" y="2346.4" width="34.0" height="32.0" rx="0.0" fill="#2e2519" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-0__svw-1__button-3__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#f6eed9" text-anchor="middle">
+              <tspan x="305.0" y="2366.2">D</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-0__svf-2" data-selector="#svRoster&gt;div.svrow:0&gt;div.svf:2" data-label="Fatigue">
+            <rect id="svRoster__svrow-0__svf-2__bg" x="330.0" y="2359.4" width="44.0" height="6.0" rx="0.0" fill="#f6eed9" stroke="#2e2519" stroke-width="1.0"/>
+            <g id="svRoster__svrow-0__svf-2__i-0" data-selector="#svRoster&gt;div.svrow:0&gt;div.svf:2&gt;i:0">
+              <rect id="svRoster__svrow-0__svf-2__i-0__bg" x="331.0" y="2360.4" width="3.8" height="4.0" rx="0.0" fill="#2e2519"/>
+            </g>
+          </g>
+          <g id="svRoster__svrow-0__svs-3" data-selector="#svRoster&gt;div.svrow:0&gt;div.svs:3">
+            <text id="svRoster__svrow-0__svs-3__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#7b6a55" text-anchor="start">
+              <tspan x="16.0" y="2391.2">On the quarterdeck</tspan>
+            </text>
+          </g>
+        </g>
+        <g id="svRoster__svrow-1" data-selector="#svRoster&gt;div.svrow:1">
+          <line id="svRoster__svrow-1__border-bottom" x1="12.0" y1="2458.9" x2="378.0" y2="2458.9" stroke="#cbbd98" stroke-width="1.0"/>
+          <g id="svRoster__svrow-1__svn-0__b-0" data-selector="#svRoster&gt;div.svrow:1&gt;div.svn:0&gt;b:0">
+            <text id="svRoster__svrow-1__svn-0__b-0__text" font-family="Spectral" font-size="13.0" font-weight="700" fill="#2e2519" text-anchor="start">
+              <tspan x="16.0" y="2419.4">Thos. Marlowe</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-1__svn-0__span-0" data-selector="#svRoster&gt;div.svrow:1&gt;div.svn:0&gt;span:0">
+            <text id="svRoster__svrow-1__svn-0__span-0__text" font-family="Spectral" font-size="11.0" font-weight="400" fill="#7b6a55" text-anchor="start" font-style="italic">
+              <tspan x="16.0" y="2433.0">Mate</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-1__svw-1__button-0" data-selector="#svRoster&gt;div.svrow:1&gt;div.svw:1&gt;button:0" data-label="Fore watch">
+            <rect id="svRoster__svrow-1__svw-1__button-0__bg" x="189.0" y="2405.4" width="34.0" height="32.0" rx="0.0" fill="#2e2519" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-1__svw-1__button-0__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#f6eed9" text-anchor="middle">
+              <tspan x="206.0" y="2425.2">F</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-1__svw-1__button-1" data-selector="#svRoster&gt;div.svrow:1&gt;div.svw:1&gt;button:1" data-label="Main watch">
+            <rect id="svRoster__svrow-1__svw-1__button-1__border" x="222.0" y="2405.4" width="34.0" height="32.0" rx="0.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-1__svw-1__button-1__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+              <tspan x="239.0" y="2425.2">M</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-1__svw-1__button-2" data-selector="#svRoster&gt;div.svrow:1&gt;div.svw:1&gt;button:2" data-label="Quarter watch">
+            <rect id="svRoster__svrow-1__svw-1__button-2__border" x="255.0" y="2405.4" width="34.0" height="32.0" rx="0.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-1__svw-1__button-2__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+              <tspan x="272.0" y="2425.2">Q</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-1__svw-1__button-3" data-selector="#svRoster&gt;div.svrow:1&gt;div.svw:1&gt;button:3" data-label="Day work">
+            <rect id="svRoster__svrow-1__svw-1__button-3__border" x="288.0" y="2405.4" width="34.0" height="32.0" rx="0.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-1__svw-1__button-3__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+              <tspan x="305.0" y="2425.2">D</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-1__svf-2" data-selector="#svRoster&gt;div.svrow:1&gt;div.svf:2" data-label="Fatigue">
+            <rect id="svRoster__svrow-1__svf-2__bg" x="330.0" y="2418.4" width="44.0" height="6.0" rx="0.0" fill="#f6eed9" stroke="#2e2519" stroke-width="1.0"/>
+            <g id="svRoster__svrow-1__svf-2__i-0" data-selector="#svRoster&gt;div.svrow:1&gt;div.svf:2&gt;i:0">
+              <rect id="svRoster__svrow-1__svf-2__i-0__bg" x="331.0" y="2419.4" width="8.8" height="4.0" rx="0.0" fill="#2e2519"/>
+            </g>
+          </g>
+          <g id="svRoster__svrow-1__svs-3" data-selector="#svRoster&gt;div.svrow:1&gt;div.svs:3">
+            <text id="svRoster__svrow-1__svs-3__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#7b6a55" text-anchor="start">
+              <tspan x="16.0" y="2450.2">Asleep, aft cabin cot 2</tspan>
+            </text>
+          </g>
+        </g>
+        <g id="svRoster__svrow-2" data-selector="#svRoster&gt;div.svrow:2">
+          <line id="svRoster__svrow-2__border-bottom" x1="12.0" y1="2517.9" x2="378.0" y2="2517.9" stroke="#cbbd98" stroke-width="1.0"/>
+          <g id="svRoster__svrow-2__svn-0__b-0" data-selector="#svRoster&gt;div.svrow:2&gt;div.svn:0&gt;b:0">
+            <text id="svRoster__svrow-2__svn-0__b-0__text" font-family="Spectral" font-size="13.0" font-weight="700" fill="#2e2519" text-anchor="start">
+              <tspan x="16.0" y="2478.4">Edmund Pryce</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-2__svn-0__span-0" data-selector="#svRoster&gt;div.svrow:2&gt;div.svn:0&gt;span:0">
+            <text id="svRoster__svrow-2__svn-0__span-0__text" font-family="Spectral" font-size="11.0" font-weight="400" fill="#7b6a55" text-anchor="start" font-style="italic">
+              <tspan x="16.0" y="2492.0">Bosun</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-2__svw-1__button-0" data-selector="#svRoster&gt;div.svrow:2&gt;div.svw:1&gt;button:0" data-label="Fore watch">
+            <rect id="svRoster__svrow-2__svw-1__button-0__border" x="189.0" y="2464.4" width="34.0" height="32.0" rx="0.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-2__svw-1__button-0__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+              <tspan x="206.0" y="2484.2">F</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-2__svw-1__button-1" data-selector="#svRoster&gt;div.svrow:2&gt;div.svw:1&gt;button:1" data-label="Main watch">
+            <rect id="svRoster__svrow-2__svw-1__button-1__border" x="222.0" y="2464.4" width="34.0" height="32.0" rx="0.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-2__svw-1__button-1__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+              <tspan x="239.0" y="2484.2">M</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-2__svw-1__button-2" data-selector="#svRoster&gt;div.svrow:2&gt;div.svw:1&gt;button:2" data-label="Quarter watch">
+            <rect id="svRoster__svrow-2__svw-1__button-2__bg" x="255.0" y="2464.4" width="34.0" height="32.0" rx="0.0" fill="#2e2519" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-2__svw-1__button-2__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#f6eed9" text-anchor="middle">
+              <tspan x="272.0" y="2484.2">Q</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-2__svw-1__button-3" data-selector="#svRoster&gt;div.svrow:2&gt;div.svw:1&gt;button:3" data-label="Day work">
+            <rect id="svRoster__svrow-2__svw-1__button-3__border" x="288.0" y="2464.4" width="34.0" height="32.0" rx="0.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-2__svw-1__button-3__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+              <tspan x="305.0" y="2484.2">D</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-2__svf-2" data-selector="#svRoster&gt;div.svrow:2&gt;div.svf:2" data-label="Fatigue">
+            <rect id="svRoster__svrow-2__svf-2__bg" x="330.0" y="2477.4" width="44.0" height="6.0" rx="0.0" fill="#f6eed9" stroke="#2e2519" stroke-width="1.0"/>
+            <g id="svRoster__svrow-2__svf-2__i-0" data-selector="#svRoster&gt;div.svrow:2&gt;div.svf:2&gt;i:0">
+              <rect id="svRoster__svrow-2__svf-2__i-0__bg" x="331.0" y="2478.4" width="7.1" height="4.0" rx="0.0" fill="#2e2519"/>
+            </g>
+          </g>
+          <g id="svRoster__svrow-2__svs-3" data-selector="#svRoster&gt;div.svrow:2&gt;div.svs:3">
+            <text id="svRoster__svrow-2__svs-3__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#7b6a55" text-anchor="start">
+              <tspan x="16.0" y="2509.2">Asleep, steerage bunk 1</tspan>
+            </text>
+          </g>
+        </g>
+        <g id="svRoster__svrow-3" data-selector="#svRoster&gt;div.svrow:3">
+          <line id="svRoster__svrow-3__border-bottom" x1="12.0" y1="2576.9" x2="378.0" y2="2576.9" stroke="#cbbd98" stroke-width="1.0"/>
+          <g id="svRoster__svrow-3__svn-0__b-0" data-selector="#svRoster&gt;div.svrow:3&gt;div.svn:0&gt;b:0">
+            <text id="svRoster__svrow-3__svn-0__b-0__text" font-family="Spectral" font-size="13.0" font-weight="700" fill="#2e2519" text-anchor="start">
+              <tspan x="16.0" y="2537.4">Abel Crane</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-3__svn-0__span-0" data-selector="#svRoster&gt;div.svrow:3&gt;div.svn:0&gt;span:0">
+            <text id="svRoster__svrow-3__svn-0__span-0__text" font-family="Spectral" font-size="11.0" font-weight="400" fill="#7b6a55" text-anchor="start" font-style="italic">
+              <tspan x="16.0" y="2551.0">Carpenter</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-3__svw-1__button-0" data-selector="#svRoster&gt;div.svrow:3&gt;div.svw:1&gt;button:0" data-label="Fore watch">
+            <rect id="svRoster__svrow-3__svw-1__button-0__border" x="189.0" y="2523.4" width="34.0" height="32.0" rx="0.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-3__svw-1__button-0__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+              <tspan x="206.0" y="2543.2">F</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-3__svw-1__button-1" data-selector="#svRoster&gt;div.svrow:3&gt;div.svw:1&gt;button:1" data-label="Main watch">
+            <rect id="svRoster__svrow-3__svw-1__button-1__border" x="222.0" y="2523.4" width="34.0" height="32.0" rx="0.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-3__svw-1__button-1__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+              <tspan x="239.0" y="2543.2">M</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-3__svw-1__button-2" data-selector="#svRoster&gt;div.svrow:3&gt;div.svw:1&gt;button:2" data-label="Quarter watch">
+            <rect id="svRoster__svrow-3__svw-1__button-2__border" x="255.0" y="2523.4" width="34.0" height="32.0" rx="0.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-3__svw-1__button-2__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+              <tspan x="272.0" y="2543.2">Q</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-3__svw-1__button-3" data-selector="#svRoster&gt;div.svrow:3&gt;div.svw:1&gt;button:3" data-label="Day work">
+            <rect id="svRoster__svrow-3__svw-1__button-3__bg" x="288.0" y="2523.4" width="34.0" height="32.0" rx="0.0" fill="#2e2519" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-3__svw-1__button-3__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#f6eed9" text-anchor="middle">
+              <tspan x="305.0" y="2543.2">D</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-3__svf-2" data-selector="#svRoster&gt;div.svrow:3&gt;div.svf:2" data-label="Fatigue">
+            <rect id="svRoster__svrow-3__svf-2__bg" x="330.0" y="2536.4" width="44.0" height="6.0" rx="0.0" fill="#f6eed9" stroke="#2e2519" stroke-width="1.0"/>
+            <g id="svRoster__svrow-3__svf-2__i-0" data-selector="#svRoster&gt;div.svrow:3&gt;div.svf:2&gt;i:0">
+              <rect id="svRoster__svrow-3__svf-2__i-0__bg" x="331.0" y="2537.4" width="2.9" height="4.0" rx="0.0" fill="#2e2519"/>
+            </g>
+          </g>
+          <g id="svRoster__svrow-3__svs-3" data-selector="#svRoster&gt;div.svrow:3&gt;div.svs:3">
+            <text id="svRoster__svrow-3__svs-3__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#7b6a55" text-anchor="start">
+              <tspan x="16.0" y="2568.2">In the carpenter&#x27;s store</tspan>
+            </text>
+          </g>
+        </g>
+        <g id="svRoster__svrow-4" data-selector="#svRoster&gt;div.svrow:4">
+          <line id="svRoster__svrow-4__border-bottom" x1="12.0" y1="2635.9" x2="378.0" y2="2635.9" stroke="#cbbd98" stroke-width="1.0"/>
+          <g id="svRoster__svrow-4__svn-0__b-0" data-selector="#svRoster&gt;div.svrow:4&gt;div.svn:0&gt;b:0">
+            <text id="svRoster__svrow-4__svn-0__b-0__text" font-family="Spectral" font-size="13.0" font-weight="700" fill="#2e2519" text-anchor="start">
+              <tspan x="16.0" y="2596.4">Nat Dobbs</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-4__svn-0__span-0" data-selector="#svRoster&gt;div.svrow:4&gt;div.svn:0&gt;span:0">
+            <text id="svRoster__svrow-4__svn-0__span-0__text" font-family="Spectral" font-size="11.0" font-weight="400" fill="#7b6a55" text-anchor="start" font-style="italic">
+              <tspan x="16.0" y="2610.0">Cook</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-4__svw-1__button-0" data-selector="#svRoster&gt;div.svrow:4&gt;div.svw:1&gt;button:0" data-label="Fore watch">
+            <rect id="svRoster__svrow-4__svw-1__button-0__border" x="189.0" y="2582.4" width="34.0" height="32.0" rx="0.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-4__svw-1__button-0__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+              <tspan x="206.0" y="2602.2">F</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-4__svw-1__button-1" data-selector="#svRoster&gt;div.svrow:4&gt;div.svw:1&gt;button:1" data-label="Main watch">
+            <rect id="svRoster__svrow-4__svw-1__button-1__border" x="222.0" y="2582.4" width="34.0" height="32.0" rx="0.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-4__svw-1__button-1__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+              <tspan x="239.0" y="2602.2">M</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-4__svw-1__button-2" data-selector="#svRoster&gt;div.svrow:4&gt;div.svw:1&gt;button:2" data-label="Quarter watch">
+            <rect id="svRoster__svrow-4__svw-1__button-2__border" x="255.0" y="2582.4" width="34.0" height="32.0" rx="0.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-4__svw-1__button-2__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+              <tspan x="272.0" y="2602.2">Q</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-4__svw-1__button-3" data-selector="#svRoster&gt;div.svrow:4&gt;div.svw:1&gt;button:3" data-label="Day work">
+            <rect id="svRoster__svrow-4__svw-1__button-3__bg" x="288.0" y="2582.4" width="34.0" height="32.0" rx="0.0" fill="#2e2519" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-4__svw-1__button-3__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#f6eed9" text-anchor="middle">
+              <tspan x="305.0" y="2602.2">D</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-4__svf-2" data-selector="#svRoster&gt;div.svrow:4&gt;div.svf:2" data-label="Fatigue">
+            <rect id="svRoster__svrow-4__svf-2__bg" x="330.0" y="2595.4" width="44.0" height="6.0" rx="0.0" fill="#f6eed9" stroke="#2e2519" stroke-width="1.0"/>
+            <g id="svRoster__svrow-4__svf-2__i-0" data-selector="#svRoster&gt;div.svrow:4&gt;div.svf:2&gt;i:0">
+              <rect id="svRoster__svrow-4__svf-2__i-0__bg" x="331.0" y="2596.4" width="4.6" height="4.0" rx="0.0" fill="#2e2519"/>
+            </g>
+          </g>
+          <g id="svRoster__svrow-4__svs-3" data-selector="#svRoster&gt;div.svrow:4&gt;div.svs:3">
+            <text id="svRoster__svrow-4__svs-3__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#7b6a55" text-anchor="start">
+              <tspan x="16.0" y="2627.2">In the galley</tspan>
+            </text>
+          </g>
+        </g>
+        <g id="svRoster__svrow-5" data-selector="#svRoster&gt;div.svrow:5">
+          <line id="svRoster__svrow-5__border-bottom" x1="12.0" y1="2694.9" x2="378.0" y2="2694.9" stroke="#cbbd98" stroke-width="1.0"/>
+          <g id="svRoster__svrow-5__svn-0__b-0" data-selector="#svRoster&gt;div.svrow:5&gt;div.svn:0&gt;b:0">
+            <text id="svRoster__svrow-5__svn-0__b-0__text" font-family="Spectral" font-size="13.0" font-weight="700" fill="#2e2519" text-anchor="start">
+              <tspan x="16.0" y="2655.4">Jemmy Fox</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-5__svn-0__span-0" data-selector="#svRoster&gt;div.svrow:5&gt;div.svn:0&gt;span:0">
+            <text id="svRoster__svrow-5__svn-0__span-0__text" font-family="Spectral" font-size="11.0" font-weight="400" fill="#7b6a55" text-anchor="start" font-style="italic">
+              <tspan x="16.0" y="2669.0">Cabin boy</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-5__svw-1__button-0" data-selector="#svRoster&gt;div.svrow:5&gt;div.svw:1&gt;button:0" data-label="Fore watch">
+            <rect id="svRoster__svrow-5__svw-1__button-0__border" x="189.0" y="2641.4" width="34.0" height="32.0" rx="0.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-5__svw-1__button-0__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+              <tspan x="206.0" y="2661.2">F</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-5__svw-1__button-1" data-selector="#svRoster&gt;div.svrow:5&gt;div.svw:1&gt;button:1" data-label="Main watch">
+            <rect id="svRoster__svrow-5__svw-1__button-1__border" x="222.0" y="2641.4" width="34.0" height="32.0" rx="0.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-5__svw-1__button-1__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+              <tspan x="239.0" y="2661.2">M</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-5__svw-1__button-2" data-selector="#svRoster&gt;div.svrow:5&gt;div.svw:1&gt;button:2" data-label="Quarter watch">
+            <rect id="svRoster__svrow-5__svw-1__button-2__border" x="255.0" y="2641.4" width="34.0" height="32.0" rx="0.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-5__svw-1__button-2__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+              <tspan x="272.0" y="2661.2">Q</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-5__svw-1__button-3" data-selector="#svRoster&gt;div.svrow:5&gt;div.svw:1&gt;button:3" data-label="Day work">
+            <rect id="svRoster__svrow-5__svw-1__button-3__bg" x="288.0" y="2641.4" width="34.0" height="32.0" rx="0.0" fill="#2e2519" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-5__svw-1__button-3__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#f6eed9" text-anchor="middle">
+              <tspan x="305.0" y="2661.2">D</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-5__svf-2" data-selector="#svRoster&gt;div.svrow:5&gt;div.svf:2" data-label="Fatigue">
+            <rect id="svRoster__svrow-5__svf-2__bg" x="330.0" y="2654.4" width="44.0" height="6.0" rx="0.0" fill="#f6eed9" stroke="#2e2519" stroke-width="1.0"/>
+            <g id="svRoster__svrow-5__svf-2__i-0" data-selector="#svRoster&gt;div.svrow:5&gt;div.svf:2&gt;i:0">
+              <rect id="svRoster__svrow-5__svf-2__i-0__bg" x="331.0" y="2655.4" width="9.7" height="4.0" rx="0.0" fill="#2e2519"/>
+            </g>
+          </g>
+          <g id="svRoster__svrow-5__svs-3" data-selector="#svRoster&gt;div.svrow:5&gt;div.svs:3">
+            <text id="svRoster__svrow-5__svs-3__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#7b6a55" text-anchor="start">
+              <tspan x="16.0" y="2686.2">Running errands on deck</tspan>
+            </text>
+          </g>
+        </g>
+        <g id="svRoster__svrow-6" data-selector="#svRoster&gt;div.svrow:6">
+          <line id="svRoster__svrow-6__border-bottom" x1="12.0" y1="2753.9" x2="378.0" y2="2753.9" stroke="#cbbd98" stroke-width="1.0"/>
+          <g id="svRoster__svrow-6__svn-0__b-0" data-selector="#svRoster&gt;div.svrow:6&gt;div.svn:0&gt;b:0">
+            <text id="svRoster__svrow-6__svn-0__b-0__text" font-family="Spectral" font-size="13.0" font-weight="700" fill="#2e2519" text-anchor="start">
+              <tspan x="16.0" y="2714.4">Will Ashby</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-6__svn-0__span-0" data-selector="#svRoster&gt;div.svrow:6&gt;div.svn:0&gt;span:0">
+            <text id="svRoster__svrow-6__svn-0__span-0__text" font-family="Spectral" font-size="11.0" font-weight="400" fill="#7b6a55" text-anchor="start" font-style="italic">
+              <tspan x="16.0" y="2728.0">Seaman</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-6__svw-1__button-0" data-selector="#svRoster&gt;div.svrow:6&gt;div.svw:1&gt;button:0" data-label="Fore watch">
+            <rect id="svRoster__svrow-6__svw-1__button-0__bg" x="189.0" y="2700.4" width="34.0" height="32.0" rx="0.0" fill="#2e2519" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-6__svw-1__button-0__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#f6eed9" text-anchor="middle">
+              <tspan x="206.0" y="2720.2">F</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-6__svw-1__button-1" data-selector="#svRoster&gt;div.svrow:6&gt;div.svw:1&gt;button:1" data-label="Main watch">
+            <rect id="svRoster__svrow-6__svw-1__button-1__border" x="222.0" y="2700.4" width="34.0" height="32.0" rx="0.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-6__svw-1__button-1__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+              <tspan x="239.0" y="2720.2">M</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-6__svw-1__button-2" data-selector="#svRoster&gt;div.svrow:6&gt;div.svw:1&gt;button:2" data-label="Quarter watch">
+            <rect id="svRoster__svrow-6__svw-1__button-2__border" x="255.0" y="2700.4" width="34.0" height="32.0" rx="0.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-6__svw-1__button-2__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+              <tspan x="272.0" y="2720.2">Q</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-6__svw-1__button-3" data-selector="#svRoster&gt;div.svrow:6&gt;div.svw:1&gt;button:3" data-label="Day work">
+            <rect id="svRoster__svrow-6__svw-1__button-3__border" x="288.0" y="2700.4" width="34.0" height="32.0" rx="0.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-6__svw-1__button-3__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+              <tspan x="305.0" y="2720.2">D</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-6__svf-2" data-selector="#svRoster&gt;div.svrow:6&gt;div.svf:2" data-label="Fatigue">
+            <rect id="svRoster__svrow-6__svf-2__bg" x="330.0" y="2713.4" width="44.0" height="6.0" rx="0.0" fill="#f6eed9" stroke="#2e2519" stroke-width="1.0"/>
+            <g id="svRoster__svrow-6__svf-2__i-0" data-selector="#svRoster&gt;div.svrow:6&gt;div.svf:2&gt;i:0">
+              <rect id="svRoster__svrow-6__svf-2__i-0__bg" x="331.0" y="2714.4" width="2.1" height="4.0" rx="0.0" fill="#2e2519"/>
+            </g>
+          </g>
+          <g id="svRoster__svrow-6__svs-3" data-selector="#svRoster&gt;div.svrow:6&gt;div.svs:3">
+            <text id="svRoster__svrow-6__svs-3__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#7b6a55" text-anchor="start">
+              <tspan x="16.0" y="2745.2">Off watch, at leisure</tspan>
+            </text>
+          </g>
+        </g>
+        <g id="svRoster__svrow-7" data-selector="#svRoster&gt;div.svrow:7">
+          <line id="svRoster__svrow-7__border-bottom" x1="12.0" y1="2812.9" x2="378.0" y2="2812.9" stroke="#cbbd98" stroke-width="1.0"/>
+          <g id="svRoster__svrow-7__svn-0__b-0" data-selector="#svRoster&gt;div.svrow:7&gt;div.svn:0&gt;b:0">
+            <text id="svRoster__svrow-7__svn-0__b-0__text" font-family="Spectral" font-size="13.0" font-weight="700" fill="#2e2519" text-anchor="start">
+              <tspan x="16.0" y="2773.4">Hugh Teague</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-7__svn-0__span-0" data-selector="#svRoster&gt;div.svrow:7&gt;div.svn:0&gt;span:0">
+            <text id="svRoster__svrow-7__svn-0__span-0__text" font-family="Spectral" font-size="11.0" font-weight="400" fill="#7b6a55" text-anchor="start" font-style="italic">
+              <tspan x="16.0" y="2787.0">Seaman</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-7__svw-1__button-0" data-selector="#svRoster&gt;div.svrow:7&gt;div.svw:1&gt;button:0" data-label="Fore watch">
+            <rect id="svRoster__svrow-7__svw-1__button-0__border" x="189.0" y="2759.4" width="34.0" height="32.0" rx="0.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-7__svw-1__button-0__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+              <tspan x="206.0" y="2779.2">F</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-7__svw-1__button-1" data-selector="#svRoster&gt;div.svrow:7&gt;div.svw:1&gt;button:1" data-label="Main watch">
+            <rect id="svRoster__svrow-7__svw-1__button-1__bg" x="222.0" y="2759.4" width="34.0" height="32.0" rx="0.0" fill="#2e2519" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-7__svw-1__button-1__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#f6eed9" text-anchor="middle">
+              <tspan x="239.0" y="2779.2">M</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-7__svw-1__button-2" data-selector="#svRoster&gt;div.svrow:7&gt;div.svw:1&gt;button:2" data-label="Quarter watch">
+            <rect id="svRoster__svrow-7__svw-1__button-2__border" x="255.0" y="2759.4" width="34.0" height="32.0" rx="0.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-7__svw-1__button-2__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+              <tspan x="272.0" y="2779.2">Q</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-7__svw-1__button-3" data-selector="#svRoster&gt;div.svrow:7&gt;div.svw:1&gt;button:3" data-label="Day work">
+            <rect id="svRoster__svrow-7__svw-1__button-3__border" x="288.0" y="2759.4" width="34.0" height="32.0" rx="0.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-7__svw-1__button-3__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+              <tspan x="305.0" y="2779.2">D</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-7__svf-2" data-selector="#svRoster&gt;div.svrow:7&gt;div.svf:2" data-label="Fatigue">
+            <rect id="svRoster__svrow-7__svf-2__bg" x="330.0" y="2772.4" width="44.0" height="6.0" rx="0.0" fill="#f6eed9" stroke="#2e2519" stroke-width="1.0"/>
+            <g id="svRoster__svrow-7__svf-2__i-0" data-selector="#svRoster&gt;div.svrow:7&gt;div.svf:2&gt;i:0">
+              <rect id="svRoster__svrow-7__svf-2__i-0__bg" x="331.0" y="2773.4" width="10.1" height="4.0" rx="0.0" fill="#2e2519"/>
+            </g>
+          </g>
+          <g id="svRoster__svrow-7__svs-3" data-selector="#svRoster&gt;div.svrow:7&gt;div.svs:3">
+            <text id="svRoster__svrow-7__svs-3__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#7b6a55" text-anchor="start">
+              <tspan x="16.0" y="2804.2">At the helm</tspan>
+            </text>
+          </g>
+        </g>
+        <g id="svRoster__svrow-8" data-selector="#svRoster&gt;div.svrow:8">
+          <line id="svRoster__svrow-8__border-bottom" x1="12.0" y1="2871.9" x2="378.0" y2="2871.9" stroke="#cbbd98" stroke-width="1.0"/>
+          <g id="svRoster__svrow-8__svn-0__b-0" data-selector="#svRoster&gt;div.svrow:8&gt;div.svn:0&gt;b:0">
+            <text id="svRoster__svrow-8__svn-0__b-0__text" font-family="Spectral" font-size="13.0" font-weight="700" fill="#2e2519" text-anchor="start">
+              <tspan x="16.0" y="2832.4">Sam Loder</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-8__svn-0__span-0" data-selector="#svRoster&gt;div.svrow:8&gt;div.svn:0&gt;span:0">
+            <text id="svRoster__svrow-8__svn-0__span-0__text" font-family="Spectral" font-size="11.0" font-weight="400" fill="#7b6a55" text-anchor="start" font-style="italic">
+              <tspan x="16.0" y="2846.0">Seaman</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-8__svw-1__button-0" data-selector="#svRoster&gt;div.svrow:8&gt;div.svw:1&gt;button:0" data-label="Fore watch">
+            <rect id="svRoster__svrow-8__svw-1__button-0__border" x="189.0" y="2818.4" width="34.0" height="32.0" rx="0.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-8__svw-1__button-0__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+              <tspan x="206.0" y="2838.2">F</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-8__svw-1__button-1" data-selector="#svRoster&gt;div.svrow:8&gt;div.svw:1&gt;button:1" data-label="Main watch">
+            <rect id="svRoster__svrow-8__svw-1__button-1__border" x="222.0" y="2818.4" width="34.0" height="32.0" rx="0.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-8__svw-1__button-1__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+              <tspan x="239.0" y="2838.2">M</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-8__svw-1__button-2" data-selector="#svRoster&gt;div.svrow:8&gt;div.svw:1&gt;button:2" data-label="Quarter watch">
+            <rect id="svRoster__svrow-8__svw-1__button-2__bg" x="255.0" y="2818.4" width="34.0" height="32.0" rx="0.0" fill="#2e2519" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-8__svw-1__button-2__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#f6eed9" text-anchor="middle">
+              <tspan x="272.0" y="2838.2">Q</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-8__svw-1__button-3" data-selector="#svRoster&gt;div.svrow:8&gt;div.svw:1&gt;button:3" data-label="Day work">
+            <rect id="svRoster__svrow-8__svw-1__button-3__border" x="288.0" y="2818.4" width="34.0" height="32.0" rx="0.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-8__svw-1__button-3__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+              <tspan x="305.0" y="2838.2">D</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-8__svf-2" data-selector="#svRoster&gt;div.svrow:8&gt;div.svf:2" data-label="Fatigue">
+            <rect id="svRoster__svrow-8__svf-2__bg" x="330.0" y="2831.4" width="44.0" height="6.0" rx="0.0" fill="#f6eed9" stroke="#2e2519" stroke-width="1.0"/>
+            <g id="svRoster__svrow-8__svf-2__i-0" data-selector="#svRoster&gt;div.svrow:8&gt;div.svf:2&gt;i:0">
+              <rect id="svRoster__svrow-8__svf-2__i-0__bg" x="331.0" y="2832.4" width="7.1" height="4.0" rx="0.0" fill="#2e2519"/>
+            </g>
+          </g>
+          <g id="svRoster__svrow-8__svs-3" data-selector="#svRoster&gt;div.svrow:8&gt;div.svs:3">
+            <text id="svRoster__svrow-8__svs-3__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#7b6a55" text-anchor="start">
+              <tspan x="16.0" y="2863.2">Asleep, forecastle hammock 2</tspan>
+            </text>
+          </g>
+        </g>
+        <g id="svRoster__svrow-9" data-selector="#svRoster&gt;div.svrow:9">
+          <line id="svRoster__svrow-9__border-bottom" x1="12.0" y1="2930.9" x2="378.0" y2="2930.9" stroke="#cbbd98" stroke-width="1.0"/>
+          <g id="svRoster__svrow-9__svn-0__b-0" data-selector="#svRoster&gt;div.svrow:9&gt;div.svn:0&gt;b:0">
+            <text id="svRoster__svrow-9__svn-0__b-0__text" font-family="Spectral" font-size="13.0" font-weight="700" fill="#2e2519" text-anchor="start">
+              <tspan x="16.0" y="2891.4">Peter Voss</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-9__svn-0__span-0" data-selector="#svRoster&gt;div.svrow:9&gt;div.svn:0&gt;span:0">
+            <text id="svRoster__svrow-9__svn-0__span-0__text" font-family="Spectral" font-size="11.0" font-weight="400" fill="#7b6a55" text-anchor="start" font-style="italic">
+              <tspan x="16.0" y="2905.0">Seaman</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-9__svw-1__button-0" data-selector="#svRoster&gt;div.svrow:9&gt;div.svw:1&gt;button:0" data-label="Fore watch">
+            <rect id="svRoster__svrow-9__svw-1__button-0__bg" x="189.0" y="2877.4" width="34.0" height="32.0" rx="0.0" fill="#2e2519" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-9__svw-1__button-0__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#f6eed9" text-anchor="middle">
+              <tspan x="206.0" y="2897.2">F</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-9__svw-1__button-1" data-selector="#svRoster&gt;div.svrow:9&gt;div.svw:1&gt;button:1" data-label="Main watch">
+            <rect id="svRoster__svrow-9__svw-1__button-1__border" x="222.0" y="2877.4" width="34.0" height="32.0" rx="0.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-9__svw-1__button-1__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+              <tspan x="239.0" y="2897.2">M</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-9__svw-1__button-2" data-selector="#svRoster&gt;div.svrow:9&gt;div.svw:1&gt;button:2" data-label="Quarter watch">
+            <rect id="svRoster__svrow-9__svw-1__button-2__border" x="255.0" y="2877.4" width="34.0" height="32.0" rx="0.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-9__svw-1__button-2__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+              <tspan x="272.0" y="2897.2">Q</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-9__svw-1__button-3" data-selector="#svRoster&gt;div.svrow:9&gt;div.svw:1&gt;button:3" data-label="Day work">
+            <rect id="svRoster__svrow-9__svw-1__button-3__border" x="288.0" y="2877.4" width="34.0" height="32.0" rx="0.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-9__svw-1__button-3__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+              <tspan x="305.0" y="2897.2">D</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-9__svf-2" data-selector="#svRoster&gt;div.svrow:9&gt;div.svf:2" data-label="Fatigue">
+            <rect id="svRoster__svrow-9__svf-2__bg" x="330.0" y="2890.4" width="44.0" height="6.0" rx="0.0" fill="#f6eed9" stroke="#2e2519" stroke-width="1.0"/>
+            <g id="svRoster__svrow-9__svf-2__i-0" data-selector="#svRoster&gt;div.svrow:9&gt;div.svf:2&gt;i:0">
+              <rect id="svRoster__svrow-9__svf-2__i-0__bg" x="331.0" y="2891.4" width="10.1" height="4.0" rx="0.0" fill="#2e2519"/>
+            </g>
+          </g>
+          <g id="svRoster__svrow-9__svs-3" data-selector="#svRoster&gt;div.svrow:9&gt;div.svs:3">
+            <text id="svRoster__svrow-9__svs-3__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#7b6a55" text-anchor="start">
+              <tspan x="16.0" y="2922.2">Asleep, forecastle hammock 3</tspan>
+            </text>
+          </g>
+        </g>
+        <g id="svRoster__svrow-10" data-selector="#svRoster&gt;div.svrow:10">
+          <line id="svRoster__svrow-10__border-bottom" x1="12.0" y1="2989.9" x2="378.0" y2="2989.9" stroke="#cbbd98" stroke-width="1.0"/>
+          <g id="svRoster__svrow-10__svn-0__b-0" data-selector="#svRoster&gt;div.svrow:10&gt;div.svn:0&gt;b:0">
+            <text id="svRoster__svrow-10__svn-0__b-0__text" font-family="Spectral" font-size="13.0" font-weight="700" fill="#2e2519" text-anchor="start">
+              <tspan x="16.0" y="2950.4">Ned Garrick</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-10__svn-0__span-0" data-selector="#svRoster&gt;div.svrow:10&gt;div.svn:0&gt;span:0">
+            <text id="svRoster__svrow-10__svn-0__span-0__text" font-family="Spectral" font-size="11.0" font-weight="400" fill="#7b6a55" text-anchor="start" font-style="italic">
+              <tspan x="16.0" y="2964.0">Seaman</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-10__svw-1__button-0" data-selector="#svRoster&gt;div.svrow:10&gt;div.svw:1&gt;button:0" data-label="Fore watch">
+            <rect id="svRoster__svrow-10__svw-1__button-0__border" x="189.0" y="2936.4" width="34.0" height="32.0" rx="0.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-10__svw-1__button-0__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+              <tspan x="206.0" y="2956.2">F</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-10__svw-1__button-1" data-selector="#svRoster&gt;div.svrow:10&gt;div.svw:1&gt;button:1" data-label="Main watch">
+            <rect id="svRoster__svrow-10__svw-1__button-1__bg" x="222.0" y="2936.4" width="34.0" height="32.0" rx="0.0" fill="#2e2519" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-10__svw-1__button-1__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#f6eed9" text-anchor="middle">
+              <tspan x="239.0" y="2956.2">M</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-10__svw-1__button-2" data-selector="#svRoster&gt;div.svrow:10&gt;div.svw:1&gt;button:2" data-label="Quarter watch">
+            <rect id="svRoster__svrow-10__svw-1__button-2__border" x="255.0" y="2936.4" width="34.0" height="32.0" rx="0.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-10__svw-1__button-2__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+              <tspan x="272.0" y="2956.2">Q</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-10__svw-1__button-3" data-selector="#svRoster&gt;div.svrow:10&gt;div.svw:1&gt;button:3" data-label="Day work">
+            <rect id="svRoster__svrow-10__svw-1__button-3__border" x="288.0" y="2936.4" width="34.0" height="32.0" rx="0.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-10__svw-1__button-3__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+              <tspan x="305.0" y="2956.2">D</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-10__svf-2" data-selector="#svRoster&gt;div.svrow:10&gt;div.svf:2" data-label="Fatigue">
+            <rect id="svRoster__svrow-10__svf-2__bg" x="330.0" y="2949.4" width="44.0" height="6.0" rx="0.0" fill="#f6eed9" stroke="#2e2519" stroke-width="1.0"/>
+            <g id="svRoster__svrow-10__svf-2__i-0" data-selector="#svRoster&gt;div.svrow:10&gt;div.svf:2&gt;i:0">
+              <rect id="svRoster__svrow-10__svf-2__i-0__bg" x="331.0" y="2950.4" width="6.7" height="4.0" rx="0.0" fill="#2e2519"/>
+            </g>
+          </g>
+          <g id="svRoster__svrow-10__svs-3" data-selector="#svRoster&gt;div.svrow:10&gt;div.svs:3">
+            <text id="svRoster__svrow-10__svs-3__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#7b6a55" text-anchor="start">
+              <tspan x="16.0" y="2981.2">On deck, standing by</tspan>
+            </text>
+          </g>
+        </g>
+        <g id="svRoster__svrow-11" data-selector="#svRoster&gt;div.svrow:11">
+          <line id="svRoster__svrow-11__border-bottom" x1="12.0" y1="3048.9" x2="378.0" y2="3048.9" stroke="#cbbd98" stroke-width="1.0"/>
+          <g id="svRoster__svrow-11__svn-0__b-0" data-selector="#svRoster&gt;div.svrow:11&gt;div.svn:0&gt;b:0">
+            <text id="svRoster__svrow-11__svn-0__b-0__text" font-family="Spectral" font-size="13.0" font-weight="700" fill="#2e2519" text-anchor="start">
+              <tspan x="16.0" y="3009.4">Isaac Bell</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-11__svn-0__span-0" data-selector="#svRoster&gt;div.svrow:11&gt;div.svn:0&gt;span:0">
+            <text id="svRoster__svrow-11__svn-0__span-0__text" font-family="Spectral" font-size="11.0" font-weight="400" fill="#7b6a55" text-anchor="start" font-style="italic">
+              <tspan x="16.0" y="3023.0">Seaman</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-11__svw-1__button-0" data-selector="#svRoster&gt;div.svrow:11&gt;div.svw:1&gt;button:0" data-label="Fore watch">
+            <rect id="svRoster__svrow-11__svw-1__button-0__border" x="189.0" y="2995.4" width="34.0" height="32.0" rx="0.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-11__svw-1__button-0__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+              <tspan x="206.0" y="3015.2">F</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-11__svw-1__button-1" data-selector="#svRoster&gt;div.svrow:11&gt;div.svw:1&gt;button:1" data-label="Main watch">
+            <rect id="svRoster__svrow-11__svw-1__button-1__border" x="222.0" y="2995.4" width="34.0" height="32.0" rx="0.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-11__svw-1__button-1__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+              <tspan x="239.0" y="3015.2">M</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-11__svw-1__button-2" data-selector="#svRoster&gt;div.svrow:11&gt;div.svw:1&gt;button:2" data-label="Quarter watch">
+            <rect id="svRoster__svrow-11__svw-1__button-2__bg" x="255.0" y="2995.4" width="34.0" height="32.0" rx="0.0" fill="#2e2519" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-11__svw-1__button-2__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#f6eed9" text-anchor="middle">
+              <tspan x="272.0" y="3015.2">Q</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-11__svw-1__button-3" data-selector="#svRoster&gt;div.svrow:11&gt;div.svw:1&gt;button:3" data-label="Day work">
+            <rect id="svRoster__svrow-11__svw-1__button-3__border" x="288.0" y="2995.4" width="34.0" height="32.0" rx="0.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-11__svw-1__button-3__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+              <tspan x="305.0" y="3015.2">D</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-11__svf-2" data-selector="#svRoster&gt;div.svrow:11&gt;div.svf:2" data-label="Fatigue">
+            <rect id="svRoster__svrow-11__svf-2__bg" x="330.0" y="3008.4" width="44.0" height="6.0" rx="0.0" fill="#f6eed9" stroke="#2e2519" stroke-width="1.0"/>
+            <g id="svRoster__svrow-11__svf-2__i-0" data-selector="#svRoster&gt;div.svrow:11&gt;div.svf:2&gt;i:0">
+              <rect id="svRoster__svrow-11__svf-2__i-0__bg" x="331.0" y="3009.4" width="4.6" height="4.0" rx="0.0" fill="#2e2519"/>
+            </g>
+          </g>
+          <g id="svRoster__svrow-11__svs-3" data-selector="#svRoster&gt;div.svrow:11&gt;div.svs:3">
+            <text id="svRoster__svrow-11__svs-3__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#7b6a55" text-anchor="start">
+              <tspan x="16.0" y="3040.2">Off watch, at leisure</tspan>
+            </text>
+          </g>
+        </g>
+        <g id="svRoster__svrow-12" data-selector="#svRoster&gt;div.svrow:12">
+          <line id="svRoster__svrow-12__border-bottom" x1="12.0" y1="3107.9" x2="378.0" y2="3107.9" stroke="#cbbd98" stroke-width="1.0"/>
+          <g id="svRoster__svrow-12__svn-0__b-0" data-selector="#svRoster&gt;div.svrow:12&gt;div.svn:0&gt;b:0">
+            <text id="svRoster__svrow-12__svn-0__b-0__text" font-family="Spectral" font-size="13.0" font-weight="700" fill="#2e2519" text-anchor="start">
+              <tspan x="16.0" y="3068.4">Josh Penhallow</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-12__svn-0__span-0" data-selector="#svRoster&gt;div.svrow:12&gt;div.svn:0&gt;span:0">
+            <text id="svRoster__svrow-12__svn-0__span-0__text" font-family="Spectral" font-size="11.0" font-weight="400" fill="#7b6a55" text-anchor="start" font-style="italic">
+              <tspan x="16.0" y="3082.0">Seaman</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-12__svw-1__button-0" data-selector="#svRoster&gt;div.svrow:12&gt;div.svw:1&gt;button:0" data-label="Fore watch">
+            <rect id="svRoster__svrow-12__svw-1__button-0__bg" x="189.0" y="3054.4" width="34.0" height="32.0" rx="0.0" fill="#2e2519" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-12__svw-1__button-0__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#f6eed9" text-anchor="middle">
+              <tspan x="206.0" y="3074.2">F</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-12__svw-1__button-1" data-selector="#svRoster&gt;div.svrow:12&gt;div.svw:1&gt;button:1" data-label="Main watch">
+            <rect id="svRoster__svrow-12__svw-1__button-1__border" x="222.0" y="3054.4" width="34.0" height="32.0" rx="0.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-12__svw-1__button-1__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+              <tspan x="239.0" y="3074.2">M</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-12__svw-1__button-2" data-selector="#svRoster&gt;div.svrow:12&gt;div.svw:1&gt;button:2" data-label="Quarter watch">
+            <rect id="svRoster__svrow-12__svw-1__button-2__border" x="255.0" y="3054.4" width="34.0" height="32.0" rx="0.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-12__svw-1__button-2__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+              <tspan x="272.0" y="3074.2">Q</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-12__svw-1__button-3" data-selector="#svRoster&gt;div.svrow:12&gt;div.svw:1&gt;button:3" data-label="Day work">
+            <rect id="svRoster__svrow-12__svw-1__button-3__border" x="288.0" y="3054.4" width="34.0" height="32.0" rx="0.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-12__svw-1__button-3__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+              <tspan x="305.0" y="3074.2">D</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-12__svf-2" data-selector="#svRoster&gt;div.svrow:12&gt;div.svf:2" data-label="Fatigue">
+            <rect id="svRoster__svrow-12__svf-2__bg" x="330.0" y="3067.4" width="44.0" height="6.0" rx="0.0" fill="#f6eed9" stroke="#2e2519" stroke-width="1.0"/>
+            <g id="svRoster__svrow-12__svf-2__i-0" data-selector="#svRoster&gt;div.svrow:12&gt;div.svf:2&gt;i:0">
+              <rect id="svRoster__svrow-12__svf-2__i-0__bg" x="331.0" y="3068.4" width="2.1" height="4.0" rx="0.0" fill="#2e2519"/>
+            </g>
+          </g>
+          <g id="svRoster__svrow-12__svs-3" data-selector="#svRoster&gt;div.svrow:12&gt;div.svs:3">
+            <text id="svRoster__svrow-12__svs-3__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#7b6a55" text-anchor="start">
+              <tspan x="16.0" y="3099.2">Off watch, at leisure</tspan>
+            </text>
+          </g>
+        </g>
+        <g id="svRoster__svrow-13" data-selector="#svRoster&gt;div.svrow:13">
+          <line id="svRoster__svrow-13__border-bottom" x1="12.0" y1="3166.9" x2="378.0" y2="3166.9" stroke="#cbbd98" stroke-width="1.0"/>
+          <g id="svRoster__svrow-13__svn-0__b-0" data-selector="#svRoster&gt;div.svrow:13&gt;div.svn:0&gt;b:0">
+            <text id="svRoster__svrow-13__svn-0__b-0__text" font-family="Spectral" font-size="13.0" font-weight="700" fill="#2e2519" text-anchor="start">
+              <tspan x="16.0" y="3127.4">Dan Mercer</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-13__svn-0__span-0" data-selector="#svRoster&gt;div.svrow:13&gt;div.svn:0&gt;span:0">
+            <text id="svRoster__svrow-13__svn-0__span-0__text" font-family="Spectral" font-size="11.0" font-weight="400" fill="#7b6a55" text-anchor="start" font-style="italic">
+              <tspan x="16.0" y="3141.0">Seaman</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-13__svw-1__button-0" data-selector="#svRoster&gt;div.svrow:13&gt;div.svw:1&gt;button:0" data-label="Fore watch">
+            <rect id="svRoster__svrow-13__svw-1__button-0__border" x="189.0" y="3113.4" width="34.0" height="32.0" rx="0.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-13__svw-1__button-0__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+              <tspan x="206.0" y="3133.2">F</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-13__svw-1__button-1" data-selector="#svRoster&gt;div.svrow:13&gt;div.svw:1&gt;button:1" data-label="Main watch">
+            <rect id="svRoster__svrow-13__svw-1__button-1__bg" x="222.0" y="3113.4" width="34.0" height="32.0" rx="0.0" fill="#2e2519" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-13__svw-1__button-1__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#f6eed9" text-anchor="middle">
+              <tspan x="239.0" y="3133.2">M</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-13__svw-1__button-2" data-selector="#svRoster&gt;div.svrow:13&gt;div.svw:1&gt;button:2" data-label="Quarter watch">
+            <rect id="svRoster__svrow-13__svw-1__button-2__border" x="255.0" y="3113.4" width="34.0" height="32.0" rx="0.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-13__svw-1__button-2__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+              <tspan x="272.0" y="3133.2">Q</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-13__svw-1__button-3" data-selector="#svRoster&gt;div.svrow:13&gt;div.svw:1&gt;button:3" data-label="Day work">
+            <rect id="svRoster__svrow-13__svw-1__button-3__border" x="288.0" y="3113.4" width="34.0" height="32.0" rx="0.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-13__svw-1__button-3__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+              <tspan x="305.0" y="3133.2">D</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-13__svf-2" data-selector="#svRoster&gt;div.svrow:13&gt;div.svf:2" data-label="Fatigue">
+            <rect id="svRoster__svrow-13__svf-2__bg" x="330.0" y="3126.4" width="44.0" height="6.0" rx="0.0" fill="#f6eed9" stroke="#2e2519" stroke-width="1.0"/>
+            <g id="svRoster__svrow-13__svf-2__i-0" data-selector="#svRoster&gt;div.svrow:13&gt;div.svf:2&gt;i:0">
+              <rect id="svRoster__svrow-13__svf-2__i-0__bg" x="331.0" y="3127.4" width="5.5" height="4.0" rx="0.0" fill="#2e2519"/>
+            </g>
+          </g>
+          <g id="svRoster__svrow-13__svs-3" data-selector="#svRoster&gt;div.svrow:13&gt;div.svs:3">
+            <text id="svRoster__svrow-13__svs-3__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#7b6a55" text-anchor="start">
+              <tspan x="16.0" y="3158.2">Lookout at the foremast head</tspan>
+            </text>
+          </g>
+        </g>
+        <g id="svRoster__svrow-14" data-selector="#svRoster&gt;div.svrow:14">
+          <line id="svRoster__svrow-14__border-bottom" x1="12.0" y1="3225.9" x2="378.0" y2="3225.9" stroke="#cbbd98" stroke-width="1.0"/>
+          <g id="svRoster__svrow-14__svn-0__b-0" data-selector="#svRoster&gt;div.svrow:14&gt;div.svn:0&gt;b:0">
+            <text id="svRoster__svrow-14__svn-0__b-0__text" font-family="Spectral" font-size="13.0" font-weight="700" fill="#2e2519" text-anchor="start">
+              <tspan x="16.0" y="3186.4">Tom Rudge</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-14__svn-0__span-0" data-selector="#svRoster&gt;div.svrow:14&gt;div.svn:0&gt;span:0">
+            <text id="svRoster__svrow-14__svn-0__span-0__text" font-family="Spectral" font-size="11.0" font-weight="400" fill="#7b6a55" text-anchor="start" font-style="italic">
+              <tspan x="16.0" y="3200.0">Seaman</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-14__svw-1__button-0" data-selector="#svRoster&gt;div.svrow:14&gt;div.svw:1&gt;button:0" data-label="Fore watch">
+            <rect id="svRoster__svrow-14__svw-1__button-0__border" x="189.0" y="3172.4" width="34.0" height="32.0" rx="0.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-14__svw-1__button-0__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+              <tspan x="206.0" y="3192.2">F</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-14__svw-1__button-1" data-selector="#svRoster&gt;div.svrow:14&gt;div.svw:1&gt;button:1" data-label="Main watch">
+            <rect id="svRoster__svrow-14__svw-1__button-1__border" x="222.0" y="3172.4" width="34.0" height="32.0" rx="0.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-14__svw-1__button-1__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+              <tspan x="239.0" y="3192.2">M</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-14__svw-1__button-2" data-selector="#svRoster&gt;div.svrow:14&gt;div.svw:1&gt;button:2" data-label="Quarter watch">
+            <rect id="svRoster__svrow-14__svw-1__button-2__bg" x="255.0" y="3172.4" width="34.0" height="32.0" rx="0.0" fill="#2e2519" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-14__svw-1__button-2__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#f6eed9" text-anchor="middle">
+              <tspan x="272.0" y="3192.2">Q</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-14__svw-1__button-3" data-selector="#svRoster&gt;div.svrow:14&gt;div.svw:1&gt;button:3" data-label="Day work">
+            <rect id="svRoster__svrow-14__svw-1__button-3__border" x="288.0" y="3172.4" width="34.0" height="32.0" rx="0.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-14__svw-1__button-3__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+              <tspan x="305.0" y="3192.2">D</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-14__svf-2" data-selector="#svRoster&gt;div.svrow:14&gt;div.svf:2" data-label="Fatigue">
+            <rect id="svRoster__svrow-14__svf-2__bg" x="330.0" y="3185.4" width="44.0" height="6.0" rx="0.0" fill="#f6eed9" stroke="#2e2519" stroke-width="1.0"/>
+            <g id="svRoster__svrow-14__svf-2__i-0" data-selector="#svRoster&gt;div.svrow:14&gt;div.svf:2&gt;i:0">
+              <rect id="svRoster__svrow-14__svf-2__i-0__bg" x="331.0" y="3186.4" width="5.9" height="4.0" rx="0.0" fill="#2e2519"/>
+            </g>
+          </g>
+          <g id="svRoster__svrow-14__svs-3" data-selector="#svRoster&gt;div.svrow:14&gt;div.svs:3">
+            <text id="svRoster__svrow-14__svs-3__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#7b6a55" text-anchor="start">
+              <tspan x="16.0" y="3217.2">Asleep, forecastle hammock 8</tspan>
+            </text>
+          </g>
+        </g>
+        <g id="svRoster__svrow-15" data-selector="#svRoster&gt;div.svrow:15">
+          <line id="svRoster__svrow-15__border-bottom" x1="12.0" y1="3284.9" x2="378.0" y2="3284.9" stroke="#cbbd98" stroke-width="1.0"/>
+          <g id="svRoster__svrow-15__svn-0__b-0" data-selector="#svRoster&gt;div.svrow:15&gt;div.svn:0&gt;b:0">
+            <text id="svRoster__svrow-15__svn-0__b-0__text" font-family="Spectral" font-size="13.0" font-weight="700" fill="#2e2519" text-anchor="start">
+              <tspan x="16.0" y="3245.4">Eli Corbin</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-15__svn-0__span-0" data-selector="#svRoster&gt;div.svrow:15&gt;div.svn:0&gt;span:0">
+            <text id="svRoster__svrow-15__svn-0__span-0__text" font-family="Spectral" font-size="11.0" font-weight="400" fill="#7b6a55" text-anchor="start" font-style="italic">
+              <tspan x="16.0" y="3259.0">Seaman</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-15__svw-1__button-0" data-selector="#svRoster&gt;div.svrow:15&gt;div.svw:1&gt;button:0" data-label="Fore watch">
+            <rect id="svRoster__svrow-15__svw-1__button-0__bg" x="189.0" y="3231.4" width="34.0" height="32.0" rx="0.0" fill="#2e2519" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-15__svw-1__button-0__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#f6eed9" text-anchor="middle">
+              <tspan x="206.0" y="3251.2">F</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-15__svw-1__button-1" data-selector="#svRoster&gt;div.svrow:15&gt;div.svw:1&gt;button:1" data-label="Main watch">
+            <rect id="svRoster__svrow-15__svw-1__button-1__border" x="222.0" y="3231.4" width="34.0" height="32.0" rx="0.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-15__svw-1__button-1__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+              <tspan x="239.0" y="3251.2">M</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-15__svw-1__button-2" data-selector="#svRoster&gt;div.svrow:15&gt;div.svw:1&gt;button:2" data-label="Quarter watch">
+            <rect id="svRoster__svrow-15__svw-1__button-2__border" x="255.0" y="3231.4" width="34.0" height="32.0" rx="0.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-15__svw-1__button-2__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+              <tspan x="272.0" y="3251.2">Q</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-15__svw-1__button-3" data-selector="#svRoster&gt;div.svrow:15&gt;div.svw:1&gt;button:3" data-label="Day work">
+            <rect id="svRoster__svrow-15__svw-1__button-3__border" x="288.0" y="3231.4" width="34.0" height="32.0" rx="0.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-15__svw-1__button-3__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+              <tspan x="305.0" y="3251.2">D</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-15__svf-2" data-selector="#svRoster&gt;div.svrow:15&gt;div.svf:2" data-label="Fatigue">
+            <rect id="svRoster__svrow-15__svf-2__bg" x="330.0" y="3244.4" width="44.0" height="6.0" rx="0.0" fill="#f6eed9" stroke="#2e2519" stroke-width="1.0"/>
+            <g id="svRoster__svrow-15__svf-2__i-0" data-selector="#svRoster&gt;div.svrow:15&gt;div.svf:2&gt;i:0">
+              <rect id="svRoster__svrow-15__svf-2__i-0__bg" x="331.0" y="3245.4" width="3.8" height="4.0" rx="0.0" fill="#2e2519"/>
+            </g>
+          </g>
+          <g id="svRoster__svrow-15__svs-3" data-selector="#svRoster&gt;div.svrow:15&gt;div.svs:3">
+            <text id="svRoster__svrow-15__svs-3__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#7b6a55" text-anchor="start">
+              <tspan x="16.0" y="3276.2">Off watch, at leisure</tspan>
+            </text>
+          </g>
+        </g>
+        <g id="svRoster__svrow-16" data-selector="#svRoster&gt;div.svrow:16">
+          <line id="svRoster__svrow-16__border-bottom" x1="12.0" y1="3343.9" x2="378.0" y2="3343.9" stroke="#cbbd98" stroke-width="1.0"/>
+          <g id="svRoster__svrow-16__svn-0__b-0" data-selector="#svRoster&gt;div.svrow:16&gt;div.svn:0&gt;b:0">
+            <text id="svRoster__svrow-16__svn-0__b-0__text" font-family="Spectral" font-size="13.0" font-weight="700" fill="#2e2519" text-anchor="start">
+              <tspan x="16.0" y="3304.4">Matt Quill</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-16__svn-0__span-0" data-selector="#svRoster&gt;div.svrow:16&gt;div.svn:0&gt;span:0">
+            <text id="svRoster__svrow-16__svn-0__span-0__text" font-family="Spectral" font-size="11.0" font-weight="400" fill="#7b6a55" text-anchor="start" font-style="italic">
+              <tspan x="16.0" y="3318.0">Seaman</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-16__svw-1__button-0" data-selector="#svRoster&gt;div.svrow:16&gt;div.svw:1&gt;button:0" data-label="Fore watch">
+            <rect id="svRoster__svrow-16__svw-1__button-0__border" x="189.0" y="3290.4" width="34.0" height="32.0" rx="0.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-16__svw-1__button-0__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+              <tspan x="206.0" y="3310.2">F</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-16__svw-1__button-1" data-selector="#svRoster&gt;div.svrow:16&gt;div.svw:1&gt;button:1" data-label="Main watch">
+            <rect id="svRoster__svrow-16__svw-1__button-1__bg" x="222.0" y="3290.4" width="34.0" height="32.0" rx="0.0" fill="#2e2519" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-16__svw-1__button-1__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#f6eed9" text-anchor="middle">
+              <tspan x="239.0" y="3310.2">M</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-16__svw-1__button-2" data-selector="#svRoster&gt;div.svrow:16&gt;div.svw:1&gt;button:2" data-label="Quarter watch">
+            <rect id="svRoster__svrow-16__svw-1__button-2__border" x="255.0" y="3290.4" width="34.0" height="32.0" rx="0.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-16__svw-1__button-2__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+              <tspan x="272.0" y="3310.2">Q</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-16__svw-1__button-3" data-selector="#svRoster&gt;div.svrow:16&gt;div.svw:1&gt;button:3" data-label="Day work">
+            <rect id="svRoster__svrow-16__svw-1__button-3__border" x="288.0" y="3290.4" width="34.0" height="32.0" rx="0.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-16__svw-1__button-3__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+              <tspan x="305.0" y="3310.2">D</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-16__svf-2" data-selector="#svRoster&gt;div.svrow:16&gt;div.svf:2" data-label="Fatigue">
+            <rect id="svRoster__svrow-16__svf-2__bg" x="330.0" y="3303.4" width="44.0" height="6.0" rx="0.0" fill="#f6eed9" stroke="#2e2519" stroke-width="1.0"/>
+            <g id="svRoster__svrow-16__svf-2__i-0" data-selector="#svRoster&gt;div.svrow:16&gt;div.svf:2&gt;i:0">
+              <rect id="svRoster__svrow-16__svf-2__i-0__bg" x="331.0" y="3304.4" width="3.4" height="4.0" rx="0.0" fill="#2e2519"/>
+            </g>
+          </g>
+          <g id="svRoster__svrow-16__svs-3" data-selector="#svRoster&gt;div.svrow:16&gt;div.svs:3">
+            <text id="svRoster__svrow-16__svs-3__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#7b6a55" text-anchor="start">
+              <tspan x="16.0" y="3335.2">On deck, standing by</tspan>
+            </text>
+          </g>
+        </g>
+        <g id="svRoster__svrow-17" data-selector="#svRoster&gt;div.svrow:17">
+          <line id="svRoster__svrow-17__border-bottom" x1="12.0" y1="3402.9" x2="378.0" y2="3402.9" stroke="#cbbd98" stroke-width="1.0"/>
+          <g id="svRoster__svrow-17__svn-0__b-0" data-selector="#svRoster&gt;div.svrow:17&gt;div.svn:0&gt;b:0">
+            <text id="svRoster__svrow-17__svn-0__b-0__text" font-family="Spectral" font-size="13.0" font-weight="700" fill="#2e2519" text-anchor="start">
+              <tspan x="16.0" y="3363.4">Ben Starke</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-17__svn-0__span-0" data-selector="#svRoster&gt;div.svrow:17&gt;div.svn:0&gt;span:0">
+            <text id="svRoster__svrow-17__svn-0__span-0__text" font-family="Spectral" font-size="11.0" font-weight="400" fill="#7b6a55" text-anchor="start" font-style="italic">
+              <tspan x="16.0" y="3377.0">Seaman</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-17__svw-1__button-0" data-selector="#svRoster&gt;div.svrow:17&gt;div.svw:1&gt;button:0" data-label="Fore watch">
+            <rect id="svRoster__svrow-17__svw-1__button-0__border" x="189.0" y="3349.4" width="34.0" height="32.0" rx="0.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-17__svw-1__button-0__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+              <tspan x="206.0" y="3369.2">F</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-17__svw-1__button-1" data-selector="#svRoster&gt;div.svrow:17&gt;div.svw:1&gt;button:1" data-label="Main watch">
+            <rect id="svRoster__svrow-17__svw-1__button-1__border" x="222.0" y="3349.4" width="34.0" height="32.0" rx="0.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-17__svw-1__button-1__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+              <tspan x="239.0" y="3369.2">M</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-17__svw-1__button-2" data-selector="#svRoster&gt;div.svrow:17&gt;div.svw:1&gt;button:2" data-label="Quarter watch">
+            <rect id="svRoster__svrow-17__svw-1__button-2__bg" x="255.0" y="3349.4" width="34.0" height="32.0" rx="0.0" fill="#2e2519" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-17__svw-1__button-2__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#f6eed9" text-anchor="middle">
+              <tspan x="272.0" y="3369.2">Q</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-17__svw-1__button-3" data-selector="#svRoster&gt;div.svrow:17&gt;div.svw:1&gt;button:3" data-label="Day work">
+            <rect id="svRoster__svrow-17__svw-1__button-3__border" x="288.0" y="3349.4" width="34.0" height="32.0" rx="0.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-17__svw-1__button-3__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+              <tspan x="305.0" y="3369.2">D</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-17__svf-2" data-selector="#svRoster&gt;div.svrow:17&gt;div.svf:2" data-label="Fatigue">
+            <rect id="svRoster__svrow-17__svf-2__bg" x="330.0" y="3362.4" width="44.0" height="6.0" rx="0.0" fill="#f6eed9" stroke="#2e2519" stroke-width="1.0"/>
+            <g id="svRoster__svrow-17__svf-2__i-0" data-selector="#svRoster&gt;div.svrow:17&gt;div.svf:2&gt;i:0">
+              <rect id="svRoster__svrow-17__svf-2__i-0__bg" x="331.0" y="3363.4" width="2.9" height="4.0" rx="0.0" fill="#2e2519"/>
+            </g>
+          </g>
+          <g id="svRoster__svrow-17__svs-3" data-selector="#svRoster&gt;div.svrow:17&gt;div.svs:3">
+            <text id="svRoster__svrow-17__svs-3__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#7b6a55" text-anchor="start">
+              <tspan x="16.0" y="3394.2">Off watch, at leisure</tspan>
+            </text>
+          </g>
+        </g>
+        <g id="svRoster__svrow-18" data-selector="#svRoster&gt;div.svrow:18">
+          <line id="svRoster__svrow-18__border-bottom" x1="12.0" y1="3461.9" x2="378.0" y2="3461.9" stroke="#cbbd98" stroke-width="1.0"/>
+          <g id="svRoster__svrow-18__svn-0__b-0" data-selector="#svRoster&gt;div.svrow:18&gt;div.svn:0&gt;b:0">
+            <text id="svRoster__svrow-18__svn-0__b-0__text" font-family="Spectral" font-size="13.0" font-weight="700" fill="#2e2519" text-anchor="start">
+              <tspan x="16.0" y="3422.4">Robt. Finch</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-18__svn-0__span-0" data-selector="#svRoster&gt;div.svrow:18&gt;div.svn:0&gt;span:0">
+            <text id="svRoster__svrow-18__svn-0__span-0__text" font-family="Spectral" font-size="11.0" font-weight="400" fill="#7b6a55" text-anchor="start" font-style="italic">
+              <tspan x="16.0" y="3436.0">Seaman</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-18__svw-1__button-0" data-selector="#svRoster&gt;div.svrow:18&gt;div.svw:1&gt;button:0" data-label="Fore watch">
+            <rect id="svRoster__svrow-18__svw-1__button-0__bg" x="189.0" y="3408.4" width="34.0" height="32.0" rx="0.0" fill="#2e2519" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-18__svw-1__button-0__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#f6eed9" text-anchor="middle">
+              <tspan x="206.0" y="3428.2">F</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-18__svw-1__button-1" data-selector="#svRoster&gt;div.svrow:18&gt;div.svw:1&gt;button:1" data-label="Main watch">
+            <rect id="svRoster__svrow-18__svw-1__button-1__border" x="222.0" y="3408.4" width="34.0" height="32.0" rx="0.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-18__svw-1__button-1__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+              <tspan x="239.0" y="3428.2">M</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-18__svw-1__button-2" data-selector="#svRoster&gt;div.svrow:18&gt;div.svw:1&gt;button:2" data-label="Quarter watch">
+            <rect id="svRoster__svrow-18__svw-1__button-2__border" x="255.0" y="3408.4" width="34.0" height="32.0" rx="0.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-18__svw-1__button-2__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+              <tspan x="272.0" y="3428.2">Q</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-18__svw-1__button-3" data-selector="#svRoster&gt;div.svrow:18&gt;div.svw:1&gt;button:3" data-label="Day work">
+            <rect id="svRoster__svrow-18__svw-1__button-3__border" x="288.0" y="3408.4" width="34.0" height="32.0" rx="0.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-18__svw-1__button-3__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+              <tspan x="305.0" y="3428.2">D</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-18__svf-2" data-selector="#svRoster&gt;div.svrow:18&gt;div.svf:2" data-label="Fatigue">
+            <rect id="svRoster__svrow-18__svf-2__bg" x="330.0" y="3421.4" width="44.0" height="6.0" rx="0.0" fill="#f6eed9" stroke="#2e2519" stroke-width="1.0"/>
+            <g id="svRoster__svrow-18__svf-2__i-0" data-selector="#svRoster&gt;div.svrow:18&gt;div.svf:2&gt;i:0">
+              <rect id="svRoster__svrow-18__svf-2__i-0__bg" x="331.0" y="3422.4" width="2.5" height="4.0" rx="0.0" fill="#2e2519"/>
+            </g>
+          </g>
+          <g id="svRoster__svrow-18__svs-3" data-selector="#svRoster&gt;div.svrow:18&gt;div.svs:3">
+            <text id="svRoster__svrow-18__svs-3__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#7b6a55" text-anchor="start">
+              <tspan x="16.0" y="3453.2">Off watch, at leisure</tspan>
+            </text>
+          </g>
+        </g>
+        <g id="svRoster__svrow-19" data-selector="#svRoster&gt;div.svrow:19">
+          <line id="svRoster__svrow-19__border-bottom" x1="12.0" y1="3520.9" x2="378.0" y2="3520.9" stroke="#cbbd98" stroke-width="1.0"/>
+          <g id="svRoster__svrow-19__svn-0__b-0" data-selector="#svRoster&gt;div.svrow:19&gt;div.svn:0&gt;b:0">
+            <text id="svRoster__svrow-19__svn-0__b-0__text" font-family="Spectral" font-size="13.0" font-weight="700" fill="#2e2519" text-anchor="start">
+              <tspan x="16.0" y="3481.4">Kit Harlow</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-19__svn-0__span-0" data-selector="#svRoster&gt;div.svrow:19&gt;div.svn:0&gt;span:0">
+            <text id="svRoster__svrow-19__svn-0__span-0__text" font-family="Spectral" font-size="11.0" font-weight="400" fill="#7b6a55" text-anchor="start" font-style="italic">
+              <tspan x="16.0" y="3495.0">Seaman</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-19__svw-1__button-0" data-selector="#svRoster&gt;div.svrow:19&gt;div.svw:1&gt;button:0" data-label="Fore watch">
+            <rect id="svRoster__svrow-19__svw-1__button-0__border" x="189.0" y="3467.4" width="34.0" height="32.0" rx="0.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-19__svw-1__button-0__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+              <tspan x="206.0" y="3487.2">F</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-19__svw-1__button-1" data-selector="#svRoster&gt;div.svrow:19&gt;div.svw:1&gt;button:1" data-label="Main watch">
+            <rect id="svRoster__svrow-19__svw-1__button-1__bg" x="222.0" y="3467.4" width="34.0" height="32.0" rx="0.0" fill="#2e2519" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-19__svw-1__button-1__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#f6eed9" text-anchor="middle">
+              <tspan x="239.0" y="3487.2">M</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-19__svw-1__button-2" data-selector="#svRoster&gt;div.svrow:19&gt;div.svw:1&gt;button:2" data-label="Quarter watch">
+            <rect id="svRoster__svrow-19__svw-1__button-2__border" x="255.0" y="3467.4" width="34.0" height="32.0" rx="0.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-19__svw-1__button-2__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+              <tspan x="272.0" y="3487.2">Q</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-19__svw-1__button-3" data-selector="#svRoster&gt;div.svrow:19&gt;div.svw:1&gt;button:3" data-label="Day work">
+            <rect id="svRoster__svrow-19__svw-1__button-3__border" x="288.0" y="3467.4" width="34.0" height="32.0" rx="0.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-19__svw-1__button-3__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+              <tspan x="305.0" y="3487.2">D</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-19__svf-2" data-selector="#svRoster&gt;div.svrow:19&gt;div.svf:2" data-label="Fatigue">
+            <rect id="svRoster__svrow-19__svf-2__bg" x="330.0" y="3480.4" width="44.0" height="6.0" rx="0.0" fill="#f6eed9" stroke="#2e2519" stroke-width="1.0"/>
+            <g id="svRoster__svrow-19__svf-2__i-0" data-selector="#svRoster&gt;div.svrow:19&gt;div.svf:2&gt;i:0">
+              <rect id="svRoster__svrow-19__svf-2__i-0__bg" x="331.0" y="3481.4" width="2.1" height="4.0" rx="0.0" fill="#2e2519"/>
+            </g>
+          </g>
+          <g id="svRoster__svrow-19__svs-3" data-selector="#svRoster&gt;div.svrow:19&gt;div.svs:3">
+            <text id="svRoster__svrow-19__svs-3__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#7b6a55" text-anchor="start">
+              <tspan x="16.0" y="3512.2">On deck, standing by</tspan>
+            </text>
+          </g>
+        </g>
+        <g id="svRoster__svrow-20" data-selector="#svRoster&gt;div.svrow:20">
+          <line id="svRoster__svrow-20__border-bottom" x1="12.0" y1="3579.9" x2="378.0" y2="3579.9" stroke="#cbbd98" stroke-width="1.0"/>
+          <g id="svRoster__svrow-20__svn-0__b-0" data-selector="#svRoster&gt;div.svrow:20&gt;div.svn:0&gt;b:0">
+            <text id="svRoster__svrow-20__svn-0__b-0__text" font-family="Spectral" font-size="13.0" font-weight="700" fill="#2e2519" text-anchor="start">
+              <tspan x="16.0" y="3540.4">Dr. Ambrose Whitlock</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-20__svn-0__span-0" data-selector="#svRoster&gt;div.svrow:20&gt;div.svn:0&gt;span:0">
+            <text id="svRoster__svrow-20__svn-0__span-0__text" font-family="Spectral" font-size="11.0" font-weight="400" fill="#7b6a55" text-anchor="start" font-style="italic">
+              <tspan x="16.0" y="3554.0">Surgeon</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-20__svw-1__button-0" data-selector="#svRoster&gt;div.svrow:20&gt;div.svw:1&gt;button:0" data-label="Fore watch">
+            <rect id="svRoster__svrow-20__svw-1__button-0__border" x="189.0" y="3526.4" width="34.0" height="32.0" rx="0.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-20__svw-1__button-0__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+              <tspan x="206.0" y="3546.2">F</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-20__svw-1__button-1" data-selector="#svRoster&gt;div.svrow:20&gt;div.svw:1&gt;button:1" data-label="Main watch">
+            <rect id="svRoster__svrow-20__svw-1__button-1__border" x="222.0" y="3526.4" width="34.0" height="32.0" rx="0.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-20__svw-1__button-1__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+              <tspan x="239.0" y="3546.2">M</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-20__svw-1__button-2" data-selector="#svRoster&gt;div.svrow:20&gt;div.svw:1&gt;button:2" data-label="Quarter watch">
+            <rect id="svRoster__svrow-20__svw-1__button-2__border" x="255.0" y="3526.4" width="34.0" height="32.0" rx="0.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-20__svw-1__button-2__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+              <tspan x="272.0" y="3546.2">Q</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-20__svw-1__button-3" data-selector="#svRoster&gt;div.svrow:20&gt;div.svw:1&gt;button:3" data-label="Day work">
+            <rect id="svRoster__svrow-20__svw-1__button-3__bg" x="288.0" y="3526.4" width="34.0" height="32.0" rx="0.0" fill="#2e2519" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-20__svw-1__button-3__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#f6eed9" text-anchor="middle">
+              <tspan x="305.0" y="3546.2">D</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-20__svf-2" data-selector="#svRoster&gt;div.svrow:20&gt;div.svf:2" data-label="Fatigue">
+            <rect id="svRoster__svrow-20__svf-2__bg" x="330.0" y="3539.4" width="44.0" height="6.0" rx="0.0" fill="#f6eed9" stroke="#2e2519" stroke-width="1.0"/>
+            <g id="svRoster__svrow-20__svf-2__i-0" data-selector="#svRoster&gt;div.svrow:20&gt;div.svf:2&gt;i:0">
+              <rect id="svRoster__svrow-20__svf-2__i-0__bg" x="331.0" y="3540.4" width="4.2" height="4.0" rx="0.0" fill="#2e2519"/>
+            </g>
+          </g>
+          <g id="svRoster__svrow-20__svs-3" data-selector="#svRoster&gt;div.svrow:20&gt;div.svs:3">
+            <text id="svRoster__svrow-20__svs-3__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#7b6a55" text-anchor="start">
+              <tspan x="16.0" y="3571.2">In the surgeon&#x27;s cabin</tspan>
+            </text>
+          </g>
+        </g>
+        <g id="svRoster__svrow-21" data-selector="#svRoster&gt;div.svrow:21">
+          <line id="svRoster__svrow-21__border-bottom" x1="12.0" y1="3638.9" x2="378.0" y2="3638.9" stroke="#cbbd98" stroke-width="1.0"/>
+          <g id="svRoster__svrow-21__svn-0__b-0" data-selector="#svRoster&gt;div.svrow:21&gt;div.svn:0&gt;b:0">
+            <text id="svRoster__svrow-21__svn-0__b-0__text" font-family="Spectral" font-size="13.0" font-weight="700" fill="#2e2519" text-anchor="start">
+              <tspan x="16.0" y="3599.4">Jos. Pell</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-21__svn-0__span-0" data-selector="#svRoster&gt;div.svrow:21&gt;div.svn:0&gt;span:0">
+            <text id="svRoster__svrow-21__svn-0__span-0__text" font-family="Spectral" font-size="11.0" font-weight="400" fill="#7b6a55" text-anchor="start" font-style="italic">
+              <tspan x="16.0" y="3613.0">Surgeon&#x27;s mate</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-21__svw-1__button-0" data-selector="#svRoster&gt;div.svrow:21&gt;div.svw:1&gt;button:0" data-label="Fore watch">
+            <rect id="svRoster__svrow-21__svw-1__button-0__border" x="189.0" y="3585.4" width="34.0" height="32.0" rx="0.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-21__svw-1__button-0__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+              <tspan x="206.0" y="3605.2">F</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-21__svw-1__button-1" data-selector="#svRoster&gt;div.svrow:21&gt;div.svw:1&gt;button:1" data-label="Main watch">
+            <rect id="svRoster__svrow-21__svw-1__button-1__border" x="222.0" y="3585.4" width="34.0" height="32.0" rx="0.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-21__svw-1__button-1__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+              <tspan x="239.0" y="3605.2">M</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-21__svw-1__button-2" data-selector="#svRoster&gt;div.svrow:21&gt;div.svw:1&gt;button:2" data-label="Quarter watch">
+            <rect id="svRoster__svrow-21__svw-1__button-2__border" x="255.0" y="3585.4" width="34.0" height="32.0" rx="0.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-21__svw-1__button-2__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+              <tspan x="272.0" y="3605.2">Q</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-21__svw-1__button-3" data-selector="#svRoster&gt;div.svrow:21&gt;div.svw:1&gt;button:3" data-label="Day work">
+            <rect id="svRoster__svrow-21__svw-1__button-3__bg" x="288.0" y="3585.4" width="34.0" height="32.0" rx="0.0" fill="#2e2519" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="svRoster__svrow-21__svw-1__button-3__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#f6eed9" text-anchor="middle">
+              <tspan x="305.0" y="3605.2">D</tspan>
+            </text>
+          </g>
+          <g id="svRoster__svrow-21__svf-2" data-selector="#svRoster&gt;div.svrow:21&gt;div.svf:2" data-label="Fatigue">
+            <rect id="svRoster__svrow-21__svf-2__bg" x="330.0" y="3598.4" width="44.0" height="6.0" rx="0.0" fill="#f6eed9" stroke="#2e2519" stroke-width="1.0"/>
+            <g id="svRoster__svrow-21__svf-2__i-0" data-selector="#svRoster&gt;div.svrow:21&gt;div.svf:2&gt;i:0">
+              <rect id="svRoster__svrow-21__svf-2__i-0__bg" x="331.0" y="3599.4" width="4.2" height="4.0" rx="0.0" fill="#2e2519"/>
+            </g>
+          </g>
+          <g id="svRoster__svrow-21__svs-3" data-selector="#svRoster&gt;div.svrow:21&gt;div.svs:3">
+            <text id="svRoster__svrow-21__svs-3__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#7b6a55" text-anchor="start">
+              <tspan x="16.0" y="3630.2">In the surgeon&#x27;s cabin</tspan>
+            </text>
+          </g>
+        </g>
+      </g>
+    </g>
+  </g>
+  <line id="_guide__screen-bottom-844px" x1="0" y1="844" x2="390" y2="844" stroke="#b2452c" stroke-dasharray="8 6" stroke-width="1"/>
+</g>
+</svg>

@@ -1,0 +1,695 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="1199" viewBox="0 0 1280 1199" xmlns:c2pa="http://c2pa.org/manifest"><metadata><c2pa:manifest>AAAWgmp1bWIAAAAeanVtZGMycGEAEQAQgAAAqgA4m3EDYzJwYQAAABZcanVtYgAAAEdqdW1kYzJtYQARABCAAACqADibcQN1cm46YzJwYTo3NzhmN2VjMi05NWJhLTRlNjgtOGY4MC0yOTRhZGU3Nzk4MDkAAAADl2p1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAALxqdW1iAAAARGp1bWRjYm9yABEAEIAAAKoAOJtxE2MycGEuaW5ncmVkaWVudC52MwAAAAAYYzJzaPWGLaWrj5SQ9xB2B3ncEXMAAABwY2JvcqNpZGM6Zm9ybWF0bWltYWdlL3N2Zyt4bWxqaW5zdGFuY2VJRHgseG1wOmlpZDo0NGRiZmVhMy0yZWU2LTQ4MWQtYWM0YS05OGVkMGVmMTYxMGJscmVsYXRpb25zaGlwaHBhcmVudE9mAAAB4mp1bWIAAABBanVtZGNib3IAEQAQgAAAqgA4m3ETYzJwYS5hY3Rpb25zLnYyAAAAABhjMnNokOyHj/HUuscAd5PRPiu0PgAAAZljYm9yomdhY3Rpb25zgqJmYWN0aW9ua2MycGEub3BlbmVkanBhcmFtZXRlcnOha2luZ3JlZGllbnRzgaJjdXJseC1zZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmluZ3JlZGllbnQudjNkaGFzaFggnruYAI6XO7FQHCvtSDoMd2ke1MPKAAbYDq9YCJESQbakZmFjdGlvbngdY29tLmFudGhyb3BpYy5jbGF1ZGUucHJvdmlkZWRqcGFyYW1ldGVyc6F4H2NvbS5hbnRocm9waWMub3JpZ2luLWNvbmZpZGVuY2VndW5rbm93bmtkZXNjcmlwdGlvbnhmQ2xhdWRlIHByb3ZpZGVkIHRoaXMgZmlsZSBhdCB0aGUgcmVxdWVzdCBvZiBhIHVzZXIgYW5kIG1heSBoYXZlIGNyZWF0ZWQgb3IgbW9kaWZpZWQgdGhlIGZpbGUgY29udGVudHMubXNvZnR3YXJlQWdlbnShZG5hbWVmQ2xhdWRlcmFsbEFjdGlvbnNJbmNsdWRlZPUAAADIanVtYgAAAEBqdW1kY2JvcgARABCAAACqADibcRNjMnBhLmhhc2guZGF0YQAAAAAYYzJzaJihm+y3io+xq3rRol6iQVQAAACAY2JvcqVjYWxnZnNoYTI1NmNwYWRNAAAAAAAAAAAAAAAAAGRoYXNoWCAJtyyG61BE9st4n2tPCB/VxC0d/5mQv/6ws89ejKcYt2RuYW1lbmp1bWJmIG1hbmlmZXN0amV4Y2x1c2lvbnOBomVzdGFydBjBZmxlbmd0aBkeBAAAAj5qdW1iAAAAJ2p1bWRjMmNsABEAEIAAAKoAOJtxA2MycGEuY2xhaW0udjIAAAACD2Nib3KlY2FsZ2ZzaGEyNTZpc2lnbmF0dXJleE1zZWxmI2p1bWJmPS9jMnBhL3VybjpjMnBhOjc3OGY3ZWMyLTk1YmEtNGU2OC04ZjgwLTI5NGFkZTc3OTgwOS9jMnBhLnNpZ25hdHVyZWppbnN0YW5jZUlEeCx4bXA6aWlkOmM4ODQ2ZGM5LWFhNjgtNDEwNC05NjU5LTRlOTg0NzBjYjI5ZHJjcmVhdGVkX2Fzc2VydGlvbnODomN1cmx4LXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuaW5ncmVkaWVudC52M2RoYXNoWCCeu5gAjpc7sVAcK+1IOgx3aR7Uw8oABtgOr1gIkRJBtqJjdXJseCpzZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmFjdGlvbnMudjJkaGFzaFggdjxvg1TWEWXtYs+JErpQXfbsg7vUVEh7KRtaYOvDp76iY3VybHgpc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5oYXNoLmRhdGFkaGFzaFggl5MCvVHyx6IV1mjiZ8kul7PVhibMbi9/uDHTPUsOkn50Y2xhaW1fZ2VuZXJhdG9yX2luZm+jZG5hbWVvQW50aHJvcGljIEZpbGVzZ3ZlcnNpb25lMS4wLjBrc3BlY1ZlcnNpb25lMi40LjAAABA4anVtYgAAAChqdW1kYzJjcwARABCAAACqADibcQNjMnBhLnNpZ25hdHVyZQAAABAIY2JvctKEWQISogEmGCFZAgowggIGMIIBjaADAgECAhRA5aAK7sI50L64g/oGQgU9Z1UTADAKBggqhkjOPQQDAzBJMRcwFQYDVQQKEw5BbnRocm9waWMsIFBCQzEuMCwGA1UEAxMlQW50aHJvcGljIENvbnRlbnQgQ3JlZGVudGlhbHMgUm9vdCBDQTAeFw0yNjA4MDcxODQzNTZaFw0yODA4MDYxOTQzNTZaMEQxFzAVBgNVBAoTDkFudGhyb3BpYywgUEJDMSkwJwYDVQQDEyBBbnRocm9waWMgQ2xhdWRlIENvbnRlbnQgU2lnbmluZzBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABJh6CmvLUBgFFNU0vUKlOVtE6djd17L5SuwX0LemFisBM3dkd/3cyjxFA3Qo5S46fX0/ihY0VZ7mfb9KF703t5OjWDBWMA4GA1UdDwEB/wQEAwIHgDAVBgNVHSUEDjAMBgorBgEEAYPoXgIBMAwGA1UdEwEB/wQCMAAwHwYDVR0jBBgwFoAUzlHiBIFOZFsj+OPEz5o+nMHXXMIwCgYIKoZIzj0EAwMDZwAwZAIwMXMdFJ4BetLLVY7ORuE9noqbbAZOZn/aArXyTwFAZfKrPzxF2vPoJNf1+UCdg1XGAjBwX1zd9WGqYkqmL5SFqw1QySjr1zJfpJM9+1rdDwSPLMOPOjKuiXjoU/pUUeG9RwmhY3BhZFkNngAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPZYQMlnRPBF7uRhuZ7ICOn1o/AFb19saNODM3ZwH0DixhGqPnX7OuK2STwRjbVff/mml7AaLdm/wFcmYKI0g2d3X0g=</c2pa:manifest></metadata>
+<title>desktop / 3D view</title>
+<g id="desktop__3D-view">
+  <rect id="page-background" x="0" y="0" width="1280" height="1199" fill="#ebdfc2"/>
+  <g id="bar-0" data-selector="div:0&gt;div.bar:0">
+    <rect id="bar-0__bg" x="0.0" y="0.0" width="1280.0" height="32.8" rx="0.0" fill="#ebdfc2"/>
+    <line id="bar-0__border-bottom" x1="0.0" y1="31.8" x2="1280.0" y2="31.8" stroke="#2e2519" stroke-width="2.0"/>
+    <g id="barTog" data-selector="#barTog" data-label="Fold the top bar up or down">
+      <rect id="barTog__bg" x="10.0" y="5.4" width="20.0" height="20.0" rx="2.0" fill="#f6eed9" stroke="#2e2519" stroke-width="1.0"/>
+      <text id="barTog__text" font-family="Spectral" font-size="10.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+        <tspan x="20.0" y="18.9">▲</tspan>
+      </text>
+    </g>
+    <g id="bar-0__seg-0" data-selector="div:0&gt;div.bar:0&gt;div.seg:0" data-label="Time">
+      <rect id="bar-0__seg-0__border" x="864.4" y="4.5" width="117.8" height="21.8" rx="3.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+      <g id="tPause" data-selector="#tPause" data-label="Pause (Space)">
+        <line id="tPause__border-right" x1="892.6" y1="5.5" x2="892.6" y2="25.3" stroke="#2e2519" stroke-width="1.0"/>
+        <text id="tPause__text" font-family="IBM Plex Mono" font-size="10.5" font-weight="400" fill="#2e2519" text-anchor="middle">
+          <tspan x="879.2" y="19.1">❚❚</tspan>
+        </text>
+      </g>
+      <g id="t1" data-selector="#t1" data-label="Real time (1)">
+        <rect id="t1__bg" x="893.0" y="5.5" width="27.6" height="19.8" rx="0.0" fill="#2e2519"/>
+        <line id="t1__border-right" x1="920.1" y1="5.5" x2="920.1" y2="25.3" stroke="#2e2519" stroke-width="1.0"/>
+        <text id="t1__text" font-family="IBM Plex Mono" font-size="10.5" font-weight="400" fill="#f6eed9" text-anchor="middle">
+          <tspan x="906.8" y="19.1">1×</tspan>
+        </text>
+      </g>
+      <g id="t3" data-selector="#t3" data-label="3× real time (2)">
+        <line id="t3__border-right" x1="947.7" y1="5.5" x2="947.7" y2="25.3" stroke="#2e2519" stroke-width="1.0"/>
+        <text id="t3__text" font-family="IBM Plex Mono" font-size="10.5" font-weight="400" fill="#2e2519" text-anchor="middle">
+          <tspan x="934.4" y="19.1">3×</tspan>
+        </text>
+      </g>
+      <g id="t60" data-selector="#t60" data-label="60×: one minute per second (3)">
+        <text id="t60__text" font-family="IBM Plex Mono" font-size="10.5" font-weight="400" fill="#2e2519" text-anchor="middle">
+          <tspan x="964.7" y="19.1">60×</tspan>
+        </text>
+      </g>
+    </g>
+    <g id="bar-0__seg-1" data-selector="div:0&gt;div.bar:0&gt;div.seg:1" data-label="Skip ahead">
+      <rect id="bar-0__seg-1__border" x="990.1" y="4.5" width="134.2" height="21.8" rx="3.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+      <g id="bSkip" data-selector="#bSkip" data-label="Skip ahead three hours (K)">
+        <line id="bSkip__border-right" x1="1030.8" y1="5.5" x2="1030.8" y2="25.3" stroke="#2e2519" stroke-width="1.0"/>
+        <text id="bSkip__text" font-family="IBM Plex Mono" font-size="10.5" font-weight="400" fill="#2e2519" text-anchor="middle">
+          <tspan x="1011.2" y="19.1">+3 h</tspan>
+        </text>
+      </g>
+      <g id="bSkip12" data-selector="#bSkip12" data-label="Skip ahead twelve hours (Shift+K)">
+        <line id="bSkip12__border-right" x1="1077.3" y1="5.5" x2="1077.3" y2="25.3" stroke="#2e2519" stroke-width="1.0"/>
+        <text id="bSkip12__text" font-family="IBM Plex Mono" font-size="10.5" font-weight="400" fill="#2e2519" text-anchor="middle">
+          <tspan x="1054.5" y="19.1">+12 h</tspan>
+        </text>
+      </g>
+      <g id="bSkip24" data-selector="#bSkip24" data-label="Skip ahead a day (Alt+K)">
+        <text id="bSkip24__text" font-family="IBM Plex Mono" font-size="10.5" font-weight="400" fill="#2e2519" text-anchor="middle">
+          <tspan x="1100.5" y="19.1">+24 h</tspan>
+        </text>
+      </g>
+    </g>
+    <g id="bAssist" data-selector="#bAssist" data-label="Crew assists: sails, watches, speed log and navigation">
+      <rect id="bAssist__border" x="1132.3" y="5.0" width="72.7" height="21.8" rx="3.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+      <text id="bAssist__text" font-family="IBM Plex Mono" font-size="10.5" font-weight="400" fill="#2e2519" text-anchor="middle">
+        <tspan x="1168.6" y="19.6">Assists ✦</tspan>
+      </text>
+    </g>
+    <g id="bMenu" data-selector="#bMenu" data-label="Voyages, help and sound">
+      <rect id="bMenu__border" x="1213.1" y="5.0" width="56.9" height="21.8" rx="3.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+      <text id="bMenu__text" font-family="IBM Plex Mono" font-size="10.5" font-weight="400" fill="#2e2519" text-anchor="middle">
+        <tspan x="1241.5" y="19.6">Menu ☰</tspan>
+      </text>
+    </g>
+  </g>
+  <g id="infobar-1" data-selector="div:0&gt;div.infobar:1" data-label="Date, wind and weather">
+    <rect id="infobar-1__bg" x="0.0" y="32.8" width="1280.0" height="79.0" rx="0.0" fill="#f6eed9"/>
+    <line id="infobar-1__border-bottom" x1="0.0" y1="111.3" x2="1280.0" y2="111.3" stroke="#2e2519" stroke-width="1.0"/>
+    <g id="clock" data-selector="#clock">
+      <text id="clock__text" font-family="IM Fell English SC" font-size="16.0" font-weight="400" fill="#2e2519" text-anchor="start">
+        <tspan x="16.0" y="54.4">10 March 1745 · 07:00:00</tspan>
+      </text>
+    </g>
+    <g id="watch" data-selector="#watch">
+      <text id="watch__text" font-family="IBM Plex Mono" font-size="10.5" font-weight="400" fill="#7b6a55" text-anchor="start" letter-spacing="0.84">
+        <tspan x="185.7" y="52.5">MORNING WATCH · 6 BELLS</tspan>
+      </text>
+    </g>
+    <g id="infobar-1__it-1__i-0" data-selector="div:0&gt;div.infobar:1&gt;span.it:1&gt;i:0">
+      <text id="infobar-1__it-1__i-0__text" font-family="IBM Plex Mono" font-size="10.5" font-weight="400" fill="#7b6a55" text-anchor="start" letter-spacing="0.63">
+        <tspan x="371.9" y="52.5">WIND</tspan>
+      </text>
+    </g>
+    <g id="windTxt" data-selector="#windTxt">
+      <text id="windTxt__text" font-family="Spectral" font-size="12.5" font-weight="400" fill="#2e2519" text-anchor="start">
+        <tspan x="405.7" y="53.7">From · Force 4, moderate breeze</tspan>
+      </text>
+      <g id="windTxt__b-0" data-selector="#windTxt&gt;b:0">
+        <text id="windTxt__b-0__text" font-family="Spectral" font-size="12.5" font-weight="700" fill="#2e2519" text-anchor="start">
+          <tspan x="438.5" y="53.7">E by S</tspan>
+        </text>
+      </g>
+      <g id="windTxt__mono-0" data-selector="#windTxt&gt;span.mono:0">
+        <text id="windTxt__mono-0__text" font-family="IBM Plex Mono" font-size="12.5" font-weight="400" fill="#7b6a55" text-anchor="start">
+          <tspan x="623.9" y="52.2">(15 kn)</tspan>
+        </text>
+      </g>
+    </g>
+    <g id="infobar-1__it-2__i-0" data-selector="div:0&gt;div.infobar:1&gt;span.it:2&gt;i:0">
+      <text id="infobar-1__it-2__i-0__text" font-family="IBM Plex Mono" font-size="10.5" font-weight="400" fill="#7b6a55" text-anchor="start" letter-spacing="0.63">
+        <tspan x="698.4" y="52.5">WEATHER</tspan>
+      </text>
+    </g>
+    <g id="wxTxt" data-selector="#wxTxt">
+      <text id="wxTxt__text" font-family="Spectral" font-size="12.5" font-weight="400" fill="#2e2519" text-anchor="start">
+        <tspan x="752.9" y="53.7">In the lee of Barbados</tspan>
+      </text>
+    </g>
+    <g id="glassIt__i-0" data-selector="#glassIt&gt;i:0">
+      <text id="glassIt__i-0__text" font-family="IBM Plex Mono" font-size="10.5" font-weight="400" fill="#7b6a55" text-anchor="start" letter-spacing="0.63">
+        <tspan x="895.8" y="52.5">GLASS</tspan>
+      </text>
+    </g>
+    <g id="glassTxt" data-selector="#glassTxt">
+      <text id="glassTxt__text" font-family="Spectral" font-size="12.5" font-weight="400" fill="#2e2519" text-anchor="start">
+        <tspan x="936.4" y="53.7">29.97 in · Fair · rising fast, clearing quickly</tspan>
+      </text>
+    </g>
+    <g id="infobar-1__it-4__i-0" data-selector="div:0&gt;div.infobar:1&gt;span.it:4&gt;i:0">
+      <text id="infobar-1__it-4__i-0__text" font-family="IBM Plex Mono" font-size="10.5" font-weight="400" fill="#7b6a55" text-anchor="start" letter-spacing="0.63">
+        <tspan x="16.0" y="75.5">SEA</tspan>
+      </text>
+    </g>
+    <g id="seaTxt" data-selector="#seaTxt">
+      <text id="seaTxt__text" font-family="Spectral" font-size="12.5" font-weight="400" fill="#2e2519" text-anchor="start">
+        <tspan x="42.8" y="76.7">Moderate sea (1.5 m) · swell from NE by E</tspan>
+      </text>
+    </g>
+    <g id="logLine__i-0" data-selector="#logLine&gt;i:0">
+      <text id="logLine__i-0__text" font-family="IBM Plex Mono" font-size="10.5" font-weight="400" fill="#7b6a55" text-anchor="start" letter-spacing="0.63">
+        <tspan x="16.0" y="98.5">LOG</tspan>
+      </text>
+    </g>
+    <g id="logLast" data-selector="#logLast">
+      <text id="logLast__text" font-family="Spectral" font-size="12.5" font-weight="400" fill="#2e2519" text-anchor="start">
+        <tspan x="42.8" y="99.7">07:00 · Man-of-war birds hang high over the ship. Land cannot be far off.</tspan>
+      </text>
+    </g>
+    <g id="ibTog" data-selector="#ibTog" data-label="Fold the information strip up or down">
+      <rect id="ibTog__bg" x="1246.0" y="37.8" width="22.0" height="22.0" rx="2.0" fill="#f6eed9" stroke="#2e2519" stroke-width="1.0"/>
+      <text id="ibTog__text" font-family="Spectral" font-size="11.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+        <tspan x="1257.0" y="52.6">▲</tspan>
+      </text>
+    </g>
+  </g>
+  <g id="chartwrap-0" data-selector="div:0&gt;div.main:2&gt;div.chartwrap:0">
+    <rect id="chartwrap-0__bg" x="0.0" y="111.8" width="940.0" height="688.3" rx="0.0" fill="#f6eed9"/>
+    <g id="paneV3" data-selector="#paneV3">
+      <rect id="paneV3__bg" x="0.0" y="111.8" width="940.0" height="688.3" rx="0.0" fill="#f6eed9"/>
+      <g id="view3d" data-selector="#view3d" data-label="3D view from the ship">
+        <rect id="view3d__canvas" x="0.0" y="111.8" width="940.0" height="688.3" fill="#9fb3c8" fill-opacity="0.35" stroke="#4a6a8a" stroke-dasharray="6 4"/>
+        <text x="6.0" y="127.8" font-family="IBM Plex Mono" font-size="11" fill="#4a6a8a">live canvas · #view3d (drawn by the game)</text>
+      </g>
+      <g id="hud" data-selector="#hud">
+        <rect id="hud__canvas" x="0.0" y="111.8" width="940.0" height="688.3" fill="#9fb3c8" fill-opacity="0.35" stroke="#4a6a8a" stroke-dasharray="6 4"/>
+        <text x="6.0" y="143.8" font-family="IBM Plex Mono" font-size="11" fill="#4a6a8a">live canvas · #hud (drawn by the game)</text>
+      </g>
+      <g id="compassBox" data-selector="#compassBox">
+        <rect id="compassBox__bg" x="495.5" y="157.8" width="432.5" height="323.0" rx="0.0" fill="#f6eed9" fill-opacity="0.92" stroke="#2e2519" stroke-width="1.0"/>
+        <g id="cL5" data-selector="#cL5" data-label="Port 5 degrees">
+          <text id="cL5__text" font-family="Spectral" font-size="13.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+            <tspan x="584.0" y="212.4">◄ 5°</tspan>
+          </text>
+        </g>
+        <g id="cR5" data-selector="#cR5" data-label="Starboard 5 degrees">
+          <text id="cR5__text" font-family="Spectral" font-size="13.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+            <tspan x="864.4" y="212.4">5° ►</tspan>
+          </text>
+        </g>
+        <g id="cbBtn" data-selector="#cbBtn" data-label="Compass">
+          <rect id="cbBtn__bg" x="500.5" y="162.8" width="26.0" height="26.0" rx="0.0" fill="#f6eed9" stroke="#2e2519" stroke-width="1.0"/>
+          <svg width="18.0" height="18.0" id="cbBtn__icon" x="504.5" y="166.8" viewBox="0 0 24 24" fill="none" stroke="#2e2519" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"><circle cx="12" cy="12" r="9.500"></circle><path d="M12 5.500l2.600 6.500-2.600 6.500-2.600-6.500z"></path></svg>
+        </g>
+        <g id="baro" data-selector="#baro" data-label="The glass: a barometer showing the pressure, its trend and w">
+          <rect id="baro__canvas" x="538.2" y="208.8" width="53.0" height="222.0" fill="#9fb3c8" fill-opacity="0.35" stroke="#4a6a8a" stroke-dasharray="6 4"/>
+          <text x="544.2" y="224.8" font-family="IBM Plex Mono" font-size="11" fill="#4a6a8a">live canvas · #baro (drawn by the game)</text>
+        </g>
+        <g id="dial" data-selector="#dial" data-label="Compass with the ship, the wind and the sails">
+          <rect id="dial__canvas" x="599.2" y="180.8" width="250.0" height="250.0" fill="#9fb3c8" fill-opacity="0.35" stroke="#4a6a8a" stroke-dasharray="6 4"/>
+          <text x="605.2" y="196.8" font-family="IBM Plex Mono" font-size="11" fill="#4a6a8a">live canvas · #dial (drawn by the game)</text>
+        </g>
+        <g id="sailSteps5__btn-0" data-selector="#sailSteps5&gt;button.btn:0" data-label="Full: All plain sail and topgallants">
+          <rect id="sailSteps5__btn-0__bg" x="857.2" y="229.8" width="28.0" height="28.0" rx="2.0" fill="#f6eed9" stroke="#2e2519" stroke-width="1.0"/>
+          <svg width="22.0" height="22.0" id="sailSteps5__btn-0__icon" x="860.2" y="232.8" viewBox="0 0 24 24" fill="none" stroke="#2e2519" stroke-width="1.3" stroke-linejoin="round"><path d="M12 1.5V21M5 21.500h14"></path><path d="M3 13.5h18l-0.8 6.0h-16.4z" fill="#2e2519" fill-opacity=".35"></path><path d="M5 7.5h14l-0.8 5.0h-12.4z" fill="#2e2519" fill-opacity=".35"></path><path d="M7 3h10l-0.5 3.5h-9z" fill="#2e2519" fill-opacity=".35"></path></svg>
+        </g>
+        <g id="sailSteps5__btn-1" data-selector="#sailSteps5&gt;button.btn:1" data-label="Plain: Plain sail">
+          <rect id="sailSteps5__btn-1__bg" x="857.2" y="260.8" width="28.0" height="28.0" rx="2.0" fill="#2e2519" stroke="#2e2519" stroke-width="1.0"/>
+          <svg width="22.0" height="22.0" id="sailSteps5__btn-1__icon" x="860.2" y="263.8" viewBox="0 0 24 24" fill="none" stroke="#f6eed9" stroke-width="1.3" stroke-linejoin="round"><path d="M12 1.5V21M5 21.500h14"></path><path d="M3 13.5h18l-0.8 6.0h-16.4z" fill="#f6eed9" fill-opacity=".35"></path><path d="M5 7.5h14l-0.8 5.0h-12.4z" fill="#f6eed9" fill-opacity=".35"></path></svg>
+        </g>
+        <g id="sailSteps5__btn-2" data-selector="#sailSteps5&gt;button.btn:2" data-label="Courses: Reefed topsails and courses">
+          <rect id="sailSteps5__btn-2__bg" x="857.2" y="291.8" width="28.0" height="28.0" rx="2.0" fill="#f6eed9" stroke="#2e2519" stroke-width="1.0"/>
+          <svg width="22.0" height="22.0" id="sailSteps5__btn-2__icon" x="860.2" y="294.8" viewBox="0 0 24 24" fill="none" stroke="#2e2519" stroke-width="1.3" stroke-linejoin="round"><path d="M12 1.5V21M5 21.500h14"></path><path d="M3 13.5h18l-0.8 6.0h-16.4z" fill="#2e2519" fill-opacity=".35"></path><path d="M5 9.5h14l-0.8 3.0h-12.4z" fill="#2e2519" fill-opacity=".35"></path></svg>
+        </g>
+        <g id="sailSteps5__btn-3" data-selector="#sailSteps5&gt;button.btn:3" data-label="Reefed: Close-reefed topsails">
+          <rect id="sailSteps5__btn-3__bg" x="857.2" y="322.8" width="28.0" height="28.0" rx="2.0" fill="#f6eed9" stroke="#2e2519" stroke-width="1.0"/>
+          <svg width="22.0" height="22.0" id="sailSteps5__btn-3__icon" x="860.2" y="325.8" viewBox="0 0 24 24" fill="none" stroke="#2e2519" stroke-width="1.3" stroke-linejoin="round"><path d="M12 1.5V21M5 21.500h14"></path><path d="M5 9.5h14l-0.8 3.0h-12.4z" fill="#2e2519" fill-opacity=".35"></path></svg>
+        </g>
+        <g id="sailSteps5__btn-4" data-selector="#sailSteps5&gt;button.btn:4" data-label="Bare: Bare poles">
+          <rect id="sailSteps5__btn-4__bg" x="857.2" y="353.8" width="28.0" height="28.0" rx="2.0" fill="#f6eed9" stroke="#2e2519" stroke-width="1.0"/>
+          <svg width="22.0" height="22.0" id="sailSteps5__btn-4__icon" x="860.2" y="356.8" viewBox="0 0 24 24" fill="none" stroke="#2e2519" stroke-width="1.3" stroke-linejoin="round"><path d="M12 1.5V21M5 21.500h14"></path></svg>
+        </g>
+        <g id="bDrop" data-selector="#bDrop" data-label="Drop anchor (X)">
+          <rect id="bDrop__bg" x="565.5" y="434.8" width="38.0" height="38.0" rx="2.0" fill="#f6eed9" stroke="#2e2519" stroke-width="1.0"/>
+          <svg width="18.0" height="18.0" id="bDrop__icon" x="575.5" y="444.8" viewBox="0 0 24 24" fill="none" stroke="#2e2519" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="2"></circle><path d="M12 7v14M8 11h8M4 14c0 4 3.5 7 8 7s8-3 8-7M4 14l-1.5 2M20 14l1.5 2"></path></svg>
+        </g>
+        <g id="bOars" data-selector="#bOars" data-label="Out sweeps (O)">
+          <rect id="bOars__bg" x="607.5" y="434.8" width="38.0" height="38.0" rx="2.0" fill="#f6eed9" stroke="#2e2519" stroke-width="1.0"/>
+          <svg width="20.0" height="20.0" id="bOars__icon" x="616.5" y="443.8" viewBox="0 0 24 24" fill="none" stroke="#2e2519" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4l11 11"></path><path d="M14 14.2c1.6-1.4 3.9-1 5.3.6l1.4 1.7c.9 1.1.5 2.9-1 3.8-1.4.8-3.2.4-3.9-.8l-1.2-2c-.7-1.2-.9-2.3-.6-3.3z" fill="#2e2519" fill-opacity=".35"></path><path d="M3 10.5l7.5-7.5" stroke-width="1.2"></path></svg>
+        </g>
+        <g id="bHeave2" data-selector="#bHeave2" data-label="Heave the log">
+          <rect id="bHeave2__bg" x="649.5" y="434.8" width="38.0" height="38.0" rx="2.0" fill="#f6eed9" stroke="#2e2519" stroke-width="1.0"/>
+          <svg width="20.0" height="20.0" id="bHeave2__icon" x="658.5" y="443.8" viewBox="0 0 24 24" fill="none" stroke="#2e2519" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="7.5" r="4"></circle><path d="M7 3.5v8M3 7.5h8"></path><path d="M10.2 10.8C12.6 13 14 13.8 15.2 15.2" stroke-dasharray="1.1 1.7"></path><path d="M14 15.6h6.4a6.4 6.4 0 0 1-6.4 6.4z" fill="#2e2519" fill-opacity=".35"></path></svg>
+        </g>
+        <g id="windSpd" data-selector="#windSpd">
+          <text id="windSpd__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#2d6bd6" text-anchor="middle" letter-spacing="0.33">
+            <tspan x="766.2" y="457.6">Force 4 · from E by S</tspan>
+          </text>
+          <g id="windSpd__b-0" data-selector="#windSpd&gt;b:0">
+            <text id="windSpd__b-0__text" font-family="IBM Plex Mono" font-size="15.0" font-weight="700" fill="#2d6bd6" text-anchor="middle" letter-spacing="0.33">
+              <tspan x="766.2" y="451.6">15 kn</tspan>
+            </text>
+          </g>
+        </g>
+        <g id="bFish" data-selector="#bFish" data-label="Put hand-lines over the side (F)">
+          <rect id="bFish__bg" x="845.0" y="434.8" width="38.0" height="38.0" rx="2.0" fill="#f6eed9" stroke="#2e2519" stroke-width="1.0"/>
+          <svg width="18.0" height="18.0" id="bFish__icon" x="855.0" y="444.8" viewBox="0 0 24 24" fill="none" stroke="#2e2519" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12c3-5 9-6 13-2l1 2-1 2c-4 4-10 3-13-2zM15 10l6-4v12l-6-4M7 11h.01"></path></svg>
+        </g>
+      </g>
+    </g>
+    <g id="toast" data-selector="#toast">
+      <rect id="toast__bg" x="325.0" y="189.8" width="290.1" height="36.0" rx="2.0" fill="#2e2519" opacity="0.00"/>
+      <text id="toast__text" font-family="IM Fell English" font-size="16.0" font-weight="400" fill="#f6eed9" text-anchor="start">
+        <tspan x="339.0" y="213.4">Land ho! The lookout sights the Pitons.</tspan>
+      </text>
+    </g>
+    <g id="tbChart" data-selector="#tbChart" data-label="Sea chart: tap again to come back to the 3D view">
+      <rect id="tbChart__bg" x="361.0" y="748.0" width="38.0" height="38.0" rx="3.0" fill="#f6eed9" fill-opacity="0.96" stroke="#2e2519" stroke-width="1.0"/>
+      <svg width="26.0" height="26.0" id="tbChart__icon" x="367.0" y="754.0" viewBox="0 0 24 24" fill="none" stroke="#2e2519" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6.5l6-2.300 6 2.300 6-2.300v13l-6 2.300-6-2.300-6 2.300z"></path><path d="M9 4.200v13M15 6.800v13"></path></svg>
+    </g>
+    <g id="tbView" data-selector="#tbView" data-label="3D view, full screen">
+      <rect id="tbView__bg" x="421.0" y="748.0" width="38.0" height="38.0" rx="3.0" fill="#f6eed9" fill-opacity="0.96" stroke="#2e2519" stroke-width="1.0"/>
+      <svg width="24.0" height="24.0" id="tbView__icon" x="428.0" y="755.0" viewBox="0 0 24 24" fill="none" stroke="#2e2519" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M3 8h4l1.5-2.5h7L17 8h4v11H3z"></path><circle cx="12" cy="13.5" r="3.6"></circle></svg>
+    </g>
+    <g id="tbShip" data-selector="#tbShip" data-label="The ship: cutaway, crew quarters and watches; tap again to c">
+      <rect id="tbShip__bg" x="481.0" y="748.0" width="38.0" height="38.0" rx="3.0" fill="#f6eed9" fill-opacity="0.96" stroke="#2e2519" stroke-width="1.0"/>
+      <svg width="24.0" height="24.0" id="tbShip__icon" x="488.0" y="755.0" viewBox="0 0 24 24" fill="none" stroke="#2e2519" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M2.5 16.5h19l-3 4.5h-13z"></path><path d="M8 16V3.500M16 16V6"></path><path d="M8 5h-4.500v8H8M8 5h3.500v8H8M16 8h-3.500v6H16M16 8h3.500v6H16" stroke-width="1.2"></path></svg>
+    </g>
+    <g id="tbBook" data-selector="#tbBook" data-label="Navigator&#x27;s book: reckoning, noon sight, landmarks and log">
+      <rect id="tbBook__bg" x="541.0" y="748.0" width="38.0" height="38.0" rx="3.0" fill="#f6eed9" fill-opacity="0.96" stroke="#2e2519" stroke-width="1.0"/>
+      <svg width="24.0" height="24.0" id="tbBook__icon" x="548.0" y="755.0" viewBox="0 0 24 24" fill="none" stroke="#2e2519" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.5C10 5 7 4.5 3.5 5v13c3.5-.5 6.5 0 8.5 1.5 2-1.5 5-2 8.5-1.5V5C17 4.5 14 5 12 6.5zM12 6.5v13"></path><path d="M6 8.5c1.5 0 3 .2 4.2.8M6 11.5c1.5 0 3 .2 4.2.8M14 9.3c1.2-.6 2.700-.8 4-.8M14 12.3c1.2-.6 2.700-.8 4-.8"></path></svg>
+    </g>
+  </g>
+  <g id="side-0" data-selector="div:0&gt;div.main:2&gt;aside.side:0">
+    <rect id="side-0__bg" x="940.0" y="111.8" width="340.0" height="688.3" rx="0.0" fill="#f6eed9"/>
+    <line id="side-0__border-left" x1="943.0" y1="111.8" x2="943.0" y2="800.1" stroke="#d9c9a2" stroke-width="6.0"/>
+    <g id="side-0__dock-0" data-selector="div:0&gt;div.main:2&gt;aside.side:0&gt;section.dock:0" data-label="Ship controls">
+      <rect id="side-0__dock-0__bg" x="946.0" y="111.8" width="334.0" height="1087.0" rx="0.0" fill="#f6eed9"/>
+      <line id="side-0__dock-0__border-bottom" x1="946.0" y1="1198.3" x2="1280.0" y2="1198.3" stroke="#cbbd98" stroke-width="1.0"/>
+      <g id="side-0__dock-0__sheet-0__dockhead-0__dh-0__svg-0" data-selector="div:0&gt;div.main:2&gt;aside.side:0&gt;section.dock:0&gt;div.sheet:0&gt;div.dockhead:0&gt;b.dh:0&gt;svg:0">
+        <svg width="22.0" height="22.0" id="side-0__dock-0__sheet-0__dockhead-0__dh-0__svg-0__icon" x="962.0" y="121.8" viewBox="0 0 24 24" fill="none" stroke="#2e2519" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="6.6"></circle><circle cx="12" cy="12" r="2"></circle><path d="M12 1.5v21M1.5 12h21M4.6 4.6l14.8 14.8M19.4 4.6L4.6 19.4"></path></svg>
+      </g>
+      <g id="side-0__dock-0__sheet-0__dockhead-0__dh-0__dht-0" data-selector="div:0&gt;div.main:2&gt;aside.side:0&gt;section.dock:0&gt;div.sheet:0&gt;div.dockhead:0&gt;b.dh:0&gt;span.dht:0">
+        <text id="side-0__dock-0__sheet-0__dockhead-0__dh-0__dht-0__text" font-family="IM Fell English SC" font-size="17.0" font-weight="400" fill="#2e2519" text-anchor="start">
+          <tspan x="992.0" y="138.9">Ship controls</tspan>
+        </text>
+      </g>
+      <g id="side-0__dock-0__sheet-0__dockhead-0__r-0__ctog-0" data-selector="div:0&gt;div.main:2&gt;aside.side:0&gt;section.dock:0&gt;div.sheet:0&gt;div.dockhead:0&gt;span.r:0&gt;button.ctog:0" data-label="Collapse or expand">
+        <rect id="side-0__dock-0__sheet-0__dockhead-0__r-0__ctog-0__bg" x="1242.0" y="127.8" width="22.0" height="22.0" rx="2.0" fill="#f6eed9" stroke="#2e2519" stroke-width="1.0"/>
+        <text id="side-0__dock-0__sheet-0__dockhead-0__r-0__ctog-0__text" font-family="IBM Plex Mono" font-size="14.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+          <tspan x="1253.0" y="143.7">–</tspan>
+        </text>
+      </g>
+      <g id="side-0__dock-0__sheet-0__dockgrid-2__sub-0__subhead-0" data-selector="div:0&gt;div.main:2&gt;aside.side:0&gt;section.dock:0&gt;div.sheet:0&gt;div.dockgrid:2&gt;div.sub:0&gt;div.subhead:0">
+        <text id="side-0__dock-0__sheet-0__dockgrid-2__sub-0__subhead-0__text" font-family="IM Fell English SC" font-size="15.0" font-weight="400" fill="#2e2519" text-anchor="start">
+          <tspan x="962.0" y="170.6">Helm</tspan>
+        </text>
+      </g>
+      <g id="side-0__dock-0__sheet-0__dockgrid-2__sub-0__dockbody-1__dockctl-0__mono-0" data-selector="div:0&gt;div.main:2&gt;aside.side:0&gt;section.dock:0&gt;div.sheet:0&gt;div.dockgrid:2&gt;div.sub:0&gt;div.dockbody:1&gt;div.dockctl:0&gt;div.mono:0">
+        <text id="side-0__dock-0__sheet-0__dockgrid-2__sub-0__dockbody-1__dockctl-0__mono-0__text" font-family="IBM Plex Mono" font-size="13.0" font-weight="400" fill="#2e2519" text-anchor="start">
+          <tspan x="962.0" y="193.9">Course</tspan>
+        </text>
+        <g id="ordTxt" data-selector="#ordTxt">
+          <text id="ordTxt__text" font-family="IBM Plex Mono" font-size="13.0" font-weight="700" fill="#2e2519" text-anchor="start">
+            <tspan x="1016.6" y="193.9">285° W by N</tspan>
+          </text>
+        </g>
+      </g>
+      <g id="hdgTxt" data-selector="#hdgTxt">
+        <text id="hdgTxt__text" font-family="Spectral" font-size="12.5" font-weight="400" fill="#7b6a55" text-anchor="start">
+          <tspan x="962.0" y="217.7">Ship&#x27;s head 286°</tspan>
+        </text>
+      </g>
+      <g id="side-0__dock-0__sheet-0__dockgrid-2__sub-0__dockbody-1__dockctl-0__mono-2" data-selector="div:0&gt;div.main:2&gt;aside.side:0&gt;section.dock:0&gt;div.sheet:0&gt;div.dockgrid:2&gt;div.sub:0&gt;div.dockbody:1&gt;div.dockctl:0&gt;div.mono:2">
+        <text id="side-0__dock-0__sheet-0__dockgrid-2__sub-0__dockbody-1__dockctl-0__mono-2__text" font-family="IBM Plex Mono" font-size="13.0" font-weight="400" fill="#2e2519" text-anchor="start">
+          <tspan x="962.0" y="241.9">Speed</tspan>
+        </text>
+        <g id="spdTxt" data-selector="#spdTxt">
+          <text id="spdTxt__text" font-family="IBM Plex Mono" font-size="13.0" font-weight="700" fill="#2e2519" text-anchor="start">
+            <tspan x="1008.8" y="241.9">0.1 kn</tspan>
+          </text>
+        </g>
+      </g>
+      <g id="side-0__dock-0__sheet-0__dockgrid-2__sub-0__dockbody-1__dockctl-0__setrows-4__k-0" data-selector="div:0&gt;div.main:2&gt;aside.side:0&gt;section.dock:0&gt;div.sheet:0&gt;div.dockgrid:2&gt;div.sub:0&gt;div.dockbody:1&gt;div.dockctl:0&gt;div.setrows:4&gt;div:0&gt;span.k:0">
+        <text id="side-0__dock-0__sheet-0__dockgrid-2__sub-0__dockbody-1__dockctl-0__setrows-4__k-0__text" font-family="IBM Plex Mono" font-size="10.0" font-weight="400" fill="#7b6a55" text-anchor="start" letter-spacing="0.6">
+          <tspan x="962.0" y="267.6">SAILS</tspan>
+        </text>
+      </g>
+      <g id="sailPips__i-0" data-selector="#sailPips&gt;i:0">
+        <rect id="sailPips__i-0__border" x="1006.0" y="259.8" width="8.0" height="10.0" rx="0.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+        <g id="sailPips__i-0__b-0" data-selector="#sailPips&gt;i:0&gt;b:0">
+          <rect id="sailPips__i-0__b-0__bg" x="1007.0" y="260.8" width="6.0" height="8.0" rx="0.0" fill="#2e2519"/>
+        </g>
+      </g>
+      <g id="sailPips__i-1" data-selector="#sailPips&gt;i:1">
+        <rect id="sailPips__i-1__border" x="1016.0" y="259.8" width="8.0" height="10.0" rx="0.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+        <g id="sailPips__i-1__b-0" data-selector="#sailPips&gt;i:1&gt;b:0">
+          <rect id="sailPips__i-1__b-0__bg" x="1017.0" y="260.8" width="6.0" height="8.0" rx="0.0" fill="#2e2519"/>
+        </g>
+      </g>
+      <g id="sailPips__i-2" data-selector="#sailPips&gt;i:2">
+        <rect id="sailPips__i-2__border" x="1026.0" y="259.8" width="8.0" height="10.0" rx="0.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+        <g id="sailPips__i-2__b-0" data-selector="#sailPips&gt;i:2&gt;b:0">
+          <rect id="sailPips__i-2__b-0__bg" x="1027.0" y="260.8" width="6.0" height="8.0" rx="0.0" fill="#2e2519"/>
+        </g>
+      </g>
+      <g id="sailPips__i-3" data-selector="#sailPips&gt;i:3">
+        <rect id="sailPips__i-3__border" x="1036.0" y="259.8" width="8.0" height="10.0" rx="0.0" fill="none" stroke="#2e2519" stroke-width="1.0"/>
+        <g id="sailPips__i-3__b-0" data-selector="#sailPips&gt;i:3&gt;b:0">
+          <rect id="sailPips__i-3__b-0__bg" x="1037.0" y="266.9" width="6.0" height="1.8" rx="0.0" fill="#2e2519"/>
+        </g>
+      </g>
+      <g id="sailOrd" data-selector="#sailOrd">
+        <text id="sailOrd__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#2e2519" text-anchor="start">
+          <tspan x="1056.0" y="268.6">Plain sail · set</tspan>
+        </text>
+      </g>
+      <g id="side-0__dock-0__sheet-0__dockgrid-2__sub-0__dockbody-1__dockctl-0__setrows-4__div-1__k-0" data-selector="div:0&gt;div.main:2&gt;aside.side:0&gt;section.dock:0&gt;div.sheet:0&gt;div.dockgrid:2&gt;div.sub:0&gt;div.dockbody:1&gt;div.dockctl:0&gt;div.setrows:4&gt;div:1&gt;span.k:0">
+        <text id="side-0__dock-0__sheet-0__dockgrid-2__sub-0__dockbody-1__dockctl-0__setrows-4__div-1__k-0__text" font-family="IBM Plex Mono" font-size="10.0" font-weight="400" fill="#7b6a55" text-anchor="start" letter-spacing="0.6">
+          <tspan x="962.0" y="283.6">YARDS</tspan>
+        </text>
+      </g>
+      <g id="brOrdPip" data-selector="#brOrdPip">
+        <rect id="brOrdPip__bg" x="1006.0" y="278.8" width="40.0" height="4.0" rx="0.0" fill="#b8862a" fill-opacity="0.00" stroke="#b8862a" stroke-width="1.0"/>
+      </g>
+      <g id="brOrd" data-selector="#brOrd">
+        <text id="brOrd__text" font-family="IBM Plex Mono" font-size="11.0" font-weight="400" fill="#2e2519" text-anchor="start">
+          <tspan x="1056.0" y="284.6">square · trimmed</tspan>
+        </text>
+      </g>
+      <g id="bLegend" data-selector="#bLegend" data-label="Legend">
+        <rect id="bLegend__bg" x="1096.0" y="293.8" width="34.0" height="28.0" rx="2.0" fill="#f6eed9" stroke="#2e2519" stroke-width="1.0"/>
+        <text id="bLegend__text" font-family="IM Fell English SC" font-size="16.0" font-weight="400" fill="#2e2519" text-anchor="middle" font-style="italic">
+          <tspan x="1113.0" y="313.4">i</tspan>
+        </text>
+      </g>
+      <g id="oarSec" data-selector="#oarSec">
+        <line id="oarSec__border-top" x1="962.0" y1="340.3" x2="1264.0" y2="340.3" stroke="#cbbd98" stroke-width="1.0"/>
+        <g id="oarSec__subhead-0" data-selector="#oarSec&gt;div.subhead:0">
+          <text id="oarSec__subhead-0__text" font-family="IM Fell English SC" font-size="15.0" font-weight="400" fill="#2e2519" text-anchor="start">
+            <tspan x="962.0" y="365.6">Oars</tspan>
+          </text>
+          <g id="oarSide" data-selector="#oarSide">
+            <text id="oarSide__text" font-family="IBM Plex Mono" font-size="10.5" font-weight="400" fill="#7b6a55" text-anchor="start" letter-spacing="0.84">
+              <tspan x="1156.9" y="364.5">4 SWEEPS A SIDE</tspan>
+            </text>
+          </g>
+        </g>
+        <g id="oarState__muted-0" data-selector="#oarState&gt;span.muted:0">
+          <text id="oarState__muted-0__text" font-family="Spectral" font-size="12.5" font-weight="400" fill="#7b6a55" text-anchor="start">
+            <tspan x="962.0" y="394.7">Sweeps stowed.</tspan>
+          </text>
+        </g>
+        <g id="oarTog" data-selector="#oarTog">
+          <rect id="oarTog__bg" x="1184.5" y="376.8" width="79.5" height="27.0" rx="2.0" fill="#f6eed9" stroke="#2e2519" stroke-width="1.0"/>
+          <text id="oarTog__text" font-family="Spectral" font-size="12.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+            <tspan x="1224.2" y="394.5">Out sweeps</tspan>
+          </text>
+        </g>
+        <g id="oarSec__steps-0__btn-0" data-selector="#oarSec&gt;span.steps:0&gt;button.btn:0">
+          <rect id="oarSec__steps-0__btn-0__bg" x="962.0" y="410.8" width="47.0" height="27.0" rx="2.0" fill="#f6eed9" stroke="#2e2519" stroke-width="1.0"/>
+          <text id="oarSec__steps-0__btn-0__text" font-family="Spectral" font-size="12.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+            <tspan x="985.5" y="428.5">Back</tspan>
+          </text>
+        </g>
+        <g id="oarSec__steps-0__btn-1" data-selector="#oarSec&gt;span.steps:0&gt;button.btn:1">
+          <rect id="oarSec__steps-0__btn-1__bg" x="1013.0" y="410.8" width="47.0" height="27.0" rx="2.0" fill="#f6eed9" stroke="#2e2519" stroke-width="1.0"/>
+          <text id="oarSec__steps-0__btn-1__text" font-family="Spectral" font-size="12.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+            <tspan x="1036.5" y="428.5">Hold</tspan>
+          </text>
+        </g>
+        <g id="oarSec__steps-0__btn-2" data-selector="#oarSec&gt;span.steps:0&gt;button.btn:2">
+          <rect id="oarSec__steps-0__btn-2__bg" x="1064.0" y="410.8" width="47.0" height="27.0" rx="2.0" fill="#f6eed9" stroke="#2e2519" stroke-width="1.0"/>
+          <text id="oarSec__steps-0__btn-2__text" font-family="Spectral" font-size="12.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+            <tspan x="1087.5" y="428.5">Easy</tspan>
+          </text>
+        </g>
+        <g id="oarSec__steps-0__btn-3" data-selector="#oarSec&gt;span.steps:0&gt;button.btn:3">
+          <rect id="oarSec__steps-0__btn-3__bg" x="1115.0" y="410.8" width="47.0" height="27.0" rx="2.0" fill="#f6eed9" stroke="#2e2519" stroke-width="1.0"/>
+          <text id="oarSec__steps-0__btn-3__text" font-family="Spectral" font-size="12.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+            <tspan x="1138.5" y="428.5">Steady</tspan>
+          </text>
+        </g>
+        <g id="oarSec__steps-0__btn-4" data-selector="#oarSec&gt;span.steps:0&gt;button.btn:4">
+          <rect id="oarSec__steps-0__btn-4__bg" x="1166.0" y="410.8" width="47.0" height="27.0" rx="2.0" fill="#f6eed9" stroke="#2e2519" stroke-width="1.0"/>
+          <text id="oarSec__steps-0__btn-4__text" font-family="Spectral" font-size="12.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+            <tspan x="1189.5" y="428.5">Hard</tspan>
+          </text>
+        </g>
+        <g id="oarSec__steps-0__btn-5" data-selector="#oarSec&gt;span.steps:0&gt;button.btn:5">
+          <rect id="oarSec__steps-0__btn-5__bg" x="1217.0" y="410.8" width="47.0" height="27.0" rx="2.0" fill="#f6eed9" stroke="#2e2519" stroke-width="1.0"/>
+          <text id="oarSec__steps-0__btn-5__text" font-family="Spectral" font-size="12.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+            <tspan x="1240.5" y="428.5">Sprint</tspan>
+          </text>
+        </g>
+        <g id="oarNote" data-selector="#oarNote">
+          <text id="oarNote__text" font-family="Spectral" font-size="11.5" font-weight="400" fill="#7b6a55" text-anchor="start">
+            <tspan x="962.0" y="465.8">Steady: a working stroke for three or four hours. About in a flat calm with fresh men; less into a head sea.</tspan>
+          </text>
+          <g id="oarNote__b-0" data-selector="#oarNote&gt;b:0">
+            <text id="oarNote__b-0__text" font-family="Spectral" font-size="11.5" font-weight="700" fill="#7b6a55" text-anchor="start">
+              <tspan x="962.0" y="465.8">1.3 kn</tspan>
+            </text>
+          </g>
+        </g>
+        <g id="oarSec__div-3__row-0__k-0" data-selector="#oarSec&gt;div:3&gt;div.row:0&gt;span.k:0">
+          <text id="oarSec__div-3__row-0__k-0__text" font-family="IBM Plex Mono" font-size="10.5" font-weight="400" fill="#7b6a55" text-anchor="start" letter-spacing="0.63">
+            <tspan x="962.0" y="497.0">ROWERS&#x27; WIND</tspan>
+          </text>
+        </g>
+        <g id="oarWindT" data-selector="#oarWindT">
+          <text id="oarWindT__text" font-family="IBM Plex Mono" font-size="12.0" font-weight="400" fill="#2e2519" text-anchor="start">
+            <tspan x="1235.2" y="497.5">100%</tspan>
+          </text>
+        </g>
+        <g id="oarSec__div-3__rwind-1" data-selector="#oarSec&gt;div:3&gt;div.rwind:1" data-label="How long the men can keep rowing">
+          <rect id="oarSec__div-3__rwind-1__bg" x="962.0" y="502.8" width="302.0" height="8.0" rx="0.0" fill="#ece2c8" stroke="#2e2519" stroke-width="1.0"/>
+          <g id="oarWind" data-selector="#oarWind">
+            <rect id="oarWind__bg" x="963.0" y="503.8" width="300.0" height="6.0" rx="0.0" fill="#b8862a" fill-opacity="0.00"/>
+          </g>
+        </g>
+        <g id="oarLast" data-selector="#oarLast">
+          <text id="oarLast__text" font-family="Spectral" font-size="11.5" font-weight="400" fill="#7b6a55" text-anchor="start">
+            <tspan x="962.0" y="526.3">They get their wind back while the oars are in.</tspan>
+          </text>
+        </g>
+        <g id="oarHands" data-selector="#oarHands">
+          <text id="oarHands__text" font-family="Spectral" font-size="12.5" font-weight="400" fill="#2e2519" text-anchor="start">
+            <tspan x="962.0" y="555.7">Hands at the sweeps</tspan>
+          </text>
+          <g id="oarHands__mono-0" data-selector="#oarHands&gt;b.mono:0">
+            <text id="oarHands__mono-0__text" font-family="IBM Plex Mono" font-size="12.5" font-weight="700" fill="#2e2519" text-anchor="start">
+              <tspan x="1078.1" y="554.2">16</tspan>
+            </text>
+          </g>
+          <g id="oarHands__muted-0" data-selector="#oarHands&gt;span.muted:0">
+            <text id="oarHands__muted-0__text" font-family="Spectral" font-size="12.5" font-weight="400" fill="#7b6a55" text-anchor="start">
+              <tspan x="1096.3" y="555.7">of 22 · 2 a sweep</tspan>
+            </text>
+          </g>
+        </g>
+        <g id="oarMinus" data-selector="#oarMinus" data-label="Fewer hands">
+          <rect id="oarMinus__bg" x="1212.0" y="537.8" width="24.0" height="27.0" rx="2.0" fill="#f6eed9" stroke="#2e2519" stroke-width="1.0"/>
+          <text id="oarMinus__text" font-family="Spectral" font-size="12.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+            <tspan x="1224.0" y="555.5">−</tspan>
+          </text>
+        </g>
+        <g id="oarPlus" data-selector="#oarPlus" data-label="More hands">
+          <rect id="oarPlus__bg" x="1240.0" y="537.8" width="24.0" height="27.0" rx="2.0" fill="#f6eed9" stroke="#2e2519" stroke-width="1.0" opacity="0.40"/>
+          <text id="oarPlus__text" font-family="Spectral" font-size="12.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+            <tspan x="1252.0" y="555.5">+</tspan>
+          </text>
+        </g>
+        <g id="oarBP" data-selector="#oarBP" data-label="Port oars back water, starboard oars pull: she turns to port">
+          <rect id="oarBP__bg" x="962.0" y="571.8" width="148.0" height="27.0" rx="2.0" fill="#f6eed9" stroke="#2e2519" stroke-width="1.0"/>
+          <text id="oarBP__text" font-family="Spectral" font-size="12.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+            <tspan x="1036.0" y="589.5">◄ Back port</tspan>
+          </text>
+        </g>
+        <g id="oarBS" data-selector="#oarBS" data-label="Starboard oars back water, port oars pull: she turns to star">
+          <rect id="oarBS__bg" x="1116.0" y="571.8" width="148.0" height="27.0" rx="2.0" fill="#f6eed9" stroke="#2e2519" stroke-width="1.0"/>
+          <text id="oarBS__text" font-family="Spectral" font-size="12.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+            <tspan x="1190.0" y="589.5">Back starboard ►</tspan>
+          </text>
+        </g>
+        <g id="oarSec__chk-0" data-selector="#oarSec&gt;label.chk:0">
+          <rect id="oarSec__chk-0__box" x="962.0" y="608.8" width="13" height="13" rx="2" fill="#2e2519" stroke="#2e2519"/>
+          <text id="oarSec__chk-0__text" font-family="Spectral" font-size="12.5" font-weight="400" fill="#2e2519" text-anchor="start">
+            <tspan x="980.0" y="619.7">Mate relieves the benches each glass</tspan>
+          </text>
+        </g>
+      </g>
+      <g id="side-0__dock-0__sheet-0__dockgrid-2__sub-1" data-selector="div:0&gt;div.main:2&gt;aside.side:0&gt;section.dock:0&gt;div.sheet:0&gt;div.dockgrid:2&gt;div.sub:1">
+        <line id="side-0__dock-0__sheet-0__dockgrid-2__sub-1__border-top" x1="962.0" y1="635.3" x2="1264.0" y2="635.3" stroke="#cbbd98" stroke-width="1.0"/>
+        <g id="side-0__dock-0__sheet-0__dockgrid-2__sub-1__subhead-0" data-selector="div:0&gt;div.main:2&gt;aside.side:0&gt;section.dock:0&gt;div.sheet:0&gt;div.dockgrid:2&gt;div.sub:1&gt;div.subhead:0">
+          <text id="side-0__dock-0__sheet-0__dockgrid-2__sub-1__subhead-0__text" font-family="IM Fell English SC" font-size="15.0" font-weight="400" fill="#2e2519" text-anchor="start">
+            <tspan x="962.0" y="658.5">Sails</tspan>
+          </text>
+          <g id="rigTxt" data-selector="#rigTxt">
+            <text id="rigTxt__text" font-family="IBM Plex Mono" font-size="10.5" font-weight="400" fill="#7b6a55" text-anchor="start" letter-spacing="0.84">
+              <tspan x="1178.3" y="657.5">RIGGING 100%</tspan>
+            </text>
+          </g>
+        </g>
+        <g id="sDn" data-selector="#sDn" data-label="Shorten sail (S)">
+          <rect id="sDn__bg" x="962.0" y="668.8" width="59.6" height="27.0" rx="2.0" fill="#f6eed9" stroke="#2e2519" stroke-width="1.0"/>
+          <text id="sDn__text" font-family="Spectral" font-size="12.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+            <tspan x="991.8" y="686.5">Shorten</tspan>
+          </text>
+        </g>
+        <g id="sailTxt" data-selector="#sailTxt">
+          <text id="sailTxt__text" font-family="Spectral" font-size="13.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+            <tspan x="1108.3" y="686.8">Plain sail</tspan>
+          </text>
+        </g>
+        <g id="sUp" data-selector="#sUp" data-label="Make sail (W)">
+          <rect id="sUp__bg" x="1195.1" y="668.8" width="68.9" height="27.0" rx="2.0" fill="#f6eed9" stroke="#2e2519" stroke-width="1.0"/>
+          <text id="sUp__text" font-family="Spectral" font-size="12.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+            <tspan x="1229.5" y="686.5">Make sail</tspan>
+          </text>
+        </g>
+        <g id="sailDiag" data-selector="#sailDiag" data-label="Sail plan of the brig: click a sail to set, reef or furl it">
+          <svg width="0.8" height="3.0" id="sailDiag__icon" x="962.0" y="702.8" viewBox="0 0 270 206" role="img">
+<path d="M0 185.6 q4.5 -2.2 9 0 q4.5 2.2 9 0 q4.5 -2.2 9 0 q4.5 2.2 9 0 q4.5 -2.2 9 0 q4.5 2.2 9 0 q4.5 -2.2 9 0 q4.5 2.2 9 0 q4.5 -2.2 9 0 q4.5 2.2 9 0 q4.5 -2.2 9 0 q4.5 2.2 9 0 q4.5 -2.2 9 0 q4.5 2.2 9 0 q4.5 -2.2 9 0 q4.5 2.2 9 0 q4.5 -2.2 9 0 q4.5 2.2 9 0 q4.5 -2.2 9 0 q4.5 2.2 9 0 q4.5 -2.2 9 0 q4.5 2.2 9 0 q4.5 -2.2 9 0 q4.5 2.2 9 0 q4.5 -2.2 9 0 q4.5 2.2 9 0 q4.5 -2.2 9 0 q4.5 2.2 9 0 q4.5 -2.2 9 0 q4.5 2.2 9 0 q4.5 -2.2 9 0" fill="none" stroke="var(--ink)" stroke-width=".8" opacity=".55"></path>
+<g stroke="var(--ink)" stroke-width="1" fill="none" stroke-linejoin="round" stroke-linecap="round">
+<polygon points="24,166.2 32,167.4 40,168.4 48,169.4 56,170.3 64,171.1 72,171.7 80,172.3 88,172.8 96,173.1 104,173.4 112,173.5 120,173.6 128,173.5 136,173.4 144,173.1 152,172.8 160,172.3 168,171.7 176,171.1 184,170.3 192,169.4 200,168.4 208,167.4 216,166.2 216,166.2 212,191.3 216,192.5 208,194.4 200,196.1 192,197.4 184,198.4 176,199.3 168,199.9 160,200.3 152,200.6 144,200.8 136,200.9 128,200.9 120,201 112,200.9 104,200.9 96,200.8 88,200.6 80,200.3 72,199.9 64,199.3 56,198.4 48,197.4 40,196.1 32,194.4 24,192.5" fill="var(--paper)" stroke-width="1.3"></polygon>
+<polyline points="24,168.1 32,169.3 40,170.4 48,171.4 56,172.2 64,173 72,173.7 80,174.2 88,174.7 96,175.1 104,175.3 112,175.5 120,175.5 128,175.5 136,175.3 144,175.1 152,174.7 160,174.2 168,173.7 176,173 184,172.2 192,171.4 200,170.4 208,169.3 216,168.1" stroke-width=".6" opacity=".8"></polyline>
+<polyline points="24,174.7 32,175.9 40,177 48,178 56,178.8 64,179.6 72,180.3 80,180.9 88,181.3 96,181.7 104,181.9 112,182.1 120,182.1 128,182.1 136,181.9 144,181.7 152,181.3 160,180.9 168,180.3 176,179.6 184,178.8 192,178 200,177 208,175.9 216,174.7" stroke-width=".6" opacity=".8"></polyline>
+<polyline points="24,184.4 32,185.6 40,186.7 48,187.7 56,188.5 64,189.3 72,190 80,190.5 88,191 96,191.4 104,191.6 112,191.8 120,191.8 128,191.8 136,191.6 144,191.4 152,191 160,190.5 168,190 176,189.3 184,188.5 192,187.7 200,186.7 208,185.6 216,184.4" stroke-width=".6" opacity=".8"></polyline>
+<rect x="63.3" y="175.2" stroke-width=".6" fill="var(--ink)" fill-opacity=".35"></rect>
+<rect x="74" y="176.1" stroke-width=".6" fill="var(--ink)" fill-opacity=".35"></rect>
+<rect x="84.6" y="176.7" stroke-width=".6" fill="var(--ink)" fill-opacity=".35"></rect>
+<rect x="95.3" y="177.2" stroke-width=".6" fill="var(--ink)" fill-opacity=".35"></rect>
+<rect x="106" y="177.4" stroke-width=".6" fill="var(--ink)" fill-opacity=".35"></rect>
+<rect x="116.6" y="177.5" stroke-width=".6" fill="var(--ink)" fill-opacity=".35"></rect>
+<rect x="127.3" y="177.4" stroke-width=".6" fill="var(--ink)" fill-opacity=".35"></rect>
+<rect x="138" y="177.2" stroke-width=".6" fill="var(--ink)" fill-opacity=".35"></rect>
+<rect x="148.6" y="176.7" stroke-width=".6" fill="var(--ink)" fill-opacity=".35"></rect>
+<rect x="159.3" y="176.1" stroke-width=".6" fill="var(--ink)" fill-opacity=".35"></rect>
+<rect x="25.6" y="168.7" stroke-width=".6"></rect>
+<rect x="34.4" y="168.7" stroke-width=".6"></rect>
+<rect x="43.2" y="168.7" stroke-width=".6"></rect>
+<rect x="24.8" y="161.3" fill="var(--paper)"></rect>
+<rect x="28" y="159.5" fill="var(--paper)"></rect>
+<line x1="29.6" y1="159.2" x2="29.6" y2="155.2"></line><line x1="49.6" y1="159.2" x2="49.6" y2="155.2"></line><line x1="69.6" y1="159.2" x2="69.6" y2="155.2"></line><line x1="29.6" y1="155.2" x2="69.6" y2="155.2"></line>
+<rect x="172.8" y="163" fill="var(--paper)"></rect>
+<line x1="182.4" y1="169" x2="260.8" y2="148.5" stroke-width="2.4"></line>
+<line x1="212" y1="151.4" x2="255.2" y2="151.4"></line>
+<line x1="233.6" y1="151.4" x2="233.6" y2="156.5"></line>
+<line x1="100" y1="49.3" x2="88.8" y2="168.7"></line><line x1="100" y1="87.8" x2="88.8" y2="168.7"></line>
+<line stroke-width=".5" x1="90.4" y1="151.7" x2="90.4" y2="157.2"></line>
+<line stroke-width=".5" x1="92" y1="134.6" x2="92" y2="145.6"></line>
+<line stroke-width=".5" x1="93.6" y1="117.6" x2="93.6" y2="134.1"></line>
+<line stroke-width=".5" x1="95.2" y1="100.5" x2="95.2" y2="122.5"></line>
+<line stroke-width=".5" x1="96.8" y1="83.4" x2="96.8" y2="110.9"></line>
+<line stroke-width=".5" x1="98.4" y1="66.4" x2="98.4" y2="99.4"></line>
+<line x1="100" y1="173.6" x2="100" y2="11.1" stroke-width="2.6"></line>
+<line x1="90.8" y1="79.5" x2="109.2" y2="79.5"></line>
+<circle cx="100" cy="17.7" r="1.3" stroke-width=".8"></circle>
+<line x1="70" y1="122.9" x2="130" y2="122.9" stroke-width="2"></line>
+<line x1="70" y1="122.9" x2="100" y2="103.5"></line><line x1="130" y1="122.9" x2="100" y2="103.5"></line>
+<line x1="77" y1="85.2" x2="123" y2="85.2" stroke-width="2"></line>
+<line x1="77" y1="85.2" x2="100" y2="65.9"></line><line x1="123" y1="85.2" x2="100" y2="65.9"></line>
+<line x1="84" y1="55.6" x2="116" y2="55.6" stroke-width="2"></line>
+<line x1="84" y1="55.6" x2="100" y2="41.9"></line><line x1="116" y1="55.6" x2="100" y2="41.9"></line>
+<line x1="164" y1="63" x2="175.2" y2="168.7"></line><line x1="164" y1="97.2" x2="175.2" y2="168.7"></line>
+<line stroke-width=".5" x1="173.6" y1="153.6" x2="173.6" y2="158.5"></line>
+<line stroke-width=".5" x1="172" y1="138.5" x2="172" y2="148.3"></line>
+<line stroke-width=".5" x1="170.4" y1="123.4" x2="170.4" y2="138.1"></line>
+<line stroke-width=".5" x1="168.8" y1="108.3" x2="168.8" y2="127.9"></line>
+<line stroke-width=".5" x1="167.2" y1="93.2" x2="167.2" y2="117.6"></line>
+<line stroke-width=".5" x1="165.6" y1="78.1" x2="165.6" y2="107.4"></line>
+<line x1="164" y1="173.6" x2="164" y2="28.2" stroke-width="2.6"></line>
+<line x1="154.8" y1="89.7" x2="173.2" y2="89.7"></line>
+<circle cx="164" cy="34.8" r="1.3" stroke-width=".8"></circle>
+<line x1="138" y1="122.9" x2="190" y2="122.9" stroke-width="2"></line>
+<line x1="138" y1="122.9" x2="164" y2="103.5"></line><line x1="190" y1="122.9" x2="164" y2="103.5"></line>
+<line x1="144" y1="85.2" x2="184" y2="85.2" stroke-width="2"></line>
+<line x1="144" y1="85.2" x2="164" y2="65.9"></line><line x1="184" y1="85.2" x2="164" y2="65.9"></line>
+<line x1="150" y1="55.6" x2="178" y2="55.6" stroke-width="2"></line>
+<line x1="150" y1="55.6" x2="164" y2="41.9"></line><line x1="178" y1="55.6" x2="164" y2="41.9"></line>
+<line x1="164" y1="35.7" x2="258.4" y2="149.1"></line><line x1="164.8" y1="39.1" x2="230.4" y2="154.2"></line><line x1="100" y1="24.3" x2="164" y2="75.5"></line><line x1="100" y1="64.2" x2="164" y2="121.2"></line><line x1="100" y1="24.3" x2="70.4" y2="169"></line><line x1="164" y1="41.4" x2="138.4" y2="169"></line>
+<line x1="42.4" y1="149.1" x2="119.2" y2="149.1" stroke-width="2"></line>
+<line x1="118" y1="113.7" x2="64" y2="101.8" stroke-width="1.6"></line>
+<line x1="43.2" y1="148.5" x2="48" y2="167.3"></line><line stroke-width=".5" x1="69.6" y1="106.9" x2="100" y2="24.3"></line>
+<line x1="27.2" y1="155.3" x2="27.2" y2="126.9"></line><polygon points="27.2,126.9 8,131.4 27.2,136" stroke-width=".8" fill="var(--ink)" fill-opacity=".25"></polygon>
+</g>
+<g id="sailShapes" stroke="var(--ink)" stroke-width=".8" stroke-linejoin="round" style="cursor:pointer">
+<polygon data-s="mc" points="71.2,123.4 128.8,123.4 128.8,154.2 71.2,154.2" style="fill: rgb(230, 210, 156); fill-opacity: 1; stroke-dasharray: none; stroke-width: 0.8; stroke: var(--ink);"></polygon>
+<polygon data-s="mt" points="77.9,85.8 122.1,85.8 122.1,117.7 77.9,117.7" style="fill: rgb(230, 210, 156); fill-opacity: 1; stroke-dasharray: none; stroke-width: 0.8; stroke: var(--ink);"></polygon>
+<polygon data-s="mg" points="84.6,56.2 115.4,56.2 115.4,78.4 84.6,78.4" style="fill: var(--ink); fill-opacity: 0.06; stroke-dasharray: 3, 2; stroke-width: 0.8; stroke: var(--ink);"></polygon>
+<polygon data-s="fc" points="139,123.4 189,123.4 189,154.2 139,154.2" style="fill: rgb(230, 210, 156); fill-opacity: 1; stroke-dasharray: none; stroke-width: 0.8; stroke: var(--ink);"></polygon>
+<polygon data-s="ft" points="144.8,85.8 183.2,85.8 183.2,117.7 144.8,117.7" style="fill: rgb(230, 210, 156); fill-opacity: 1; stroke-dasharray: none; stroke-width: 0.8; stroke: var(--ink);"></polygon>
+<polygon data-s="fg" points="150.6,56.2 177.4,56.2 177.4,78.4 150.6,78.4" style="fill: var(--ink); fill-opacity: 0.06; stroke-dasharray: 3, 2; stroke-width: 0.8; stroke: var(--ink);"></polygon>
+<polygon data-s="drv" points="118,113.7 64,101.8 43.2,148.5 118,148.5" style="fill: rgb(230, 210, 156); fill-opacity: 1; stroke-dasharray: none; stroke-width: 0.8; stroke: var(--ink);"></polygon>
+<polygon data-s="jib" points="171.2,51.6 251.2,157.1 198.4,153.6" style="fill: rgb(230, 210, 156); fill-opacity: 1; stroke-dasharray: none; stroke-width: 0.8; stroke: var(--ink);"></polygon>
+</g></svg>
+        </g>
+        <g id="sailPick" data-selector="#sailPick">
+          <text id="sailPick__text" font-family="Spectral" font-size="11.5" font-weight="400" fill="#7b6a55" text-anchor="start">
+            <tspan x="962.0" y="920.8">Click sails to pick them (as many as you like), then tap how much to set.</tspan>
+          </text>
+        </g>
+        <g id="sailAll" data-selector="#sailAll" data-label="Pick every sail">
+          <rect id="sailAll__bg" x="962.0" y="942.8" width="65.6" height="27.0" rx="2.0" fill="#f6eed9" stroke="#2e2519" stroke-width="1.0"/>
+          <text id="sailAll__text" font-family="Spectral" font-size="12.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+            <tspan x="994.8" y="960.5">Select all</tspan>
+          </text>
+        </g>
+        <g id="sailNone" data-selector="#sailNone" data-label="Clear the selection">
+          <rect id="sailNone__bg" x="1033.6" y="942.8" width="63.4" height="27.0" rx="2.0" fill="#f6eed9" stroke="#2e2519" stroke-width="1.0"/>
+          <text id="sailNone__text" font-family="Spectral" font-size="12.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+            <tspan x="1065.3" y="960.5">Deselect</tspan>
+          </text>
+        </g>
+      </g>
+      <g id="side-0__dock-0__sheet-0__dockgrid-2__sub-2" data-selector="div:0&gt;div.main:2&gt;aside.side:0&gt;section.dock:0&gt;div.sheet:0&gt;div.dockgrid:2&gt;div.sub:2">
+        <line id="side-0__dock-0__sheet-0__dockgrid-2__sub-2__border-top" x1="962.0" y1="984.3" x2="1264.0" y2="984.3" stroke="#cbbd98" stroke-width="1.0"/>
+        <g id="side-0__dock-0__sheet-0__dockgrid-2__sub-2__dockbody-0__meter-0" data-selector="div:0&gt;div.main:2&gt;aside.side:0&gt;section.dock:0&gt;div.sheet:0&gt;div.dockgrid:2&gt;div.sub:2&gt;div.dockbody:0&gt;div.meter:0" data-label="Rigging condition">
+          <rect id="side-0__dock-0__sheet-0__dockgrid-2__sub-2__dockbody-0__meter-0__bg" x="962.0" y="992.8" width="302.0" height="6.0" rx="0.0" fill="#ece2c8" stroke="#cbbd98" stroke-width="1.0"/>
+          <g id="rigBar" data-selector="#rigBar">
+            <rect id="rigBar__bg" x="963.0" y="993.8" width="300.0" height="4.0" rx="0.0" fill="#7b6a55"/>
+          </g>
+        </g>
+        <g id="strainTxt" data-selector="#strainTxt">
+          <text id="strainTxt__text" font-family="Spectral" font-size="12.5" font-weight="400" fill="#7b6a55" text-anchor="start">
+            <tspan x="962.0" y="1019.7">Safe up to about force 4 with this canvas.</tspan>
+          </text>
+        </g>
+        <g id="hullTxt" data-selector="#hullTxt">
+          <text id="hullTxt__text" font-family="Spectral" font-size="12.5" font-weight="400" fill="#7b6a55" text-anchor="start">
+            <tspan x="962.0" y="1045.7">Hull 100%.</tspan>
+          </text>
+        </g>
+        <g id="side-0__dock-0__sheet-0__dockgrid-2__sub-2__dockbody-0__row-3" data-selector="div:0&gt;div.main:2&gt;aside.side:0&gt;section.dock:0&gt;div.sheet:0&gt;div.dockgrid:2&gt;div.sub:2&gt;div.dockbody:0&gt;div.row:3">
+          <line id="side-0__dock-0__sheet-0__dockgrid-2__sub-2__dockbody-0__row-3__border-top" x1="962.0" y1="1058.3" x2="1264.0" y2="1058.3" stroke="#cbbd98" stroke-width="1.0"/>
+          <g id="brL" data-selector="#brL" data-label="Swing the yards 5° (Q/E)">
+            <rect id="brL__bg" x="962.0" y="1082.3" width="63.1" height="27.0" rx="2.0" fill="#f6eed9" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="brL__text" font-family="Spectral" font-size="12.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+              <tspan x="993.5" y="1100.0">◄ Brace</tspan>
+            </text>
+          </g>
+          <g id="braceTxt" data-selector="#braceTxt">
+            <text id="braceTxt__text" font-family="IBM Plex Mono" font-size="12.5" font-weight="400" fill="#2e2519" text-anchor="middle">
+              <tspan x="1113.0" y="1088.7">Yards square · best square</tspan>
+            </text>
+          </g>
+          <g id="trimTxt__lng-0" data-selector="#trimTxt&gt;span.lng:0">
+            <text id="trimTxt__lng-0__text" font-family="Spectral" font-size="13.0" font-weight="600" fill="#3f7a4a" text-anchor="middle">
+              <tspan x="1097.5" y="1119.3">Drawing well</tspan>
+            </text>
+          </g>
+          <g id="trimTxt__pct-1" data-selector="#trimTxt&gt;span.pct:1">
+            <text id="trimTxt__pct-1__text" font-family="Spectral" font-size="13.0" font-weight="600" fill="#3f7a4a" text-anchor="middle">
+              <tspan x="1153.8" y="1119.3">100%</tspan>
+            </text>
+          </g>
+          <g id="brR" data-selector="#brR" data-label="Swing the yards 5° (Q/E)">
+            <rect id="brR__bg" x="1200.9" y="1082.3" width="63.1" height="27.0" rx="2.0" fill="#f6eed9" stroke="#2e2519" stroke-width="1.0"/>
+            <text id="brR__text" font-family="Spectral" font-size="12.0" font-weight="400" fill="#2e2519" text-anchor="middle">
+              <tspan x="1232.5" y="1100.0">Brace ►</tspan>
+            </text>
+          </g>
+        </g>
+        <g id="side-0__dock-0__sheet-0__dockgrid-2__sub-2__dockbody-0__row-4" data-selector="div:0&gt;div.main:2&gt;aside.side:0&gt;section.dock:0&gt;div.sheet:0&gt;div.dockgrid:2&gt;div.sub:2&gt;div.dockbody:0&gt;div.row:4">
+          <line id="side-0__dock-0__sheet-0__dockgrid-2__sub-2__dockbody-0__row-4__border-top" x1="962.0" y1="1132.3" x2="1264.0" y2="1132.3" stroke="#cbbd98" stroke-width="1.0"/>
+          <g id="logKn" data-selector="#logKn">
+            <text id="logKn__text" font-family="IBM Plex Mono" font-size="18.0" font-weight="400" fill="#2e2519" text-anchor="start">
+              <tspan x="962.0" y="1158.6">—</tspan>
+            </text>
+          </g>
+          <g id="logAge" data-selector="#logAge">
+            <text id="logAge__text" font-family="Spectral" font-size="12.5" font-weight="400" fill="#7b6a55" text-anchor="start">
+              <tspan x="962.0" y="1180.7">not yet hove</tspan>
+            </text>
+          </g>
+          <g id="bHeave" data-selector="#bHeave" data-label="Heave the log">
+            <rect id="bHeave__bg" x="1226.0" y="1144.3" width="38.0" height="38.0" rx="2.0" fill="#f6eed9" stroke="#2e2519" stroke-width="1.0"/>
+            <svg width="20.0" height="20.0" id="bHeave__icon" x="1235.0" y="1153.3" viewBox="0 0 24 24" fill="none" stroke="#2e2519" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="7.5" r="4"></circle><path d="M7 3.5v8M3 7.5h8"></path><path d="M10.2 10.8C12.6 13 14 13.8 15.2 15.2" stroke-dasharray="1.1 1.7"></path><path d="M14 15.6h6.4a6.4 6.4 0 0 1-6.4 6.4z" fill="#2e2519" fill-opacity=".35"></path></svg>
+          </g>
+        </g>
+      </g>
+    </g>
+  </g>
+  <line id="_guide__screen-bottom-800px" x1="0" y1="800" x2="1280" y2="800" stroke="#b2452c" stroke-dasharray="8 6" stroke-width="1"/>
+</g>
+</svg>
