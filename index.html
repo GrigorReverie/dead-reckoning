@@ -109,6 +109,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-
 .pane.small{left:12px;top:12px;width:min(210px,32%);height:150px;z-index:4;border:2px solid var(--ink);box-shadow:0 6px 20px rgba(18,36,90,.3)}
 .pane canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 #hud{pointer-events:none}
+#view3d{touch-action:none;cursor:grab;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}#view3d.drag{cursor:grabbing}
 .swapbtn{position:absolute;left:4px;bottom:4px;width:28px;height:28px;background:var(--paper);border:1px solid var(--ink);color:var(--ink);font-size:15px;line-height:1;border-radius:2px;z-index:3}
 .pane.big .swapbtn{display:none}
 .plabel{position:absolute;left:38px;bottom:8px;font-family:var(--f-data);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink);background:var(--paper);padding:1px 5px;z-index:3}
@@ -2655,7 +2656,7 @@ function init3D(){
     const sailLine=new THREE.LineBasicMaterial({color:0x2e2519,transparent:true,opacity:.26});
     const ochreLine=new THREE.LineBasicMaterial({color:0xb2452c,fog:false});
     const R={renderer,scene,camera,U,mk:tex,inkMat,terrainMat,sailMat,hullMat,bulwMat,deckMat,boxMat,mastMat,lineMat,solidInk,sailLine,W:1,H:1,dpr:renderer.getPixelRatio(),
-      yaw:60,pitch:16,dist:58,hs:0,amp:.3,windFrom:90,wt:0,last:null,cover:0,frame:0,notes:false,nightF:0,camBrg:0,heel:0,roll:0,side:1,bs:1,heave:0,pit:0,
+      yaw:60,pitch:16,dist:58,ty:60,tp:16,td:58,hs:0,amp:.3,windFrom:90,wt:0,last:null,cover:0,frame:0,notes:false,nightF:0,camBrg:0,heel:0,roll:0,side:1,bs:1,heave:0,pit:0,
       paperA:[...PAL.day.paper],inkA:[...PAL.day.ink],clouds:[],tex:{}};
     R.smRT=smRT;R.shDepth=shDepth;R.lcam=new THREE.OrthographicCamera(-1,1,1,-1,.1,10);
     // ---- sea ----
@@ -4360,6 +4361,7 @@ function update3D(dt,now){
       if(R.crew)for(const c of R.crew)if(c.role.startsWith("hand")&&on)c.m.visible=false;}}
   // camera
   R.hs+=angDiff(R.hs,sh.heading)*(1-Math.exp(-dt*1.6));
+  {const k=1-Math.exp(-Math.min(dt,.25)*14);R.yaw+=(R.ty-R.yaw)*k;R.pitch+=(R.tp-R.pitch)*k;R.dist+=(R.td-R.dist)*k;if(Math.abs(R.ty)>720){const w=360*Math.round(R.ty/360);R.ty-=w;R.yaw-=w;}}
   const al=(R.hs+180+R.yaw)*D2R,pt=R.pitch*D2R,dh=R.dist*Math.cos(pt);
   const ck=R.camK||1;R.camera.position.set(Math.sin(al)*dh*ck,Math.max(4*Math.min(1,ck),(8+R.dist*Math.sin(pt))*ck),-Math.cos(al)*dh*ck);
   R.camera.lookAt(0,15*(R.camY||1),0);R.camBrg=norm((R.hs+R.yaw));
@@ -4414,16 +4416,35 @@ function drawHud(now,sq,w){
   }
 }
 
-// camera controls
-const ptr3=new Map();let drag3=null,pinch0=0;
-v3c.addEventListener("pointerdown",e=>{if(!R3)return;v3c.setPointerCapture(e.pointerId);ptr3.set(e.pointerId,{x:e.clientX,y:e.clientY});if(ptr3.size===1)drag3={x:e.clientX,y:e.clientY,yaw:R3.yaw,pit:R3.pitch};if(ptr3.size===2){const[a,b]=[...ptr3.values()];pinch0=Math.hypot(a.x-b.x,a.y-b.y);}});
-v3c.addEventListener("pointermove",e=>{if(!R3||!ptr3.has(e.pointerId))return;ptr3.set(e.pointerId,{x:e.clientX,y:e.clientY});
-  if(ptr3.size===2){const[a,b]=[...ptr3.values()];const d=Math.hypot(a.x-b.x,a.y-b.y);if(pinch0>0)R3.dist=clamp(R3.dist*pinch0/d,25,500);pinch0=d;return;}
-  if(drag3){R3.yaw=drag3.yaw-(e.clientX-drag3.x)*.4;R3.pitch=clamp(drag3.pit+(e.clientY-drag3.y)*.3,3,75);}});
-const end3=e=>{ptr3.delete(e.pointerId);if(!ptr3.size)drag3=null;};
-v3c.addEventListener("pointerup",end3);v3c.addEventListener("pointercancel",end3);
-v3c.addEventListener("wheel",e=>{if(!R3)return;e.preventDefault();R3.dist=clamp(R3.dist*Math.exp(e.deltaY*.001),25,500);},{passive:false});
-v3c.addEventListener("dblclick",()=>{if(R3){R3.yaw=60;R3.pitch=16;R3.dist=58;}});
+// camera controls: the view eases toward targets (ty/tp/td) so drags, pinches and wheel notches all glide
+const ptr3=new Map();let drag3=null,pinch3=null,tap3=0;
+const CAM0={yaw:60,pitch:16,dist:58},wrap360=a=>a-360*Math.round(a/360);
+const anchor3=()=>{ // restart the gesture from where the fingers are now, so lifting or adding a finger never makes the view jump
+  const R=R3,p=[...ptr3.values()];drag3=pinch3=null;if(!R||!p.length)return;
+  if(p.length>=2)pinch3={d:Math.max(8,Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y)),td:R.td};
+  else drag3={x:p[0].x,y:p[0].y,ty:R.ty,tp:R.tp,live:false};};
+const end3=e=>{if(!ptr3.delete(e.pointerId))return;v3c.classList.toggle("drag",ptr3.size>0);anchor3();
+  if(!ptr3.size&&e.type==="pointerup"&&e.pointerType!=="mouse"&&R3){ // double tap resets the view like a double click
+    const now=e.timeStamp;
+    if(R3.tapPt&&now-R3.tapT<320&&Math.hypot(e.clientX-R3.tapPt.x,e.clientY-R3.tapPt.y)<30&&!R3.tapMoved){resetCam3();R3.tapT=0;}
+    else if(!R3.tapMoved){R3.tapT=now;R3.tapPt={x:e.clientX,y:e.clientY};}else R3.tapT=0;}};
+function resetCam3(){const R=R3;if(!R)return;const k=360*Math.round((R.yaw-CAM0.yaw)/360);R.yaw-=k;R.ty=CAM0.yaw;R.tp=CAM0.pitch;R.td=CAM0.dist;} // glide back by the short way round
+v3c.addEventListener("pointerdown",e=>{if(!R3)return;if(e.pointerType==="mouse"&&e.button!==0){if(e.button===1)e.preventDefault();return;}
+  if(ptr3.size>=2)return;try{v3c.setPointerCapture(e.pointerId);}catch(_){}
+  ptr3.set(e.pointerId,{x:e.clientX,y:e.clientY});if(ptr3.size===1)R3.tapMoved=false;anchor3();v3c.classList.add("drag");});
+v3c.addEventListener("pointermove",e=>{const R=R3;if(!R||!ptr3.has(e.pointerId))return;
+  if(e.pointerType==="mouse"&&!e.buttons){end3(e);return;} // button was released outside the window
+  ptr3.set(e.pointerId,{x:e.clientX,y:e.clientY});const p=[...ptr3.values()];
+  if(p.length>=2&&pinch3){R.tapMoved=true;const d=Math.max(8,Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y));R.td=clamp(pinch3.td*pinch3.d/d,25,500);return;}
+  if(drag3){const dx=p[0].x-drag3.x,dy=p[0].y-drag3.y;
+    if(!drag3.live){if(Math.hypot(dx,dy)<5)return;drag3.live=true;R.tapMoved=true;drag3.x=p[0].x;drag3.y=p[0].y;drag3.ty=R.ty;drag3.tp=R.tp;return;} // a small slop so a tap never nudges the view
+    R.ty=drag3.ty-dx*.4;R.tp=clamp(drag3.tp+dy*.3,3,75);}});
+v3c.addEventListener("pointerup",end3);v3c.addEventListener("pointercancel",end3);v3c.addEventListener("lostpointercapture",end3);
+v3c.addEventListener("contextmenu",e=>e.preventDefault());
+v3c.addEventListener("wheel",e=>{if(!R3)return;e.preventDefault();
+  let dy=e.deltaY*(e.deltaMode===1?33:e.deltaMode===2?400:1);dy=clamp(dy,-240,240); // mouse notches, laptop trackpads and Firefox line scrolling all feel alike
+  R3.td=clamp(R3.td*Math.exp(dy*(e.ctrlKey?.01:.0012)),25,500);},{passive:false});
+v3c.addEventListener("dblclick",resetCam3);
 
 /* ---------- view swapping ---------- */
 let main3d=true;
@@ -5656,7 +5677,7 @@ function oarsUI(sh,bf){const O=SHIP.oars;if(!O||!$("bOars"))return;const r=rowOf
   $("oarMinus").disabled=h<=Math.min(O.n,av);$("oarPlus").disabled=h>=Math.min(need,av);
   for(const id of["oarBP","oarBS"])$(id).disabled=!on&&(!calm||anch);$("oarRel").checked=r.relieve!==false;
   if(on){$("windSpd").innerHTML=`<b style="color:var(--ink)">${r.pivot?"Turning":st.n}</b><br>${st.spm?st.spm+" strokes a minute":"blades still"}`;}}
-window.__DR={footAt,PF,portGeom,openPortCard,openPortPlan,tideLvl,tideTable,tideStream,plotFix,LMS,currentAt,landInit,WINDK,CURK,dockAtPort,showCrisis,crisisKind,punish,loadState,packState,decS,toggleOars,setStroke,oarPivot,STROKES,pickShip,get SHIP(){return SHIP},SHIPDEFS,SPEC,useShip,applyShip,crewOf,rigOf,linesOf,get shipPick(){return shipPick},set shipPick(v){shipPick=v},svMove,svCtx,sx,sy,openPortCard,openPortPlan,get R3(){return R3},setMain,update3D,get S(){return S},VOYAGES,PORTS,islands,reefs,LMS,step,startVoyage,setCourse,tackOrWear,setSail,assistStep,noonAvailable,windAt:(x,y,t)=>windAt(S,x,y,t),inPoly,crossFix,plotFix,takeBearing,markNoon,startObserve,noonAvailable,endVoyage,toGeo,geo,atPort:()=>atPort(S),buyStore,sellFish,toggleFish,coastNm,fishStep};
+window.__DR={cam:()=>R3,footAt,PF,portGeom,openPortCard,openPortPlan,tideLvl,tideTable,tideStream,plotFix,LMS,currentAt,landInit,WINDK,CURK,dockAtPort,showCrisis,crisisKind,punish,loadState,packState,decS,toggleOars,setStroke,oarPivot,STROKES,pickShip,get SHIP(){return SHIP},SHIPDEFS,SPEC,useShip,applyShip,crewOf,rigOf,linesOf,get shipPick(){return shipPick},set shipPick(v){shipPick=v},svMove,svCtx,sx,sy,openPortCard,openPortPlan,get R3(){return R3},setMain,update3D,get S(){return S},VOYAGES,PORTS,islands,reefs,LMS,step,startVoyage,setCourse,tackOrWear,setSail,assistStep,noonAvailable,windAt:(x,y,t)=>windAt(S,x,y,t),inPoly,crossFix,plotFix,takeBearing,markNoon,startObserve,noonAvailable,endVoyage,toGeo,geo,atPort:()=>atPort(S),buyStore,sellFish,toggleFish,coastNm,fishStep};
 })();
 </script>
 <script>if("serviceWorker" in navigator&&location.protocol.startsWith("http"))window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
