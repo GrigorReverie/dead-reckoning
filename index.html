@@ -2075,6 +2075,13 @@ const SH={disc:0.043,dirOff:1,lenMul:0.99,formAmt:0.9,termBias:0.05,termSoft:0.2
 const SH_UH=Object.keys(SH).map(k=>{const v=SH[k];if(typeof v==="string"){const c=[1,3,5].map(i=>(parseInt(v.slice(i,i+2),16)/255).toFixed(4));return `const vec3 u_${k}=vec3(${c});`;}return `const float u_${k}=${(+v).toFixed(4)};`;}).join("\n")+`
 uniform sampler2D u_SMap; uniform mat4 u_SMat; uniform float u_SSize,u_SRange,u_STex,u_ShadowOn,u_LightK;
 `;
+// Cloud shadows on the sea and the ship, from Grigor's Cloud Shadow Tuner settings of 2026-10-28. Each visible cloud sprite throws a soft ragged shadow along the sun's ray; the sun dims inside it.
+const CL={cRag:0.45,cCol:"#46617a",cStr:0.13,cSoft:77,cThick:0.57,cHType:1,cHCol:"#2a4150",cHOpac:0.8,cHSp:2.06,cHW:0.35,cHAng:50,cHGain:2.15,cHStart:0.19,cHCrossAng:90,cHCrossStart:0.18,cShipStr:0.45,cShipHatch:0.5,cDim:0.8,cLevel:0.54};
+const CL_N=24;
+const CL_UH=Object.keys(CL).map(k=>{const v=CL[k];if(typeof v==="string"){const c=[1,3,5].map(i=>(parseInt(v.slice(i,i+2),16)/255).toFixed(4));return `const vec3 u_${k}=vec3(${c});`;}return `const float u_${k}=${(+v).toFixed(4)};`;}).join("\n")+`
+const vec2 u_cDir=vec2(${Math.cos(CL.cHAng*Math.PI/180).toFixed(5)},${Math.sin(CL.cHAng*Math.PI/180).toFixed(5)});
+uniform vec4 u_cl[${CL_N}]; uniform vec2 u_cPar; uniform float u_cHSh;
+`;
 const GLSL_SUN=`
 #ifndef SH_NB
 #define SH_NB 12
@@ -2128,8 +2135,28 @@ float hatchP(vec2 c,float type,float ang,float sp,float W,float gain,float start
   }
   return r;
 }
+${CL_UH}
+float csH(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+float csN(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.0-2.0*f);return mix(mix(csH(i),csH(i+vec2(1.0,0.0)),f.x),mix(csH(i+vec2(0.0,1.0)),csH(i+vec2(1.0,1.0)),f.x),f.y);}
+// where a point sits in the cloud field: slid up the sun's ray (the cloud footprints are already slid down it)
+vec2 cloudFld(vec3 wp){return wp.xz-u_cPar*wp.y;}
+// how much of the sun a point loses to the clouds (0..1)
+float cloudShadowAt(vec3 wp){
+  vec2 f=cloudFld(wp);
+  float rg=csN(f/283.0)*0.6+csN(f/97.0+9.0)*0.4-0.5;
+  float best=0.0;
+  for(int i=0;i<${CL_N};i++){
+    vec4 c=u_cl[i];
+    float sd=c.z-length(f-c.xy)+rg*u_cRag*c.z*1.1;
+    float m=smoothstep(-u_cSoft*0.5,u_cSoft*0.5,sd);
+    m*=mix(1.0,smoothstep(0.0,c.z*0.8+u_cSoft,sd),u_cThick);
+    best=max(best,m*c.w);
+  }
+  return best*u_ShadowOn;
+}
 // the ship: shaded sides tinted and hatched, plus the shadows its own sails, spars and decks throw
 vec3 sunShade(vec3 col,vec3 nw,vec3 wp,vec2 hc){
+  float cs=cloudShadowAt(wp);
   float lam=dot(nw,uSunW);
   float form=1.0-smoothstep(u_termBias-u_termSoft,u_termBias+u_termSoft,lam);
   float csh=0.0;
@@ -2137,9 +2164,13 @@ vec3 sunShade(vec3 col,vec3 nw,vec3 wp,vec2 hc){
     csh=shadowAt(wp+nw*u_sBias*0.6,u_sBias*(1.0+2.0*(1.0-clamp(lam,0.0,1.0))),u_selfSoft).x*u_castAmt*(1.0-form);
   }
   float shade=max(form*u_formAmt,csh)*u_LightK;
+  shade=mix(shade,u_cLevel*u_LightK,u_cDim*cs);
   col*=mix(vec3(1.0),u_shadeTint,clamp(shade*u_washAmt,0.0,1.0));
   float h=hatchP(hc,u_hType,u_hAng,u_hSp,u_hW,u_hGain,u_hStart,u_hCrossAng,u_hCrossStart,shade)*u_hOpac;
-  return mix(col,u_hCol,clamp(h,0.0,1.0));
+  col=mix(col,u_hCol,clamp(h,0.0,1.0));
+  col=mix(col,col*mix(vec3(1.0),u_cCol*1.55,0.8),cs*u_cShipStr);
+  float ch2=hatchP(cloudFld(wp)-u_cDir*u_cHSh,u_cHType>3.5?1.0:u_cHType,u_cHAng,u_cHSp,u_cHW,u_cHGain,u_cHStart,u_cHCrossAng,u_cHCrossStart,cs)*u_cHOpac*u_cShipHatch;
+  return mix(col,u_cHCol,clamp(ch2,0.0,1.0));
 }`;
 const VS_INK=`
 attribute float aTone;
@@ -2382,6 +2413,7 @@ void main(){
   vec3 wash=mix(mix(uPaper,vec3(0.72,0.81,0.82),0.5)*(0.94+0.1*rel),dayW,1.0-night);
   wash=mix(wash,uPaper*(0.85+0.3*fbm(q*0.07))+(uInk-uPaper)*0.0,night*0.5);
   vec3 col=mix(wash,uSeaInk,ink);
+  float csG=cloudShadowAt(vPos);
   // foam: broken white on the crests, streaked along the swell
   float fo=smoothstep(0.78,0.97,crest+(fbm(q*vec2(1.1,1.7))-0.5)*0.75)*mid;
   float fl=smoothstep(0.55,0.75,fbm(q*vec2(1.6,0.7)))*smoothstep(0.55,0.8,crest)*near;
@@ -2412,7 +2444,7 @@ void main(){
       wsh=mix(wsh,vec3(0.604,0.718,0.737),in2);
       float Lx=aaLine(dot(q,fw2*0.7071-pw2*0.7071)/0.2+sw,hw)*in2;
       col=mix(wsh,vec3(0.20,0.34,0.50),clamp(gridv,0.0,0.8)); // the fixed chart grid: every tenth unit, bolder every tenth line
-      col=mix(col,pen,clamp(max(dk*0.44,Lx*0.1)*fineN+cl2*0.2,0.0,0.7));col=mix(col,vec3(1.0),clamp(lt*fineN*0.65,0.0,0.7));
+      col=mix(col,pen,clamp(max(dk*0.44,Lx*0.1)*fineN+cl2*0.2,0.0,0.7));col=mix(col,vec3(1.0),clamp(lt*fineN*0.65*(1.0-u_cDim*csG),0.0,0.7));
     } else if(uSeaStyle<2.5){ // engraved plate: fine parallel lines, heavier where the water turns from the light
       vec3 wsh=mix(uPaper,vec3(0.72,0.8,0.81),0.4);
       float fine=1.0-smoothstep(60.0,500.0,dist);
@@ -2471,12 +2503,18 @@ void main(){
   // the ship's shadow on the water: a flat wash with hairline hatching, softer and fainter the farther it falls from the ship
   { vec2 sd=shadowAt(vPos,0.03,u_wSoft);
     float fade=mix(1.0,1.0-smoothstep(0.0,u_wFadeLen,sd.y),u_wFadeAmt);
-    float sdw=sd.x*u_ShadowOn*fade;
+    float sdw=sd.x*u_ShadowOn*fade*(1.0-u_cDim*csG);
     col=mix(col,u_wCol,clamp(sdw*u_wStr,0.0,1.0));
     float tt=u_wType; vec2 cs=q;
     if(tt>3.5){ float aa=radians(u_wHAng); cs+=vec2(cos(aa),sin(aa))*(vH*1.0+0.4*fbm(q*0.3))*u_wHSp; tt=1.0; }
     float hh=hatchP(cs,tt,u_wHAng,u_wHSp,u_wHW,u_wHGain,u_wHStart,u_wHCrossAng,u_wHCrossStart,sdw)*u_wHOpac;
     col=mix(col,u_wHCol,clamp(hh,0.0,1.0)); }
+  // cloud shadows: a flat wash with hairline hatching that travels with the shadow
+  { col=mix(col,u_cCol,clamp(csG*u_cStr,0.0,1.0));
+    vec2 hc2=vPos.xz-u_cDir*u_cHSh; float tt2=u_cHType;
+    if(tt2>3.5){ hc2+=u_cDir*(vH*1.0+0.4*fbm(q*0.3))*u_cHSp; tt2=1.0; }
+    float hh2=hatchP(hc2,tt2,u_cHAng,u_cHSp,u_cHW,u_cHGain,u_cHStart,u_cHCrossAng,u_cHCrossStart,csG)*u_cHOpac;
+    col=mix(col,u_cHCol,clamp(hh2,0.0,1.0)); }
   col=mix(col,uPaper,smoothstep(uFogNear,uFogFar,dist));
   gl_FragColor=vec4(col,1.0);
 }`;
@@ -2524,7 +2562,7 @@ function init3D(){
     // sun's-eye depth map of the ship, drawn once a frame; the ship and the sea both read it for shadows
     const SMS=(window.matchMedia&&matchMedia("(pointer:coarse)").matches)?1024:2048;
     const smRT=new THREE.WebGLRenderTarget(SMS,SMS,{minFilter:THREE.NearestFilter,magFilter:THREE.NearestFilter,format:THREE.RGBAFormat,type:THREE.UnsignedByteType});
-    Object.assign(U,{u_SMap:{value:smRT.texture},u_SMat:{value:new THREE.Matrix4()},u_SSize:{value:100},u_SRange:{value:100},u_STex:{value:1/SMS},u_ShadowOn:{value:0},u_LightK:{value:0}});
+    Object.assign(U,{u_SMap:{value:smRT.texture},u_SMat:{value:new THREE.Matrix4()},u_SSize:{value:100},u_SRange:{value:100},u_STex:{value:1/SMS},u_ShadowOn:{value:0},u_LightK:{value:0},u_cl:{value:Array.from({length:CL_N},()=>new THREE.Vector4(0,0,0,0))},u_cPar:{value:new THREE.Vector2()},u_cHSh:{value:0}});
     const shDepth=new THREE.ShaderMaterial({vertexShader:"void main(){gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}",fragmentShader:"precision highp float;void main(){float v=gl_FragCoord.z;vec3 e=vec3(1.0,255.0,65025.0)*v;e=fract(e);e-=e.yzz*vec3(1.0/255.0,1.0/255.0,0.0);gl_FragColor=vec4(e,1.0);}",side:THREE.DoubleSide,blending:THREE.NoBlending});
     const ink=(defs)=>new THREE.ShaderMaterial({uniforms:U,vertexShader:VS_INK,fragmentShader:FS_INK,side:THREE.DoubleSide,defines:Object.assign({HATCH_SCALE:"5.0",SHADE_FLOOR:"0.0"},defs||{}),extensions:{derivatives:true}});
     const inkMat=ink({OBJ:1}),terrainMat=ink({CONTOUR:1});
@@ -3974,6 +4012,7 @@ function update3D(dt,now){
     const rdt=Math.min(dt,.1),ws=(w.kn||10)*.9,tn=Math.max(nightF,DARK?1:0);
     R.nfc=R.nfc==null?tn:R.nfc+(tn-R.nfc)*(1-Math.exp(-rdt*1.2));
     const warm=clamp(1-smooth(6,24,alt),0,1)*(1-R.nfc),tr=1-.12*warm,tg=1-.34*warm,tb=1-.5*warm; // low sun: cream goes to apricot
+    R.cDx=(R.cDx||0)-wdx+Math.sin(wb2)*rdt*gain*ws;R.cDz=(R.cDz||0)-wdz-Math.cos(wb2)*rdt*gain*ws; // how far the clouds have drifted: the shadow hatching rides with them
     for(const m of R.clouds){const u=m.userData,hk=.8+.4*(u.y-1100)/1500;
       u.x+=-wdx+Math.sin(wb2)*rdt*gain*ws*hk;u.z+=-wdz-Math.cos(wb2)*rdt*gain*ws*hk;
       if(u.x>18000)u.x-=36000;if(u.x<-18000)u.x+=36000;if(u.z>18000)u.z-=36000;if(u.z<-18000)u.z+=36000;
@@ -3982,9 +4021,20 @@ function update3D(dt,now){
       const br=1+.035*Math.sin(R.wt*.045+u.ph),dkS=1+.15*u.dkv;
       const px=u.x,py=u.y*(1-.4*dkf*(isDark?1:.4)),pz=u.z,sx=u.sz*(1+.55*cv)*br,sy=u.sz*.55*(1+.55*cv)*dkS*(1+.03*Math.sin(R.wt*.037+u.ph*2));
       const dc=Math.hypot(u.x,u.z),edge=1-smooth(12500,17500,Math.max(Math.abs(u.x),Math.abs(u.z)));
-      const tgt=clamp((cv-u.th)/.1,0,1)*.95*smooth(1800,5000,dc)*edge;u.op+=(tgt-u.op)*(1-Math.exp(-rdt*1.5));
+      const tgt0=clamp((cv-u.th)/.1,0,1)*.95*edge,tgt=tgt0*smooth(1800,5000,dc);u.cx=px;u.cy=py;u.cz=pz;u.csx=sx;u.shop=tgt0;u.op+=(tgt-u.op)*(1-Math.exp(-rdt*1.5));
       const wt4=[(1-u.dkv)*(1-R.nfc),(1-u.dkv)*R.nfc,u.dkv*(1-R.nfc),u.dkv*R.nfc];
       for(let k=0;k<4;k++){const q=u.v[k],o=u.op*wt4[k];q.visible=o>.004;if(!q.visible)continue;q.position.set(px,py,pz);q.scale.set(sx,sy,1);q.material.opacity=o;q.material.color.setRGB(k%2?1:tr,k%2?1:tg,k%2?1:tb);}}
+  }
+  { // cloud shadows: each visible cloud's footprint is slid down the sun's ray to the sea; the 24 nearest go to the shaders
+    const el=Math.max(1.5,Math.atan(Math.tan(Math.max(alt,.01)*D2R)/SH.lenMul)/D2R)*D2R,a2=az+SH.dirOff*D2R,dy=Math.max(Math.sin(el),.2);
+    const parx=Math.cos(el)*Math.sin(a2)/dy,parz=-Math.cos(el)*Math.cos(a2)/dy,list=[];
+    for(const m of R.clouds){const u=m.userData;if(!(u.shop>.03))continue;
+      const cx=u.cx-parx*u.cy,cz=u.cz-parz*u.cy,rad=.24*u.csx,dd=Math.hypot(cx,cz);
+      if(dd<rad+3800)list.push([dd,cx,cz,rad,Math.min(1,u.shop/.9)]);}
+    list.sort((a,b)=>a[0]-b[0]);
+    for(let i=0;i<CL_N;i++){const e=list[i];R.U.u_cl.value[i].set(e?e[1]:0,e?e[2]:0,e?e[3]:0,e?e[4]:0);}
+    R.U.u_cPar.value.set(parx,parz);
+    const ha=CL.cHAng*D2R;R.U.u_cHSh.value=(((((R.cDx||0)*Math.cos(ha)+(R.cDz||0)*Math.sin(ha))%CL.cHSp)+CL.cHSp)%CL.cHSp);
   }
   // the hands at the sweeps: men stand to each loom, face aft and walk it through the stroke (open boats row from their thwarts instead)
   if(R.oars&&R.oars.length&&!(R.dk&&R.dk.open)&&SHIP.oars){const r=sh.row,on=!!(r&&r.on);
