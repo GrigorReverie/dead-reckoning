@@ -307,6 +307,8 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-
 .bar{padding-top:calc(env(safe-area-inset-top,0px) + 4px)}
 /* the glass sits left of the compass; on a phone it shrinks with the dial */
 @media (max-width:860px){.compassbox{--baroW:calc((min(230px,64vw) - 28px)*.24);--stW:32px;--gp:6px}#baro{height:calc(min(230px,64vw) - 28px)}.cbrow{gap:6px}}
+/* Helm controls nudged with the UI Layout Tuner (phone; offsets from where they sat) */
+@media (max-width:860px){#cL5{translate:32px -2px}#cR5{translate:-32px -6px}#dial{translate:0 11px}#baro{translate:-1px -8px}#sailSteps5 button{translate:0 7px}}
 /* the four view icons (chart, camera, ship, book) share one centred row along the bottom */
 :root{--ic:38px;--icg:22px}
 #paneV3.small ~ #paneTools{display:none!important}
