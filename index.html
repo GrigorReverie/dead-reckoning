@@ -2155,7 +2155,7 @@ float hatchObj(float shade,vec3 p,float sp){
   return max(a1,a2);
 }`;
 // Sun shading, hatching and soft cast shadows (ship on itself, ship on the water). Values come from Grigor's Shadow Tuner settings (second round, 2026-10-28); the game's own sun, weather and night feed them.
-const SH={disc:0,dirOff:0,lenMul:0.3,formAmt:1,termBias:0.49,termSoft:0.31,shadeTint:"#9a8f9f",washAmt:0.78,hType:1,hCol:"#2d2219",hOpac:0.6,hSp:0.28,hW:0.35,hAng:38,hGain:1.5,hStart:0.2,hCrossAng:85,hCrossStart:0.65,castOn:1,castAmt:0.6,selfSoft:0.1,sBias:0,wCol:"#3d5f75",wStr:0.5,wSoft:0.29,wFadeAmt:0.38,wFadeLen:5,wType:1,wHCol:"#2a4150",wHOpac:0.78,wHSp:0.35,wHW:0.05,wHAng:61,wHGain:3.15,wHStart:0.18,wHCrossAng:90,wHCrossStart:1};
+const SH={disc:0,dirOff:0,lenMul:0.3,formAmt:0.82,termBias:0.28,termSoft:0.14,shadeTint:"#9a8f9f",washAmt:0.78,hType:1,hCol:"#2d2219",hOpac:0.6,hSp:0.28,hW:0.35,hAng:38,hGain:1.5,hStart:0.3,hCrossAng:85,hCrossStart:0.65,castOn:1,castAmt:0.6,selfSoft:0.1,sBias:0,wCol:"#3d5f75",wStr:0.61,wSoft:0.52,wFadeAmt:0.45,wFadeLen:5,wType:1,wHCol:"#2a4150",wHOpac:0.78,wHSp:0.35,wHW:0.05,wHAng:61,wHGain:3.15,wHStart:0.18,wHCrossAng:90,wHCrossStart:1};
 const SH_UH=Object.keys(SH).map(k=>{const v=SH[k];if(typeof v==="string"){const c=[1,3,5].map(i=>(parseInt(v.slice(i,i+2),16)/255).toFixed(4));return `const vec3 u_${k}=vec3(${c});`;}return `const float u_${k}=${(+v).toFixed(4)};`;}).join("\n")+`
 uniform sampler2D u_SMap; uniform mat4 u_SMat; uniform float u_SSize,u_SRange,u_STex,u_ShadowOn,u_LightK;
 `;
