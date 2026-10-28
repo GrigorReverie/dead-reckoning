@@ -2303,22 +2303,28 @@ void main(){
   if(uSeaStyle>0.5&&night<0.5){
     vec3 pen=vec3(0.19,0.27,0.33);
     if(uSeaStyle<1.5){ // pen and wash: one flat colour; the swell is told only by hairline hatching that packs closer where the water is darker (pen) or brighter (white)
-      vec3 wsh=mix(uPaper,vec3(0.54,0.69,0.73),0.74);
-      float hw=0.42*uDpr,fineN=1.0-smoothstep(150.0,1100.0,dist);
+      vec3 wsh=vec3(0.651,0.749,0.761);
+      float hw=0.26*uDpr,fineN=1.0-smoothstep(150.0,1100.0,dist);
       vec2 fw2=normalize(-cameraPosition.xz+vec2(1e-4)),pw2=vec2(-fw2.y,fw2.x);float rr=dot(q,fw2),cc=dot(q,pw2); // rows square to the line of sight
       float sw=vH*1.0+0.4*fbm(q*0.3);
       float L1=aaLine(rr/1.1+sw,hw),L2=aaLine(rr/0.55+sw,hw),L3=aaLine(rr/0.275+sw,hw);
       float dd=clamp((0.5-rel)*2.2,0.0,1.0),ll=clamp((rel-0.5)*2.6,0.0,1.0);
       // like the cloud shading: even, parallel, hairline rows whose ink fades smoothly with how far the face turns from the light
-      float Lr=aaLine(rr/0.7+sw,hw);
-      float dk=Lr*smoothstep(0.1,0.9,dd),lt=Lr*smoothstep(0.1,0.9,ll);
+      float Lr=aaLine(rr/0.45+sw,hw);
+      float dk=Lr*smoothstep(0.0,0.54,dd),lt=Lr*smoothstep(0.0,0.54,ll);
       float cl2=aaLine(vH*2.4+fbm(q*0.05)*0.8,hw)*(1.0-smoothstep(60.0,800.0,dist));
       float gF=max(aaLine(q.x/6.0,w),aaLine(q.y/6.0,w))*(1.0-smoothstep(90.0,330.0,dist));
       float gM=max(aaLine(q.x/30.0,w*1.35),aaLine(q.y/30.0,w*1.35))*(1.0-smoothstep(500.0,1800.0,dist));
       float gX=max(aaLine(q.x/150.0,w*1.35),aaLine(q.y/150.0,w*1.35))*(1.0-smoothstep(2500.0,7000.0,dist));
       float gridv=max(gF*0.45,max(gM*0.7,gX*0.55));
+      // darker flat wash filling the moving contour outlines of the swell: one tone inside the first outline, a deeper one inside the next, and the second hatching direction only in the deepest
+      float cf=vH*2.4+fbm(q*0.05)*0.8, cfade=1.0-smoothstep(900.0,5000.0,dist);
+      float in1=(1.0-smoothstep(0.0,0.04,cf-1.0))*cfade, in2=(1.0-smoothstep(0.0,0.04,cf))*cfade;
+      wsh=mix(wsh,vec3(0.620,0.725,0.745),in1);
+      wsh=mix(wsh,vec3(0.604,0.718,0.737),in2);
+      float Lx=aaLine(dot(q,fw2*0.7071-pw2*0.7071)/0.2+sw,hw)*in2;
       col=mix(wsh,vec3(0.20,0.34,0.50),clamp(gridv,0.0,0.8)); // the fixed chart grid: every sixth unit, bolder every fifth line
-      col=mix(col,pen,clamp(dk*fineN*0.7+cl2*0.2,0.0,0.7));col=mix(col,vec3(1.0,0.99,0.94),clamp(lt*fineN*0.7,0.0,0.7));
+      col=mix(col,pen,clamp(max(dk*0.44,Lx*0.1)*fineN+cl2*0.2,0.0,0.7));col=mix(col,vec3(1.0),clamp(lt*fineN*0.65,0.0,0.7));
     } else if(uSeaStyle<2.5){ // engraved plate: fine parallel lines, heavier where the water turns from the light
       vec3 wsh=mix(uPaper,vec3(0.72,0.8,0.81),0.4);
       float fine=1.0-smoothstep(60.0,500.0,dist);
