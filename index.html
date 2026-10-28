@@ -481,6 +481,8 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-
           <button id="zOut" title="Zoom out">−</button>
           <button id="follow" aria-pressed="true" title="Follow the ship">◎</button>
           <button id="curTog" aria-pressed="false" title="Show ocean currents on the chart" aria-label="Show ocean currents on the chart"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8c3-3 6 3 9 0s6 3 9 0M3 15c3-3 6 3 9 0s6 3 9 0"/></svg></button>
+          <button id="windTog" aria-pressed="true" title="Hide wind on the chart" aria-label="Hide wind on the chart"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9h11a3 3 0 1 0-3-3M3 15h15a3 3 0 1 1-3 3M3 12h7"/></svg></button>
+          <button id="cldTog" aria-pressed="false" title="Show cloud cover on the chart" aria-label="Show cloud cover on the chart"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 18a4 4 0 0 1-.5-8A5.5 5.5 0 0 1 17 8.5 4.8 4.8 0 0 1 17 18z"/></svg></button>
         </div>
         <button class="ctog ptog" data-pane="paneChart" aria-expanded="true" title="Collapse or expand">–</button><button class="swapbtn" id="swap2" title="Make this the main view (M)">⤢</button><span class="plabel">Chart</span>
       </div>
@@ -832,7 +834,7 @@ function tideStream(k,t){const X=TIDEX[k],f=1+.3*Math.cos(2*PI*(t-40)/TSN);retur
 function tideSpring(t){const c=Math.cos(2*PI*(t-40)/TSN);return c>.5?"springs":c<-.5?"neaps":"between springs and neaps";}
 function tideTable(k,t0,hrs){const out=[];let pv=tideLvl(k,t0-.1),cu=tideLvl(k,t0);for(let t=t0;t<t0+hrs;t+=.05){const nx=tideLvl(k,t+.05);if(cu>pv&&cu>=nx)out.push({t,hw:true,l:cu});else if(cu<pv&&cu<=nx)out.push({t,hw:false,l:cu});pv=cu;cu=nx;}return out;}
 // the current is not the same everywhere: it quickens through the passages between islands, slackens and eddies in their lee, and near a harbour mouth the tidal stream sets in and out
-function currentAt(x,y){
+function currentAt(x,y,tt){
   let d1=1e9,d2=1e9,lee=0;const a=CURRENT.set*D2R,ax=Math.sin(a),ay=Math.cos(a);
   for(const isl of islands){const dx=x-isl.c.x,dy=y-isl.c.y,R=isl.r*1.1,d=Math.hypot(dx,dy)-R;
     if(d<d1){d2=d1;d1=d;}else if(d<d2)d2=d;
@@ -842,7 +844,7 @@ function currentAt(x,y){
   const set=norm(CURRENT.set+lee*45)*D2R,dr=CURRENT.drift*(1+1.8*ch)*(1-.6*lee);
   let vx=dr*Math.sin(set),vy=dr*Math.cos(set);
   if(typeof S!=="undefined"&&S&&S.t!==undefined)for(const k in PORTS){const P=PORTS[k],dx=P.x-x,dy=P.y-y,d=Math.hypot(dx,dy);if(d>5||d<.05)continue;
-    const w=(1-d/5)*(1-d/5),st=tideStream(k,S.t)*w;vx+=st*dx/d;vy+=st*dy/d;}
+    const w=(1-d/5)*(1-d/5),st=tideStream(k,tt==null?S.t:tt)*w;vx+=st*dx/d;vy+=st*dy/d;}
   return{set:norm(Math.atan2(vx,vy)*R2D),drift:Math.hypot(vx,vy)};
 }
 let HULL_MAX=10.5;
@@ -1778,7 +1780,7 @@ function drawChart(){
     ctx.font="13px 'IM Fell English SC',Georgia,serif";ctx.fillStyle=dest?"#a8452c":"#2e2519";ctx.textAlign="right";ctx.fillText(p.name,x-9,y+4);ctx.textAlign="left";}
   if(!S)return;
   // wind arrows
-  drawWindField();
+  drawClouds();drawWindField();
   // latitude lines
   ctx.save();ctx.strokeStyle="rgba(74,90,138,.8)";ctx.lineWidth=1;ctx.setLineDash([8,4]);ctx.font="11px 'IBM Plex Mono',monospace";ctx.fillStyle="#4a5a8a";
   for(const l of S.latLines){const y=sy(l.y);ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(CW,y);ctx.stroke();ctx.fillText(`Obs. lat ${fmtLat(l.lat)} · noon ${l.time}`,sx(S.est.x)+12,y-5);}
@@ -1822,15 +1824,34 @@ function drawRose(x,y,r){
 }
 function drawShip(x,y,h){ctx.save();ctx.translate(x,y);ctx.rotate(h*D2R);ctx.fillStyle="#2e2519";ctx.beginPath();ctx.moveTo(0,-11);ctx.quadraticCurveTo(5,-3,4,8);ctx.lineTo(-4,8);ctx.quadraticCurveTo(-5,-3,0,-11);ctx.fill();
   ctx.strokeStyle="#f6eed9";ctx.lineWidth=1.2;ctx.beginPath();ctx.moveTo(-6,-3);ctx.lineTo(6,-3);ctx.moveTo(-6,3);ctx.lineTo(6,3);ctx.stroke();ctx.restore();}
-function drawWindField(){
-  const step=cam.zoom>4?20:cam.zoom>2?40:60;ctx.save();ctx.strokeStyle="rgba(46,37,25,.45)";ctx.lineWidth=1;
-  const x0=Math.floor(wx(0)/step)*step,x1=wx(CW),y0=Math.floor(wy(CH)/step)*step,y1=wy(0);
-  for(let x=x0;x<=x1;x+=step)for(let y=y0;y<=y1;y+=step){if(x<0||y<0||x>W_NM||y>H_NM)continue;
-    const w=windAt(S,x,y,S.t);const a=(w.from+180)*D2R;const px=sx(x),py=sy(y);const L=16;const dx=Math.sin(a),dy=-Math.cos(a);
-    ctx.beginPath();ctx.moveTo(px-dx*L/2,py-dy*L/2);ctx.lineTo(px+dx*L/2,py+dy*L/2);ctx.lineTo(px+dx*L/2-dx*5+dy*3,py+dy*L/2-dy*5-dx*3);ctx.stroke();
-    const f=beaufort(w.kn);for(let k=0;k<Math.floor(f/2);k++){const bx=px-dx*(L/2-k*3),by=py-dy*(L/2-k*3);ctx.beginPath();ctx.moveTo(bx,by);ctx.lineTo(bx+dy*5,by-dx*5);ctx.stroke();}}
-  ctx.restore();
-}
+// the pilot chart's wind and currents share one grid of arrows (staggered so they never overlap) and one size; both are read at the last whole game hour, so they refresh hourly
+function chartGrid(par){const nm=[5,10,20,40,80].find(n=>n*cam.zoom>=56)||80,spx=nm*cam.zoom,x0=cam.x-CW/2/cam.zoom,x1=cam.x+CW/2/cam.zoom,yT=cam.y+CYC/cam.zoom,yB=cam.y-(CH-CYC)/cam.zoom,pts=[];
+  for(let gx=Math.floor(x0/nm)*nm;gx<=x1+nm;gx+=nm)for(let gy=Math.floor(yB/nm)*nm;gy<=yT+nm;gy+=nm){const odd=(Math.round(gy/nm)+par)&1;pts.push([gx+(odd?nm/2:0),gy]);}
+  return{nm,spx,pts};}
+function chartArrow(px,py,ux,uy,L,lw,col){const ax=px-ux*L/2,ay=py-uy*L/2,bx=px+ux*L/2,by=py+uy*L/2;
+  ctx.strokeStyle=col;ctx.fillStyle=col;ctx.lineWidth=lw;ctx.beginPath();ctx.moveTo(ax,ay);ctx.lineTo(bx,by);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(bx,by);ctx.lineTo(bx-ux*7-uy*4,by-uy*7+ux*4);ctx.lineTo(bx-ux*7+uy*4,by-uy*7-ux*4);ctx.closePath();ctx.fill();}
+function drawWindField(){if(!showWind||!S)return;
+  const G=chartGrid(1),th=Math.floor(S.t),L=Math.min(G.spx*.8,30);ctx.save();ctx.lineCap="round";ctx.lineJoin="round";ctx.font="10px 'IBM Plex Mono',monospace";ctx.textAlign="center";
+  for(const[X,Y]of G.pts){if(X<0||Y<0||X>W_NM||Y>H_NM)continue;
+    const w=windAt(S,X,Y,th),a=(w.from+180)*D2R,px=sx(X),py=sy(Y),ux=Math.sin(a),uy=-Math.cos(a);ctx.globalAlpha=.8;
+    chartArrow(px,py,ux,uy,L,w.kn>20?2:1.4,"#2e2519");
+    const f=beaufort(w.kn);ctx.lineWidth=1.2;for(let k=0;k<Math.floor(f/2);k++){const bx=px-ux*(L/2-k*3.5),by=py-uy*(L/2-k*3.5);ctx.beginPath();ctx.moveTo(bx,by);ctx.lineTo(bx+uy*6,by-ux*6);ctx.stroke();}
+    if(G.spx>=56){ctx.globalAlpha=.95;ctx.fillText(Math.round(w.kn)+" kn",px+(Math.abs(uy)>.7?14:0),py+(Math.abs(uy)>.7?0:12)+3);}}
+  ctx.globalAlpha=1;ctx.restore();}
+// cloud cover on the chart: patches drift downwind and thicken or thin with the game's own cover (and darken with rain), refreshed each game hour
+function cldNoise(i,j,k){const h=Math.sin(i*127.1+j*311.7+k*74.7)*43758.5453;return h-Math.floor(h);}
+function cldVal(u,v,k){const i=Math.floor(u),j=Math.floor(v),fu=u-i,fv=v-j,s1=fu*fu*(3-2*fu),s2=fv*fv*(3-2*fv);
+  return (cldNoise(i,j,k)*(1-s1)+cldNoise(i+1,j,k)*s1)*(1-s2)+(cldNoise(i,j+1,k)*(1-s1)+cldNoise(i+1,j+1,k)*s1)*s2;}
+function drawClouds(){if(!showCld||!S)return;
+  const th=Math.floor(S.t),cv=S.wx&&S.wx.cover!=null?S.wx.cover:.3,dk=S.wx?S.wx.dark||0:0,w=windAt(S,cam.x,cam.y,th),a=(w.from+180)*D2R,ox=Math.sin(a)*w.kn*th,oy=Math.cos(a)*w.kn*th;
+  const cell=Math.max(8,Math.round(14/cam.zoom)*1)+0,st=Math.max(cell,24/cam.zoom),x0=cam.x-CW/2/cam.zoom,x1=cam.x+CW/2/cam.zoom,yT=cam.y+CYC/cam.zoom,yB=cam.y-(CH-CYC)/cam.zoom,thr=1-cv*.95,r=st*cam.zoom*.85;
+  ctx.save();
+  for(let X=Math.floor(x0/st)*st;X<=x1+st;X+=st)for(let Y=Math.floor(yB/st)*st;Y<=yT+st;Y+=st){
+    const u=(X-ox)/70,v=(Y-oy)/70,n=cldVal(u,v,0)*.6+cldVal(u*2.3,v*2.3,1)*.4,d=n-thr+.18;if(d<=0)continue;
+    const al=Math.min(.5,d*1.6),g=Math.round(236-dk*110);ctx.fillStyle=`rgba(${g},${g},${g+8},${al})`;
+    ctx.beginPath();ctx.arc(sx(X),sy(Y),r,0,2*PI);ctx.fill();}
+  ctx.restore();}
 function drawScale(){
   const nm=cam.zoom>5?10:cam.zoom>2?20:50;const px=nm*cam.zoom;const x=16,y=64;
   ctx.save();ctx.fillStyle="rgba(246,238,217,.85)";ctx.fillRect(x-6,y-24,px+60,32);ctx.strokeStyle="#2e2519";ctx.fillStyle="#2e2519";ctx.lineWidth=1;
@@ -4698,16 +4719,12 @@ function fishStep(s,dt,w){if(!s.fish)return;const sh=s.ship,P=s.mode==="trial"?s
   else if(sch.amt<=0){say("The school has gone down.",{});}}
 // the pilot chart's currents: arrows on a grid of the sea, set and drift in knots from the game's own current model
 function drawCurrents(){if(!showCur||!S)return;
-  const nm=[5,10,20,40,80].find(n=>n*cam.zoom>=56)||80,spx=nm*cam.zoom,x0=cam.x-CW/2/cam.zoom,x1=cam.x+CW/2/cam.zoom,yT=cam.y+CYC/cam.zoom,yB=cam.y-(CH-CYC)/cam.zoom;
-  ctx.save();ctx.lineCap="round";ctx.lineJoin="round";ctx.font="10px 'IBM Plex Mono',monospace";ctx.textAlign="center";
-  for(let gx=Math.floor(x0/nm)*nm;gx<=x1+nm;gx+=nm)for(let gy=Math.floor(yB/nm)*nm;gy<=yT+nm;gy+=nm){
-    const odd=Math.round(gy/nm)&1,X=gx+(odd?nm/2:0),Y=gy;if(coastNm(X,Y)<1.5)continue;
-    const c=currentAt(X,Y),px=sx(X),py=sy(Y),h=c.set*D2R,L=Math.min(spx*.8,10+c.drift*50),ux=Math.sin(h),uy=-Math.cos(h),ax=px-ux*L/2,ay=py-uy*L/2,bx=px+ux*L/2,by=py+uy*L/2,
+  const G=chartGrid(0),th=Math.floor(S.t);ctx.save();ctx.lineCap="round";ctx.lineJoin="round";ctx.font="10px 'IBM Plex Mono',monospace";ctx.textAlign="center";
+  for(const[X,Y]of G.pts){if(coastNm(X,Y)<1.5)continue;
+    const c=currentAt(X,Y,th),px=sx(X),py=sy(Y),h=c.set*D2R,L=Math.min(G.spx*.8,30),ux=Math.sin(h),uy=-Math.cos(h),
       col=c.drift>.7?"#1a5c78":c.drift>.45?"#2a7a8c":"#4c8e96";
-    ctx.strokeStyle=col;ctx.fillStyle=col;ctx.lineWidth=c.drift>.7?2:1.4;ctx.globalAlpha=.85;
-    ctx.beginPath();ctx.moveTo(ax,ay);ctx.lineTo(bx,by);ctx.stroke();
-    ctx.beginPath();ctx.moveTo(bx,by);ctx.lineTo(bx-ux*6-uy*3.4,by-uy*6+ux*3.4);ctx.lineTo(bx-ux*6+uy*3.4,by-uy*6-ux*3.4);ctx.closePath();ctx.fill();
-    if(spx>=56){ctx.globalAlpha=.95;ctx.fillText(c.drift.toFixed(1)+" kn",px-uy*0+(uy>.7||uy<-.7?14:0),py+(Math.abs(uy)>.7?0:12)+3);}}
+    ctx.globalAlpha=.85;chartArrow(px,py,ux,uy,L,c.drift>.7?2:1.4,col);
+    if(G.spx>=56){ctx.globalAlpha=.95;ctx.fillText(c.drift.toFixed(1)+" kn",px+(Math.abs(uy)>.7?14:0),py+(Math.abs(uy)>.7?0:12)+3);}}
   ctx.globalAlpha=1;ctx.restore();}
 function drawFish(){const M=S.fmarks;if(!M)return;
   if(S.grounds&&S.grounds.length){const sh=S.ship,P=S.mode==="trial"?sh:S.est,lost=S.mode==="lost";ctx.save();
@@ -5289,6 +5306,12 @@ $("zIn").onclick=()=>zoomAt(1.4,CW/2,CYC);$("zOut").onclick=()=>zoomAt(1/1.4,CW/
 let showCur=false;try{showCur=localStorage.getItem("drCur")==="1";}catch(e){}
 function setCur(v){showCur=v;$("curTog").setAttribute("aria-pressed",String(v));const t=v?"Hide ocean currents (pilot chart)":"Show ocean currents on the chart";$("curTog").title=t;$("curTog").setAttribute("aria-label",t);try{localStorage.setItem("drCur",v?"1":"0");}catch(e){}}
 $("curTog").onclick=()=>setCur(!showCur);setCur(showCur);
+let showWind=true;try{showWind=localStorage.getItem("drWind")!=="0";}catch(e){}
+function setWind(v){showWind=v;$("windTog").setAttribute("aria-pressed",String(v));const t=v?"Hide wind on the chart":"Show wind on the chart";$("windTog").title=t;$("windTog").setAttribute("aria-label",t);try{localStorage.setItem("drWind",v?"1":"0");}catch(e){}}
+$("windTog").onclick=()=>setWind(!showWind);setWind(showWind);
+let showCld=false;try{showCld=localStorage.getItem("drCld")==="1";}catch(e){}
+function setCld(v){showCld=v;$("cldTog").setAttribute("aria-pressed",String(v));const t=v?"Hide cloud cover on the chart":"Show cloud cover on the chart";$("cldTog").title=t;$("cldTog").setAttribute("aria-label",t);try{localStorage.setItem("drCld",v?"1":"0");}catch(e){}}
+$("cldTog").onclick=()=>setCld(!showCld);setCld(showCld);
 $("follow").onclick=()=>{follow=!follow;$("follow").setAttribute("aria-pressed",String(follow));};
 initRoute();initShip();
 $("rTog").onclick=()=>{const f=$("routePanel").classList.toggle("folded");$("rTog").textContent=f?"▼":"▲";$("rTog").setAttribute("aria-expanded",String(!f));};
