@@ -821,6 +821,16 @@ const BFT=[1,4,7,11,17,22,28,34,41,48,56,64];
 const BNAME=["Calm","Light air","Light breeze","Gentle breeze","Moderate breeze","Fresh breeze","Strong breeze","Near gale","Gale","Strong gale","Storm","Violent storm","Hurricane"];
 const beaufort=kn=>{let i=0;while(i<BFT.length&&kn>=BFT[i])i++;return i;};
 const CURRENT={set:290,drift:.35};
+// the current is not the same everywhere: it quickens through the passages between islands and slackens and eddies in their lee
+function currentAt(x,y){
+  let d1=1e9,d2=1e9,lee=0;const a=CURRENT.set*D2R,ax=Math.sin(a),ay=Math.cos(a);
+  for(const isl of islands){const dx=x-isl.c.x,dy=y-isl.c.y,R=isl.r*1.1,d=Math.hypot(dx,dy)-R;
+    if(d<d1){d2=d1;d1=d;}else if(d<d2)d2=d;
+    const al=dx*ax+dy*ay,la=Math.abs(-dx*ay+dy*ax),len=R+14,wid=R+2;
+    if(al>0&&al<len&&la<wid)lee=Math.max(lee,(1-al/len)*(1-la/wid));}
+  const ch=Math.max(0,1-d2/36)*Math.max(0,1-Math.max(0,d1)/24);
+  return{set:norm(CURRENT.set+lee*45),drift:CURRENT.drift*(1+1.8*ch)*(1-.6*lee)};
+}
 let HULL_MAX=10.5;
 const VOYAGES=[
  {id:"t1",tag:"Sea trial I",title:"Down to St Lucia",from:"bridgetown",to:"castries",mode:"trial",hdg:285,desc:"About 95 miles west-northwest with the trade wind behind you. Learn the helm, the sails and the log line."},
@@ -1062,8 +1072,9 @@ function step(dt){
   const lw=th<150?(3*(150-th)/(150-NOGO)+.4)*(1+bf/14)*SHIP.leeK:0;
   const track=norm(sh.heading-(rel>0?1:-1)*lw);
   const anchored=sh.anch.mode==="holding"||sh.anch.mode==="weighing",dr=sh.anch.mode==="holding"?(sh.anch.drag||0):0,dwn=(w.from+180)*D2R;
-  const vx=anchored?dr*Math.sin(dwn):sh.v*Math.sin(track*D2R)+CURRENT.drift*Math.sin(CURRENT.set*D2R);
-  const vy=anchored?dr*Math.cos(dwn):sh.v*Math.cos(track*D2R)+CURRENT.drift*Math.cos(CURRENT.set*D2R);
+  const cu=anchored?null:currentAt(sh.x,sh.y);
+  const vx=anchored?dr*Math.sin(dwn):sh.v*Math.sin(track*D2R)+cu.drift*Math.sin(cu.set*D2R);
+  const vy=anchored?dr*Math.cos(dwn):sh.v*Math.cos(track*D2R)+cu.drift*Math.cos(cu.set*D2R);
   sh.x+=vx*dt;sh.y+=vy*dt;s.distance+=sh.v*dt;s.maxV=Math.max(s.maxV,sh.v);
   // reckoning: ordered course + logged speed only
   s.est.x+=s.estSpeed*Math.sin(sh.ordered*D2R)*dt;s.est.y+=s.estSpeed*Math.cos(sh.ordered*D2R)*dt;
@@ -1628,8 +1639,13 @@ function crossFix(){
   }
   return null;
 }
-function plotFix(){const f=crossFix();if(!f)return;S.est.x=f.x;S.est.y=f.y;S.est.sx=S.est.sy=1.2;S.estTrack.push({x:f.x,y:f.y});S.fixes++;S.bearings=S.bearings.filter(b=>b.t>S.t-.75&&b!==f.a&&b!==f.c);
-  const g=toGeo(f.x,f.y);say(`Fix by cross-bearings: ${fmtLat(g.lat)} ${fmtLon(g.lon)}.`);updateUI(true);}
+function plotFix(){const f=crossFix();if(!f)return;
+  const hrs=S.t-(S.lastFixT===undefined?S.t0:S.lastFixT),mx=f.x-S.est.x,my=f.y-S.est.y,mm=Math.hypot(mx,my);S.lastFixT=S.t;
+  S.est.x=f.x;S.est.y=f.y;S.est.sx=S.est.sy=1.2;S.estTrack.push({x:f.x,y:f.y});S.fixes++;S.bearings=S.bearings.filter(b=>b.t>S.t-.75&&b!==f.a&&b!==f.c);
+  const g=toGeo(f.x,f.y);say(`Fix by cross-bearings: ${fmtLat(g.lat)} ${fmtLon(g.lon)}.`);
+  if(hrs>=1&&mm/hrs>2)say(`Reckoning against fix: you are ${mm.toFixed(0)} miles ${pointName(norm(Math.atan2(mx,my)*R2D))} of the reckoning. That is too much for the current alone: the log must have been read wrongly or too seldom.`,{slow:true});
+  else if(hrs>=1&&mm>.3){const st=norm(Math.atan2(mx,my)*R2D);say(`Reckoning against fix: the ship is ${mm.toFixed(1)} miles ${pointName(st)} of the reckoning, which is a current setting ${Math.round(st)}° at about ${(mm/hrs).toFixed(1)} knots over the ${hrs.toFixed(0)} hours since the last fix (leeway and a log that reads a little off count in this too).`,{slow:true});}
+  updateUI(true);}
 
 /* ---------- voyages ---------- */
 function startVoyage(v){
@@ -3937,7 +3953,7 @@ function openPortCard(k){portSel=k;const P=PORTS[k],X=PORTX[k];$("portCard").hid
   $("pcX").onclick=closePortCard;$("pcExp").onclick=openPortPlan;}
 function closePortCard(){portSel=null;$("portCard").hidden=true;}
 function openPortPlan(){if(!portSel)return;const k=portSel,P=PORTS[k],X=PORTX[k];$("ppTitle").textContent=P.name;$("ppSub").textContent=`${X.isl} · sketch plan of the harbour, not a survey`;
-  $("ppInfo").innerHTML=portInfoHTML(k)+`<div class="ptbl"><h4>Pilot's notes</h4><ul>${X.notes.map(n=>`<li>${n}</li>`).join("")}<li>The Caribbean current sets about ${CURRENT.set}° at ${CURRENT.drift} kn in the offing; tidal streams here are about ${X.tide} kn.</li></ul></div>`;
+  $("ppInfo").innerHTML=portInfoHTML(k)+`<div class="ptbl"><h4>Pilot's notes</h4><ul>${X.notes.map(n=>`<li>${n}</li>`).join("")}<li>The Caribbean current sets about ${CURRENT.set}° at ${CURRENT.drift} kn in the offing, runs faster through the passages between the islands and slack and eddying under their lee; tidal streams here are about ${X.tide} kn.</li></ul></div>`;
   $("ovPort").hidden=false;modalOpen=true;drawPortPlan(k);}
 $("ppClose").onclick=()=>{$("ovPort").hidden=true;modalOpen=!$("ovStart").hidden||!$("ovEnd").hidden||!$("ovHelp").hidden;};
 function drawPortPlan(k){const X=PORTX[k],cn=$("ppCv"),g=cn.getContext("2d"),dpr=Math.min(2,devicePixelRatio||1),W=cn.clientWidth||640,H=Math.round(W*.72);cn.width=W*dpr;cn.height=H*dpr;cn.style.height=H+"px";g.setTransform(dpr,0,0,dpr,0,0);
@@ -4912,7 +4928,7 @@ function oarsUI(sh,bf){const O=SHIP.oars;if(!O||!$("bOars"))return;const r=rowOf
   $("oarMinus").disabled=h<=Math.min(O.n,av);$("oarPlus").disabled=h>=Math.min(need,av);
   for(const id of["oarBP","oarBS"])$(id).disabled=!on&&(!calm||anch);$("oarRel").checked=r.relieve!==false;
   if(on){$("windSpd").innerHTML=`<b style="color:var(--ink)">${r.pivot?"Turning":st.n}</b><br>${st.spm?st.spm+" strokes a minute":"blades still"}`;}}
-window.__DR={dockAtPort,showCrisis,crisisKind,punish,loadState,packState,decS,toggleOars,setStroke,oarPivot,STROKES,pickShip,get SHIP(){return SHIP},SHIPDEFS,SPEC,useShip,applyShip,crewOf,rigOf,linesOf,get shipPick(){return shipPick},set shipPick(v){shipPick=v},svMove,svCtx,sx,sy,openPortCard,openPortPlan,get R3(){return R3},setMain,update3D,get S(){return S},VOYAGES,PORTS,islands,reefs,LMS,step,startVoyage,setCourse,tackOrWear,setSail,assistStep,noonAvailable,windAt:(x,y,t)=>windAt(S,x,y,t),inPoly,crossFix,plotFix,takeBearing,markNoon,startObserve,noonAvailable,endVoyage,toGeo,geo,atPort:()=>atPort(S),buyStore,sellFish,toggleFish};
+window.__DR={plotFix,LMS,currentAt,dockAtPort,showCrisis,crisisKind,punish,loadState,packState,decS,toggleOars,setStroke,oarPivot,STROKES,pickShip,get SHIP(){return SHIP},SHIPDEFS,SPEC,useShip,applyShip,crewOf,rigOf,linesOf,get shipPick(){return shipPick},set shipPick(v){shipPick=v},svMove,svCtx,sx,sy,openPortCard,openPortPlan,get R3(){return R3},setMain,update3D,get S(){return S},VOYAGES,PORTS,islands,reefs,LMS,step,startVoyage,setCourse,tackOrWear,setSail,assistStep,noonAvailable,windAt:(x,y,t)=>windAt(S,x,y,t),inPoly,crossFix,plotFix,takeBearing,markNoon,startObserve,noonAvailable,endVoyage,toGeo,geo,atPort:()=>atPort(S),buyStore,sellFish,toggleFish};
 })();
 </script>
 <script>if("serviceWorker" in navigator&&location.protocol.startsWith("http"))window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
