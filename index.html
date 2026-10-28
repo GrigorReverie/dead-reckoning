@@ -5702,14 +5702,14 @@ const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(L))}catch(e){}};
 const st=document.createElement("style");st.id="drLayout";(document.head||document.documentElement).appendChild(st);
 const FIX='@media (max-width:860px){body.lay-custom .cbfoot{height:34px}body.lay-custom .cbfoot .ws{max-height:34px;overflow:hidden;font-size:10px;line-height:1.1}body.lay-custom #legendBox[hidden]{display:flex!important;visibility:hidden}body.lay-custom #sailSl[style*="display:none"],body.lay-custom #sailSl[style*="display: none"]{display:flex!important;visibility:hidden}body.lay-custom .side .compassbox{width:370px;max-width:none}body.lay-custom .side .dock-all:not(.collapsed){overflow-x:hidden!important}body.lay-custom .side .dock-all .dockbody{align-items:stretch}}\n';
 const M=()=>L[cls()];
-function apply(){const m=M();let o="";for(const k in m){const[x,y,s]=m[k];o+=k+"{translate:"+x+"px "+y+"px"+(s!==1?";transform-origin:0 0;scale:"+s:"")+"}\n"}
+function apply(){const m=M();let o="";for(const k in m){const[x,y,s,r]=m[k];o+=k+"{translate:"+x+"px "+y+"px"+(s!==1||r?";transform-origin:50% 50%":"")+(r?";rotate:"+r+"deg":"")+(s!==1?";scale:"+s:"")+"}\n"}
  st.textContent=o+FIX;document.body.classList.toggle("lay-custom",E.on||Object.keys(m).length>0)}
 function sel(el){const p=[];let e=el;while(e&&e!==document.body&&e.parentElement){if(e.id&&document.querySelectorAll("#"+CSS.escape(e.id)).length===1){p.unshift("#"+CSS.escape(e.id));break}
  const sib=[...e.parentElement.children].filter(c=>c.tagName===e.tagName);p.unshift(e.tagName.toLowerCase()+(sib.length>1?":nth-of-type("+(sib.indexOf(e)+1)+")":""));e=e.parentElement}
  return(p[0][0]==="#"?"":"body>")+p.join(">")}
 const r1=v=>Math.round(v*10)/10;
-function ent(k){return(M()[k]||[0,0,1]).slice()}
-function put(k,v){const m=M();if(!v[0]&&!v[1]&&v[2]===1)delete m[k];else m[k]=[r1(v[0]),r1(v[1]),Math.round(v[2]*1000)/1000];apply();save()}
+function ent(k){const v=(M()[k]||[0,0,1,0]).slice();v[3]=v[3]||0;return v}
+function put(k,v){const m=M(),r=r1(v[3]||0);if(!v[0]&&!v[1]&&v[2]===1&&!r)delete m[k];else m[k]=[r1(v[0]),r1(v[1]),Math.round(v[2]*1000)/1000,r];apply();save()}
 const E={on:false,el:null,k:null,kids:[],mode:"move",drag:null,hist:[],orig:null,allow:false,top:true,timer:0,raf:0};
 const snap=()=>{E.hist.push(JSON.stringify(M()));if(E.hist.length>60)E.hist.shift()};
 const click=el=>{if(!el)return;E.allow=true;try{el.click()}finally{E.allow=false}};
@@ -5733,8 +5733,8 @@ body.ed.edmove *{touch-action:none!important}
 <div id="edBox"><div id="edHdl"></div></div>
 <div id="edBar" class="t">
 <div class="r"><b>Edit</b><button data-go="3D">3D</button><button data-go="Chart">Chart</button><button data-go="Ship">Ship</button><button data-go="Book">Book</button><button data-go="Helm" id="edGoHelm">Helm</button><button id="edMode" class="on">Move</button><button id="edDock">⇅</button><button id="edMin">▴</button></div>
-<div class="r x"><button id="edPar">⬆ Parent</button><button id="edKid">⬇ Child</button><button id="edMinus">−</button><button id="edPlus">+</button><button data-n="-1,0">◀</button><button data-n="0,-1">▲</button><button data-n="0,1">▼</button><button data-n="1,0">▶</button><button id="edUndo">Undo</button></div>
-<div class="r x"><button id="edRItem">Reset item</button><button id="edRScr">Reset screen</button><button id="edRAll">Reset all</button><button id="edExp">Export</button><button id="edDone" class="on">Done</button><span id="edInfo">Tap a control to select it, then drag.</span></div>
+<div class="r x"><button id="edPar">⬆ Parent</button><button id="edKid">⬇ Child</button><button id="edMinus">−</button><button id="edPlus">+</button><button data-n="-1,0">◀</button><button data-n="0,-1">▲</button><button data-n="0,1">▼</button><button data-n="1,0">▶</button><button id="edSnap" class="on">Snap</button><button id="edRotL">↺</button><button id="edRotR">↻</button><button id="edUndo">Undo</button></div>
+<div class="r x"><button id="edRItem">Reset item</button><button id="edRScr">Reset screen</button><button id="edRAll">Reset all</button><button id="edExp">Export</button><button id="edDone" class="on">Done</button><span id="edInfo">Tap to select, drag to move. Pinch to resize, twist to rotate. Double-tap: parent. Hold: child.</span></div>
 </div>`;
 document.body.appendChild(ui);
 const bar=$("edBar"),box=$("edBox"),info=$("edInfo");
@@ -5742,7 +5742,7 @@ const inUI=t=>t&&t.closest&&t.closest("#edBar,#edHdl");
 
 function select(el){if(!el||el===document.body||el===document.documentElement||inUI(el)){E.el=null;E.k=null;E.kids=[];return}
  if(el.ownerSVGElement)el=el.ownerSVGElement;E.el=el;E.k=sel(el);E.kids=[];label()}
-function label(){if(!E.el){info.textContent="Tap a control to select it, then drag.";return}const v=ent(E.k);info.textContent=E.k.split(">").slice(-2).join(">")+"  x"+v[0]+" y"+v[1]+" ×"+v[2]}
+function label(){if(!E.el){info.textContent="Tap to select, drag to move. Pinch to resize, twist to rotate. Double-tap: parent. Hold: child.";return}const v=ent(E.k);info.textContent=E.k.split(">").slice(-2).join(">")+"  x"+v[0]+" y"+v[1]+" ×"+v[2]+(v[3]?" ↻"+v[3]+"°":"")}
 function track(){if(!E.on)return;if(E.el&&E.el.isConnected){const r=E.el.getBoundingClientRect();if(r.width||r.height){box.style.display="block";Object.assign(box.style,{left:r.left+"px",top:r.top+"px",width:r.width+"px",height:r.height+"px"})}else box.style.display="none"}else box.style.display="none";E.raf=requestAnimationFrame(track)}
 
 /* ---------- show the fullest version of every screen ---------- */
@@ -5773,32 +5773,74 @@ function leave(){if(!E.on)return;E.on=false;clearInterval(E.timer);cancelAnimati
 const swallow=e=>{if(!E.on||E.allow||inUI(e.target))return;e.stopImmediatePropagation();if(e.cancelable&&(E.mode==="move"||e.type==="click"||e.type==="contextmenu"))e.preventDefault()};
 ["click","dblclick","contextmenu","mousedown","mouseup","touchend","touchmove","touchstart","wheel"].forEach(t=>window.addEventListener(t,swallow,{capture:true,passive:false}));
 window.addEventListener("keydown",e=>{if(E.on&&e.key==="Escape"){leave()}else if(E.on&&!inUI(e.target)){e.stopImmediatePropagation()}},true);
+const P=new Map();let lastTap=null,lp=0;
+function parentOf(){if(E.el&&E.el.parentElement&&E.el.parentElement!==document.body){const c=E.el;select(E.el.parentElement);E.kids=[c]}}
+function childAt(x,y){if(!E.el)return;const k=E.kids&&E.kids.length?E.kids[E.kids.length-1]:null;let c=null;
+ if(k&&E.el.contains(k)&&k!==E.el)c=k;else c=[...E.el.children].find(q=>{if(inUI(q))return false;const r=q.getBoundingClientRect();return r.width>0&&x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom})||[...E.el.children].find(q=>q.getBoundingClientRect().width>0);
+ if(c){const kk=E.kids;if(kk.length)kk.pop();select(c);E.kids=kk}}
+function guides(){return[...document.body.querySelectorAll("*")].filter(q=>{if(inUI(q)||q.closest("#edUI")||q===E.el||E.el.contains(q)||q.contains(E.el))return false;const r=q.getBoundingClientRect();return r.width>3&&r.height>3&&r.right>0&&r.left<innerWidth&&r.bottom>0&&r.top<innerHeight&&r.width<innerWidth+2}).map(q=>q.getBoundingClientRect()).slice(0,500)}
+const gx=document.createElement("div"),gy=document.createElement("div");for(const g of[gx,gy]){g.style.cssText="position:fixed;z-index:2147482980;background:#1b6fe0;pointer-events:none;display:none";document.body.appendChild(g)}
+gx.style.width="1px";gx.style.top="0";gx.style.bottom="0";gy.style.height="1px";gy.style.left="0";gy.style.right="0";
+const hideG=()=>{gx.style.display=gy.style.display="none"};
+let snapOn=true;
+function snapMove(d,dx,dy){ // returns snapped dx,dy and shows guides
+ const o=d.r0;let x=o.left+dx,y=o.top+dy,w=o.width,h=o.height,TH=5,bx=null,by=null,bdx=TH+1,bdy=TH+1;
+ const xs=[[x,0],[x+w/2,1],[x+w,2]],ys=[[y,0],[y+h/2,1],[y+h,2]];
+ const tx=[0,innerWidth/2,innerWidth],ty=[0,innerHeight/2,innerHeight];
+ for(const g of d.G){tx.push(g.left,(g.left+g.right)/2,g.right);ty.push(g.top,(g.top+g.bottom)/2,g.bottom)}
+ for(const[v]of xs)for(const t of tx){const q=t-v;if(Math.abs(q)<Math.abs(bdx)){bdx=q;bx=t}}
+ for(const[v]of ys)for(const t of ty){const q=t-v;if(Math.abs(q)<Math.abs(bdy)){bdy=q;by=t}}
+ if(bx!==null&&Math.abs(bdx)<=TH){dx+=bdx;gx.style.display="block";gx.style.left=bx+"px"}else gx.style.display="none";
+ if(by!==null&&Math.abs(bdy)<=TH){dy+=bdy;gy.style.display="block";gy.style.top=by+"px"}else gy.style.display="none";
+ return[dx,dy]}
+function startGesture(){const a=[...P.values()];if(a.length<2||!E.el)return;clearTimeout(lp);hideG();
+ const dx=a[1].x-a[0].x,dy=a[1].y-a[0].y;E.drag={g:true,v:ent(E.k),d0:Math.max(10,Math.hypot(dx,dy)),a0:Math.atan2(dy,dx),m0:[(a[0].x+a[1].x)/2,(a[0].y+a[1].y)/2]}}
 function down(e){if(!E.on||E.allow)return;const hd=e.target&&e.target.id==="edHdl";if(inUI(e.target)&&!hd)return;
  e.stopImmediatePropagation();
  if(E.mode!=="move"&&!hd)return;
  if(e.cancelable)e.preventDefault();
- if(!hd){const prev=E.el;box.style.visibility="hidden";let t=document.elementFromPoint(e.clientX,e.clientY);box.style.visibility="";select(t);if(!E.el)return}
- snap();const v=ent(E.k);E.drag={id:e.pointerId,x:e.clientX,y:e.clientY,v,hd,w:Math.max(1,E.el.getBoundingClientRect().width),moved:false}}
-function move(e){if(!E.on||!E.drag)return;if(e.pointerId!==E.drag.id){return}e.stopImmediatePropagation();if(e.cancelable)e.preventDefault();
- const d=E.drag,dx=e.clientX-d.x,dy=e.clientY-d.y;d.moved=true;
- if(d.hd){const s=Math.max(.2,Math.min(4,d.v[2]*(d.w+dx)/d.w));put(E.k,[d.v[0],d.v[1],s])}else put(E.k,[d.v[0]+dx,d.v[1]+dy,d.v[2]]);label()}
-function up(e){if(E.on&&!E.allow&&!inUI(e.target))e.stopImmediatePropagation();if(!E.drag)return;if(E.drag.id===e.pointerId){if(!E.drag.moved)E.hist.pop();E.drag=null}}
+ P.set(e.pointerId,{x:e.clientX,y:e.clientY});
+ if(P.size>=2&&E.el){snap();startGesture();return}
+ const prev=E.el;
+ if(!hd){box.style.visibility="hidden";const t=document.elementFromPoint(e.clientX,e.clientY);box.style.visibility="";select(t);if(!E.el)return}
+ snap();const r=E.el.getBoundingClientRect();
+ E.drag={id:e.pointerId,x:e.clientX,y:e.clientY,v:ent(E.k),hd,w:Math.max(1,r.width),moved:false,r0:r,G:snapOn&&!hd?guides():[],t:Date.now(),px:e.clientX,py:e.clientY};
+ if(!hd){clearTimeout(lp);lp=setTimeout(()=>{const d=E.drag;if(d&&!d.moved&&!d.g){E.hist.pop();E.drag=null;P.clear();hideG();if(prev&&prev!==E.el&&prev.contains(E.el)){select(prev);E.kids=[]}childAt(d.px,d.py);if(navigator.vibrate)try{navigator.vibrate(15)}catch(x){}}},550)}}
+function move(e){if(!E.on)return;if(P.has(e.pointerId))P.set(e.pointerId,{x:e.clientX,y:e.clientY});const d=E.drag;if(!d)return;
+ e.stopImmediatePropagation();if(e.cancelable)e.preventDefault();
+ if(d.g){const a=[...P.values()];if(a.length<2)return;const dx=a[1].x-a[0].x,dy=a[1].y-a[0].y,dist=Math.max(10,Math.hypot(dx,dy)),ang=Math.atan2(dy,dx),m=[(a[0].x+a[1].x)/2,(a[0].y+a[1].y)/2];
+  let da=(ang-d.a0)*180/Math.PI;da=((da+540)%360)-180;let r=d.v[3]+da;if(Math.abs(((r+45)%90+90)%90-45)<3)r=Math.round(r/90)*90;
+  put(E.k,[d.v[0]+m[0]-d.m0[0],d.v[1]+m[1]-d.m0[1],Math.max(.2,Math.min(4,d.v[2]*dist/d.d0)),r]);label();return}
+ if(e.pointerId!==d.id)return;
+ let dx=e.clientX-d.x,dy=e.clientY-d.y;
+ if(!d.moved&&Math.hypot(dx,dy)<4)return;d.moved=true;clearTimeout(lp);
+ if(d.hd){const s=Math.max(.2,Math.min(4,d.v[2]*(d.w+dx)/d.w));put(E.k,[d.v[0],d.v[1],s,d.v[3]])}
+ else{if(snapOn&&d.G.length+1)[dx,dy]=snapMove(d,dx,dy);put(E.k,[d.v[0]+dx,d.v[1]+dy,d.v[2],d.v[3]])}label()}
+function up(e){if(E.on&&!E.allow&&!inUI(e.target))e.stopImmediatePropagation();clearTimeout(lp);const had=P.delete(e.pointerId);
+ if(!E.drag){if(!P.size)hideG();return}
+ const d=E.drag;
+ if(d.g){if(P.size<2){E.drag=null;hideG();label()}return}
+ if(d.id===e.pointerId){hideG();if(!d.moved){E.hist.pop();const now=Date.now();
+   if(lastTap&&now-lastTap.t<450&&Math.hypot(e.clientX-lastTap.x,e.clientY-lastTap.y)<30){lastTap=null;parentOf();if(navigator.vibrate)try{navigator.vibrate(10)}catch(x){}}else lastTap={t:now,x:e.clientX,y:e.clientY}}
+  E.drag=null}}
 window.addEventListener("pointerdown",down,{capture:true,passive:false});
 window.addEventListener("pointermove",move,{capture:true,passive:false});
 window.addEventListener("pointerup",up,{capture:true});window.addEventListener("pointercancel",up,{capture:true});
 
 bar.addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;
  if(b.dataset.go){go(b.dataset.go);return}
- if(b.dataset.n&&E.k){snap();const[a,c]=b.dataset.n.split(",").map(Number),v=ent(E.k);put(E.k,[v[0]+a,v[1]+c,v[2]]);label();return}
+ if(b.dataset.n&&E.k){snap();const[a,c]=b.dataset.n.split(",").map(Number),v=ent(E.k);put(E.k,[v[0]+a,v[1]+c,v[2],v[3]]);label();return}
  switch(b.id){
  case"edMode":E.mode=E.mode==="move"?"scroll":"move";b.textContent=E.mode==="move"?"Move":"Scroll";b.classList.toggle("on",E.mode==="move");document.body.classList.toggle("edmove",E.mode==="move");break;
  case"edMin":bar.classList.toggle("min");b.textContent=bar.classList.contains("min")?"▾":"▴";break;
+ case"edSnap":snapOn=!snapOn;b.classList.toggle("on",snapOn);break;
+ case"edRotL":case"edRotR":if(E.k){snap();const v=ent(E.k);put(E.k,[v[0],v[1],v[2],v[3]+(b.id==="edRotR"?5:-5)]);label()}break;
  case"edDock":E.top=!E.top;bar.className=(E.top?"t":"b")+(bar.classList.contains("min")?" min":"");break;
- case"edPar":if(E.el&&E.el.parentElement&&E.el.parentElement!==document.body){const c=E.el;select(E.el.parentElement);E.kids=[c]}break;
+ case"edPar":parentOf();break;
  case"edKid":if(E.el){const c=E.kids&&E.kids.pop?E.kids.pop():null;const k=E.kids;if(c&&E.el.contains(c)){select(c);E.kids=k}else{const f=[...E.el.children].find(x=>x.getBoundingClientRect().width>0&&!inUI(x));if(f)select(f)}}break;
- case"edMinus":case"edPlus":if(E.k){snap();const v=ent(E.k);put(E.k,[v[0],v[1],Math.max(.2,v[2]+(b.id==="edPlus"?.05:-.05))]);label()}break;
+ case"edMinus":case"edPlus":if(E.k){snap();const v=ent(E.k);put(E.k,[v[0],v[1],Math.max(.2,v[2]+(b.id==="edPlus"?.05:-.05)),v[3]]);label()}break;
  case"edUndo":if(E.hist.length){L[cls()]=JSON.parse(E.hist.pop());apply();save();label()}break;
- case"edRItem":if(E.k){snap();put(E.k,[0,0,1]);label()}break;
+ case"edRItem":if(E.k){snap();put(E.k,[0,0,1,0]);label()}break;
  case"edRScr":snap();for(const k of Object.keys(M())){let el;try{el=document.querySelector(k)}catch(x){}if(el){const r=el.getBoundingClientRect();if(r.width>0&&r.height>0)delete M()[k]}}apply();save();label();break;
  case"edRAll":if(confirm("Reset every moved control on this device?")){snap();L[cls()]={};apply();save();label()}break;
  case"edExp":{const txt="DR LAYOUT "+JSON.stringify({device:cls(),w:innerWidth,h:innerHeight,layout:M()});
