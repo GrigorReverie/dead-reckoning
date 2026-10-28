@@ -833,18 +833,47 @@ function tideLvl(k,t){const X=TIDEX[k],a=X.r/2*(1+.3*Math.cos(2*PI*(t-40)/TSN));
 function tideStream(k,t){const X=TIDEX[k],f=1+.3*Math.cos(2*PI*(t-40)/TSN);return PORTX[k].tide*f*-Math.sin(2*PI*(t-X.ph)/TPER);} // knots, flood (into the harbour) positive
 function tideSpring(t){const c=Math.cos(2*PI*(t-40)/TSN);return c>.5?"springs":c<-.5?"neaps":"between springs and neaps";}
 function tideTable(k,t0,hrs){const out=[];let pv=tideLvl(k,t0-.1),cu=tideLvl(k,t0);for(let t=t0;t<t0+hrs;t+=.05){const nx=tideLvl(k,t+.05);if(cu>pv&&cu>=nx)out.push({t,hw:true,l:cu});else if(cu<pv&&cu<=nx)out.push({t,hw:false,l:cu});pv=cu;cu=nx;}return out;}
-// the current is not the same everywhere: it quickens through the passages between islands, slackens and eddies in their lee, and near a harbour mouth the tidal stream sets in and out
-function currentAt(x,y,tt){
-  let d1=1e9,d2=1e9,lee=0;const a=CURRENT.set*D2R,ax=Math.sin(a),ay=Math.cos(a);
-  for(const isl of islands){const dx=x-isl.c.x,dy=y-isl.c.y,R=isl.r*1.1,d=Math.hypot(dx,dy)-R;
-    if(d<d1){d2=d1;d1=d;}else if(d<d2)d2=d;
-    const al=dx*ax+dy*ay,la=Math.abs(-dx*ay+dy*ax),len=R+14,wid=R+2;
-    if(al>0&&al<len&&la<wid)lee=Math.max(lee,(1-al/len)*(1-la/wid));}
-  const ch=Math.max(0,1-d2/36)*Math.max(0,1-Math.max(0,d1)/24);
-  const set=norm(CURRENT.set+lee*45)*D2R,dr=CURRENT.drift*(1+1.8*ch)*(1-.6*lee);
-  let vx=dr*Math.sin(set),vy=dr*Math.cos(set);
-  if(typeof S!=="undefined"&&S&&S.t!==undefined)for(const k in PORTS){const P=PORTS[k],dx=P.x-x,dy=P.y-y,d=Math.hypot(dx,dy);if(d>5||d<.05)continue;
-    const w=(1-d/5)*(1-d/5),st=tideStream(k,tt==null?S.t:tt)*w;vx+=st*dx/d;vy+=st*dy/d;}
+// land and thermal tuning (from the Wind and Current Tuner): 1 is the realistic default for each
+const WINDK={block:1,venturi:1,shadow:1,shadowLen:1,seaBreeze:1,landBreeze:1,thermal:1,diurnal:1};
+const CURK={steer:1,passage:1,eddy:1,windDrift:1};
+// the islands as the wind and sea feel them: height of the peaks (high islands block the trade and throw long wind shadows) and the passages between neighbours
+let LAND=null;
+function landInit(){if(LAND)return LAND;
+  const H={"Bequia":250,"Carriacou":290,"Marie-Galante":205,"Les Saintes":300,"Grande-Terre":135,"La Désirade":275,"Trinidad":940,"Tobago":550};
+  const I=islands.filter(i=>i.r);
+  for(const i of I){let h=H[i.name]||(i.small?120:260);for(const l of LMS)if(l.isl===i.name)h=Math.max(h,l.h);i.h=h;i.hf=clamp(h/1000,.12,1.5);}
+  const P=[];for(let a=0;a<I.length;a++)for(let b=a+1;b<I.length;b++){const A=I[a],B=I[b],dx=B.c.x-A.c.x,dy=B.c.y-A.c.y,d=Math.hypot(dx,dy),gap=d-A.r-B.r;
+    if(gap<3||gap>45)continue;let blk=false;
+    for(const C of I){if(C===A||C===B)continue;const u=((C.c.x-A.c.x)*dx+(C.c.y-A.c.y)*dy)/(d*d);if(u>0&&u<1&&Math.abs((C.c.x-A.c.x)*dy-(C.c.y-A.c.y)*dx)/d<C.r+2){blk=true;break;}}
+    if(!blk)P.push({A,B,ux:dx/d,uy:dy/d,d,gap,hf:Math.min(1.2,(A.hf+B.hf)/2+.2),nar:clamp((50-gap)/40,0,1)});}
+  return LAND={I,P};}
+// where a point lies in a passage: k is 1 mid-channel, falling to 0 at the ends and the sides
+function passK(P,x,y){const wx=x-P.A.c.x,wy=y-P.A.c.y,al=wx*P.ux+wy*P.uy,lat=Math.abs(wx*P.uy-wy*P.ux),tt=(al-P.A.r)/P.gap;
+  if(tt<-.15||tt>1.15)return 0;return Math.sin(PI*clamp(tt*.8+.1,0,1))*clamp(1-lat/(P.gap*.5+6),0,1);}
+// the current is not the same everywhere: the trade-wind drift is steered along the coasts, quickens through the passages between islands, eddies in their lee,
+// is pushed about by the local wind (about 2% of the wind, set 30 degrees to the right of it, as Ekman found), and near a harbour mouth the tidal stream sets in and out
+function currentAt(x,y,t){
+  if(t==null)t=typeof S!=="undefined"&&S&&S.t!==undefined?S.t:0;
+  const L=landInit(),a=CURRENT.set*D2R,ax=Math.sin(a),ay=Math.cos(a),U=CURRENT.drift;
+  let vx=U*ax,vy=U*ay;
+  // passages: up to about 1 kn mid-channel where the drift crosses a narrow gap, turned to run along the channel
+  for(const P of L.P){const k=passK(P,x,y);if(!k)continue;const cr=Math.abs(ax*P.uy-ay*P.ux),g=k*P.nar*cr*CURK.passage;if(g<.01)continue;
+    const nx=P.uy*Math.sign(ax*P.uy-ay*P.ux),ny=-P.ux*Math.sign(ax*P.uy-ay*P.ux),sp=Math.hypot(vx,vy)*(1+1.8*g),bx=vx/Math.hypot(vx,vy)*(1-.6*g)+nx*.6*g,by=vy/Math.hypot(vx,vy)*(1-.6*g)+ny*.6*g,bl=Math.hypot(bx,by)||1;
+    vx=sp*bx/bl;vy=sp*by/bl;}
+  for(const I of L.I){const rx=x-I.c.x,ry=y-I.c.y,d=Math.hypot(rx,ry),R=I.r*1.1;if(d>R+40||d<.01)continue;
+    // lee eddies: the drift splits round the island and, behind it, a pair of counter-rotating eddies turns the water back toward the lee shore
+    const al=rx*ax+ry*ay,la=rx*ay-ry*ax,len=R+14+10*I.hf,wid=R+2;
+    if(al>0&&al<len&&Math.abs(la)<wid){const e=CURK.eddy*(1-al/len)*(1-Math.abs(la)/wid),core=Math.cos(PI/2*Math.min(1,Math.abs(la)/(wid*.75))),sl=Math.sign(la||1),lat=sl*.45*U*e*Math.cos(PI*al/len);
+      vx+=-ax*U*1.35*e*core+ay*lat;vy+=-ay*U*1.35*e*core-ax*lat;}
+    // coastal steering: no water runs into the shore, so close in it turns to run along it and speeds round the points
+    const e2=d-R;if(e2<6){const w=clamp(1-e2/6,0,1)*CURK.steer,nx=rx/d,ny=ry/d,vn=vx*nx+vy*ny;
+      if(vn<0){const tx=-ny,ty=nx,ts=Math.sign(vx*tx+vy*ty||1);vx+=-nx*vn*w+tx*ts*-vn*w*.5;vy+=-ny*vn*w+ty*ts*-vn*w*.5;}}}
+  // wind drift: the difference between the local wind and the steady trade (15 kn from 82 degrees, already in the mean drift)
+  if(typeof S!=="undefined"&&S&&S.wx&&CURK.windDrift){const w=windAt(S,x,y,t),tw=(w.from+180)*D2R,mt=262*D2R,dx=w.kn*Math.sin(tw)-15*Math.sin(mt),dy=w.kn*Math.cos(tw)-15*Math.cos(mt),c=Math.cos(30*D2R),s3=Math.sin(30*D2R),k=.02*CURK.windDrift;
+    vx+=k*(dx*c+dy*s3);vy+=k*(-dx*s3+dy*c);}
+  {const d=Math.hypot(vx,vy);if(d>1.3){const k=(1.3+(d-1.3)*.4)/d;vx*=k;vy*=k;}} // the strongest offshore streams in these islands run about a knot and a half
+  if(typeof S!=="undefined"&&S)for(const k in PORTS){const P=PORTS[k],dx=P.x-x,dy=P.y-y,d=Math.hypot(dx,dy);if(d>5||d<.05)continue;
+    const w=(1-d/5)*(1-d/5),st=tideStream(k,t)*w;vx+=st*dx/d;vy+=st*dy/d;}
   return{set:norm(Math.atan2(vx,vy)*R2D),drift:Math.hypot(vx,vy)};
 }
 let HULL_MAX=10.5;
@@ -898,11 +927,15 @@ function dayInfo(s,dayIdx){if(!s.day[dayIdx])s.day[dayIdx]={overcast:rng()<.2,ha
 function decl(dayIdx){const doy=69+dayIdx;return -23.44*Math.cos(2*PI*(doy+10)/365);}
 function sunAlt(lat,lh,dayIdx){const d=decl(dayIdx)*D2R,H=(lh-12)*15*D2R,l=lat*D2R;return Math.asin(Math.sin(l)*Math.sin(d)+Math.cos(l)*Math.cos(d)*Math.cos(H))*R2D;}
 
+// how much hotter the land is than the sea: from mid-morning to a peak mid-afternoon (sea breeze), and cooler at night to a low before dawn (land breeze); cloud cuts both
+function landHeat(s,lh){const c=s.wx&&s.wx.cover!=null?s.wx.cover:.3,u=((lh-21+24)%24)/10;
+  return{sea:(lh>8.5&&lh<18.5?Math.sin(PI*(lh-8.5)/10):0)*(1-.6*c),land:(u<1?Math.sin(PI*Math.pow(u,1.8)):0)*(1-.5*c)};}
 function windAt(s,x,y,t){
   const sn=Math.sin;
   let from=82+14*sn(t/9+x/120)+8*sn(t/3.7+y/80+1.3);
   let kn=15+3.5*sn(t/11+y/150)+2.5*sn(t/4.3+x/90+2);
-  const lh=localHours(s,t)%24; if(lh<6||lh>19)kn-=1.5;
+  // over the open sea the trade is a little fresher in the early afternoon, when the day's stirring brings the stronger wind aloft down to the water, and easiest before dawn
+  const lh=((localHours(s,t)%24)+24)%24;kn+=WINDK.diurnal*(-1.1*Math.cos(2*PI*(lh-14)/24)-.3);
   const q=s.squall;
   if(q&&t>=q.t0&&t<=q.t0+q.dur){const ph=sn(PI*(t-q.t0)/q.dur);kn+=q.boost*ph;from+=q.shift*ph;}
   // weather systems passing over: trade surges and lulls, tropical waves, cold fronts
@@ -911,20 +944,32 @@ function windAt(s,x,y,t){
     else if(e.type==="lull"){kn-=e.a*b;from+=e.sh*b;}
     else if(e.type==="wave"){kn+=e.a*Math.pow(b,1.4);from+=-28*sn(2*PI*u);}
     else if(e.type==="front"){kn+=e.a*Math.pow(b,.8);from+=u<.45?-25*sn(PI*u/.45):30*sn(PI*(u-.45)/.55);}}
-  // gusts and flicker of direction, stronger in fresher wind
-  kn*=1+.07*(sn(t*47+x/18)+sn(t*31+y/14+1))*Math.min(1,kn/15);from+=1.8*sn(t*53+x/25);
-  // land: wind shadow downwind of an island, acceleration round its flanks, sea and land breeze
-  let lee=null;
-  { const tw=(from+180)*D2R,dx=sn(tw),dy=Math.cos(tw),px=dy,py=-dx;let bx=0,by=0;
-    for(const I of islands){const rx=x-I.c.x,ry=y-I.c.y,d=Math.hypot(rx,ry);if(d>I.r+30)continue;
-      const a=rx*dx+ry*dy,l=rx*px+ry*py;
-      if(a>0&&a<I.r+16){const wid=I.r*1.4+2,k=1-clamp(Math.abs(l)/wid,0,1),f=1-.55*k*(1-clamp((a-I.r*.5)/(16+I.r*.5),0,1));
-        if(f<1){kn*=f;from+=-Math.sign(l||1)*12*k*(1-f);if(f<.8)lee=I.name;}}
-      else if(a>-I.r*.6&&a<I.r+10){const side=Math.abs(l)/(I.r+4);if(side>.9&&side<2.2)kn*=1+.18*sn(PI*clamp((side-.9)/1.3,0,1));}
-      if(d<I.r+10&&d>I.r*.4){const day=lh>=10&&lh<=17?1:(lh>=21||lh<6)?-.6:0,bb=3*day*(1-clamp((d-I.r*.5)/(I.r+10),0,1));bx+=-rx/d*bb;by+=-ry/d*bb;}}
-    if(bx||by){const vx=kn*dx+bx,vy=kn*dy+by;kn=Math.hypot(vx,vy);from=Math.atan2(vx,vy)/D2R+180;} }
+  // the land: the trade piles up and splits on the windward coast, quickens round the points and through the passages, falls light and fickle in a long shadow
+  // behind the high islands, and the sun drives a sea breeze onto every coast by day and a land breeze off it at night; afternoon heat over the hills adds gusts
+  let lee=null,pass=null,gm=1+.15*WINDK.thermal*Math.max(0,Math.cos(2*PI*(lh-4)/24)); // open-sea showers and gusts are worst before dawn
+  const L=landInit(),H=landHeat(s,lh),tw=(from+180)*D2R,dx=sn(tw),dy=Math.cos(tw),px=dy,py=-dx;let f=1,turn=0,bx=0,by=0,wob=0;
+  for(const I of L.I){const rx=x-I.c.x,ry=y-I.c.y,d=Math.hypot(rx,ry),hf=I.hf,mh=Math.min(1,hf),Ls=(10+30*hf)*WINDK.shadowLen;
+    if(d>I.r*1.3+Ls+12)continue;
+    const a=rx*dx+ry*dy,l=rx*px+ry*py,side=Math.sign(l||1);
+    if(a<0){const up=-a-I.r,k=clamp(1-Math.abs(l)/(I.r*1.2+1),0,1)*clamp(1-Math.max(0,up)/(3+6*hf),0,1);
+      if(k>0){f*=1-.2*mh*k*WINDK.block;turn+=side*22*mh*k*WINDK.block;}}
+    if(a>0&&a<I.r+Ls){const wid=I.r*1.3+2+a*.12,k=1-clamp(Math.abs(l)/wid,0,1);
+      if(k>0){const fr=clamp((a-I.r*.5)/(Ls+I.r*.5),0,1),dep=clamp(.78*Math.min(1,hf+.15)*WINDK.shadow,0,.95)*k*Math.pow(1-fr,1.3);
+        f*=1-dep;turn+=-side*14*k*(1-fr);wob+=dep;gm+=1.3*WINDK.thermal*k*(1-fr)*H.sea*mh;if(dep>.22)lee=I.name;}}
+    if(a>-I.r*.6&&a<I.r+10){const sd=Math.abs(l)/(I.r+4);if(sd>.9&&sd<2.2)f*=1+.22*Math.min(1,hf+.3)*WINDK.venturi*sn(PI*clamp((sd-.9)/1.3,0,1));}
+    const e=d-I.r*.9,ns=d>.01?1/d:0;
+    if(e<I.r+14){const sb=WINDK.seaBreeze*H.sea*(3+3*Math.min(1,I.r/8))*(.7+.3*mh),reach=4+I.r*.9,lb=WINDK.landBreeze*H.land*(1.2+1.6*mh),lr=2+I.r*.3;
+      const g=-sb*clamp(1-e/reach,0,1)+lb*clamp(1-e/lr,0,1);bx+=g*rx*ns;by+=g*ry*ns;gm+=.5*WINDK.thermal*H.sea*mh*clamp(1-e/(I.r+8),0,1);}}
+  for(const P of L.P){const k=passK(P,x,y);if(!k)continue;const cr=Math.abs(dx*P.uy-dy*P.ux),g=k*P.nar*cr;if(g<.02)continue;
+    f*=1+.22*WINDK.venturi*g*P.hf;const sg=Math.sign(dx*P.uy-dy*P.ux),nx=P.uy*sg,ny=-P.ux*sg,ang=Math.atan2(dx*ny-dy*nx,dx*nx+dy*ny)*R2D;turn+=-ang*.5*g*Math.min(1,WINDK.venturi);
+    if(g>.35)pass=`${P.A.name} and ${P.B.name}`;}
+  kn*=f;from+=turn+wob*35*sn(t*4.7+x/3+y/5);
+  // gusts and flicker of direction, stronger in fresher wind, under the hills on a hot afternoon and in the small hours at sea
+  kn*=1+.07*gm*(sn(t*47+x/18)+sn(t*31+y/14+1))*Math.min(1,kn/15);from+=1.8*gm*sn(t*53+x/25);
+  let breeze=null;
+  if(bx||by){const t2=(from+180)*D2R,vx=kn*sn(t2)+bx,vy=kn*Math.cos(t2)+by;kn=Math.hypot(vx,vy);from=Math.atan2(vx,vy)/D2R+180;if(Math.hypot(bx,by)>2)breeze=H.sea>H.land?"sea breeze":"land breeze";}
   if(kn>24)kn=24+(kn-24)*.3; // the worst of it is eased: strong gales are rare in this stretch of trades
-  return{from:norm(from),kn:Math.max(2,kn),lee};
+  return{from:norm(from),kn:Math.max(1.5,kn),lee,pass,breeze};
 }
 
 /* ---------- weather ---------- */
@@ -974,7 +1019,7 @@ function wxStep(s,dt,w){const X=s.wx,t=s.t;if(!X)return;
 function wxText(s,w){const X=s.wx,t=s.t,out=[];
   for(const e of X.ev){const u=(t-e.t0)/e.dur;if(u<0||u>1)continue;out.push(e.type==="front"?"Cold front passing":e.type==="wave"?"Tropical wave: rain and gusts":e.type==="surge"?"Trade wind surge":"Lull");}
   if(s.squall&&t>=s.squall.t0&&t<=s.squall.t0+s.squall.dur)out.push("Squall");
-  if(w.lee)out.push(`In the lee of ${w.lee}`);
+  if(w.lee)out.push(`In the lee of ${w.lee}`);if(w.pass)out.push(`Funnelled between ${w.pass}`);if(w.breeze)out.push(w.breeze==="sea breeze"?"Afternoon sea breeze":"Land breeze off the shore");
   if(!out.length){const d=pressureAt(s,t)-pressureAt(s,t-3);const c=X.cover;out.push(d<-1.6?"Fair for now, but the glass is falling fast":c<.12?"Clear and sunny":c<.4?"Fair: a few trade-wind cumulus":c<.7?"Broken cloud":"Overcast");}
   return out.join(" · ");}
 const GL_LO=28.6,GL_HI=30.6,GL_Z=[[28.6,28.9,"Stormy","storms likely"],[28.9,29.4,"Rain","rain likely"],[29.4,29.8,"Change","unsettled, change coming"],[29.8,30.2,"Fair","fair weather"],[30.2,30.6,"Set fair","settled, dry and fair"]];
@@ -5597,7 +5642,7 @@ function oarsUI(sh,bf){const O=SHIP.oars;if(!O||!$("bOars"))return;const r=rowOf
   $("oarMinus").disabled=h<=Math.min(O.n,av);$("oarPlus").disabled=h>=Math.min(need,av);
   for(const id of["oarBP","oarBS"])$(id).disabled=!on&&(!calm||anch);$("oarRel").checked=r.relieve!==false;
   if(on){$("windSpd").innerHTML=`<b style="color:var(--ink)">${r.pivot?"Turning":st.n}</b><br>${st.spm?st.spm+" strokes a minute":"blades still"}`;}}
-window.__DR={footAt,PF,portGeom,openPortCard,openPortPlan,tideLvl,tideTable,tideStream,plotFix,LMS,currentAt,dockAtPort,showCrisis,crisisKind,punish,loadState,packState,decS,toggleOars,setStroke,oarPivot,STROKES,pickShip,get SHIP(){return SHIP},SHIPDEFS,SPEC,useShip,applyShip,crewOf,rigOf,linesOf,get shipPick(){return shipPick},set shipPick(v){shipPick=v},svMove,svCtx,sx,sy,openPortCard,openPortPlan,get R3(){return R3},setMain,update3D,get S(){return S},VOYAGES,PORTS,islands,reefs,LMS,step,startVoyage,setCourse,tackOrWear,setSail,assistStep,noonAvailable,windAt:(x,y,t)=>windAt(S,x,y,t),inPoly,crossFix,plotFix,takeBearing,markNoon,startObserve,noonAvailable,endVoyage,toGeo,geo,atPort:()=>atPort(S),buyStore,sellFish,toggleFish,coastNm,fishStep};
+window.__DR={footAt,PF,portGeom,openPortCard,openPortPlan,tideLvl,tideTable,tideStream,plotFix,LMS,currentAt,landInit,WINDK,CURK,dockAtPort,showCrisis,crisisKind,punish,loadState,packState,decS,toggleOars,setStroke,oarPivot,STROKES,pickShip,get SHIP(){return SHIP},SHIPDEFS,SPEC,useShip,applyShip,crewOf,rigOf,linesOf,get shipPick(){return shipPick},set shipPick(v){shipPick=v},svMove,svCtx,sx,sy,openPortCard,openPortPlan,get R3(){return R3},setMain,update3D,get S(){return S},VOYAGES,PORTS,islands,reefs,LMS,step,startVoyage,setCourse,tackOrWear,setSail,assistStep,noonAvailable,windAt:(x,y,t)=>windAt(S,x,y,t),inPoly,crossFix,plotFix,takeBearing,markNoon,startObserve,noonAvailable,endVoyage,toGeo,geo,atPort:()=>atPort(S),buyStore,sellFish,toggleFish,coastNm,fishStep};
 })();
 </script>
 <script>if("serviceWorker" in navigator&&location.protocol.startsWith("http"))window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
