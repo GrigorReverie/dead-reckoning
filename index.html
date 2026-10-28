@@ -3761,7 +3761,7 @@ function update3D(dt,now){
   for(const o of R.isl){const c=o.isl.c;o.grp.position.set((c.x-sh.x)*NM,0,-(c.y-sh.y)*NM);const dd=Math.hypot(c.x-sh.x,c.y-sh.y);o.grp.visible=dd<75;if(o.veg)o.veg.visible=dd-o.Rr<9;}
   updateFauna(R,dt,gain,wdx,wdz,nightF);
   const dest=R.towns[S.v.to];
-  if(dest){R.beacon.position.set((dest.x-sh.x)*NM,0,-(dest.y-sh.y)*NM);R.beacon.visible=S.mode==="trial";}
+  if(dest){R.beacon.position.set((dest.x-sh.x)*NM,0,-(dest.y-sh.y)*NM);R.beacon.visible=S.mode==="trial";}else R.beacon.visible=false;
   { const rl=R.routeLine,pts=S.route.pts,n=Math.min(pts.length,65);
     if(rl){rl.visible=n>0;if(n>0){const a=rl.geometry.attributes.position.array;a[0]=0;a[1]=1.4;a[2]=0;for(let i=0;i<n;i++){a[3+i*3]=(pts[i].x-sh.x)*NM;a[4+i*3]=1.4;a[5+i*3]=-(pts[i].y-sh.y)*NM;}rl.geometry.setDrawRange(0,n+1);rl.geometry.attributes.position.needsUpdate=true;}} }
   // clouds
@@ -4433,38 +4433,93 @@ function svGeo(){if(SVG.id===SHIP.id)return SVG.g;const sp=SHIP.spec,Ls=linesOf(
 function svHome(G,m,i){if(m.r==="Captain")return G.offR[0]||G.crewR[0]||G.rooms[0];if(m.r==="Cook"&&G.gal)return G.gal;
   if(!ROLE[m.r]||ROLE[m.r].s<1||m.r!=="Seaman"&&m.r!=="Marine"&&m.r!=="Soldier"){if(G.offR.length&&m.r!=="Cabin boy"&&m.r!=="Carpenter"&&m.r!=="Gunner"&&m.r!=="Bosun")return G.offR[(i%Math.max(1,G.offR.length-1))+(G.offR.length>1?1:0)]||G.offR[0];}
   const C=G.crewR.length?G.crewR:G.rooms;let tot=C.reduce((a,r)=>a+(r.z1-r.z0),0),u=((i*0.6180339)%1)*tot;for(const r of C){u-=r.z1-r.z0;if(u<=0)return r;}return C[C.length-1];}
-function svFig(g,x,y,h,lying,ink,sel,ph){g.save();g.translate(x,y);g.strokeStyle=ink;g.fillStyle=ink;g.lineCap="round";const w=Math.max(1,h*.09);
-  if(lying){g.lineWidth=w*1.6;g.beginPath();g.moveTo(-h*.42,-h*.08);g.lineTo(h*.3,-h*.08);g.stroke();g.beginPath();g.arc(-h*.5,-h*.1,h*.08,0,2*PI);g.fill();}
-  else{const sw=Math.sin(ph||0)*h*.06;g.lineWidth=w;g.beginPath();g.moveTo(-h*.07,0);g.lineTo(-h*.03+sw,-h*.48);g.lineTo(h*.07,0);g.stroke();
-    g.lineWidth=w*1.9;g.beginPath();g.moveTo(0,-h*.48);g.lineTo(0,-h*.8);g.stroke();g.lineWidth=w*.9;g.beginPath();g.moveTo(0,-h*.76);g.lineTo(-h*.12,-h*.5+sw);g.moveTo(0,-h*.76);g.lineTo(h*.12,-h*.52-sw);g.stroke();
-    g.beginPath();g.arc(0,-h*.9,h*.08,0,2*PI);g.fill();}
-  if(sel){g.strokeStyle="#c9822b";g.lineWidth=2;g.beginPath();g.arc(0,-h*.45,h*.62,0,2*PI);g.stroke();}g.restore();}
 function svDrawGen(now){const c=$("shipCv"),par=c.parentElement,dpr=Math.min(2,devicePixelRatio||1),W=Math.max(par.clientWidth,innerWidth<=860?720:300),H=Math.round(W*SVH/SVW);
   if(c.width!==Math.round(W*dpr)||c.height!==Math.round(H*dpr)){c.width=Math.round(W*dpr);c.height=Math.round(H*dpr);c.style.height=H+"px";c.style.width=W+"px";}
   const g=c.getContext("2d"),k=W/SVW,G=svGeo(),day=!isNight(S)&&!DARK,tm=now/1000,sh=S.ship;g.setTransform(dpr*k,0,0,dpr*k,0,0);g.clearRect(0,0,SVW,SVH);
   const im=SVG.img[SHIP.id];g.fillStyle="#f6eed9";g.fillRect(0,0,SVW,SVH);if(im&&im.complete&&im.naturalWidth)g.drawImage(im,0,0,SVW,SVH);
   if(!day){g.fillStyle="rgba(12,28,70,.42)";g.fillRect(0,0,SVW,SVH);}
   const ink=day?"#2b2119":"#eadfb4",h=clamp(1.75*G.s,9,120),figs=[],C=S.crew;for(const r of G.rooms)r.n=r.sl=r.rs=0;
+  const K=svCol();if(day){K.ink='#2b2119';K.soft='#8a7a62';}
+  const dt=Math.min(.1,Math.max(0,(now-(SVG.tl||now))/1000));SVG.tl=now;
+  const floorY=(z,fl)=>fl<0?G.Ls.deckAt(z):G.rooms[fl].bot(z)+.12;
+  // one man walks toward where he should be: along his deck, to the hatch over his room, down (or up) the ladder, along the room; aloft by the mast to the yard
+  const stepFig=(m,T)=>{let f=m.gf;if(!f)f=m.gf={z:T.z,fl:T.fl,y:T.y!=null?T.y:floorY(T.z,T.fl),face:1,ph:Math.random()*6,mov:false,cl:null,up:0,key:"",wx:null,wait:0};
+    let tz=T.z;if(T.wander){if(f.key!==T.key){f.key=T.key;f.wx=null;}if(f.wx==null||(Math.abs(f.z-f.wx)<.15&&(f.wait-=dt)<=0)){f.wx=T.wander[0]+Math.random()*(T.wander[1]-T.wander[0]);f.wait=1.5+Math.random()*6;}tz=f.wx;}
+    const ty=T.y!=null?T.y:floorY(tz,T.fl),sp=1.5*(speedMult>=60?5:1);let mov=false,cl=null;
+    const walk=z=>{const d=z-f.z;if(Math.abs(d)>.12){f.z+=Math.sign(d)*Math.min(Math.abs(d),sp*dt);f.face=Math.sign(d);mov=true;return true;}return false;};
+    if(speedMult>=600||skipLeft>0){f.z=tz;f.fl=T.fl;f.y=ty;}
+    else if(f.fl!==T.fl){const rm=f.fl>=0?G.rooms[f.fl]:G.rooms[T.fl],hz=(rm.z0+rm.z1)/2;
+      if(f.y>G.Ls.deckAt(f.z)+.15&&f.fl<0){f.y=Math.max(G.Ls.deckAt(f.z),f.y-.5*dt);mov=true;cl=0;}
+      else if(!walk(hz)){const goal=f.fl>=0?G.Ls.deckAt(f.z):floorY(f.z,T.fl);f.y+=Math.sign(goal-f.y)*Math.min(Math.abs(goal-f.y),1*dt);mov=true;cl=0;if(Math.abs(goal-f.y)<.01){f.y=goal;f.fl=f.fl>=0?-1:T.fl;}}
+      else f.y=floorY(f.z,f.fl);}
+    else if(f.fl<0&&f.y>G.Ls.deckAt(f.z)+.15&&(!T.aloft||Math.abs(f.z-tz)>.15)){f.y=Math.max(G.Ls.deckAt(f.z),f.y-.5*dt);mov=true;cl=0;}
+    else{const w=walk(tz);if(!w&&T.aloft&&f.y<ty-.01){f.y=Math.min(ty,f.y+.4*dt);mov=true;cl=0;}else if(!T.aloft||w)f.y=floorY(f.z,f.fl);}
+    f.mov=mov;f.cl=cl;f.up=f.fl<0&&f.y>G.Ls.deckAt(f.z)+.15?1:0;if(mov)f.ph+=dt*9;m.act=T.act;return f;};
   // on deck: the helmsman aft, officers on the quarterdeck, the watch along the waist; when sail is being made or taken in, some of them aloft on the yards
   const duty=[],per=new Map();C.forEach((m,i)=>{if(m.mode==="duty")duty.push(i);else{const r=svHome(G,m,i);per.set(i,r);r.n++;if(m.mode==="sleep")r.sl++;else r.rs++;}});
   const [z0,z1]=G.deckZ,work=sh.q.length||SAILIDS.some(k2=>Math.abs(sh.sls[k2]-sh.sa[k2])>.02),rig=SVG.rig&&SVG.rigId===SHIP.id?SVG.rig:(SVG.rigId=SHIP.id,SVG.rig=rigOf(SHIP.spec,G.Ls));
   const yards=[];if(work)for(const s of rig.sails)if(s.kind==="sq"){const M=rig.masts[s.mast];for(const sd of[-1,1])yards.push(M.W([0,s.yard.y,0]).map((v,j)=>j===2?v+sd*.01:v).concat([sd*s.yard.w*.25]));}
-  const nDeck=Math.min(duty.length,Math.max(6,Math.round((z1-z0)*1.1)));
-  duty.slice(0,nDeck).forEach((i,j)=>{let z,y,up=false;
-    if(work&&j>=2&&j-2<Math.min(yards.length,8)){const Y=yards[j-2];z=Y[2]+((j%3)-1)*.35;y=Y[1]+.1;up=true;}
-    else{z=j===0?z0+.6:z0+1.4+(z1-z0-2)*((j*.618)%1);y=G.Ls.deckAt(z);}
-    const p=G.P(z,y);figs.push({i,x:p[0],y:p[1],lying:false,ph:tm*2+i});});
+  const nDeck=Math.min(duty.length,Math.max(6,Math.round((z1-z0)*1.1))),seen=new Set();
+  duty.slice(0,nDeck).forEach((i,j)=>{const m=C[i];let T;seen.add(i);
+    if(work&&j>=2&&j-2<Math.min(yards.length,8)){const Y=yards[j-2];T={z:Y[2]+((j%3)-1)*.35,y:Y[1]+.1,fl:-1,aloft:true,act:"Aloft handling sail"};}
+    else if(j===0)T={z:z0+.6,fl:-1,act:m.r==="Captain"?"On the quarterdeck":"At the helm"};
+    else T={z:z0+1.4+(z1-z0-2)*((j*.618)%1),fl:-1,wander:[z0+1,z1-1],key:"deck",act:m.r==="Captain"?"On the quarterdeck":"On deck, on watch"};
+    stepFig(m,T);});
   // below: each room's people, a few drawn and the rest counted
-  for(const r of G.rooms){if(!r.n)continue;const zc=(r.z0+r.z1)/2,wpx=(r.z1-r.z0)*G.s,hp=Math.abs(G.P(zc,r.top(zc))[1]-G.P(zc,r.bot(zc))[1]);
-    const cap=Math.max(1,Math.min(12,Math.floor(wpx/(h*.9)))),shown=[...per].filter(([,rr])=>rr===r).slice(0,cap);
-    shown.forEach(([i],j)=>{const m=C[i],z=r.z0+(r.z1-r.z0)*(j+.5)/shown.length,ly=m.mode==="sleep",p=G.P(z,r.bot(z)+.12);if(hp<h*.95&&!ly){}figs.push({i,x:p[0],y:p[1],lying:ly,h:Math.min(h,hp*.9),ph:0});});
+  for(const r of G.rooms){if(!r.n)continue;const zc=(r.z0+r.z1)/2,wpx=(r.z1-r.z0)*G.s,ri=G.rooms.indexOf(r),
+    cap=Math.max(1,Math.min(12,Math.floor(wpx/(h*.9)))),shown=[...per].filter(([,rr])=>rr===r).slice(0,cap);
+    shown.forEach(([i],j)=>{const m=C[i],sl=m.mode==="sleep",zz=r.z0+(r.z1-r.z0)*(j+.5)/shown.length;seen.add(i);
+      stepFig(m,sl?{z:zz,fl:ri,act:"Asleep, "+(r.label||"below").replace(/:.*$/,"").toLowerCase()}:{z:zz,fl:ri,wander:[r.z0+.3,r.z1-.3],key:"rest"+ri,act:"Off watch, "+(r.label||"below").replace(/:.*$/,"").toLowerCase()});});
     if(r.n>shown.length){const pb=G.P(r.z1,r.top(r.z1));g.font="11px 'IBM Plex Mono',monospace";g.textAlign="right";g.textBaseline="top";const t="+"+(r.n-shown.length),tw=g.measureText(t).width;
       g.fillStyle=day?"rgba(246,238,217,.9)":"rgba(20,30,60,.85)";g.fillRect(pb[0]-tw-5,pb[1]+2,tw+4,13);g.fillStyle=ink;g.fillText(t,pb[0]-3,pb[1]+3);}}
+  for(const m of C)if(!seen.has(C.indexOf(m)))m.gf=null;
   if(now-(SVG.lt||0)>600){SVG.lt=now;const el=$("svRooms");if(el){const t=G.rooms.filter(r=>r.n).map(r=>`<span><b>${r.label.replace(/:.*$/,"")}</b> ${[r.sl?r.sl+" asleep":"",r.rs?r.rs+" off watch":""].filter(Boolean).join(", ")}</span>`).join("");if(el.dataset.t!==t){el.dataset.t=t;el.innerHTML=t?`<b class="k">Below decks</b>${t}`:"";}}}
   { const pd=G.P(z1,G.Ls.deckAt(z1)),t=`${duty.length} on deck${duty.length>nDeck?" ("+nDeck+" shown)":""}`;g.font="12px 'IBM Plex Mono',monospace";g.textAlign="right";g.textBaseline="bottom";g.fillStyle=ink;g.fillText(t,Math.min(SVW-8,pd[0]),pd[1]-h*1.15); }
-  for(const f of figs)svFig(g,f.x,f.y,f.h||h,f.lying,ink,f.i===SV.sel,f.ph);
+  // the people, painted like the brig's: clothes of their rank, hats, faces turned the way they walk
+  const sc=clamp(1.75*G.s/41,.3,1.7);
+  C.forEach((m,i)=>{const f=m.gf;if(!f)return;const p=G.P(f.z,f.y),ly=m.mode==="sleep"&&!f.mov&&f.cl==null&&f.fl>=0;
+    figs.push({i,x:p[0],y:p[1],lying:ly});
+    const fo={face:f.face,mov:f.mov,ph:f.ph,cl:f.cl,up:f.up,lying:ly};
+    g.save();svPerson(g,K,m,i,fo,p[0],p[1],tm,day,SV.sel,ly?p[1]:null,sc);g.restore();});
   SVG.figs=figs;}
 function svHitGen(e){const c=$("shipCv"),r=c.getBoundingClientRect(),k=SVW/r.width,x=(e.clientX-r.left)*k,y=(e.clientY-r.top)*k;let best=-1,bd=24;for(const f of SVG.figs){const d=Math.hypot(f.x-x,f.y-(f.lying?6:20)-y);if(d<bd){bd=d;best=f.i;}}return best;}
+/* a little painted figure in the clothes of his rank, with a hat, his face turned the way he walks: one drawing for every ship's Ship tab */
+const SV_SHIRT=['#e6d9b0','#b2452c','#4b7592','#a18a58'],SV_SKIN='#dcae86',SV_TROUS=['#ece3c6','#3a3128','#d8cfae'];
+function svPerson(g,K,m,i,f,x,y,tm,day,sel,lyY,sc){const SHIRT=SV_SHIRT,SKIN=SV_SKIN,TROUS=SV_TROUS,col=m.mode==="sleep"?K.soft:K.ink,fd=f.face||1,rk=m.r;
+  const L=(w,c)=>{g.lineWidth=w>=10?w:w*.58;g.strokeStyle=c||K.ink;},line=(x1,y1,x2,y2)=>{g.beginPath();g.moveTo(x1,y1);g.lineTo(x2,y2);g.stroke();};
+  g.lineJoin="round";g.lineCap="round";
+    g.save();g.translate(x,y);g.scale(sc||1.55,sc||1.55);g.translate(-x,-y);
+    if(i===sel){g.beginPath();g.arc(x,y-17,19,0,2*PI);L(1.4,K.och);g.stroke();}
+    const fc=m.f>.65?K.och:m.f>.4?K.brass:null;
+    const coat=rk==="Surgeon"?'#4a3a5a':rk==="Surgeon's mate"?'#6a5a68':rk==="Captain"?'#2f4a7d':rk==="Mate"?'#6a3a2a':rk==="Bosun"?'#4a3a26':rk==="Carpenter"?'#8a6a3e':rk==="Cook"?'#9a9a86':rk==="Cabin boy"?'#7a8a5a':SHIRT[i%4],
+      trs=rk==="Captain"?'#e8dfc4':rk==="Cook"?'#3a3128':TROUS[i%3],hat=rk==="Captain"?'tri':rk==="Cook"?'cap':(i%3===0?'round':i%3===1?'knit':'none');
+    const dk=day?1:.8;g.globalAlpha=dk;
+    const head=(hx,hy,rot)=>{g.save();g.translate(hx,hy);g.rotate(rot||0);g.fillStyle=SKIN;g.beginPath();g.arc(0,0,4.1,0,2*PI);g.fill();L(.9,col);g.stroke();
+      g.fillStyle='#2a231d';g.beginPath();g.arc(-fd*.8,-.8,4.2,PI*.95,PI*2.05);g.fill(); // hair
+      g.fillRect(-fd*4.8,-.5,1.6,5.5); // pigtail
+      if(hat==='tri'){g.fillStyle='#1f1a16';g.beginPath();g.moveTo(-8,-3.4);g.lineTo(8,-3.4);g.lineTo(0,-9.5);g.closePath();g.fill();}
+      else if(hat==='round'){g.fillStyle='#2a231d';g.fillRect(-6,-4.4,12,1.6);g.fillRect(-3.4,-8.2,6.8,4);}
+      else if(hat==='knit'){g.fillStyle='#8a2f20';g.beginPath();g.moveTo(-4.2,-2);g.quadraticCurveTo(0,-9.5,4.2,-2);g.closePath();g.fill();g.fillRect(fd>0?-5:2.6,-2.2,2.4,3);}
+      else if(hat==='cap'){g.fillStyle='#e9e1c8';g.fillRect(-4,-6.4,8,3.4);L(.6,col);g.strokeRect(-4,-6.4,8,3.4);}
+      g.fillStyle='#4a3326';g.fillRect(fd*1.6-.4,-.6,.9,.9);g.restore();};
+    if(f.lying){const yy=lyY!=null?lyY-1:y-8;
+      g.fillStyle=SHIRT[1];g.beginPath();g.ellipse(x+3,yy-1,17,4.6,0,0,2*PI);g.fill();L(.9,col);g.stroke(); // blanket
+      head(x-14,yy-3,0);g.strokeStyle='rgba(255,255,255,.25)';g.lineWidth=.8;g.beginPath();g.moveTo(x-6,yy-3);g.lineTo(x+16,yy-2);g.stroke();
+      g.fillStyle=K.soft;g.font="italic 11px 'IM Fell English',serif";const zz=(tm*.6+i)%1;g.globalAlpha=1-zz;g.fillText("z",x-4+zz*8,yy-14-zz*10);g.globalAlpha=1;}
+    else{if(m.act==="Fishing over the side"&&!f.mov){L(.8,K.soft);line(x+5,y-16,x+9,300);}
+      const sw=f.mov?Math.sin(f.ph):0,cl=f.cl!=null||(f.up>0&&f.mov),lim=(x1,y1,x2,y2,w,c)=>{g.strokeStyle=c;g.lineWidth=w;g.lineCap='round';g.beginPath();g.moveTo(x1,y1);g.lineTo(x2,y2);g.stroke();};
+      const legs=(ax,bx)=>{lim(x-1.8,y-13,ax,y-1,3.6,trs);lim(x+1.8,y-13,bx,y-1,3.6,trs);g.fillStyle='#2a231d';g.fillRect(ax-2.2+fd*1,y-1.6,4.4+fd*1,2.4);g.fillRect(bx-2.2+fd*1,y-1.6,4.4+fd*1,2.4);};
+      if(cl)legs(x-3+sw*3,x+3-sw*3);else legs(x-sw*6,x+sw*6);
+      // torso (a coat with tails for the captain), then arms over it
+      g.beginPath();g.moveTo(x-5,y-26);g.quadraticCurveTo(x,y-28,x+5,y-26);g.lineTo(x+3.8,y-12);g.lineTo(x-3.8,y-12);g.closePath();g.fillStyle=coat;g.fill();L(.9,col);g.stroke();
+      if(rk==="Captain"){g.beginPath();g.moveTo(x-3.8,y-12);g.lineTo(x-5.8,y-6);g.lineTo(x+5.8,y-6);g.lineTo(x+3.8,y-12);g.closePath();g.fillStyle=coat;g.fill();g.stroke();g.fillStyle='#d7b25a';for(let b=0;b<3;b++)g.fillRect(x-.5,y-24+b*4,1,1);}
+      else{g.fillStyle='#2a231d';g.fillRect(x-3.8,y-13.6,7.6,1.4);}
+      if(cl){lim(x-4,y-24,x-6,y-31+sw*3,2.6,coat);lim(x+4,y-24,x+6,y-31-sw*3,2.6,coat);g.fillStyle=SKIN;g.beginPath();g.arc(x-6,y-32+sw*3,1.7,0,2*PI);g.arc(x+6,y-32-sw*3,1.7,0,2*PI);g.fill();}
+      else{lim(x-4.2,y-24,x+sw*5-4,y-15,2.6,coat);lim(x+4.2,y-24,x-sw*5+4,y-15,2.6,coat);g.fillStyle=SKIN;g.beginPath();g.arc(x+sw*5-4,y-14.5,1.7,0,2*PI);g.arc(x-sw*5+4,y-14.5,1.7,0,2*PI);g.fill();}
+      head(x+fd*1,y-30.5,0);
+      if(fc){L(2.2,fc);line(x-5,y-42,x+5,y-42);}}
+    g.globalAlpha=1;L(1.5,col);g.restore();
+}
 function svDraw(now){if(SHIP.id!=="brig"){svDrawGen(now);return;}const c=$("shipCv"),par=c.parentElement,dpr=Math.min(2,devicePixelRatio||1),W=Math.max(par.clientWidth,innerWidth<=860?720:300),H=Math.round(W*SVH/SVW);
   if(c.width!==Math.round(W*dpr)||c.height!==Math.round(H*dpr)){c.width=Math.round(W*dpr);c.height=Math.round(H*dpr);c.style.height=H+"px";c.style.width=W+"px";}
   const g=c.getContext("2d"),K=svCol(),k=W/SVW,day=!isNight(S)&&!DARK;if(day){K.ink='#2b2119';K.soft='#8a7a62';}g.setTransform(dpr*k,0,0,dpr*k,0,0);g.clearRect(0,0,SVW,SVH);g.fillStyle=K.paper;g.fillRect(0,0,SVW,SVH);
@@ -4612,40 +4667,8 @@ function svDraw(now){if(SHIP.id!=="brig"){svDrawGen(now);return;}const c=$("ship
   BERTHS.forEach((b,id)=>{const y=berthY(b),owner=berthOwner(id),hot=SV.hoverB===id,mine=selB===id;L(hot||mine?2.4:1.3,hot||mine?K.och:K.ink);
     if(b.room==="fore"||b.room==="hold"){if(b.room==="fore"){g.beginPath();g.moveTo(b.x-15,y-8);g.quadraticCurveTo(b.x,y+8,b.x+15,y-8);g.stroke();}else{line(b.x-17,y+2,b.x+17,y+2);}}else{g.strokeRect(b.x-17,y-2,34,8);line(b.x-17,y+6,b.x-17,y+12);line(b.x+17,y+6,b.x+17,y+12);}
     if(owner>=0&&(hot||mine)){g.fillStyle=K.och;g.font="15px 'IBM Plex Mono',monospace";g.fillText(S.crew[owner].n,Math.min(900,Math.max(70,b.x)),y-22);}});
-  // people: little painted figures in the clothes of their rank, with hats, faces turned the way they walk
-  const SHIRT=['#e6d9b0','#b2452c','#4b7592','#a18a58'],SKIN='#dcae86',TROUS=['#ece3c6','#3a3128','#d8cfae'];
-  S.crew.forEach((m,i)=>{const f=m.fig;if(!f)return;const x=f.x,y=f.y,col=m.mode==="sleep"?K.soft:K.ink,fd=f.face||1,rk=m.r;
-    g.save();g.translate(x,y);g.scale(1.55,1.55);g.translate(-x,-y);
-    if(i===sel){g.beginPath();g.arc(x,y-17,19,0,2*PI);L(1.4,K.och);g.stroke();}
-    const fc=m.f>.65?K.och:m.f>.4?K.brass:null;
-    const coat=rk==="Surgeon"?'#4a3a5a':rk==="Surgeon's mate"?'#6a5a68':rk==="Captain"?'#2f4a7d':rk==="Mate"?'#6a3a2a':rk==="Bosun"?'#4a3a26':rk==="Carpenter"?'#8a6a3e':rk==="Cook"?'#9a9a86':rk==="Cabin boy"?'#7a8a5a':SHIRT[i%4],
-      trs=rk==="Captain"?'#e8dfc4':rk==="Cook"?'#3a3128':TROUS[i%3],hat=rk==="Captain"?'tri':rk==="Cook"?'cap':(i%3===0?'round':i%3===1?'knit':'none');
-    const dk=day?1:.8;g.globalAlpha=dk;
-    const head=(hx,hy,rot)=>{g.save();g.translate(hx,hy);g.rotate(rot||0);g.fillStyle=SKIN;g.beginPath();g.arc(0,0,4.1,0,2*PI);g.fill();L(.9,col);g.stroke();
-      g.fillStyle='#2a231d';g.beginPath();g.arc(-fd*.8,-.8,4.2,PI*.95,PI*2.05);g.fill(); // hair
-      g.fillRect(-fd*4.8,-.5,1.6,5.5); // pigtail
-      if(hat==='tri'){g.fillStyle='#1f1a16';g.beginPath();g.moveTo(-8,-3.4);g.lineTo(8,-3.4);g.lineTo(0,-9.5);g.closePath();g.fill();}
-      else if(hat==='round'){g.fillStyle='#2a231d';g.fillRect(-6,-4.4,12,1.6);g.fillRect(-3.4,-8.2,6.8,4);}
-      else if(hat==='knit'){g.fillStyle='#8a2f20';g.beginPath();g.moveTo(-4.2,-2);g.quadraticCurveTo(0,-9.5,4.2,-2);g.closePath();g.fill();g.fillRect(fd>0?-5:2.6,-2.2,2.4,3);}
-      else if(hat==='cap'){g.fillStyle='#e9e1c8';g.fillRect(-4,-6.4,8,3.4);L(.6,col);g.strokeRect(-4,-6.4,8,3.4);}
-      g.fillStyle='#4a3326';g.fillRect(fd*1.6-.4,-.6,.9,.9);g.restore();};
-    if(f.lying){const yy=m.b!=null?berthY(BERTHS[m.b])-1:y-8;
-      g.fillStyle=SHIRT[1];g.beginPath();g.ellipse(x+3,yy-1,17,4.6,0,0,2*PI);g.fill();L(.9,col);g.stroke(); // blanket
-      head(x-14,yy-3,0);g.strokeStyle='rgba(255,255,255,.25)';g.lineWidth=.8;g.beginPath();g.moveTo(x-6,yy-3);g.lineTo(x+16,yy-2);g.stroke();
-      g.fillStyle=K.soft;g.font="italic 11px 'IM Fell English',serif";const zz=(tm*.6+i)%1;g.globalAlpha=1-zz;g.fillText("z",x-4+zz*8,yy-14-zz*10);g.globalAlpha=1;}
-    else{if(m.act==="Fishing over the side"&&!f.mov){L(.8,K.soft);line(x+5,y-16,x+9,300);}
-      const sw=f.mov?Math.sin(f.ph):0,cl=f.cl!=null||(f.up>0&&f.mov),lim=(x1,y1,x2,y2,w,c)=>{g.strokeStyle=c;g.lineWidth=w;g.lineCap='round';g.beginPath();g.moveTo(x1,y1);g.lineTo(x2,y2);g.stroke();};
-      const legs=(ax,bx)=>{lim(x-1.8,y-13,ax,y-1,3.6,trs);lim(x+1.8,y-13,bx,y-1,3.6,trs);g.fillStyle='#2a231d';g.fillRect(ax-2.2+fd*1,y-1.6,4.4+fd*1,2.4);g.fillRect(bx-2.2+fd*1,y-1.6,4.4+fd*1,2.4);};
-      if(cl)legs(x-3+sw*3,x+3-sw*3);else legs(x-sw*6,x+sw*6);
-      // torso (a coat with tails for the captain), then arms over it
-      g.beginPath();g.moveTo(x-5,y-26);g.quadraticCurveTo(x,y-28,x+5,y-26);g.lineTo(x+3.8,y-12);g.lineTo(x-3.8,y-12);g.closePath();g.fillStyle=coat;g.fill();L(.9,col);g.stroke();
-      if(rk==="Captain"){g.beginPath();g.moveTo(x-3.8,y-12);g.lineTo(x-5.8,y-6);g.lineTo(x+5.8,y-6);g.lineTo(x+3.8,y-12);g.closePath();g.fillStyle=coat;g.fill();g.stroke();g.fillStyle='#d7b25a';for(let b=0;b<3;b++)g.fillRect(x-.5,y-24+b*4,1,1);}
-      else{g.fillStyle='#2a231d';g.fillRect(x-3.8,y-13.6,7.6,1.4);}
-      if(cl){lim(x-4,y-24,x-6,y-31+sw*3,2.6,coat);lim(x+4,y-24,x+6,y-31-sw*3,2.6,coat);g.fillStyle=SKIN;g.beginPath();g.arc(x-6,y-32+sw*3,1.7,0,2*PI);g.arc(x+6,y-32-sw*3,1.7,0,2*PI);g.fill();}
-      else{lim(x-4.2,y-24,x+sw*5-4,y-15,2.6,coat);lim(x+4.2,y-24,x-sw*5+4,y-15,2.6,coat);g.fillStyle=SKIN;g.beginPath();g.arc(x+sw*5-4,y-14.5,1.7,0,2*PI);g.arc(x-sw*5+4,y-14.5,1.7,0,2*PI);g.fill();}
-      head(x+fd*1,y-30.5,0);
-      if(fc){L(2.2,fc);line(x-5,y-42,x+5,y-42);}}
-    g.globalAlpha=1;L(1.5,col);g.restore();});
+  const SHIRT=SV_SHIRT,SKIN=SV_SKIN,TROUS=SV_TROUS;
+  S.crew.forEach((m,i)=>{const f=m.fig;if(!f)return;svPerson(g,K,m,i,f,f.x,f.y,tm,day,sel,m.b!=null&&BERTHS[m.b]?berthY(BERTHS[m.b]):null);L(1.5,m.mode==="sleep"?K.soft:K.ink);});
   g.restore();
   // ladders drawn in screen space inside the same transform for a stable look
   svHud(g,K,k,dpr,day);}
@@ -4675,7 +4698,7 @@ function svBuild(){const R=$("svRoster");
     R.querySelectorAll("details.svdiv").forEach(d=>{d.addEventListener("toggle",()=>svDivFill(d));if(d.open)svDivFill(d);});svDivSum();}
   else R.innerHTML=S.crew.map((m,i)=>svRow(m,i)).join("");
   R.onclick=e=>{const row=e.target.closest(".svrow");if(!row)return;const i=+row.dataset.i,b=e.target.closest("button[data-w]");if(b){S.crew[i].w=+b.dataset.w;S.crew[i].ov=null;if(SHIP.id!=="brig"&&S.crew.length>30)setTimeout(svBuild,0);}SV.sel=i;svBuildSel();svRows();};}
-function svRows(){if(!S||!S.crew)return;const wi=watchInfo(S);svDivSum();$("svRoster").querySelectorAll(".svrow").forEach(row=>{const i=+row.dataset.i,m=S.crew[i];if(SHIP.id!=="brig")m.act=svAct(m);row.classList.toggle("sel",i===SV.sel);row.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.w===m.w)));
+function svRows(){if(!S||!S.crew)return;const wi=watchInfo(S);svDivSum();$("svRoster").querySelectorAll(".svrow").forEach(row=>{const i=+row.dataset.i,m=S.crew[i];if(SHIP.id!=="brig"&&!m.gf)m.act=svAct(m);row.classList.toggle("sel",i===SV.sel);row.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.w===m.w)));
   row.querySelector(".svf i").style.width=Math.round(m.f*100)+"%";row.querySelector(".svf i").style.background=m.f>.65?"var(--ochre)":m.f>.4?"var(--brass)":"var(--ink)";
   row.querySelector(".svs").textContent=m.sick?(m.why||"Laid up")+(medTeam(S).q>0?", tended in the sick berth":", untended in the sick berth"):m.act||"";});
   crewX(S);{const q=$("svQ");if(q&&SV.sel>=0&&S.crew[SV.sel])q.innerHTML=crewInfo(S.crew[SV.sel]);}}
