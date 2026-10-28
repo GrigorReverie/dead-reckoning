@@ -1111,11 +1111,14 @@ function step(dt){
   for(const lm of LMS){const d=Math.hypot(lm.x-sh.x,lm.y-sh.y);const r=Math.min(lm.geoRange,44)*hz*(night?.15:1);lm.vis=d<r;lm.dist=d;
     if(lm.vis&&!s.seen.has(lm.isl)){s.seen.add(lm.isl);say(`Land ho! ${lm.isl} in sight, bearing ${pointName(Math.atan2(lm.x-sh.x,lm.y-sh.y)*R2D)}.`,{slow:true});}}
   // hazards
+  const fa=footAt(sh.x,sh.y); // inside a harbour the plan decides what is land
+  if(fa&&fa.land){runAground(PF[fa.k].isl);return;}
   for(const isl of islands.concat(reefs)){
+    if(fa&&PF[fa.k].isl===isl)continue;
     if(inPoly(sh,isl.pts)){runAground(isl);return;}
   }
   let near=1e9,nearName="";for(const isl of islands.concat(reefs)){const d=distPoly(sh,isl.pts);if(d<near){near=d;nearName=isl.name;}}
-  if(near<1.6&&!s.docked&&s.t-s.breakersWarned>1){s.breakersWarned=s.t;say(`Breakers ahead! The leadsman finds bottom fast. ${s.mode==="lost"?"Land close aboard.":nearName+" close aboard."} Haul off!`,{pause:true});}
+  if(near<1.6&&!s.docked&&!fa&&s.t-s.breakersWarned>1){s.breakersWarned=s.t;say(`Breakers ahead! The leadsman finds bottom fast. ${s.mode==="lost"?"Land close aboard.":nearName+" close aboard."} Haul off!`,{pause:true});}
   // arrival
   const pk=s.v.to||nearestPort(sh).k,P=PORTS[pk];const dp=Math.hypot(P.x-sh.x,P.y-sh.y);
   if(dp<5&&!s.arrivedNear){s.arrivedNear=pk;say(`${P.name} is open ahead. You can dock at port.`,{pause:!s.v.free});updateUI(true);}
@@ -1185,8 +1188,8 @@ const fadeTo=(v,ms)=>new Promise(r=>{const f=$("fadeBlack");f.style.transition=`
 async function dockAtPort(){if(!S||S.done||S.docking)return;S.docking=true;const mission=!S.v.free,k=S.arrivedNear||nearestPort(S.ship).k,P=PORTS[k];
   modalOpen=true;if(mission){endVoyage(true);$("ovEnd").hidden=true;} // the grade is worked out from where she really is, before she is moved
   await fadeTo(1,800);
-  const sh=S.ship,A=sh.anch,tw=R3&&R3.towns&&R3.towns[k];sh.x=P.x;sh.y=P.y;sh.v=0;
-  if(tw){const dx=tw.inward.x,dy=-tw.inward.z,dl=1;sh.x=tw.coast.x-dx/dl*.012;sh.y=tw.coast.y-dy/dl*.012;sh.heading=norm(Math.atan2(dx,dy)/D2R-90);} // alongside the shore, the town to starboard
+  const sh=S.ship,A=sh.anch;sh.x=P.x;sh.y=P.y;sh.v=0;
+  {const f=PF[k];if(f&&f.dock){sh.x=f.dock.x;sh.y=f.dock.y;sh.heading=f.dock.hdg;}} // alongside the quay, her starboard side to the town
   sh.ordered=sh.heading;sh.wander=0;sh.turnDir=0;sh.q=[];for(const id of SAILIDS){sh.sls[id]=0;sh.sa[id]=0;}if(sh.row)sh.row.on=false;
   A.mode="holding";A.depth=Math.max(2,Math.round(depthFm(sh.x,sh.y)));A.drag=0;A.dragWarned=false;A.t0=S.t;
   S.docked=k;S.arrivedNear=k;S.fishing=false;if(S.est){S.est.x=sh.x;S.est.y=sh.y;}
@@ -2082,10 +2085,16 @@ void main(){
 }`;
 const FS_INK=`
 precision highp float;
+#ifdef CARVE
+uniform vec4 uCvA,uCvB;
+#endif
 uniform vec3 uPaper,uInk,uLight; uniform float uFogNear,uFogFar;
 varying vec3 vN; varying vec3 vVP; varying float vTone; varying float vY; varying vec3 vObj; varying vec3 vNo;
 ${GLSL_LINES}
 void main(){
+  #ifdef CARVE
+    vec2 cq=vObj.xz-uCvA.xy; if(abs(dot(cq,uCvA.zw))<uCvB.z&&abs(dot(cq,uCvB.xy))<uCvB.w)discard;
+  #endif
   vec3 n=normalize(vN); if(!gl_FrontFacing)n=-n;
   #ifdef OBJ
     vec3 no=normalize(vNo); if(!gl_FrontFacing)no=-no;
@@ -2431,7 +2440,10 @@ function buildIslands(R){
     }
     const idx=[];for(let k=0;k<rows-1;k++)for(let i=0;i<M;i++){const a=k*M+i,b=k*M+(i+1)%M,cc=(k+1)*M+i,d=(k+1)*M+(i+1)%M;idx.push(a,cc,b,b,cc,d);}
     const g=new THREE.BufferGeometry();g.setAttribute("position",new THREE.BufferAttribute(P,3));g.setIndex(idx);g.computeVertexNormals();
-    const mesh=new THREE.Mesh(g,terrainMat);mesh.frustumCulled=false;
+    const f0=ISLPORT.get(isl)&&PF[ISLPORT.get(isl)];let tm=terrainMat;
+    if(f0){const cd=Math.cos(f0.d),sd=Math.sin(f0.d),S=PUN*NM,cv=(PGV0+PGV1)/2,cx=(f0.bx-c.x)*NM+sd*cv*S,cz=-(f0.by-c.y)*NM-cd*cv*S; // the island's own terrain is cut away inside the harbour footprint, where the harbour's heightfield stands instead
+      tm=new THREE.ShaderMaterial({uniforms:Object.assign({},R.U,{uCvA:{value:new THREE.Vector4(cx,cz,-cd,-sd)},uCvB:{value:new THREE.Vector4(sd,-cd,PGU*S,(PGV1-PGV0)/2*S)}}),vertexShader:terrainMat.vertexShader,fragmentShader:terrainMat.fragmentShader,side:THREE.DoubleSide,defines:Object.assign({CARVE:1},terrainMat.defines),extensions:{derivatives:true}});}
+    const mesh=new THREE.Mesh(g,tm);mesh.frustumCulled=false;
     const grp=new THREE.Group();grp.add(mesh);scene.add(grp);const bins=new Int16Array(360);{const an=ring.map(b=>((Math.atan2(b.y-c.y,b.x-c.x)/PI*180)%360+360)%360);for(let d=0;d<360;d++){let bj=0,bd=1e9;for(let j=0;j<M;j++){const dd=Math.abs(((an[j]-d+540)%360)-180);if(dd<bd){bd=dd;bj=j;}}bins[d]=bj;}}
     R.isl.push({isl,grp,peak,Rr,ring,M,K,P,c,bins});isl.grp=grp;
   }
@@ -2493,84 +2505,87 @@ function groundAt(o,x,z){
   return null;
 }
 function buildHarbours(R){
-  R.towns={};
-  for(const k in PORTS){const p=PORTS[k];let best=null,bd=1e9,bi=null,seg=null;
-    for(const isl of islands){const pt=isl.pts;for(let i=0,j=pt.length-1;i<pt.length;j=i++){const q=closestOnSeg(p,pt[j],pt[i]);const d=Math.hypot(q.x-p.x,q.y-p.y);if(d<bd){bd=d;best=q;bi=isl;seg=[pt[j],pt[i]];}}}
-    if(!bi)continue;const o=R.isl.find(t=>t.isl===bi),sp=TOWNS[k]||TOWNS.kingstown,rnd=rng32(hashStr(k));
-    const Cx=(best.x-bi.c.x)*NM,Cz=-(best.y-bi.c.y)*NM,cl=Math.hypot(Cx,Cz)||1;
-    // the frame follows the shore itself: T along the coast segment, I inland, square to it
-    let sx=seg[1].x-seg[0].x,sz=-(seg[1].y-seg[0].y);const sl=Math.hypot(sx,sz)||1;sx/=sl;sz/=sl;let Ix=-sz,Iz=sx;if(Ix*-Cx+Iz*-Cz<0){Ix=-Ix;Iz=-Iz;}
-    const Tx=Iz,Tz=-Ix,yaw=Math.atan2(-Tz,Tx);
-    const at=(u,v)=>[Cx+Tx*u+Ix*v,Cz+Tz*u+Iz*v];
-    const gy=(u,v)=>{const q=at(u,v),g=groundAt(o,q[0],q[1]);return Math.max(1.6,g===null?1.6:g);};
-    const B=geoBuilder(R),T=PAL_T,L=sp.L;
-    const land=(u,v)=>{const q=at(u,v),g=groundAt(o,q[0],q[1]);return g!==null&&g>.25;};
-    const box=(c,u,v,y0,y1,w,d,edge,yw)=>{const q=at(u,v);B.add(c,BOX,q[0],(y0+y1)/2,q[1],yaw+(yw||0),w,y1-y0,d,edge!==false);};
-    const cyl=(c,geo,u,v,y0,y1,r,rt,edge)=>{const q=at(u,v);B.add(c,geo,q[0],(y0+y1)/2,q[1],yaw,r,y1-y0,r,!!edge);};
-    // stone quay with a pen-lined face, bollards, a crane and the wharf cargo
-    box(T.stone,0,3,-4,1.4,L,14);
-    for(let u=-L/2+10;u<=L/2-8;u+=24)cyl(T.dark,CYL6,u,-2.5,1.4,2.3,.5);
-    for(let n=0;n<(L/12|0);n++){const u=(rnd()-.5)*(L-30),v=1+rnd()*6;
-      if(rnd()<.5)box(T.wood,u,v,1.4,1.4+.8+rnd()*1.2,1.1+rnd()*1.3,1.1+rnd()*1.3,true,rnd()*3);else cyl(T.wood,CYL8,u,v,1.4,2.6,.65,0,true);}
-    if(sp.crane){const u=-L*.18;cyl(T.wood,CYL6,u,2,1.4,9.5,.35);cyl(T.wood,CYL6,u+3,2,1.4,9.5,.35);box(T.wood,u+1.5,-1.2,8.8,9.4,9,.5,true);box(T.dark,u+1.5,-4.5,6.2,6.5,.25,.25,false);}
+  R.towns={};const S=PUN*NM;
+  for(const o of R.isl){const k=ISLPORT.get(o.isl);if(!k)continue;
+    const f=PF[k],G=f.G3,P0=f.G,X=PORTX[k],sp=TOWNS[k]||TOWNS.kingstown,rnd=rng32(hashStr(k)),c=o.c,d=f.d,cd=Math.cos(d),sd=Math.sin(d);
+    const CX=(f.bx-c.x)*NM,CZ=-(f.by-c.y)*NM,yaw=PI-d;
+    const lx=(u,v)=>CX+(-u*cd+v*sd)*S,lz=(u,v)=>CZ-(u*sd+v*cd)*S;
+    // ---- the land of the harbour: a heightfield in plan coordinates that replaces the island's own terrain inside the footprint ----
+    const st=.6,u0=-PGU-1.5,v0=PGV0-1.5,nu=Math.round((2*PGU+3)/st),nv=Math.round((PGV1-PGV0+3)/st),cs=G.cs0;
+    const pos=new Float32Array((nu+1)*(nv+1)*3),H=new Float32Array((nu+1)*(nv+1));
+    for(let j=0;j<=nv;j++)for(let i=0;i<=nu;i++){const u=u0+i*st,v=v0+j*st;let m=1e9;for(let q=0;q<cs.length;q++){const a=cs[q][0]-u,b=cs[q][1]-v,t=a*a+b*b;if(t<m)m=t;}
+      const s=Math.sqrt(m),x=lx(u,v),z=lz(u,v);let h;
+      if(G.isWater(u,v))h=Math.max(-70,-(.5+s*S*.06));else{const g=groundAt(o,x,z);h=Math.max(.3,Math.min(.3+s*S*.045,g===null?1e9:g));}
+      const n=j*(nu+1)+i;H[n]=h;pos[n*3]=x;pos[n*3+1]=h;pos[n*3+2]=z;}
+    const idx=[];for(let j=0;j<nv;j++)for(let i=0;i<nu;i++){const a=j*(nu+1)+i,b=a+1,cc=a+nu+1,dd=cc+1;idx.push(a,cc,b,b,cc,dd);}
+    const pg=new THREE.BufferGeometry();pg.setAttribute("position",new THREE.BufferAttribute(pos,3));pg.setIndex(idx);pg.computeVertexNormals();
+    const pm=new THREE.Mesh(pg,R.terrainMat);pm.frustumCulled=false;o.grp.add(pm);
+    const hAt=(u,v)=>{const fi=clamp((u-u0)/st,0,nu-.001),fj=clamp((v-v0)/st,0,nv-.001),i=fi|0,j=fj|0,a=fi-i,b=fj-j,r=nu+1;
+      return(H[j*r+i]*(1-a)+H[j*r+i+1]*a)*(1-b)+(H[(j+1)*r+i]*(1-a)+H[(j+1)*r+i+1]*a)*b;};
+    o.pf={f,G,hAt,lx,lz,yaw,S};
+    // ---- buildings, quays, forts and mills at the places the harbour plan shows them ----
+    const B=geoBuilder(R),T=PAL_T,Tn=X.town;
+    const put=(c,geo,u,v,y,ry,sx,sy,sz,edge,rx,rz)=>B.add(c,geo,lx(u,v),y,lz(u,v),yaw+(ry||0),sx,sy,sz,edge,false,rx,rz);
+    const gy=(u,v)=>Math.max(1.6,hAt(u,v));
+    // quay: slabs along the shore, pen-lined, with bollards, barrels and a crane
+    const Q=P0.quay;
+    for(let i=0;i<Q.length-1;i++){const a=Q[i],b=Q[i+1],tu=b.u-a.u,tv=b.v-a.v,tl=Math.hypot(tu,tv)||1,nu_=a.nu,nv_=a.nv,mu=(a.u+b.u)/2+nu_*(6.5/S),mv=(a.v+b.v)/2+nv_*(6.5/S);
+      put(T.stone,BOX,mu,mv,-1.3,Math.atan2(-tv,tu),tl*S+1.5,5.4,13,true);
+      if(i%3===1)put(T.dark,CYL6,a.u+nu_*(2.2/S),a.v+nv_*(2.2/S),1.9,0,.5,1,.5);
+      if(rnd()<.35){const w=1.1+rnd()*1.3;if(rnd()<.5)put(T.wood,BOX,a.u+nu_*((3+rnd()*6)/S),a.v+nv_*((3+rnd()*6)/S),1.4+w/2,rnd()*3,w,w,w,true);else put(T.wood,CYL8,a.u+nu_*((3+rnd()*6)/S),a.v+nv_*((3+rnd()*6)/S),2,0,.65,1.2,.65,true);}}
+    if(sp.crane&&Q.length>6){const q=Q[Q.length>>1],ux=q.u+q.nu*(3/S),vx=q.v+q.nv*(3/S);put(T.wood,CYL6,ux,vx,5.5,0,.35,8.2,.35);put(T.dark,BOX,ux-q.nu*(2.2/S),vx-q.nv*(2.2/S),9.2,0,.4,.5,.4);put(T.wood,BOX,ux-q.nu*(1.4/S),vx-q.nv*(1.4/S),9.4,Math.atan2(-q.nv,q.nu)+PI/2,8,.5,.5,true);}
     // timber piers on piles
-    const pu=[];for(let i=0;i<sp.piers;i++)pu.push((i%2?1:-1)*(L/2-20-(i>>1)*50)+(i===0?0:0));
-    pu.forEach((u,i)=>{const len=34+rnd()*26;box(T.wood,u,-4-len/2+4,.7,1.3,5.5,len,true);
-      for(let z=0;z<=len;z+=5.5)for(const sd of[-1,1])cyl(T.dark,CYL6,u+sd*2.6,-z-1,-2.5,1.3,.28);
-      if(i===0&&sp.piers>1){box(T.dark,u,-len,1.3,2.4,.4,.4,false);} });
-    // harbour row: long gabled warehouses behind the quay
-    const wc=[T.white,T.cream,T.stone];
-    for(let n=0;n<sp.ware;n++){const w=26+rnd()*16,d=11+rnd()*5,u=-L/2+30+(n+.5)*((L-60)/sp.ware)+(rnd()-.5)*6,v=24+rnd()*8,h=6.5+rnd()*2.5,b=gy(u,v)-5,col=wc[n%3];if(!land(u-w/2,v)||!land(u+w/2,v))continue;
-      box(col,u,v,b,b+5+h,w,d);const q=at(u,v);B.add(T[sp.roof==="thatch"?"shingle":sp.roof],gableGeo(w+1.6,d+2.4,3.6),q[0],b+5+h,q[1],yaw,1,1,1,true);}
-    // houses in rows behind
-    const hc=[T.white,T.cream,T.pink,T.ochre];
-    for(let n=0;n<sp.houses;n++){const row=n%3,u=(rnd()-.5)*(L+60),v=64+row*38+rnd()*14,w=8+rnd()*5,d=7+rnd()*4,h=3.4+rnd()*2.6;
-      if(Math.abs(u)<14&&v<90||!land(u,v)||!land(u+w/2,v+d/2)||!land(u-w/2,v-d/2))continue;const b=gy(u,v)-4,col=hc[(rnd()*hc.length)|0],q=at(u,v);
-      box(col,u,v,b,b+4+h,w,d);
-      if(rnd()<.5)B.add(T[sp.roof],hipGeo(w+1.4,d+1.4,2.8+rnd()*1.2),q[0],b+4+h,q[1],yaw,1,1,1,true);else B.add(T[sp.roof],gableGeo(w+1.4,d+1.8,2.6),q[0],b+4+h,q[1],yaw,1,1,1,true);}
-    // church with a western tower and spire
-    if(sp.church){let u=L*.12,v=95;for(const du of[0,40,-40,80,-80])if(land(L*.12+du,95)&&land(L*.12+du,81)&&land(L*.12+du,109)){u=L*.12+du;break;}const b=gy(u,v)-4,q=at(u,v);box(T.white,u,v,b,b+4+9,11,22);B.add(T.tile,gableGeo(12.4,23.6,5),q[0],b+13,q[1],yaw,1,1,1,true);
-      box(T.stone,u,v-14,b,b+4+19,6.4,6.4);const t=at(u,v-14);B.add(T.dark,hipGeo(7.2,7.2,8),t[0],b+23,t[1],yaw,1,1,1,true);B.add(T.dark,BOX,t[0],b+32,t[1],yaw,.18,3,.18);}
-    // fort on a headland: bastioned stone walls, parapet, flag and guns
-    if(sp.fort){let u=0,v=0,ok=false;
-      for(let du=90;du<=260&&!ok;du+=18)for(const sg of[1,-1]){if(ok)break;for(let vv=20;vv<=70&&!ok;vv+=10){const uu=sg*(L/2+du-90+60);if([[0,0],[31,26],[-31,26],[31,-26],[-31,-26]].every(([a,b])=>land(uu+a,vv+b))){u=uu;v=vv;ok=true;}}}
-      if(!ok){u=L/2+90;v=18;}const b=Math.max(2.5,gy(u,v))-6;box(T.stone,u,v,b,b+6+7,62,52);
-      for(const sx of[-1,1])for(const sz of[-1,1]){const cu=u+sx*31,cv=v+sz*26;cyl(T.stone,CYL8,cu,cv,b,b+6+10,10.5,0,true);}
-      box(T.dark,u,v,b+13,b+14,50,40,false);
-      for(let n=0;n<5;n++){const gu=u-20+n*10;const q=at(gu,v-27);B.add(T.dark,CYL6,q[0],b+14.4,q[1],yaw,.45,3.2,.45,false,false,PI/2);}
-      cyl(T.dark,CYL6,u,v,b+13,b+34,.35);const f=at(u+2.5,v);B.add(T.red,BOX,f[0],b+32.6,f[1],yaw,5,2.8,.12);
-      const bu=u-L*.9,bv=26;void bu;void bv;}
-    // windmills inland (Barbados worked sugar by wind)
-    for(let n=0;n<sp.mills;n++){const u=(n?1:-1)*(L*.35+n*30),v=210+n*45,b=gy(u,v)-3,q=at(u,v),h=15;
-      B.add(T.mill,CYL8,q[0],b+h/2+1,q[1],yaw,3.6,h+2*3,3.6,true);
-      B.add(T.dark,CONE8,q[0],b+h+4.4,q[1],yaw,4.6,4.6,4.6,true);
-      const arm=at(u,v-5.2);for(const ca of[.4,.4+PI/2]){B.add(T.wood,BOX,arm[0],b+h+1.4,arm[1],yaw,.4,17,.25,true,false,0,ca);B.add(T.thatch,BOX,arm[0]+Math.cos(ca)*0,b+h+1.4,arm[1],yaw,3.2,12,.1,false,false,0,ca);} }
+    for(const p of P0.piers){const len=p.len*S;put(T.wood,BOX,p.u+p.du*p.len/2,p.v+p.dv*p.len/2,1.0,Math.atan2(-p.dv,p.du),len,.6,5.5,true);
+      for(let z=0;z<=len;z+=5.5)for(const sd2 of[-1,1]){const pu=p.u+p.du*z/S-p.dv*sd2*2.6/S,pv=p.v+p.dv*z/S+p.du*sd2*2.6/S;put(T.dark,CYL6,pu,pv,-.6,0,.28,3.8,.28);}}
+    // houses: each square on the plan is a block of houses; blocks on the waterfront are warehouses; the block nearest the middle carries the church
+    const wc=[T.white,T.cream,T.stone],hc=[T.white,T.cream,T.pink,T.ochre],rf=T[sp.roof];
+        for(const h of P0.houses){const bu=h.u+.95,bv=h.v+.75,isChurch=h===P0.church;
+      if(isChurch){const b=gy(bu,bv)-4;put(T.white,BOX,bu,bv,b+6.5,0,22,13,11,true);put(rf,gableGeo(23.6,12.4,5),bu,bv,b+13,0,1,1,1,true);
+        const tu=bu-14/S;put(T.stone,BOX,tu,bv,b+13.5,0,6.4,19,6.4,true);put(T.dark,hipGeo(7.2,7.2,8),tu,bv,b+23,0,1,1,1,true);put(T.dark,BOX,tu,bv,b+32,0,.18,3,.18);continue;}
+      if(h.dst<3.3){for(const sg of[-1,1]){const w=44,dp=20,uu=bu+sg*(26/S),b=gy(uu,bv)-5,hh=6.5+rnd()*2;put(wc[(rnd()*3)|0],BOX,uu,bv,b+(5+hh)/2,0,w,5+hh,dp,true);put(T[sp.roof==="thatch"?"shingle":sp.roof],gableGeo(w+1.6,dp+2.4,3.6),uu,bv,b+5+hh,0,1,1,1,true);}continue;}
+      for(let ci=-1;ci<=1;ci++)for(let ri=-1;ri<=1;ri++){if(rnd()<.14)continue;const w=11+rnd()*5,dp=8+rnd()*4,uu=bu+(ci*35+(rnd()-.5)*10)/S,vv=bv+(ri*27+(rnd()-.5)*8)/S,hh=3.4+rnd()*2.4,b=gy(uu,vv)-4;
+        put(hc[(rnd()*4)|0],BOX,uu,vv,b+(4+hh)/2,0,w,4+hh,dp,true);
+        if(rnd()<.5)put(rf,hipGeo(w+1.4,dp+1.4,2.8+rnd()*1.2),uu,vv,b+4+hh,0,1,1,1,true);else put(rf,gableGeo(w+1.4,dp+1.8,2.6),uu,vv,b+4+hh,0,1,1,1,true);}}
+    // forts on the headlands, guns toward the sea
+    for(const ft of X.forts){const u=ft[0],v=ft[1],b=Math.max(2.5,hAt(u,v))-6;
+      put(T.stone,BOX,u,v,b+6.5,0,86,13,74,true);
+      for(const sx of[-1,1])for(const sz of[-1,1])put(T.stone,CYL8,u+sx*43/S,v+sz*37/S,b+8,0,11,16,11,true);
+      put(T.dark,BOX,u,v,b+13.5,0,70,1,58);
+      for(let n=0;n<5;n++)put(T.dark,CYL6,u-24/S+n*12/S,v+38/S,b+14.4,0,.45,3.2,.45,false,PI/2,0);
+      put(T.dark,CYL6,u,v,b+24,0,.35,22,.35);put(T.red,BOX,u+2.5/S,v,b+32.6,0,5,2.8,.12);}
+    // windmills inland
+    for(const m of P0.mills){const b=gy(m.u,m.v)-3,h=15;put(T.mill,CYL8,m.u,m.v,b+h/2+1,0,3.6,h+6,3.6,true);put(T.dark,CONE8,m.u,m.v,b+h+4.4,0,4.6,4.6,4.6,true);
+      const au=m.u,av=m.v+5.2/S;for(const ca of[.4,.4+PI/2]){put(T.wood,BOX,au,av,b+h+1.4,0,.4,17,.25,true,0,ca);put(T.thatch,BOX,au,av,b+h+1.4,0,3.2,12,.1,false,0,ca);}}
     // a flagstaff on the quay
-    cyl(T.dark,CYL6,L*.05,-1,1.4,22,.25);{const f=at(L*.05+2.2,-1);B.add(T.red,BOX,f[0],20.6,f[1],yaw,4.4,2.6,.1);}
-    const town=new THREE.Group();B.finish(town);bi.grp.add(town);
-    const cx=at(0,60);R.towns[k]={town,isl:bi,x:bi.c.x+cx[0]/NM,y:bi.c.y-cx[1]/NM,coast:{x:best.x,y:best.y},inward:{x:Ix,z:Iz},u:{x:Tx,z:Tz},cl:cl};
-    o.town=town;o.townPos=[Cx,Cz];
+    if(Q.length){const q=Q[Q.length>>1];put(T.dark,CYL6,q.u+q.nu*(2/S),q.v+q.nv*(2/S),12,0,.25,21,.25);put(T.red,BOX,q.u+q.nu*(2/S)+.04,q.v+q.nv*(2/S),20.6,0,4.4,2.6,.1);}
+    const town=new THREE.Group();B.finish(town);o.grp.add(town);o.town=town;
+    const cx=Tn;R.towns[k]={town,isl:o.isl,x:f.bx+.03*(-cx[0]*cd+cx[1]*sd),y:f.by+.03*(cx[0]*sd+cx[1]*cd)};
   }
 }
 function buildForests(R){
   for(const o of R.isl){
-    const {isl,ring,M,K,P,c,Rr}=o,rnd=rng32(hashStr(isl.name)),B=geoBuilder(R),T=PAL_T,nm=1/NM;
+    const {isl,ring,M,K,P,c,Rr}=o,rnd=rng32(hashStr(isl.name)),B=geoBuilder(R),T=PAL_T,nm=1/NM,f=ISLPORT.get(isl)&&PF[ISLPORT.get(isl)];
     // length of coastline and a cap on trees so a long coast stays light
     let per=0;for(let i=0;i<M;i++){const a=ring[i],b=ring[(i+1)%M];per+=Math.hypot(b.x-a.x,b.y-a.y);}
     const pm=per*NM;let palms=Math.min(2600,pm/48|0),woods=Math.min(7000,pm/12|0);
-    const tn=o.townPos,gone=(x,z)=>tn&&Math.hypot(x-tn[0],z-tn[1])<380;
-    const pt=(i,s)=>{const b=ring[i],x=(b.x-c.x)*(1-s)*NM,z=-(b.y-c.y)*(1-s)*NM;const kf=Math.min(K-.001,s*K),k0=kf|0,f=kf-k0;return[x,P[((k0+1)*M+i)*3+1]*(1-f)+P[((k0+2)*M+i)*3+1]*f,z];};
-    // metres inland to a ring fraction
+    const gone=(x,z)=>{if(!f)return false;const q=toPlan(f,c.x+x*nm,c.y-z*nm);return q[0]>-PGU-4&&q[0]<PGU+4&&q[1]>PGV0-4&&q[1]<PGV1+4;};
+    const pt=(i,s)=>{const b=ring[i],x=(b.x-c.x)*(1-s)*NM,z=-(b.y-c.y)*(1-s)*NM;const kf=Math.min(K-.001,s*K),k0=kf|0,f2=kf-k0;return[x,P[((k0+1)*M+i)*3+1]*(1-f2)+P[((k0+2)*M+i)*3+1]*f2,z];};
     const sOf=(i,m)=>{const b=ring[i];return Math.min(.9,m*nm/Math.max(.05,Math.hypot(b.x-c.x,b.y-c.y)));};
     const palmG=new THREE.CylinderGeometry(.35,.6,1,5),crownG=new THREE.ConeGeometry(1,1,7),blobG=new THREE.IcosahedronGeometry(1,0);
-    for(let n=0;n<palms;n++){const i=(rnd()*M)|0,s=sOf(i,6+rnd()*55),[x,y,z]=pt(i,s);if(gone(x,z)||y<.6)continue;
-      const h=9+rnd()*7,lean=(rnd()-.5)*.35,la=rnd()*6.28;
+    const palm=(x,y,z)=>{const h=9+rnd()*7,lean=(rnd()-.5)*.35,la=rnd()*6.28;
       B.add(T.trunk,palmG,x,y+h/2-.5,z,la,1,h,1,false,true,lean,0);
-      B.add(T.palm,crownG,x+Math.sin(lean)*-h*.5,y+h-.2,z,la,4.6+rnd()*1.2,1.7,4.6+rnd()*1.2,false,true);}
+      B.add(T.palm,crownG,x+Math.sin(lean)*-h*.5,y+h-.2,z,la,4.6+rnd()*1.2,1.7,4.6+rnd()*1.2,false,true);};
+    const wood=(x,y,z)=>{const r=6+rnd()*6,hy=r*(.8+rnd()*.5);B.add(T.leaf[(rnd()*3)|0],blobG,x,y+hy*.9,z,rnd()*6.28,r,hy,r,false,true);};
+    for(let n=0;n<palms;n++){const i=(rnd()*M)|0,s=sOf(i,6+rnd()*55),[x,y,z]=pt(i,s);if(gone(x,z)||y<.6)continue;palm(x,y,z);}
     for(let n=0;n<woods;n++){const i=(rnd()*M)|0,m=70+Math.pow(rnd(),1.3)*2600,s=sOf(i,m),[x,y,z]=pt(i,s);if(gone(x,z)||y<2||y>650)continue;
-      const gx=Math.sin(x*.0061+1.7)*Math.cos(z*.0053+.4)+Math.sin((x+z)*.0027);if(gx<-.45)continue;
-      const r=6+rnd()*6,hy=r*(.8+rnd()*.5);
-      B.add(T.leaf[(rnd()*3)|0],blobG,x,y+hy*.9,z,rnd()*6.28,r,hy,r,false,true);}
+      const gx=Math.sin(x*.0061+1.7)*Math.cos(z*.0053+.4)+Math.sin((x+z)*.0027);if(gx<-.45)continue;wood(x,y,z);}
+    // the harbour's own hills and beaches, on its heightfield
+    if(o.pf){const {G,hAt,lx,lz}=o.pf,Tn=PORTX[f.k].town;
+      for(let n=0;n<2400;n++){const u=-PGU+rnd()*2*PGU,v=PGV0+rnd()*(-PGV0-1);if(G.isWater(u,v))continue;const dst=G.dist(u,v);if(dst<1.8)continue;
+        if(Math.hypot(u-Tn[0],(v-Tn[1])*1.3)<Tn[2]*1.2||G.forts.some(ft=>Math.hypot(u-ft[0],v-ft[1])<4))continue;
+        const gx=Math.sin(u*.21+1.7)*Math.cos(v*.19+.4)+Math.sin((u+v)*.1);if(gx<-.4)continue;const y=hAt(u,v);if(y<2)continue;wood(lx(u,v),y,lz(u,v));}
+      for(let n=0;n<420;n++){const u=-PGU+rnd()*2*PGU,v=PGV0+rnd()*(-PGV0+1);if(G.isWater(u,v))continue;const dst=G.dist(u,v);if(dst<.35||dst>1.6)continue;
+        if(Math.hypot(u-Tn[0],(v-Tn[1])*1.3)<Tn[2]*1.2||G.forts.some(ft=>Math.hypot(u-ft[0],v-ft[1])<4))continue;palm(lx(u,v),Math.max(.6,hAt(u,v)),lz(u,v));}}
     const g=new THREE.Group();B.finish(g);o.grp.add(g);o.veg=g;
   }
 }
@@ -3952,6 +3967,63 @@ const PORTX={
     wants:"salt fish, flour, lumber and slaves' provisions; the island ships out sugar and rum in quantity",
     notes:["An open roadstead with no harbour: anchor in 8 to 10 fathoms off the town.","A south swell sets into the roads and makes the landing wet; leave early if it freshens.","Under the Narrows to the south-east, mind the Nevis channel's current when beating off."]}
 };
+
+/* ---------- harbour plans ----------
+   One description of each harbour (PORTX) drives the sketch plan, the 3D harbour, the ship's mooring and where she can ground.
+   Plan units are 0.03 nm; u runs along the shore, v seaward; the plan is north-up and X.dir is the bearing of the seaward direction. */
+const PGU=62,PGV0=-62,PGV1=34,PUN=.03; // footprint of the 3D harbour in plan units (half-width, inland limit, seaward limit)
+const PF={},ISLPORT=new Map();
+const toNm=(f,u,v)=>[f.bx+PUN*(-u*Math.cos(f.d)+v*Math.sin(f.d)),f.by+PUN*(u*Math.sin(f.d)+v*Math.cos(f.d))];
+const toPlan=(f,x,y)=>{const dx=x-f.bx,dy=y-f.by;return[(-dx*Math.cos(f.d)+dy*Math.sin(f.d))/PUN,(dx*Math.sin(f.d)+dy*Math.cos(f.d))/PUN];};
+function portGeom(k,realC){
+  const X=PORTX[k],T=X.town,sp=TOWNS[k]||TOWNS.kingstown;
+  const half=X.shape==="bay"?X.bw/2:X.shape==="harbour"?X.mouth/2:0;
+  const bump=(u,u0,h,w)=>h*Math.exp(-Math.pow((u-u0)/w,2));
+  const coast0=u=>{let v=X.shape==="roads"?1.6*Math.sin(u*.09)+.8*Math.sin(u*.23):0;if(X.shape==="bay"){const q=Math.abs(u)/half;if(q<1)v=-X.bd*Math.pow(1-q*q,.6);v+=bump(u,-half*1.12,X.hd,3.2)+bump(u,half*1.12,X.hd,3.2);}
+    if(X.shape==="harbour"){v+=bump(u,-half-3.5,X.hd,3.5)+bump(u,half+3.5,X.hd,3.5);}return v;};
+  const coast=realC?u=>{const a=Math.abs(u),w=a<=42?1:a>=62?0:1-(a-42)/20,ww=w*w*(3-2*w);return coast0(u)*ww+realC(u)*(1-ww);}:coast0;
+  const water=[];if(X.shape==="harbour"){water.push(["rect",-half,half,-X.ch,3]);water.push(["ell",0,-X.ch-X.br*.75,X.br*1.15,X.br*.75]);}
+  const isWater=(u,v)=>{if(v>coast(u))return true;for(const w of water){if(w[0]==="rect"&&u>=w[1]&&u<=w[2]&&v>=w[3]&&v<=w[4])return true;if(w[0]==="ell"&&Math.pow((u-w[1])/w[3],2)+Math.pow((v-w[2])/w[4],2)<1)return true;}return false;};
+  const cs0=[];for(let u=-95;u<=95;u+=1.5)cs0.push([u,coast(u)]);
+  for(const w of water)if(w[0]==="ell")for(let i=0;i<70;i++){const t=i/70*2*PI;cs0.push([w[1]+w[3]*Math.cos(t),w[2]+w[4]*Math.sin(t)]);}
+  const dist=(u,v)=>{let m=1e9;for(const q of cs0)m=Math.min(m,Math.hypot(q[0]-u,q[1]-v));return m;};
+  // the town: blocks on a grid hugging the shore (the order of the random draws is part of the layout)
+  let seed=11;const rnd=()=>(seed=(seed*16807)%2147483647)/2147483647,houses=[];
+  for(let u=T[0]-T[2];u<=T[0]+T[2];u+=2.6)for(let v=T[1]-T[2]*.7;v<=T[1]+T[2]*.7;v+=2.2){if(Math.hypot(u-T[0],(v-T[1])*1.3)>T[2])continue;if(isWater(u,v))continue;const dst=dist(u,v);if(dst<1.4||dst>11)continue;if(rnd()<.18)continue;houses.push({u,v,dst});}
+  // the quay: the shore samples nearest the middle of the town, each with the way to the land
+  const quay=[];for(const q of cs0)if(Math.hypot(q[0]-T[0],(q[1]-T[1])*1.3)<T[2]*.55)quay.push({u:q[0],v:q[1]});
+  for(let i=0;i<quay.length;i++){const a=quay[Math.max(0,i-1)],b=quay[Math.min(quay.length-1,i+1)];let tu=b.u-a.u,tv=b.v-a.v;const tl=Math.hypot(tu,tv)||1;tu/=tl;tv/=tl;let nu=-tv,nv=tu;
+    if(isWater(quay[i].u+nu*.9,quay[i].v+nv*.9)){nu=-nu;nv=-nv;}quay[i].nu=nu;quay[i].nv=nv;}
+  // piers run out from the quay into the water
+  const piers=[];for(let n=0;n<sp.piers&&quay.length>3;n++){const q=quay[Math.floor(quay.length*(n%2?.78:.22))+(n>>1)*3];if(!q)continue;const len=.9+.4*((n*37)%3)/2;
+    if(isWater(q.u-q.nu*len,q.v-q.nv*len))piers.push({u:q.u,v:q.v,du:-q.nu,dv:-q.nv,len});}
+  // the church takes the block nearest the middle of the town that is not on the waterfront
+  let church=null,cd2=1e9;for(const h of houses){if(h.dst<2.6)continue;const d2=Math.hypot(h.u+.95-T[0],h.v+.75-T[1]-2);if(d2<cd2){cd2=d2;church=h;}}if(!sp.church)church=null;
+  // windmills stand on the high ground behind the town
+  const mills=[];for(let n=0;n<sp.mills;n++){let u=T[0]+(n?1:-1)*(T[2]*.8+n*6),v=T[1]-T[2]*1.25-n*4;for(let t=0;t<12&&(isWater(u,v)||dist(u,v)<8);t++)v-=3;if(!isWater(u,v))mills.push({u,v});}
+  // where the brig lies: off the middle of the quay, her starboard side to the land
+  let dock=null;if(quay.length){const q=quay[quay.length>>1],e=-q.nu*.5,n=-q.nv*.5;dock={u:q.u+e,v:q.v+n,nu:q.nu,nv:q.nv};}
+  return{X,half,coast,water,isWater,cs0,dist,houses,quay,piers,church,mills,dock,forts:X.forts};
+}
+function fitPorts(){
+  for(const k in PORTS){const p=PORTS[k],X=PORTX[k];let best=null,bd=1e9,bi=null,seg=null;
+    for(const isl of islands){const pt=isl.pts;for(let i=0,j=pt.length-1;i<pt.length;j=i++){const q=closestOnSeg(p,pt[j],pt[i]);const d=Math.hypot(q.x-p.x,q.y-p.y);if(d<bd){bd=d;best=q;bi=isl;seg=[pt[j],pt[i]];}}}
+    if(!bi)continue;
+    let nx=-(seg[1].y-seg[0].y),ny=seg[1].x-seg[0].x;if(nx*(best.x-bi.c.x)+ny*(best.y-bi.c.y)<0){nx=-nx;ny=-ny;}
+    const dir=Math.round(norm(Math.atan2(nx,ny)*R2D));X.dir=dir;
+    const f=PF[k]={k,isl:bi,bx:best.x,by:best.y,d:dir*D2R};ISLPORT.set(bi,k);
+    // the real coast across the footprint, so the plan's shore joins the island's at the edges
+    const real=[];for(let u=-PGU-4;u<=PGU+4;u++){let r=0;for(let v=45;v>=-45;v-=.5){const q=toNm(f,u,v);if(inPoly({x:q[0],y:q[1]},bi.pts)){r=v;break;}}real.push(r);}
+    f.G=portGeom(k);f.G3=portGeom(k,u=>{const t=clamp(u+PGU+4,0,real.length-1.001),i=t|0;return real[i]*(1-(t-i))+real[i+1]*(t-i);});
+    const dk=f.G.dock;if(dk){const q=toNm(f,dk.u,dk.v),le=-dk.nu*Math.cos(f.d)+dk.nv*Math.sin(f.d),ln=dk.nu*Math.sin(f.d)+dk.nv*Math.cos(f.d); // heading with the starboard side to the land: the bearing of the way to the land, less a quarter turn
+      f.dock={x:q[0],y:q[1],hdg:norm(Math.atan2(le,ln)*R2D-90)};}
+  }
+}
+// is this point inside a harbour footprint, and is it land there by the plan?
+function footAt(x,y){for(const k in PF){const f=PF[k];if(Math.abs(x-f.bx)>4||Math.abs(y-f.by)>4)continue;const q=toPlan(f,x,y);
+  if(q[0]>-PGU&&q[0]<PGU&&q[1]>PGV0&&q[1]<PGV1)return{k,land:!f.G3.isWater(q[0],q[1])};}return null;}
+fitPorts();
+
 function portFish(k){return Math.round(PRICE0.fish*(FISHD[k]||1)*100);}
 function portInfoHTML(k){const P=PORTS[k],X=PORTX[k],f=PORTF[k]||1,usual=i=>Math.round(PRICE0[i]*f),tod=S&&atPort(S)&&atPort(S).k===k;
   const row=(n,v,u,t)=>`<div><span>${n}</span><span>${v}s ${u}${t?` <em>(today ${t}s)</em>`:""}</span></div>`,pr=i=>tod?Math.round(priceOf(S,i,k)):0;
@@ -4003,11 +4075,14 @@ function drawPortPlan(k){const X=PORTX[k],cn=$("ppCv"),g=cn.getContext("2d"),dpr
   // reefs
   for(const r of X.reefs||[]){g.strokeStyle=INK;g.setLineDash([2,3]);poly(ell(r[0],r[1],r[2],r[3],18),"rgba(168,69,44,.18)",INK,1);g.setLineDash([]);}
   // town blocks hugging the shore
-  const T=X.town;seed=11;g.fillStyle=PAPER;g.strokeStyle=INK;g.lineWidth=.8;
-  for(let u=T[0]-T[2];u<=T[0]+T[2];u+=2.6)for(let v=T[1]-T[2]*.7;v<=T[1]+T[2]*.7;v+=2.2){if(Math.hypot(u-T[0],(v-T[1])*1.3)>T[2])continue;if(isWater(u,v))continue;const dst=dist(u,v);if(dst<1.4||dst>11)continue;if(rnd()<.18)continue;
-    poly([[u,v],[u+1.9,v],[u+1.9,v+1.5],[u,v+1.5]],PAPER,INK,.7);}
+  const T=X.town,GP=portGeom(k);g.fillStyle=PAPER;g.strokeStyle=INK;g.lineWidth=.8;
+  for(const h of GP.houses){if(h===GP.church)continue;poly([[h.u,h.v],[h.u+1.9,h.v],[h.u+1.9,h.v+1.5],[h.u,h.v+1.5]],PAPER,INK,.7);}
   // quay: along the shore near the town
   g.strokeStyle=INK;g.lineWidth=2.4;g.beginPath();let first=true;for(const q of cs0){if(Math.hypot(q[0]-T[0],(q[1]-T[1])*1.3)<T[2]*.55){const p=P(q[0],q[1]);first?g.moveTo(p[0],p[1]):g.lineTo(p[0],p[1]);first=false;}}g.stroke();
+  // the church, the piers and the windmills, as they stand in the 3D harbour
+  if(GP.church){const h=GP.church;poly([[h.u,h.v],[h.u+1.9,h.v],[h.u+1.9,h.v+1.5],[h.u,h.v+1.5]],PAPER,INK,1.2);const p=P(h.u+.95,h.v+.75),r=Math.max(3,sc*.7);g.strokeStyle=INK;g.lineWidth=1.4;g.beginPath();g.moveTo(p[0],p[1]-r);g.lineTo(p[0],p[1]+r);g.moveTo(p[0]-r*.7,p[1]-r*.3);g.lineTo(p[0]+r*.7,p[1]-r*.3);g.stroke();}
+  g.strokeStyle=INK;g.lineWidth=3;for(const pr of GP.piers){const p=P(pr.u,pr.v),q=P(pr.u+pr.du*pr.len,pr.v+pr.dv*pr.len);g.beginPath();g.moveTo(p[0],p[1]);g.lineTo(q[0],q[1]);g.stroke();}
+  for(const m of GP.mills){const p=P(m.u,m.v),r=Math.max(3.5,sc*.8);g.strokeStyle=INK;g.fillStyle=PAPER;g.lineWidth=1.1;g.beginPath();g.arc(p[0],p[1],r*.45,0,2*PI);g.fill();g.stroke();g.beginPath();g.moveTo(p[0]-r,p[1]-r);g.lineTo(p[0]+r,p[1]+r);g.moveTo(p[0]+r,p[1]-r);g.lineTo(p[0]-r,p[1]+r);g.stroke();}
   // soundings, fathoms
   g.fillStyle=SOFT;g.font=`italic ${Math.max(9,sc*1.5)}px 'IM Fell English',Georgia,serif`;g.textAlign="center";seed=3;
   for(let i=0;i<150;i++){const u=-52+rnd()*104,v=-46+rnd()*92;if(!isWater(u,v))continue;const dst=dist(u,v);if(dst<2.5)continue;const p=P(u,v);if(p[0]<8||p[0]>W-8||p[1]<10||p[1]>H-8)continue;g.fillText(String(Math.max(1,Math.round(Math.sqrt(dst)*X.dk*1.6))),p[0],p[1]);}
@@ -4944,7 +5019,7 @@ function oarsUI(sh,bf){const O=SHIP.oars;if(!O||!$("bOars"))return;const r=rowOf
   $("oarMinus").disabled=h<=Math.min(O.n,av);$("oarPlus").disabled=h>=Math.min(need,av);
   for(const id of["oarBP","oarBS"])$(id).disabled=!on&&(!calm||anch);$("oarRel").checked=r.relieve!==false;
   if(on){$("windSpd").innerHTML=`<b style="color:var(--ink)">${r.pivot?"Turning":st.n}</b><br>${st.spm?st.spm+" strokes a minute":"blades still"}`;}}
-window.__DR={openPortCard,openPortPlan,tideLvl,tideTable,tideStream,plotFix,LMS,currentAt,dockAtPort,showCrisis,crisisKind,punish,loadState,packState,decS,toggleOars,setStroke,oarPivot,STROKES,pickShip,get SHIP(){return SHIP},SHIPDEFS,SPEC,useShip,applyShip,crewOf,rigOf,linesOf,get shipPick(){return shipPick},set shipPick(v){shipPick=v},svMove,svCtx,sx,sy,openPortCard,openPortPlan,get R3(){return R3},setMain,update3D,get S(){return S},VOYAGES,PORTS,islands,reefs,LMS,step,startVoyage,setCourse,tackOrWear,setSail,assistStep,noonAvailable,windAt:(x,y,t)=>windAt(S,x,y,t),inPoly,crossFix,plotFix,takeBearing,markNoon,startObserve,noonAvailable,endVoyage,toGeo,geo,atPort:()=>atPort(S),buyStore,sellFish,toggleFish};
+window.__DR={footAt,PF,portGeom,openPortCard,openPortPlan,tideLvl,tideTable,tideStream,plotFix,LMS,currentAt,dockAtPort,showCrisis,crisisKind,punish,loadState,packState,decS,toggleOars,setStroke,oarPivot,STROKES,pickShip,get SHIP(){return SHIP},SHIPDEFS,SPEC,useShip,applyShip,crewOf,rigOf,linesOf,get shipPick(){return shipPick},set shipPick(v){shipPick=v},svMove,svCtx,sx,sy,openPortCard,openPortPlan,get R3(){return R3},setMain,update3D,get S(){return S},VOYAGES,PORTS,islands,reefs,LMS,step,startVoyage,setCourse,tackOrWear,setSail,assistStep,noonAvailable,windAt:(x,y,t)=>windAt(S,x,y,t),inPoly,crossFix,plotFix,takeBearing,markNoon,startObserve,noonAvailable,endVoyage,toGeo,geo,atPort:()=>atPort(S),buyStore,sellFish,toggleFish};
 })();
 </script>
 <script>if("serviceWorker" in navigator&&location.protocol.startsWith("http"))window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
