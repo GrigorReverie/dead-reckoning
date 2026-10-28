@@ -3736,7 +3736,7 @@ function shadowPass(R){
   sc.overrideMaterial=null;for(const o of away)o.visible=true;for(const o of hide)o.visible=true;
 }
 /* ---- the sky: a shaded dome, real stars joined into constellations, and an altitude and bearing grid. Values come from Grigor's Sky Tuner settings of 2026-10-28. ---- */
-const SKY={year:1745,nightMid:-4,nightWid:12,dayZen:"#7fa3c4",dayHor:"#e9dfc2",nightZen:"#0b1534",nightHor:"#2b4585",grad:0.85,hazeAmt:1,hazeH:11.5,hazeGrid:0.35,hazeStars:0.85,glowAmt:0.5,glowSize:32,glowCol:"#fff0c0",duskCol:"#e8a070",duskAmt:0.8,duskWid:9,hColD:"#3a4a63",hColN:"#ffdbd8",hOpac:0.57,hSp:1.5,hW:0.2,hFull:16.5,altStep:15,azStep:13,azBold:2,gridCol:"#9fb4e8",gridOp:0.15,gridBoldOp:0.26,gridLabSize:8,starBase:0.4,starK:1.18,starBright:0.62,starCol:"#fff4dc",starTint:0.7,starHalo:0.6,starDark:0,lineCol:"#b8c9f0",lineOp:0.57,lineGap:2.5,conSize:8,conCol:"#d8e2ff",conOp:0.5,stSize:7,stCol:"#c9d3ea",navCol:"#ffd98a",stOp:0.5,sphR:90000};
+const SKY={year:1745,nightMid:0.5,nightWid:12,dayZen:"#7fa3c4",dayHor:"#e9dfc2",nightZen:"#0b1534",nightHor:"#2b4585",grad:0.63,hazeAmt:0.6,hazeH:15.5,hazeGrid:0.96,hazeStars:0.5,hazeCol:"#8a86a4",glowAmt:0.5,glowSize:32,glowCol:"#fff0c0",duskCol:"#e8a070",duskAmt:0.9,duskWid:20.5,hColD:"#3a4a63",hColN:"#ffdbd8",hOpac:0.57,hSp:5,hW:0.2,hFull:16.5,altStep:15,azStep:13,azBold:2,gridCol:"#9fb4e8",gridOp:0.15,gridBoldOp:0.26,gridLabSize:8,starBase:0.4,starK:1.18,starBright:0.62,starCol:"#fff4dc",starTint:0.7,starHalo:0.6,starDark:0,lineCol:"#b8c9f0",lineOp:0.57,lineGap:2.5,conSize:8,conCol:"#d8e2ff",conOp:0.5,stSize:7,stCol:"#c9d3ea",navCol:"#ffd98a",stOp:0.5,sphR:90000};
 const SKY_ST={
 "Polaris":[2.530,89.264,2.0,0.6],"Kochab":[14.845,74.156,2.1,1.47],"Pherkad":[15.345,71.834,3.0,0.05],"Yildun":[17.537,86.586,4.4,0.1],"Epsilon Ursae Minoris":[16.766,82.037,4.2,0.9],"Zeta Ursae Minoris":[15.734,77.795,4.3,0.04],"Eta Ursae Minoris":[16.292,75.755,5.0,0.4],
 "Dubhe":[11.062,61.751,1.8,1.06],"Merak":[11.031,56.382,2.3,0.0],"Phecda":[11.897,53.695,2.4,0.0],"Megrez":[12.257,57.033,3.3,0.08],"Alioth":[12.900,55.960,1.8,-0.02],"Mizar":[13.399,54.925,2.2,0.02],"Alkaid":[13.792,49.313,1.9,-0.1],
@@ -3887,7 +3887,7 @@ function updateSky(R,alt,lh,di,pa,pf,cover,sq,sunDir,lat){
   const du=S_.du;
   du.uZen.value.set(...wx(skyMix(skyHex(K.nightZen),skyHex(K.dayZen),D)));
   du.uHor.value.set(...wx(skyMix(skyHex(K.nightHor),skyHex(K.dayHor),D)));
-  du.uHaze.value.set(pa[0],pa[1],pa[2]); // the horizon haze is the game's own paper colour, so the sea fades into it
+  du.uHaze.value.set(...wx(skyMix(pa,skyHex(K.hazeCol),D))); // by night the haze is the game's own paper colour; by day it is the tuned colour
   du.uHatCol.value.set(...skyMix(skyHex(K.hColN),skyHex(K.hColD),D));
   du.uSun.value.copy(sunDir);
   du.uGlowK.value=smooth(-12,0,alt)*(1-0.6*clamp(cover,0,1));
