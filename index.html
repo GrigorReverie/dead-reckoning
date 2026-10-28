@@ -5729,20 +5729,23 @@ ui.innerHTML=`<style>
 #edBox{position:fixed;z-index:2147482990;border:2px dashed #d4540f;background:rgba(212,84,15,.08);pointer-events:none;display:none}
 #edHdl{position:absolute;right:-14px;bottom:-14px;width:28px;height:28px;border-radius:50%;background:#d4540f;border:2px solid #fff;pointer-events:auto;touch-action:none}
 body.ed.edmove *{touch-action:none!important}
+#edFab{position:fixed;right:10px;bottom:calc(env(safe-area-inset-bottom,0px) + 96px);z-index:2147483001;font:600 13px/1 system-ui,sans-serif;padding:11px 14px;border-radius:22px;border:2px solid #b3150f;background:#fff;color:#b3150f;box-shadow:0 2px 10px rgba(0,0,0,.35);touch-action:manipulation}
+#edFab.on{background:#d3201a;color:#fff}
 </style>
 <div id="edBox"><div id="edHdl"></div></div>
+<button id="edFab" type="button">Editing: off</button>
 <div id="edBar" class="t">
-<div class="r"><b>Edit</b><button data-go="3D">3D</button><button data-go="Chart">Chart</button><button data-go="Ship">Ship</button><button data-go="Book">Book</button><button data-go="Helm" id="edGoHelm">Helm</button><button id="edMode" class="on">Move</button><button id="edDock">⇅</button><button id="edMin">▴</button></div>
+<div class="r"><b>Edit</b><button data-go="3D">3D</button><button data-go="Chart">Chart</button><button data-go="Ship">Ship</button><button data-go="Book">Book</button><button data-go="Helm" id="edGoHelm">Helm</button><button id="edDock">⇅</button><button id="edMin">▴</button></div>
 <div class="r x"><button id="edPar">⬆ Parent</button><button id="edKid">⬇ Child</button><button id="edMinus">−</button><button id="edPlus">+</button><button data-n="-1,0">◀</button><button data-n="0,-1">▲</button><button data-n="0,1">▼</button><button data-n="1,0">▶</button><button id="edSnap" class="on">Snap</button><button id="edRotL">↺</button><button id="edRotR">↻</button><button id="edUndo">Undo</button></div>
-<div class="r x"><button id="edRItem">Reset item</button><button id="edRScr">Reset screen</button><button id="edRAll">Reset all</button><button id="edExp">Export</button><button id="edDone" class="on">Done</button><span id="edInfo">Tap to select, drag to move. Pinch to resize, twist to rotate. Double-tap: parent. Hold: child.</span></div>
+<div class="r x"><button id="edRItem">Reset item</button><button id="edRScr">Reset screen</button><button id="edRAll">Reset all</button><button id="edExp">Export</button><button id="edDone" class="on">Done</button><span id="edInfo">Tap the red button to start editing: tap to select, drag to move. Pinch to resize, twist to rotate. Double-tap: parent. Hold: child.</span></div>
 </div>`;
 document.body.appendChild(ui);
 const bar=$("edBar"),box=$("edBox"),info=$("edInfo");
-const inUI=t=>t&&t.closest&&t.closest("#edBar,#edHdl");
+const inUI=t=>t&&t.closest&&t.closest("#edBar,#edHdl,#edFab");
 
 function select(el){if(!el||el===document.body||el===document.documentElement||inUI(el)){E.el=null;E.k=null;E.kids=[];return}
  if(el.ownerSVGElement)el=el.ownerSVGElement;E.el=el;E.k=sel(el);E.kids=[];label()}
-function label(){if(!E.el){info.textContent="Tap to select, drag to move. Pinch to resize, twist to rotate. Double-tap: parent. Hold: child.";return}const v=ent(E.k);info.textContent=E.k.split(">").slice(-2).join(">")+"  x"+v[0]+" y"+v[1]+" ×"+v[2]+(v[3]?" ↻"+v[3]+"°":"")}
+function label(){if(!E.el){info.textContent="Tap the red button to start editing: tap to select, drag to move. Pinch to resize, twist to rotate. Double-tap: parent. Hold: child.";return}const v=ent(E.k);info.textContent=E.k.split(">").slice(-2).join(">")+"  x"+v[0]+" y"+v[1]+" ×"+v[2]+(v[3]?" ↻"+v[3]+"°":"")}
 function track(){if(!E.on)return;if(E.el&&E.el.isConnected){const r=E.el.getBoundingClientRect();if(r.width||r.height){box.style.display="block";Object.assign(box.style,{left:r.left+"px",top:r.top+"px",width:r.width+"px",height:r.height+"px"})}else box.style.display="none"}else box.style.display="none";E.raf=requestAnimationFrame(track)}
 
 /* ---------- show the fullest version of every screen ---------- */
@@ -5765,14 +5768,14 @@ function go(n){const v=$("tbView");click(v);
 
 /* ---------- editing ---------- */
 function enter(){if(E.on)return;E.on=true;E.did={};E.hist=[];E.el=null;E.k=null;
- document.body.classList.add("ed","edmove");apply();E.mode="move";$("edMode").textContent="Move";$("edMode").classList.add("on");
+ document.body.classList.add("ed");document.body.classList.remove("edmove");apply();E.mode="live";fab(false);
  bar.className="t";E.top=true;$("edMin").textContent="▴";$("edGoHelm").style.display=cls()==="phone"?"":"none";
  for(const id of["menuPop","assistPop"]){const e=$(id);if(e)e.hidden=true}
  force();E.timer=setInterval(force,700);track();label()}
 function leave(){if(!E.on)return;E.on=false;clearInterval(E.timer);cancelAnimationFrame(E.raf);document.body.classList.remove("ed","edmove");box.style.display="none";relax();E.did={};apply()}
-const swallow=e=>{if(!E.on||E.allow||inUI(e.target))return;e.stopImmediatePropagation();if(e.cancelable&&(E.mode==="move"||e.type==="click"||e.type==="contextmenu"))e.preventDefault()};
+const swallow=e=>{if(!E.on||E.allow||E.mode==="live"||inUI(e.target))return;e.stopImmediatePropagation();if(e.cancelable&&(E.mode==="move"||e.type==="click"||e.type==="contextmenu"))e.preventDefault()};
 ["click","dblclick","contextmenu","mousedown","mouseup","touchend","touchmove","touchstart","wheel"].forEach(t=>window.addEventListener(t,swallow,{capture:true,passive:false}));
-window.addEventListener("keydown",e=>{if(E.on&&e.key==="Escape"){leave()}else if(E.on&&!inUI(e.target)){e.stopImmediatePropagation()}},true);
+window.addEventListener("keydown",e=>{if(E.on&&e.key==="Escape"){leave()}else if(E.on&&E.mode!=="live"&&!inUI(e.target)){e.stopImmediatePropagation()}},true);
 const P=new Map();let lastTap=null,lp=0;
 function parentOf(){if(E.el&&E.el.parentElement&&E.el.parentElement!==document.body){const c=E.el;select(E.el.parentElement);E.kids=[c]}}
 function childAt(x,y){if(!E.el)return;const k=E.kids&&E.kids.length?E.kids[E.kids.length-1]:null;let c=null;
@@ -5795,7 +5798,7 @@ function snapMove(d,dx,dy){ // returns snapped dx,dy and shows guides
  return[dx,dy]}
 function startGesture(){const a=[...P.values()];if(a.length<2||!E.el)return;clearTimeout(lp);hideG();
  const dx=a[1].x-a[0].x,dy=a[1].y-a[0].y;E.drag={g:true,v:ent(E.k),d0:Math.max(10,Math.hypot(dx,dy)),a0:Math.atan2(dy,dx),m0:[(a[0].x+a[1].x)/2,(a[0].y+a[1].y)/2]}}
-function down(e){if(!E.on||E.allow)return;const hd=e.target&&e.target.id==="edHdl";if(inUI(e.target)&&!hd)return;
+function down(e){if(!E.on||E.allow||E.mode==="live")return;const hd=e.target&&e.target.id==="edHdl";if(inUI(e.target)&&!hd)return;
  e.stopImmediatePropagation();
  if(E.mode!=="move"&&!hd)return;
  if(e.cancelable)e.preventDefault();
@@ -5816,7 +5819,7 @@ function move(e){if(!E.on)return;if(P.has(e.pointerId))P.set(e.pointerId,{x:e.cl
  if(!d.moved&&Math.hypot(dx,dy)<4)return;d.moved=true;clearTimeout(lp);
  if(d.hd){const s=Math.max(.2,Math.min(4,d.v[2]*(d.w+dx)/d.w));put(E.k,[d.v[0],d.v[1],s,d.v[3]])}
  else{if(snapOn&&d.G.length+1)[dx,dy]=snapMove(d,dx,dy);put(E.k,[d.v[0]+dx,d.v[1]+dy,d.v[2],d.v[3]])}label()}
-function up(e){if(E.on&&!E.allow&&!inUI(e.target))e.stopImmediatePropagation();clearTimeout(lp);const had=P.delete(e.pointerId);
+function up(e){if(E.on&&!E.allow&&E.mode!=="live"&&!inUI(e.target))e.stopImmediatePropagation();clearTimeout(lp);const had=P.delete(e.pointerId);
  if(!E.drag){if(!P.size)hideG();return}
  const d=E.drag;
  if(d.g){if(P.size<2){E.drag=null;hideG();label()}return}
@@ -5827,11 +5830,12 @@ window.addEventListener("pointerdown",down,{capture:true,passive:false});
 window.addEventListener("pointermove",move,{capture:true,passive:false});
 window.addEventListener("pointerup",up,{capture:true});window.addEventListener("pointercancel",up,{capture:true});
 
+function fab(on){E.mode=on?"move":"live";const f=$("edFab");f.classList.toggle("on",on);f.textContent=on?"Editing: ON":"Editing: off";document.body.classList.toggle("edmove",on);if(!on){E.drag=null;P.clear();hideG();clearTimeout(lp)}}
+$("edFab").addEventListener("click",()=>fab(E.mode!=="move"));
 bar.addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;
  if(b.dataset.go){go(b.dataset.go);return}
  if(b.dataset.n&&E.k){snap();const[a,c]=b.dataset.n.split(",").map(Number),v=ent(E.k);put(E.k,[v[0]+a,v[1]+c,v[2],v[3]]);label();return}
  switch(b.id){
- case"edMode":E.mode=E.mode==="move"?"scroll":"move";b.textContent=E.mode==="move"?"Move":"Scroll";b.classList.toggle("on",E.mode==="move");document.body.classList.toggle("edmove",E.mode==="move");break;
  case"edMin":bar.classList.toggle("min");b.textContent=bar.classList.contains("min")?"▾":"▴";break;
  case"edSnap":snapOn=!snapOn;b.classList.toggle("on",snapOn);break;
  case"edRotL":case"edRotR":if(E.k){snap();const v=ent(E.k);put(E.k,[v[0],v[1],v[2],v[3]+(b.id==="edRotR"?5:-5)]);label()}break;
