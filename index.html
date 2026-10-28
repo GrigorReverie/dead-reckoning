@@ -2243,7 +2243,7 @@ void main(){
   gl_FragColor=vec4(colr,1.0);
 }`;
 const VS_SEA=`
-uniform vec4 uWave[4]; uniform float uPh[4]; uniform float uA[4];
+uniform vec4 uWave[4]; uniform float uPh[4]; uniform float uA[4]; uniform float uSeaStyle;
 varying vec3 vPos; varying vec3 vN; varying float vH;
 void main(){
   vec2 p=position.xz; float r=length(p);
@@ -2251,7 +2251,8 @@ void main(){
   float h=0.0; vec2 g=vec2(0.0);
   for(int i=0;i<4;i++){
     vec2 d=uWave[i].xy; float k=uWave[i].z; float ph=k*dot(d,p)+uPh[i];
-    h+=uA[i]*sin(ph); g+=uA[i]*k*cos(ph)*d;
+    if(uSeaStyle>4.5&&uSeaStyle<5.5){ h+=uA[i]*(sin(ph)-0.26*cos(2.0*ph)); g+=uA[i]*k*(cos(ph)+0.52*sin(2.0*ph))*d; }
+    else { h+=uA[i]*sin(ph); g+=uA[i]*k*cos(ph)*d; }
   }
   h*=fade; g*=fade;
   vec3 pos=vec3(p.x,h,p.y);
@@ -2260,7 +2261,7 @@ void main(){
 }`;
 const FS_SEA=`
 precision highp float;
-uniform vec3 uPaper,uInk,uSeaInk,uSunW; uniform float uFogNear,uFogFar,uAmpTotal,uSeaStyle; uniform vec2 uOff;
+uniform vec3 uPaper,uInk,uSeaInk,uSunW; uniform float uFogNear,uFogFar,uAmpTotal,uSeaStyle; uniform vec2 uOff; uniform vec4 uWave[4];
 varying vec3 vPos; varying vec3 vN; varying float vH;
 ${GLSL_LINES}
 float h21(vec2 p){ return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453); }
@@ -2302,7 +2303,7 @@ void main(){
   if(uSeaStyle>0.5&&night<0.5){
     vec3 pen=vec3(0.19,0.27,0.33);
     if(uSeaStyle<1.5){ // pen and wash: one flat colour; the swell is told only by hairline hatching that packs closer where the water is darker (pen) or brighter (white)
-      vec3 wsh=mix(uPaper,vec3(0.62,0.74,0.76),0.62);
+      vec3 wsh=mix(uPaper,vec3(0.54,0.69,0.73),0.74);
       float hw=0.42*uDpr,fineN=1.0-smoothstep(150.0,1100.0,dist);
       vec2 fw2=normalize(-cameraPosition.xz+vec2(1e-4)),pw2=vec2(-fw2.y,fw2.x);float rr=dot(q,fw2),cc=dot(q,pw2); // rows square to the line of sight
       float sw=vH*1.0+0.4*fbm(q*0.3);
@@ -2312,18 +2313,65 @@ void main(){
       float Lr=aaLine(rr/0.7+sw,hw);
       float dk=Lr*smoothstep(0.1,0.9,dd),lt=Lr*smoothstep(0.1,0.9,ll);
       float cl2=aaLine(vH*2.4+fbm(q*0.05)*0.8,hw)*(1.0-smoothstep(60.0,800.0,dist));
-      col=mix(wsh,vec3(0.26,0.40,0.56),clamp(line*0.9,0.0,0.5)); // the fixed chart grid, back again
-      col=mix(col,pen,clamp(dk*fineN*0.5+cl2*0.15,0.0,0.55));col=mix(col,vec3(1.0,0.99,0.94),clamp(lt*fineN*0.55,0.0,0.55));
+      float gF=max(aaLine(q.x/6.0,w),aaLine(q.y/6.0,w))*(1.0-smoothstep(90.0,330.0,dist));
+      float gM=max(aaLine(q.x/30.0,w*1.35),aaLine(q.y/30.0,w*1.35))*(1.0-smoothstep(500.0,1800.0,dist));
+      float gX=max(aaLine(q.x/150.0,w*1.35),aaLine(q.y/150.0,w*1.35))*(1.0-smoothstep(2500.0,7000.0,dist));
+      float gridv=max(gF*0.45,max(gM*0.7,gX*0.55));
+      col=mix(wsh,vec3(0.20,0.34,0.50),clamp(gridv,0.0,0.8)); // the fixed chart grid: every sixth unit, bolder every fifth line
+      col=mix(col,pen,clamp(dk*fineN*0.7+cl2*0.2,0.0,0.7));col=mix(col,vec3(1.0,0.99,0.94),clamp(lt*fineN*0.7,0.0,0.7));
     } else if(uSeaStyle<2.5){ // engraved plate: fine parallel lines, heavier where the water turns from the light
       vec3 wsh=mix(uPaper,vec3(0.72,0.8,0.81),0.4);
       float fine=1.0-smoothstep(60.0,500.0,dist);
       float lw=0.22+0.75*(1.0-rel)*fine,rows=aaLine(q.y/0.9+vH*1.2,lw);
       float cross=aaLine(q.y/0.7+vH*1.2+0.5,0.3+0.9*pow(1.0-rel,2.0))*step(0.62,1.0-rel);
       col=mix(wsh,pen,clamp(rows*0.5*fine+cont*0.5+line*0.2,0.0,0.7));
-    } else { // survey chart: the drafted lattice and soundings contours over a pale tint, no foam
+    } else if(uSeaStyle<3.5){ // survey chart: the drafted lattice and soundings contours over a pale tint, no foam
       vec3 wsh=mix(uPaper,vec3(0.76,0.84,0.84),0.45)*(0.98+0.04*fbm(q*0.03));
       float c2=aaLine(vH*3.2+fbm(q*0.04)*1.0,w*1.2)*(1.0-smoothstep(80.0,900.0,dist));
       col=mix(wsh,pen,clamp(max(line*0.95,c2*0.7),0.0,0.85));
+    } else {
+      // options for the ocean: 4 = soft brush wash, 5 = peaked swell with crest strokes, 6 = living water (glitter, wind streaks)
+      vec2 fw2=normalize(-cameraPosition.xz+vec2(1e-4)),pw2=vec2(-fw2.y,fw2.x);float rr=dot(q,fw2),cc=dot(q,pw2);
+      float hw=0.4*uDpr,fineN=1.0-smoothstep(150.0,1100.0,dist);
+      float dd=clamp((0.5-rel)*2.2,0.0,1.0),ll=clamp((rel-0.5)*2.6,0.0,1.0);
+      vec3 ivory=vec3(1.0,0.99,0.94);
+      if(uSeaStyle<4.5){
+        float pool=fbm(q*0.011+3.0), pool2=fbm(q*0.047+11.0);
+        vec3 pale=vec3(0.70,0.82,0.82), mid=vec3(0.52,0.68,0.72), deepc=vec3(0.36,0.52,0.60);
+        vec3 wsh=mix(pale,mid,smoothstep(0.35,0.7,pool));
+        wsh=mix(wsh,deepc,clamp(dd*0.55+smoothstep(0.55,0.8,pool2)*0.25,0.0,0.7));
+        wsh=mix(wsh,pale,ll*0.6);
+        float edge=1.0-smoothstep(0.0,0.012,abs(pool2-0.6));
+        wsh*=0.97+0.05*vn(q*3.0);
+        wsh=mix(wsh,wsh*0.9,edge*0.6);
+        float wl=aaLine(rr/1.3+vH*1.0+0.4*fbm(q*0.3),hw)*smoothstep(0.1,0.8,dd);
+        float fleck=smoothstep(0.78,0.9,crest+(fbm(q*vec2(2.3,1.1))-0.5)*0.5)*smoothstep(0.5,0.62,vn(q*vec2(3.0,1.4)))*(1.0-smoothstep(200.0,1500.0,dist));
+        col=mix(wsh,pen,clamp(wl*fineN*0.35,0.0,0.4));
+        col=mix(col,ivory,clamp(fleck*0.75,0.0,0.75));
+      } else if(uSeaStyle<5.5){
+        vec3 wsh=mix(uPaper,vec3(0.60,0.73,0.76),0.66);
+        wsh=mix(wsh,vec3(0.45,0.60,0.67),dd*0.45);
+        float Lr=aaLine(rr/0.6+vH*1.2+0.3*fbm(q*0.3),hw);
+        float dk=Lr*smoothstep(0.15,0.9,dd);
+        float cr=smoothstep(0.62,0.72,crest+(fbm(q*vec2(0.9,0.5))-0.5)*0.3);
+        float tick=aaLine(cc/0.9+0.5*vn(q*0.5),hw*1.1)*smoothstep(0.55,0.65,crest);
+        float foamline=smoothstep(0.76,0.86,crest+(fbm(q*vec2(1.3,2.1))-0.5)*0.45)*(1.0-smoothstep(300.0,2400.0,dist));
+        col=mix(wsh,pen,clamp(dk*fineN*0.5,0.0,0.5));
+        col=mix(col,ivory,clamp(foamline*0.85+cr*tick*0.2,0.0,0.85));
+        col=mix(col,pen,clamp(tick*cr*fineN*0.35*(1.0-foamline),0.0,0.4));
+      } else {
+        vec2 wd=normalize(uWave[1].xy+vec2(1e-4)),wp=vec2(-wd.y,wd.x);
+        float along=dot(q,wd),across=dot(q,wp);
+        vec3 wsh=mix(uPaper,vec3(0.64,0.77,0.78),0.6);
+        wsh=mix(wsh,vec3(0.46,0.62,0.70),clamp(dd*0.5,0.0,0.5));
+        float streak=smoothstep(0.52,0.72,fbm(vec2(along*0.012,across*0.16)+5.0))*(1.0-smoothstep(300.0,2500.0,dist));
+        wsh=mix(wsh,vec3(0.40,0.56,0.66),streak*0.35);
+        float glit=smoothstep(0.72,0.9,ll+0.3*(vn(q*vec2(1.6,5.0))-0.5))*smoothstep(0.55,0.72,vn(q*vec2(1.2,6.0)+9.0))*(1.0-smoothstep(150.0,1800.0,dist));
+        float dash=smoothstep(0.55,0.75,vn(vec2(along*0.9,across*2.2)))*smoothstep(0.62,0.85,crest+(fbm(q*0.9)-0.5)*0.5)*(1.0-smoothstep(200.0,1600.0,dist));
+        float Lr=aaLine(rr/0.8+vH*1.0,hw)*smoothstep(0.2,0.9,dd);
+        col=mix(wsh,pen,clamp(Lr*fineN*0.4,0.0,0.4));
+        col=mix(col,ivory,clamp(glit*0.9+dash*0.6,0.0,0.9));
+      }
     }
   }
   col=mix(col,uPaper,smoothstep(uFogNear,uFogFar,dist));
