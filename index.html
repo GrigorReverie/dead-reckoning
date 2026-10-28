@@ -938,7 +938,7 @@ function pressureAt(s,t){const lh=localHours(s,t);let p=1015+1.1*Math.cos(2*PI*(
   const q=s.squall;if(q){const v=(s.t-(q.t0-1.5))/(1.5+q.dur+.5);if(v>0&&v<1)p-=1.5*Math.pow(Math.sin(PI*v),2);}return p;}
 function wxStep(s,dt,w){const X=s.wx,t=s.t;if(!X)return;
   // seas build and die slowly, and the wind-sea lags a shifting wind: the two can cross
-  const tgt=.05+.0035*Math.pow(w.kn,1.6);X.sea.amp+=(tgt-X.sea.amp)*(1-Math.exp(-dt/1.4));X.sea.dir=norm(X.sea.dir+angDiff(X.sea.dir,w.from)*(1-Math.exp(-dt/2.2)));
+  const tgt=.004467*Math.pow(w.kn,1.6);X.sea.amp+=(tgt-X.sea.amp)*(1-Math.exp(-dt/1.4));X.sea.dir=norm(X.sea.dir+angDiff(X.sea.dir,w.from)*(1-Math.exp(-dt/2.2)));
   // swell: a steady easterly ground swell, with a long north-westerly swell ahead of and after each front
   let fx=.25*Math.sin(70*D2R),fy=.25*Math.cos(70*D2R);
   for(const e of X.ev){if(e.type!=="front")continue;const tc=e.t0+.3*e.dur,wd=e.dur*.7,h=e.swell*Math.exp(-Math.pow((t-tc)/wd,2))*.24;if(h>.003){fx+=h*Math.sin(335*D2R);fy+=h*Math.cos(335*D2R);}}
