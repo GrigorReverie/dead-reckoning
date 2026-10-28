@@ -307,8 +307,67 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-
 .bar{padding-top:calc(env(safe-area-inset-top,0px) + 4px)}
 /* the glass sits left of the compass; on a phone it shrinks with the dial */
 @media (max-width:860px){.compassbox{--baroW:calc((min(230px,64vw) - 28px)*.24);--stW:32px;--gp:6px}#baro{height:calc(min(230px,64vw) - 28px)}.cbrow{gap:6px}}
-/* Helm controls nudged with the UI Layout Tuner (phone; offsets from where they sat) */
-@media (max-width:860px){#cL5{translate:32px -2px}#cR5{translate:-32px -6px}#dial{translate:0 11px}#baro{translate:-1px -8px}#sailSteps5 button{translate:0 7px}}
+/* Helm sheet laid out with the UI Layout Tuner (phone). Offsets are from where each control sat, so they follow the flow. */
+@media (max-width:860px){
+#spdTxt{display:inline-block;translate:9.2px 0px}
+body>div:nth-of-type(1)>div.main:nth-of-type(3)>aside.side:nth-of-type(1)>section.dock:nth-of-type(1)>div.sheet:nth-of-type(1)>div.dockgrid:nth-of-type(3)>div.sub:nth-of-type(1)>div.dockbody:nth-of-type(2)>div.dockctl:nth-of-type(2)>div.mono:nth-of-type(3){translate:162px -28px}
+body>div:nth-of-type(1)>div.main:nth-of-type(3)>aside.side:nth-of-type(1)>section.dock:nth-of-type(1)>div.sheet:nth-of-type(1)>div.dockhead:nth-of-type(1)>b.dh:nth-of-type(1)>svg:nth-of-type(1){translate:0px -2px}
+body>div:nth-of-type(1)>div.main:nth-of-type(3)>aside.side:nth-of-type(1)>section.dock:nth-of-type(1)>div.sheet:nth-of-type(1)>div.dockhead:nth-of-type(1)>b.dh:nth-of-type(1)>span.dht:nth-of-type(1){translate:0px -1.5px}
+#cL5{translate:23.8px -9px;transform-origin:0 0;scale:1.077 1.077}
+#cR5{translate:-22.1px -13px;transform-origin:0 0;scale:1.077 1.077}
+#baro{translate:-24.8px -16px;transform-origin:0 0;scale:1.114 1.094}
+#dial{translate:-18.2px 2px;transform-origin:0 0;scale:1.096 1.096}
+#sailSteps5>button.btn:nth-of-type(1){translate:13.8px 1px;transform-origin:0 0;scale:1.094 1.094}
+#sailSteps5>button.btn:nth-of-type(2){translate:13.8px 5px;transform-origin:0 0;scale:1.094 1.094}
+#sailSteps5>button.btn:nth-of-type(3){translate:13.8px 8px;transform-origin:0 0;scale:1.094 1.094}
+#sailSteps5>button.btn:nth-of-type(4){translate:13.8px 11px;transform-origin:0 0;scale:1.094 1.094}
+#sailSteps5>button.btn:nth-of-type(5){translate:13.8px 14px;transform-origin:0 0;scale:1.094 1.094}
+#bDrop{translate:-0.2px 14px;transform-origin:0 0;scale:0.95 0.941}
+#bOars{translate:-3.2px 14px;transform-origin:0 0;scale:0.95 0.941}
+#bHeave2{translate:-5.2px 14px;transform-origin:0 0;scale:0.95 0.941}
+#glass{translate:-8.2px 14px;transform-origin:0 0;scale:0.955 0.941}
+#knotCount{translate:-9.2px 14px;width:26px;height:18px}
+#bNip{translate:-10.2px 14px;transform-origin:0 0;scale:0.933 0.933}
+#bFish{translate:-12.2px 14px;transform-origin:0 0;scale:0.95 0.941}
+body>div:nth-of-type(1)>div.main:nth-of-type(3)>aside.side:nth-of-type(1)>section.dock:nth-of-type(1)>div.sheet:nth-of-type(1)>div.dockgrid:nth-of-type(3)>div.sub:nth-of-type(1)>div.dockbody:nth-of-type(2)>div.dockctl:nth-of-type(2)>div.mono:nth-of-type(1){translate:0px 23px}
+#ordTxt{display:inline-block;translate:0.4px 0px}
+#hdgTxt{translate:135px -303px;width:101px;height:21px}
+body>div:nth-of-type(1)>div.main:nth-of-type(3)>aside.side:nth-of-type(1)>section.dock:nth-of-type(1)>div.sheet:nth-of-type(1)>div.dockgrid:nth-of-type(3)>div.sub:nth-of-type(1)>div.dockbody:nth-of-type(2)>div.dockctl:nth-of-type(2)>div.setrows:nth-of-type(5)>div:nth-of-type(1)>span.k:nth-of-type(1){translate:320px -355px;width:41px;height:15px}
+#sailPips>i:nth-of-type(1){translate:273px -337.5px;height:11px}
+#sailPips>i:nth-of-type(1)>b:nth-of-type(1){translate:0px -1px;height:8px}
+#sailPips>i:nth-of-type(2){translate:273px -337.5px;height:11px}
+#sailPips>i:nth-of-type(2)>b:nth-of-type(1){translate:0px -1px;height:8px}
+#sailPips>i:nth-of-type(3){translate:274px -337.5px;height:11px}
+#sailPips>i:nth-of-type(3)>b:nth-of-type(1){translate:0px -1px;height:8px}
+#sailPips>i:nth-of-type(4){translate:275px -337.5px;height:11px}
+#sailPips>i:nth-of-type(4)>b:nth-of-type(1){translate:1px 0.1px}
+body>div:nth-of-type(1)>div.main:nth-of-type(3)>aside.side:nth-of-type(1)>section.dock:nth-of-type(1)>div.sheet:nth-of-type(1)>div.dockgrid:nth-of-type(3)>div.sub:nth-of-type(1)>div.dockbody:nth-of-type(2)>div.dockctl:nth-of-type(2)>div.setrows:nth-of-type(5)>div:nth-of-type(2)>span.k:nth-of-type(1){translate:320px -148px;width:41px;height:15px}
+#brOrdPip{translate:272px -135px;width:44px}
+#bLegend{translate:-115px 51px;transform-origin:0 0;scale:0.5 0.529}
+#legendBox>b:nth-of-type(1){translate:2px 11px}
+#legendBox>span:nth-of-type(1){translate:7px 11px}
+#legendBox>span:nth-of-type(1)>i:nth-of-type(1){translate:-15px -0.7px}
+#legendBox>span:nth-of-type(2){translate:6.6px 11px}
+#legendBox>span:nth-of-type(2)>i:nth-of-type(1){translate:-15px -0.7px}
+#legendBox>span:nth-of-type(3){translate:7px 11px}
+#legendBox>span:nth-of-type(3)>i:nth-of-type(1){translate:-15px -0.7px}
+#legendBox>span:nth-of-type(4){translate:7px 11px}
+#legendBox>span:nth-of-type(4)>i:nth-of-type(1){translate:-15px -0.7px}
+#legendBox>span:nth-of-type(5){translate:282px -6px}
+#legendBox>span:nth-of-type(5)>i:nth-of-type(1){translate:-15px -1.7px}
+#oarSec{translate:0px 19px}
+#oarState>span.muted:nth-of-type(1){display:inline-block;translate:0px 0.5px}
+#oarNote>b:nth-of-type(1){display:inline-block;translate:0.2px 0px}
+#oarHands>b.mono:nth-of-type(1){display:inline-block;translate:-0.1px 0px}
+#oarHands>span.muted:nth-of-type(1){display:inline-block;translate:-0.2px 0px}
+body>div:nth-of-type(1)>div.main:nth-of-type(3)>aside.side:nth-of-type(1)>section.dock:nth-of-type(1)>div.sheet:nth-of-type(1)>div.dockgrid:nth-of-type(3)>div.sub:nth-of-type(2){translate:0px 19px}
+body>div:nth-of-type(1)>div.main:nth-of-type(3)>aside.side:nth-of-type(1)>section.dock:nth-of-type(1)>div.sheet:nth-of-type(1)>div.dockgrid:nth-of-type(3)>div.sub:nth-of-type(3){translate:0px 19px}
+#trimTxt>span.pct:nth-of-type(2){display:inline-block;translate:-0.1px 0.5px}
+#logKn{display:inline-block;translate:0px 0px}
+#logAge{display:inline-block;translate:0px 0px}
+#ibTog{translate:0px -1.8px}
+#brOrd,#sailOrd,body>div:nth-of-type(1)>div.main:nth-of-type(3)>aside.side:nth-of-type(1)>section.dock:nth-of-type(1)>div.sheet:nth-of-type(1)>div.dockgrid:nth-of-type(3)>div.sub:nth-of-type(1)>div.subhead:nth-of-type(1){display:none!important}
+}
 /* the four view icons (chart, camera, ship, book) share one centred row along the bottom */
 :root{--ic:38px;--icg:22px}
 #paneV3.small ~ #paneTools{display:none!important}
