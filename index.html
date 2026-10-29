@@ -5863,7 +5863,7 @@ setInterval(()=>{if(sheet.hidden||!S)return;if(tab==="wind"&&!PV.wind){const w=l
 /* ===== Ship tab: USS Constitution sliced open, riding in the game's own sea ===== */
 (function(){
 const PI=Math.PI,Q=new URLSearchParams(location.search);
-const M={pan:0,on:false,sel:-1,built:false,cur:null,hi:-1,fast:1,vis:new Map(),VM:[],PN:[],dim:[],ledger:false,flip:false};
+const M={pan:0,on:false,sel:-1,built:false,cur:null,hi:-1,fast:1,uaz:0,upt:0,uz:1,uly:0,vis:new Map(),VM:[],PN:[],dim:[],ledger:false,flip:false};
 const SPc=SPEC.constitution,LS=linesOf(SPc),{H,deck,railY,keelY,zF,zA,hx}=LS;
 const YG=2.6,YB=0.3,YO=-1.8,YH=-4.9;                 // gun deck, berth deck, orlop and hold floors (from her spec's room bands)
 const FIT=2.4;                                       // her size against the brig, for the camera
@@ -6041,14 +6041,14 @@ const _v=new THREE.Vector3(),_s=new THREE.Vector3(),_b=new THREE.Vector3(),_c=ne
 function pose(R){const asp=R.W/Math.max(1,R.H);const port=asp<1;
   const hf=2*Math.atan(Math.tan(FOV*PI/360)*asp),fit=(port?25.5:27)*FIT*(M.sel>=0?(port?1.0:1.1):(port?1.3:1.1));
   const deck=M.sel>=0;
-  return{az:deck?(port?66:18):(port?38:22),pt:deck?(port?52:34):(port?17:18),dist:fit/(2*Math.tan(hf/2)),lx:0,ly:-8.6,lz:0};}
+  return{az:deck?(port?66:18):(port?38:22),pt:deck?(port?32:22):(port?17:18),dist:fit/(2*Math.tan(hf/2)),lx:0,ly:-8.6,lz:0};}
 const hide=o=>{if(!M.vis.has(o))M.vis.set(o,o.visible);o.visible=false;};
 window.CUTCAM=function(R){
   if(!M.on)return;build(R);if(!M.built)return;
   R.ship.updateMatrixWorld(true);const m=R.bob.matrixWorld;
   _s.set(1,0,0).transformDirection(m);_b.set(0,0,1).transformDirection(m);_c.setFromMatrixPosition(m);
   if(M.flip){_s.negate();_b.negate();}if(M.G)M.G.scale.x=M.flip?-1:1;if(M.G2){M.G2.scale.x=-M.G.scale.x;M.G2.visible=M.sel>=0;}
-  const T=M.ov||pose(R);if(!M.cur){M.cur={az:-100,pt:14,dist:T.dist*1.7,lx:0,ly:8,lz:0};}
+  const T=M.ov||pose(R);T.az+=M.uaz;T.pt=Math.max(3,Math.min(85,T.pt+M.upt));T.dist*=M.uz;T.ly+=M.uly;T.lz+=M.pan;if(!M.cur){M.cur={az:-100,pt:14,dist:T.dist*1.7,lx:0,ly:8,lz:0};}
   const e=M.fast?1:.045;for(const f of["az","pt","dist","lx","ly","lz"])M.cur[f]+=(T[f]-M.cur[f])*e;
   const c=M.cur,az=c.az*PI/180,pt=c.pt*PI/180;R.camera.fov=FOV;
   _v.set(c.lx,c.ly,c.lz).applyMatrix4(m);
@@ -6078,7 +6078,7 @@ root.innerHTML=`<svg id="cutSvg"></svg><div id="cutChips"></div><div id="cutCard
 const svg=root.querySelector("#cutSvg"),chips=root.querySelector("#cutChips"),card=root.querySelector("#cutCard");
 const NSV="http://www.w3.org/2000/svg";
 function mkChips(){chips.innerHTML=`<button data-s="-1">All</button>`+DECKS.map((d,i)=>`<button data-s="${i}">${["Upper","Gun","Berth","Orlop","Hold"][i]}</button>`).join("")+`<button id="cutRe" title="Fly the camera in again">⟲</button><button id="cutFlip" title="Show the other side of her">Side</button><button id="cutLed" title="Crew, watches and stores">Crew</button>`;
-  chips.querySelectorAll("button[data-s]").forEach(b=>b.onclick=()=>sel(+b.dataset.s));chips.querySelector("#cutRe").onclick=()=>{M.cur=null;M.sel=-1;M.pan=0;paint();};chips.querySelector("#cutFlip").onclick=()=>{M.flip=!M.flip;M.cur=null;};chips.querySelector("#cutLed").onclick=()=>{M.ledger=true;};}
+  chips.querySelectorAll("button[data-s]").forEach(b=>b.onclick=()=>sel(+b.dataset.s));chips.querySelector("#cutRe").onclick=()=>{M.cur=null;M.sel=-1;M.pan=0;M.uaz=M.upt=M.uly=0;M.uz=1;paint();};chips.querySelector("#cutFlip").onclick=()=>{M.flip=!M.flip;M.cur=null;};chips.querySelector("#cutLed").onclick=()=>{M.ledger=true;};}
 function sel(i){M.sel=(M.sel===i&&i>=0)?-1:i;M.hi=-1;M.pan=0;paint();}
 function paint(){chips.querySelectorAll("button[data-s]").forEach(b=>b.classList.toggle("on",+b.dataset.s===M.sel));
   if(M.sel<0)card.innerHTML=`<h3>USS Constitution</h3><p>Tap a deck, or a label.</p>`;
@@ -6109,7 +6109,7 @@ function labels(){const R=M.R;if(!R||!M.built||!M.on){if(!M.on&&labelEls)labelEl
 function star(){const b=[...document.querySelectorAll("button")].find(b=>b.textContent.startsWith("USS Constitution"));if(!b||b.querySelector(".cstar"))return!!b;
   b.insertAdjacentHTML("afterbegin",'<span class="cstar" title="Cutaway ship">★</span>');b.classList.add("cstarred");return true;}
 let looping=false;
-function enter(){const R=R3;M.on=true;window.CUTON=true;M.cur=null;M.sel=-1;M.pan=0;M.hi=-1;M.wasPaused=paused;M.wasMain=main3d;
+function enter(){const R=R3;M.on=true;window.CUTON=true;M.cur=null;M.sel=-1;M.pan=0;M.uaz=M.upt=M.uly=0;M.uz=1;M.hi=-1;M.wasPaused=paused;M.wasMain=main3d;
   try{if(!main3d)setMain(true);}catch(e){}
   try{setPaused(true);}catch(e){}
   { const sl=S&&S.ship&&S.ship.sls;M.sls=sl?Object.assign({},sl):null; }
@@ -6135,7 +6135,13 @@ function sync(){const w=want(),on=w&&!M.ledger;
 function boot(){
   setInterval(star,400);setInterval(sync,120);
 }
-{let dn=null;addEventListener("pointerdown",e=>{if(e.target&&e.target.id==="v3c")dn={x:e.clientX};},true);addEventListener("pointermove",e=>{if(dn&&M.on&&M.sel>=0){const dx=e.clientX-dn.x;dn.x=e.clientX;M.pan=Math.max(-24,Math.min(24,M.pan+dx*.09*(M.flip?-1:1)));}},true);addEventListener("pointerup",()=>{dn=null;},true);}
+{const ptr=new Map();const two=()=>{const a=[...ptr.values()];return a.length===2?{d:Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y)||1,x:(a[0].x+a[1].x)/2,y:(a[0].y+a[1].y)/2}:null;};
+ addEventListener("pointerdown",e=>{if(M.on&&e.target&&e.target.id==="view3d"){ptr.set(e.pointerId,{x:e.clientX,y:e.clientY});e.stopPropagation();}},true);
+ addEventListener("pointermove",e=>{const p=ptr.get(e.pointerId);if(!M.on||!p)return;
+  if(ptr.size===1){M.uaz-=(e.clientX-p.x)*.35;M.upt+=(e.clientY-p.y)*.25;p.x=e.clientX;p.y=e.clientY;}
+  else{const a=two();p.x=e.clientX;p.y=e.clientY;const b=two();if(a&&b){M.uz=Math.max(.2,Math.min(1.8,M.uz*a.d/b.d));M.uly=Math.max(-14,Math.min(14,M.uly+(b.y-a.y)*.04));M.pan=Math.max(-26,Math.min(26,M.pan-(b.x-a.x)*.05));}}},true);
+ const up=e=>ptr.delete(e.pointerId);addEventListener("pointerup",up,true);addEventListener("pointercancel",up,true);
+ addEventListener("wheel",e=>{if(M.on&&e.target&&e.target.id==="view3d")M.uz=Math.max(.2,Math.min(1.8,M.uz*Math.exp(e.deltaY*.001)));},{passive:true,capture:true});}
 window.addEventListener("load",()=>setTimeout(boot,400));
 window.__CUT=M;window.__CUTfast=()=>{M.fast=1;};
 })();
@@ -6357,4 +6363,5 @@ body.cutmode #shipView{display:none!important}
 #cutSvg circle{fill:#fff;stroke:#000;stroke-width:1.2px}
 #cutSvg .sel rect{fill:#000}#cutSvg .sel text{fill:#fff}
 #cutCard{max-height:none}#cutCard p{-webkit-line-clamp:2;font-size:13px}
+body.cutmode #view3d{touch-action:none}
 </style></body></html>
