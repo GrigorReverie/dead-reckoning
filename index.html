@@ -2901,7 +2901,7 @@ function init3D(){
   try{
     if(typeof THREE==="undefined")throw new Error("three.js did not load");
     const renderer=new THREE.WebGLRenderer({canvas:v3c,antialias:true});
-    renderer.setPixelRatio(Math.min(1.75,window.devicePixelRatio||1));
+    renderer.setPixelRatio(Math.min(matchMedia("(max-width:860px)").matches?1.5:1.75,window.devicePixelRatio||1)); // phones draw the 3D view a little less sharp to save work
     const scene=new THREE.Scene();scene.fog=new THREE.Fog(0xf2e4b9,500,60000);
     const camera=new THREE.PerspectiveCamera(55,1,3,130000);
     const U={uPaper:{value:new THREE.Color()},uInk:{value:new THREE.Color()},uSeaInk:{value:new THREE.Color()},uSeaStyle:{value:1},uFogNear:{value:500},uFogFar:{value:60000},
@@ -2952,7 +2952,7 @@ function init3D(){
     R.beacon=new THREE.LineSegments(bg,ochreLine);R.beacon.frustumCulled=false;scene.add(R.beacon);
     { const rg=new THREE.BufferGeometry();rg.setAttribute("position",new THREE.BufferAttribute(new Float32Array(66*3),3));rg.setDrawRange(0,0);
       R.routeLine=new THREE.Line(rg,new THREE.LineBasicMaterial({color:0xb2452c,fog:false,transparent:true,opacity:.8}));R.routeLine.frustumCulled=false;R.routeLine.visible=false;scene.add(R.routeLine); }
-    R3=R;resize3D();
+    R3=R;R.basePR=renderer.getPixelRatio();R.q=0;resize3D();
   }catch(err){
     console.warn("3D unavailable:",err);R3=null;
     $("paneV3").hidden=true;setMain(false,true);
@@ -4632,7 +4632,7 @@ function update3D(dt,now){
     R.lantern.intensity=R.lampF*1.2;
     const lit=R.lampF>.5;if(S.lit!==undefined&&lit!==S.lit&&!paused){say(lit?"The watch lights the stern lantern and the binnacle lamp.":"The lanterns are doused at first light.",{slow:true});}S.lit=lit; }
   // world objects relative to ship
-  for(const o of R.isl){const c=o.isl.c;o.grp.position.set((c.x-sh.x)*NM,0,-(c.y-sh.y)*NM);const dd=Math.hypot(c.x-sh.x,c.y-sh.y);o.grp.visible=dd<75;if(o.veg)o.veg.visible=dd-o.Rr<9;}
+  for(const o of R.isl){const c=o.isl.c;o.grp.position.set((c.x-sh.x)*NM,0,-(c.y-sh.y)*NM);const dd=Math.hypot(c.x-sh.x,c.y-sh.y);const q=R.q||0;o.grp.visible=dd<QDIST[q];if(o.veg)o.veg.visible=dd-o.Rr<QVEG[q];}
   updateFauna(R,dt,gain,wdx,wdz,nightF);
   updatePirates3D(R);
   const dest=R.towns[S.v.to];
@@ -4788,9 +4788,21 @@ v3c.addEventListener("dblclick",resetCam3);
 let main3d=true;
 function setMain(is3d){main3d=is3d;$("paneV3").className="pane "+(is3d?"big":"small");$("paneChart").className="pane "+(is3d?"small":"big");setTimeout(()=>{resize();resize3D();},0);}
 
+/* ---------- automatic quality: when the frame rate drops, the 3D view draws islands and trees less far and a little less sharp, and puts them back once it runs smoothly ---------- */
+const QDIST=[75,55,40,30],QVEG=[9,6,4,3],QPR=[1,.85,.72,.6]; // island draw distance (nm), trees from shore (nm), share of full sharpness
+const AQ={ms:16.7,t:0,good:0};
+function autoQ(rawMs){const R=R3;if(!R||R.hid||R.basePR==null)return;
+  if(rawMs>2000||skipLeft>0||(SV.open&&innerWidth>860&&!window.CUTON)){AQ.t=0;return;} // ignore a hidden tab, time skips and frames the 3D view did not draw
+  AQ.ms+=(Math.min(rawMs,250)-AQ.ms)*.05;AQ.t+=rawMs;if(AQ.t<2000)return;AQ.t=0;
+  const fps=1000/AQ.ms;let q=R.q;
+  if(fps<40&&q<QDIST.length-1){q++;AQ.good=0;}
+  else if(fps>55){if(++AQ.good>=3&&q>0){q--;AQ.good=0;}}else AQ.good=0;
+  if(q!==R.q){R.q=q;R.renderer.setPixelRatio(Math.max(1,R.basePR*QPR[q]));resize3D();}}
+
 /* ---------- main loop ---------- */
 let lastFrame=performance.now(),acc=0,frameN=0;
 function frame(now){
+  autoQ(now-lastFrame);
   const dtR=Math.min(.1,(now-lastFrame)/1000);lastFrame=now;
   if(skipLeft>0){
     if(!S||S.done||modalOpen||paused){stopSkip();}
