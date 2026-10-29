@@ -5866,7 +5866,7 @@ const PI=Math.PI,Q=new URLSearchParams(location.search);
 const M={pan:0,on:false,sel:-1,built:false,cur:null,hi:-1,fast:1,uaz:0,upt:0,uz:1,uly:0,vis:new Map(),VM:[],PN:[],dim:[],ledger:false,flip:false};
 const SPc=SPEC.constitution,LS=linesOf(SPc),{H,deck,railY,keelY,zF,zA,hx}=LS;
 const YG=2.6,YB=0.3,YO=-1.8,YH=-4.9;                 // gun deck, berth deck, orlop and hold floors (from her spec's room bands)
-const FIT=2.4;                                       // her size against the brig, for the camera
+const FIT=2.4; window.__HX=hx;                                      // her size against the brig, for the camera
 /* ---------- decks, rooms, labels ---------- */
 const DECKS=[
  {name:"Upper deck",sub:"helm · boats · carronades · capstan",look:5.4,
@@ -5927,6 +5927,8 @@ function build(R){
   const edgeStrip=(fy,t,z0,z1)=>{const C=[];let n=0;for(let z=z0;z<=z1+1e-6;z+=.6){C.push(0,fy(z),z,0,fy(z)-t,z);n++;}cutFace(C,n);};
   const deckM=R.deckMat;
   LV=0;edgeStrip(deck,.3,zA(deck(-20))+.4,zF(deck(20))-1.4);
+  { const P=[],I=[];let n=0;for(let z=zA(deck(-20))+.4;z<=zF(deck(20))-1.4;z+=.5){const y=deck(z)+.04,w=wd(z,y-.05,.15);if(w<.4)continue;P.push(0,y,z,-w,y,z);if(n>0){const a=(n-1)*2;I.push(a,a+1,a+2,a+1,a+3,a+2);}n++;LN([0,y+.01,z],[-w,y+.01,z]);}
+    if(n>1){const g=new THREE.BufferGeometry();g.setAttribute("position",new THREE.Float32BufferAttribute(P,3));g.setIndex(I);g.computeVertexNormals();const ng=g.toNonIndexed();ng.computeVertexNormals();const c=paint(ng,0xb5905f),p=ng.attributes.position.array;for(let i=0;i<p.length;i++){AP[LV].push(p[i]);AC[LV].push(c[i]);}} }
   LV=5;{ const C=[];let n=0;for(let z=zA(-5.5)+.7;z<=zF(-5.5)-1.5;z+=.7){C.push(0,keelY(z)+.55,z,0,keelY(z),z);n++;}cutFace(C,n); }   // keel and keelson
   LV=1;slab(YG,.32,level(YG).zs,level(YG).ze,deckM);LV=2;slab(YB,.32,level(YB).zs,level(YB).ze,deckM);
   LV=3;slab(YO,.26,level(YO).zs,level(YO).ze,deckM,.05);LV=4;slab(YH,.22,level(YH).zs+.5,level(YH).ze-.5,deckM,.05);
@@ -6008,9 +6010,9 @@ function build(R){
   { const[z0,z1]=level(YH+1);const nz=Math.floor((z1-z0-6)/.95);
     for(let k=0;k<nz;k++){const z=z0+3+k*.95;if(Math.abs(z-3)<1.4)continue;for(const x of[-.55,-1.55,-2.55,-3.55]){if(hx(z,YH+.7)<-x+.5)continue;Cy(x,YH+.55,z,.46,.9,0xc99a5a,{ax:"z",seg:10});if(k%2===0&&x>-3)Cy(x-.5,YH+1.45,z+.45,.42,.85,0xd6a965,{ax:"z",seg:10});}}
     for(let k=0;k<12;k++)B(-.2,.2,YH,YH+.3,z0+3+k*.9,z0+3.7+k*.9,0x5b5a58,false);
-    for(let k=0;k<8;k++){const z=-2+k*.9;B(-5.4,-4.2,YH,YH+.35,z,z+.75,0x6a6864);}
-    { const g=new THREE.SphereGeometry(1,16,9,0,2*PI,0,PI/2);g.scale(2.2,.7,6.5);g.translate(-1.4,YH,-14);const ng=g.toNonIndexed();ng.computeVertexNormals();const c=paint(ng,0xaaa491),p=ng.attributes.position.array;for(let i=0;i<p.length;i++){AP[LV].push(p[i]);AC[LV].push(c[i]);} }
-    B(-5.4,-3.0,YH,YH+.9,z1-6,z1-3,0x6a6864);for(let a=0;a<6;a++)for(let b=0;b<3;b++)Sp(-5.0+b*.7,YH+1.05,z1-5.5+a*.45,.16,.16,.16,0x2e2c2a,false);
+    for(let k=0;k<8;k++){const z=-2+k*.9;B(-4.3,-3.2,YH,YH+.35,z,z+.75,0x6a6864);}
+    { const g=new THREE.SphereGeometry(1,16,9,0,2*PI,0,PI/2);g.scale(1.6,.6,5);g.translate(-1.2,YH,-13.5);const ng=g.toNonIndexed();ng.computeVertexNormals();const c=paint(ng,0xaaa491),p=ng.attributes.position.array;for(let i=0;i<p.length;i++){AP[LV].push(p[i]);AC[LV].push(c[i]);} }
+    B(-4.0,-2.4,YH,YH+.9,-9.5,-6.5,0x6a6864);for(let a=0;a<6;a++)for(let b=0;b<3;b++)Sp(-3.7+b*.5,YH+1.05,-9.2+a*.45,.16,.16,.16,0x2e2c2a,false);
     Cy(-.4,(YH+deck(-4))/2,-4,.2,deck(-4)-YH,0xc9962f,{seg:10}); }
   for(let k=0;k<6;k++){if(AP[k].length){const mg=new THREE.BufferGeometry();mg.setAttribute("position",new THREE.Float32BufferAttribute(AP[k],3));mg.setAttribute("color",new THREE.Float32BufferAttribute(AC[k],3));const vk=vm.clone(),pk=pen.clone();bandify(vk);bandify(pk);M.VM[k]=vk;M.PN[k]=pk;LG[k].add(new THREE.Mesh(mg,vk));LG[k].userData.pk=pk;}
     const lg=new THREE.BufferGeometry();lg.setAttribute("position",new THREE.Float32BufferAttribute(AL[k].concat(SG[k]),3));LG[k].add(new THREE.LineSegments(lg,LG[k].userData.pk||pen));}
@@ -6028,13 +6030,13 @@ function makeLabels(){const f=(y,a,b)=>M.fr(y,a,b),m=(y,a,b)=>(f(y,a,b)[0]+f(y,a
    [bz(YG,0,.14),[-21,21],bz(YG,.28,.7),bz(YG,.92,1)],
    [bz(YB,0,.17),bz(YB,.17,.25),bz(YB,.25,.7),bz(YB,.7,.82),bz(YB,.88,1)],
    [bz(YO,0,.15),bz(YO,.15,.25),bz(YO,.25,.75),bz(YO,.75,.88),bz(YO,.88,1)],
-   [[-13,-3],[level(YH+1).ze-6.5,level(YH+1).ze-2.5],[-21,-8],[-6,-2]]];
+   [[-13,-3],[-10,-6],[-21,-8],[-6,-2]]];
   return[
    [0,["Wheel","& binnacles"],[0,deck(-21.5)+1.6,-21.5],1,0],[0,["Launch","& cutter"],[-.2,deck(7)+1.9,7],0,1],[0,["Carronades"],[-hx(-8,6)+.7,deck(-8)+.9,-8],0,2],[0,["Capstan"],[0,deck(-9)+1.3,-9],0,3],[0,["Hatches"],[-.6,deck(-4)+.3,-4],0,4],[0,["Galley","funnel"],[-1.4,deck(14)+2.1,14],0,5],
    [1,["Captain's","cabin"],[-1.8,YG+1.1,m(YG,0,.14)],1,0],[1,["24-pounders"],[-hx(0,YG+.9)+1.6,YG+1.0,0],1,1],[1,["Mess","tables"],[-.4,YG+.6,m(YG,.28,.42)],0,2],[1,["Manger"],[-1.2,YG+1.0,m(YG,.92,1)],0,3],
    [2,["Wardroom"],[-2.2,YB+.9,m(YB,0,.17)],0,0],[2,["Steerage"],[-2.5,YB+.7,m(YB,.17,.25)],0,1],[2,["Hammocks","· 450 men"],[-1.5,YB+1.6,m(YB,.4,.5)],1,2],[2,["Galley","stove"],[-1.5,YB+1.2,m(YB,.75,.75)+1.5],0,3],[2,["Sick bay"],[-1.6,YB+.8,m(YB,.88,1)],0,4],
    [3,["Bread","room"],[-1.2,YO+1.0,m(YO,0,.15)],0,0],[3,["Magazine"],[-1.8,YO+1.0,m(YO,.15,.25)],1,1],[3,["Cable tier","& stores"],[-1.6,YO+1.2,m(YO,.25,.75)],0,2],[3,["Fore","magazine"],[-1.6,YO+.8,m(YO,.75,.88)],0,3],[3,["Boatswain's","store"],[-1.0,YO+1.0,m(YO,.88,1)],0,4],
-   [4,["Water casks"],[-2.0,YH+1.1,-8],1,0],[4,["Shot","locker"],[-4.2,YH+1.4,level(YH+1).ze-4.5],0,1],[4,["Ballast"],[-1.4,YH+.8,-14],0,2],[4,["Chain","pump"],[-.4,YH+2.0,-4],0,3]];}
+   [4,["Water casks"],[-2.0,YH+1.1,-8],1,0],[4,["Shot","locker"],[-3.2,YH+1.3,-8],0,1],[4,["Ballast"],[-1.4,YH+.8,-14],0,2],[4,["Chain","pump"],[-.4,YH+2.0,-4],0,3]];}
 /* ---------- camera ---------- */
 const FOV=28,TOP=12.5;
 const _v=new THREE.Vector3(),_s=new THREE.Vector3(),_b=new THREE.Vector3(),_c=new THREE.Vector3(),_pl=new THREE.Plane(),_pt=new THREE.Plane();
@@ -6054,14 +6056,14 @@ window.CUTCAM=function(R){
   _v.set(c.lx,c.ly,c.lz).applyMatrix4(m);
   const cp=R.camera.position;cp.copy(_v).addScaledVector(_s,Math.cos(az)*Math.cos(pt)*c.dist).addScaledVector(_b,Math.sin(az)*Math.cos(pt)*c.dist);cp.y+=Math.sin(pt)*c.dist;
   R.camera.lookAt(_v);
-  const U=R.U;U.uCutOn.value=1;U.uCutSl.value=M.sel<0?1:0;U.uGhost.value=M.sel<0?1:.2;U.uCutC.value.copy(_c);U.uCutN.value.copy(_s);U.uCutB.value.copy(_b);U.uCutR.value=90;U.uCutTop.value=TOP;const wet=M.sel<0||M.sel>=3;if(wet)U.uCutBox.value.set(-(H.B+3),24,LS.Lh+6);else U.uCutBox.value.set(1000,1001,1);if(M.seabed)M.seabed.visible=wet;
+  const U=R.U;U.uCutOn.value=1;U.uCutSl.value=M.sel<0?1:0;U.uGhost.value=M.sel<0?1:0;U.uCutC.value.copy(_c);U.uCutN.value.copy(_s);U.uCutB.value.copy(_b);U.uCutR.value=90;U.uCutTop.value=TOP;const wet=M.sel<0||M.sel>=3;if(wet)U.uCutBox.value.set(-(H.B+3),24,LS.Lh+6);else U.uCutBox.value.set(1000,1001,1);if(M.seabed)M.seabed.visible=wet;
   if(R.seaU){R.seaU.uCutB.value.copy(_b);}
   if(R.sea&&!R.sea.material.transparent){R.sea.material.transparent=true;R.sea.material.needsUpdate=true;}
   _pl.setFromNormalAndCoplanarPoint(_s.clone().negate(),_c);_pt.set(new THREE.Vector3(0,-1,0),_c.y+TOP);
   const gh=M.sel>=0,cm=gh?1:2;
   R.ship.traverse(o=>{const mt=o.material;if(!mt)return;
     if(mt.isLineBasicMaterial&&mt!==M.pen&&!M.PN.includes(mt)){if(mt.__cl!==cm){mt.clippingPlanes=gh?[_pt]:[_pl,_pt];mt.__cl=cm;mt.needsUpdate=true;}
-      if(mt.__o===undefined){mt.__o=mt.opacity;mt.__t=mt.transparent;}if(mt.__g!==gh){mt.__g=gh;mt.opacity=gh?mt.__o*.22:mt.__o;mt.transparent=gh||mt.__t;mt.needsUpdate=true;}}
+      if(mt.__o===undefined){mt.__o=mt.opacity;mt.__t=mt.transparent;}if(mt.__g!==gh){mt.__g=gh;mt.opacity=gh?mt.__o*.35:mt.__o;mt.transparent=gh||mt.__t;mt.needsUpdate=true;}}
     else if(o.isMesh&&mt.isMeshBasicMaterial&&mt.vertexColors!==true){const h=mt.color.getHex();if(h===0x221a13||h===0x3a3a40)hide(o);}});
   if(R.gen)for(const o of R.gen.sails){if(o.s&&o.s.yard&&o.s.yard.y>TOP-1&&o.piv)hide(o.piv);}
   { const sl=S&&S.ship&&S.ship.sls;if(sl)for(const k in sl)sl[k]=0; }
@@ -6069,7 +6071,7 @@ window.CUTCAM=function(R){
   for(let k=0;k<5;k++){const dm=M.sel>=0&&k!==M.sel,bd=k===M.sel&&M.hi>=0&&M.bands&&M.bands[k]&&M.bands[k][M.hi];const key=(dm?1:0)+(bd?2:0);
     const a=M.VM[k],p=M.PN[k];
     if(a&&bd){const b=M.bands[k][M.hi];a.userData.bu.value.set(b[0],b[1],1);p.userData.bu.value.set(b[0],b[1],1);}else if(a){a.userData.bu.value.z=0;p.userData.bu.value.z=0;}
-    if(M.dim[k]!==key){M.dim[k]=key;if(a){const tr=dm||!!bd;a.transparent=tr;a.opacity=dm?.18:1;a.depthWrite=!tr;a.needsUpdate=true;}if(p){p.transparent=true;p.opacity=dm?.12:.7;p.needsUpdate=true;}}}
+    if(M.dim[k]!==key){M.dim[k]=key;if(a){const tr=dm||!!bd;a.transparent=tr;a.visible=!dm;a.opacity=1;a.depthWrite=!tr;a.needsUpdate=true;}if(p){p.transparent=true;p.opacity=dm?.3:.7;p.needsUpdate=true;}}}
   M.R=R;
 };
 /* ---------- UI ---------- */
