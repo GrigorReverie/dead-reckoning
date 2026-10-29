@@ -698,6 +698,7 @@ body.fs3d #fsBar{left:max(12px,env(safe-area-inset-left,0px));bottom:max(12px,en
       <div class="svp" id="svHirePanel" hidden><h3>Hands for hire</h3><p class="svhint" id="svHireHint"></p><div class="svbtns" id="svHire"></div><div class="svbtns"><button type="button" id="svLeave" title="Let the hands ashore for the day: spirits rise, but some may not come back">Grant shore leave</button></div></div>
       <div class="svp"><h3>Purse and port</h3><div class="sveff" id="svPurse"></div><p class="svhint" id="svPortHint"></p><p class="svhint" id="svNews"></p><div class="svbtns" id="svTrade" hidden><button type="button" id="svB1"></button><button type="button" id="svB2"></button><button type="button" id="svB3"></button><button type="button" id="svB4"></button><button type="button" id="svB5"></button><button type="button" id="svB6"></button><button type="button" id="svSell"></button><button type="button" data-s="timber"></button><button type="button" data-s="canvas"></button><button type="button" data-s="rope"></button><button type="button" data-s="pitch"></button></div></div>
       <div class="svp" id="svMkt"><h3>Market and hold</h3><div id="svMktBody"></div></div>
+      <div class="svp" id="svCareer" hidden><h3>Career</h3><div id="svCareerBody"></div></div>
       <div class="svp"><h3>Crew</h3><div id="svSel"></div><div id="svRoster" class="svroster"></div></div>
     </aside>
   </section>
@@ -1906,6 +1907,7 @@ function startVoyage(v){
   setSpeed(1);setPaused(false);follow=true;$("follow").setAttribute("aria-pressed","true");
   cam.zoom=v.mode==="lost"?2.6:3.2;cam.x=S.ship.x;cam.y=S.ship.y;
   S.log=[];renderLog();
+  if(v.career){careerInit(S,v.from);say(`Career begins at ${PORTS[v.from].name}. You own a small cutter and ${money(S.purse)}. Trade, take contracts and save for a bigger ship: the shipyard is in the Ship tab.`);}else
   if(v.free)say(`${v.from in PORTS?"Weighed anchor from "+PORTS[v.from].name:"Hove to"}. No orders: the sea is yours.${v.mode==="lost"?" The chart shows only your reckoning.":""}`);else
   say(v.mode==="lost"?`Weighed anchor from ${placeOf(v.from).name}. From here on the chart shows only your reckoning.`:`${v.from in PORTS?"Weighed anchor from "+PORTS[v.from].name:"Hove to in the "+placeOf(v.from).name}. Bound for ${PORTS[v.to].name}.`);
   S.estSpeed=0;S.lastLog=null;
@@ -5315,6 +5317,49 @@ function tradeUI(force){const box=document.getElementById("svMktBody");if(!box||
   if(mb)mb.addEventListener("click",e=>{const b=e.target.closest("button[data-t]");if(!b||!S)return;const t=b.dataset.t,g=b.dataset.g,n=b.dataset.n==="all"?"all":+b.dataset.n;
     if(t==="buy")tradeBuy(g,n);else if(t==="sell")tradeSell(g,n);else if(t==="news")buyNews();else if(t==="acc")contractAccept(b.dataset.id);else if(t==="del")contractDeliver(b.dataset.id);
     else if(t==="jet"){if(S.jetArm===g){S.jetArm=null;tradeJettison(g,"all");}else{S.jetArm=g;tradeUI(true);}}}); }
+/* ---------- career: start in a small cutter with a little cash, trade, and buy bigger ships at the quay ---------- */
+// price in shillings; the old ship goes in part exchange at TRADEIN of her price
+const LADDER=[["cutter",1500],["sultana",3000],["xebec",7000],["brig",10000],["constitution",20000],["endeavour",30000],["trinidad",45000],["gotheborg",70000]];
+const TRADEIN=.6,CAREER_PURSE=800,CAREER_START="cutter";
+const priceOf_=id=>{const r=LADDER.find(x=>x[0]===id);return r?r[1]:0;};
+const rungOf=id=>LADDER.findIndex(x=>x[0]===id);
+const shipTradeIn=s=>Math.round(TRADEIN*priceOf_(s.shipId));
+const netWorth=s=>Math.round(s.purse+shipTradeIn(s)+cargoValue(s));
+function careerInit(s,k){s.career={t0:s.t,start:k,owned:[CAREER_START],noted:null,done:false};s.purse=CAREER_PURSE;mkInit(s);
+  const P=PORTS[k],sh=s.ship,A=sh.anch;{const f=PF[k];if(f&&f.dock){sh.x=f.dock.x;sh.y=f.dock.y;sh.heading=f.dock.hdg;}else{sh.x=P.x;sh.y=P.y;}}
+  sh.ordered=sh.heading;sh.v=0;for(const id of SAILIDS){sh.sls[id]=0;sh.sa[id]=0;}
+  A.mode="holding";A.depth=Math.max(2,Math.round(depthFm(sh.x,sh.y)));A.drag=0;A.dragWarned=false;A.t0=s.t;s.docked=k;s.arrivedNear=k;if(s.est){s.est.x=sh.x;s.est.y=sh.y;}
+  s.track=[{x:sh.x,y:sh.y}];s.estTrack=[{x:sh.x,y:sh.y}];}
+const SHIPKEYS=["ship","crew","shipId","stores","hull","leak","water","canvas","spares","jobs","pumpMode","pumping","pumpMen","eff","fat","strain","squall","nextSquall","squallWarned","callAll","allHands","ration","fishing"];
+function buyShip(id){const s=S;if(!s||!s.career||s.done)return;const def=SHIPDEFS[id],cost=priceOf_(id),back=shipTradeIn(s),net=cost-back,site=atPort(s);
+  if(!def||id===s.shipId)return;
+  if(!site||!s.docked){say("A ship can only be bought alongside the quay. Dock at a port first.",{log:false});return;}
+  if(s.purse<net){say(`The purse is short: ${money(net)} needed after the trade-in.`,{log:false});return;}
+  if(holdUsed(s)>(CARGOT[id]??40)+1e-9){say("The cargo will not fit her hold. Sell or jettison some first.",{log:false});return;}
+  const old=SPEC[s.shipId].name,ns=newState({...s.v,ship:id});
+  for(const k of Object.keys(s))if(!SHIPKEYS.includes(k))ns[k]=s[k];
+  const o=s.ship,n=ns.ship;n.x=o.x;n.y=o.y;n.heading=o.heading;n.ordered=o.heading;n.v=0;n.anch=o.anch;n.bias=o.bias;for(const k of SAILIDS){n.sls[k]=0;n.sa[k]=0;}
+  ns.purse=s.purse-net;ns.career=Object.assign({},s.career);if(!ns.career.owned.includes(id))ns.career.owned.push(id);
+  stopSkip();S=ns;applyShip();svNew();selSails.clear();$("sailSl").style.display="none";if(R3){R3.last=null;R3.nfc=null;}
+  const last=LADDER[LADDER.length-1][0];
+  say(`Bought ${SPEC[id].name} for ${money(cost)}, with ${money(back)} allowed on ${old}. Her people come aboard and the ship is provisioned.`,{});
+  if(id===last&&!ns.career.done){ns.career.done=true;say(`Career complete: you command ${SPEC[id].name}, the grandest ship on the ladder. The sea stays yours to sail.`,{});}
+  svBill();tradeUI(true);updateUI(true);careerUI(true);}
+function careerNote(s){const i=rungOf(s.shipId),nx=LADDER[i+1];if(!nx||s.career.noted===nx[0])return;
+  if(s.purse+shipTradeIn(s)>=nx[1]){s.career.noted=nx[0];say(`You could now afford ${SPEC[nx[0]].name}. Dock and visit the shipyard in the Ship tab.`,{log:false});}}
+function careerUI(force){const P=document.getElementById("svCareer");if(!P)return;if(!S||!S.career){P.hidden=true;return;}P.hidden=false;const s=S,box=document.getElementById("svCareerBody");
+  careerNote(s);const site=atPort(s),dock=!!(site&&s.docked);
+  const sig=[s.shipId,Math.round(s.purse),Math.round(cargoValue(s)),dock,site&&site.k,Math.floor(s.t/24)].join("|");if(!force&&box._sig===sig)return;box._sig=sig;
+  const i=rungOf(s.shipId),nx=LADDER[i+1],worth=netWorth(s),days=Math.max(0,Math.floor((s.t-s.career.t0)/24));
+  let h=`<div class="sveff"><div><span>Ship</span><b>${SPEC[s.shipId].name}</b></div><div><span>Net worth</span><b>${money(worth)}</b></div><div><span>Days in command</span><b>${days}</b></div></div>`;
+  if(nx){const need=nx[1]-shipTradeIn(s),have=s.purse,pct=Math.round(clamp(have/Math.max(1,need),0,1)*100);
+    h+=`<p class="svhint">Goal: ${SPEC[LADDER[LADDER.length-1][0]].name}. Next rung ${i+1} of ${LADDER.length-1}: <b>${SPEC[nx[0]].name}</b> for ${money(nx[1])}, ${money(need)} after the trade-in of ${money(shipTradeIn(s))} on your ${SPEC[s.shipId].name}.</p><div class="rwind" title="Your purse against the next ship" style="margin:4px 0"><i style="width:${pct}%;--bw:${Math.round(10000/Math.max(pct,1))}%"></i></div><p class="svhint">Purse ${money(have)} of ${money(need)} (${pct}%).</p>`;}
+  else h+=`<p class="svhint">You command the grandest ship on the ladder. Trade, explore, or sell down and start again.</p>`;
+  h+=`<h3 style="margin-top:10px">Shipyard</h3><p class="svhint">${dock?`Alongside at ${site.name}. Your ${SPEC[s.shipId].name} is taken in part exchange at ${Math.round(TRADEIN*100)}% of her price; hold, stores and crew go with her.`:"Dock at a port to buy or sell ships."}</p><div class="mkw"><table class="mk"><tr><th>Ship</th><th class="num">Hold</th><th class="num">Crew</th><th class="num">Price</th><th></th></tr>`;
+  for(const[id,cost]of LADDER){const cur=id===s.shipId,net=cost-shipTradeIn(s),fits=holdUsed(s)<=(CARGOT[id]??40)+1e-9,ok=dock&&!cur&&s.purse>=net&&fits,why=cur?"Yours":!dock?"":s.purse<net?"Too dear":!fits?"Cargo too big":"";
+    h+=`<tr${cur?' class="dim"':""}><td>${SPEC[id].name}<br><small>${SPEC[id].role}</small></td><td class="num">${CARGOT[id]} t</td><td class="num">${SHIPX[id].crew.reduce((a,c)=>a+c[1],0)}</td><td class="num">${money(cost)}${cur?"":`<br><small>${net>=0?"pay "+money(net):"get "+money(-net)}</small>`}</td><td>${cur?"Yours":`<button data-ship="${id}"${ok?"":" disabled"}>${why||"Buy"}</button>`}</td></tr>`;}
+  box.innerHTML=h+"</table></div>";}
+{ const cb=document.getElementById("svCareerBody");if(cb)cb.addEventListener("click",e=>{const b=e.target.closest("button[data-ship]");if(b&&S)buyShip(b.dataset.ship);}); }
 function marketBlurb(k){if(!S||!S.cargo)return"";const s=S;mkInit(s);const tod=atPort(s)&&atPort(s).k===k,rep=s.rep||0;
   const rows=MKT_IDS.filter(g=>GOODS[g].tier===1||rep>=REP2).map(g=>{const e=s.seen[k]&&s.seen[k][g];const p=tod?Math.round(unitPrice(k,g,s.mk.ports[k][g])):e?e.p:null;return `<div><span>${GOODS[g].n} (${GOODS[g].u})</span><span>${p==null?"not seen yet":p+"s"+(tod?` <em>(today)</em>`:` <em>(${ageD(s,e.t)} d ago)</em>`)}</span></div>`;}).join("");
   return `<div class="ptbl"><h4>Goods market</h4>${rows}</div>`;}
@@ -5925,7 +5970,7 @@ function svBalance(){const C=S.crew,OFF=["Lieutenant","Master","Mate","Midshipma
   for(const m of[...keep.filter(m=>OFF.includes(m.r)),...keep.filter(m=>m.r==="Bosun"),...keep.filter(m=>MEN.includes(m.r))]){m.w=i%3;i++;}if(SHIP.id!=="brig"&&S.crew.length>30)svBuild();
   const bos=C.find(m=>m.r==="Bosun");if(bos)bos.w=1;svRows();}
 function svFrame(dt,now){if(!S||!S.crew)return;if(SHIP.id==="brig"){const ctx=svCtx();S.crew.forEach((m,i)=>svMove(m,i,Math.min(dt,.1),ctx));}else for(const m of S.crew)if(!m.act||(SV.rowT===0))m.act=svAct(m);if(!window.CUTON)svDraw(now); // the painted page is hidden under the 3D cutaway
-  if(now-SV.rowT>250){SV.rowT=now;svRows();svBill();tradeUI();}}
+  if(now-SV.rowT>250){SV.rowT=now;svRows();svBill();tradeUI();careerUI();}}
 function openShip(on){SV.open=on;$("shipView").hidden=!on;$("bShip").setAttribute("aria-pressed",String(on));$("bShip").title=on?"Back to the helm":"The ship: cutaway, crew quarters and watches";
   if(on){const b=document.querySelector(".bar");document.documentElement.style.setProperty("--bar-h",b.offsetHeight+"px");if(S){svBuildSel();svRows();}}}
 function svNew(){SV.sel=-1;SV.rowT=0;svTitle();if(S&&S.crew){svBuild();svBuildSel();}}
@@ -6225,11 +6270,18 @@ $("voyList").innerHTML=VOYAGES.map((v,i)=>`<button class="voycard" data-v="${i}"
 $("voyList").querySelectorAll("button").forEach(b=>b.onclick=()=>startVoyage(VOYAGES[+b.dataset.v]));
 {const fb=document.createElement("button");fb.className="voycard";fb.id="freeCard";fb.innerHTML='<span class="tag">No orders</span><b>Free sailing</b><span class="d">Start from any port and sail where you like. No mission, no end: trade, fish, explore the islands and come to anchor when you please.</span>';
   const fp=$("freePick"); // free roam is the only way to start: the sea trial and lost-at-sea voyages stay in VOYAGES for old saves but are not offered
-  fp.innerHTML='<b style="font-family:var(--f-display);font-weight:400;font-size:17px">Free roam: where do you weigh from?</b><div class="voylist" id="freePorts" style="grid-template-columns:repeat(auto-fill,minmax(130px,1fr))"></div><label class="chk"><input type="checkbox" id="freeLost"> <span>Navigate by dead reckoning only<small style="display:block;color:var(--ink-soft)">Hides your true position, as on the lost-at-sea voyages.</small></span></label><div><button class="btn" id="freeBack">Back</button></div>';
+  fp.innerHTML='<div class="row" role="radiogroup" aria-label="Game mode" style="gap:8px"><button type="button" class="btn" id="modeFree" role="radio">Free sailing</button><button type="button" class="btn" id="modeCareer" role="radio">Career</button></div><p class="muted" id="modeNote" style="margin:0"></p><b id="freeHead" style="font-family:var(--f-display);font-weight:400;font-size:17px">Free roam: where do you weigh from?</b><div class="voylist" id="freePorts" style="grid-template-columns:repeat(auto-fill,minmax(130px,1fr))"></div><label class="chk"><input type="checkbox" id="freeLost"> <span>Navigate by dead reckoning only<small style="display:block;color:var(--ink-soft)">Hides your true position, as on the lost-at-sea voyages.</small></span></label><div><button class="btn" id="freeBack">Back</button></div>';
+  let gameMode="free";try{if(localStorage.getItem("drMode")==="career")gameMode="career";}catch(e){}
+  const setMode=m=>{gameMode=m;try{localStorage.setItem("drMode",m);}catch(e){}
+    $("modeFree").setAttribute("aria-checked",String(m==="free"));$("modeCareer").setAttribute("aria-checked",String(m==="career"));$("modeFree").setAttribute("aria-pressed",String(m==="free"));$("modeCareer").setAttribute("aria-pressed",String(m==="career"));
+    document.querySelector(".shippick").hidden=m==="career";
+    $("modeNote").textContent=m==="career"?"Start in a small Cumberland cutter with £40 and a berth at the port you choose. Trade, take contracts, and save for bigger ships: the shipyard is in the Ship tab when you are docked. Your old ship goes in part exchange.":"Choose any of the ten ships and sail where you like. No goals, no end.";
+    $("freeHead").textContent=m==="career"?"Career: where do you start?":"Free roam: where do you weigh from?";};
+  $("modeFree").onclick=()=>setMode("free");$("modeCareer").onclick=()=>setMode("career");setMode(gameMode);
   $("freePorts").innerHTML=Object.keys(PORTS).map(k=>`<button class="voycard" data-p="${k}" style="padding:8px 10px"><b style="font-size:16px">${PORTS[k].name}</b></button>`).join("");
   $("voyList").hidden=true;fp.hidden=false;$("freeBack").parentNode.hidden=true;
   $("freePorts").querySelectorAll("button").forEach(b=>b.onclick=()=>{const k=b.dataset.p,lost=$("freeLost").checked;
-    startVoyage({id:"free",tag:"Free sailing",title:"From "+PORTS[k].name,from:k,to:null,mode:lost?"lost":"trial",hdg:280,free:true,desc:""});});}
+    startVoyage(gameMode==="career"?{id:"career",tag:"Career",title:"From "+PORTS[k].name,from:k,to:null,mode:lost?"lost":"trial",hdg:280,free:true,career:true,ship:CAREER_START,desc:""}:{id:"free",tag:"Free sailing",title:"From "+PORTS[k].name,from:k,to:null,mode:lost?"lost":"trial",hdg:280,free:true,desc:""});});}
 { const mq=matchMedia("(max-width:860px)"),box=document.querySelector(".compassbox"),home=$("paneV3");
   const place=()=>{const tgt=mq.matches?document.querySelector(".dock-all .dockbody"):home;if(box.parentNode!==tgt)mq.matches?tgt.insertBefore(box,tgt.firstChild):tgt.appendChild(box);};
   place();mq.addEventListener("change",()=>{place();resize();resize3D();}); }
