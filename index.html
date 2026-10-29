@@ -6049,9 +6049,12 @@ setInterval(()=>{if(sheet.hidden||!S)return;if(tab==="wind"&&!PV.wind){const w=l
 (function(){
 const PI=Math.PI,Q=new URLSearchParams(location.search);
 const M={pan:0,on:false,sel:-1,built:false,cur:null,hi:-1,man:-1,gA:{value:1},fast:1,uaz:0,upt:0,uz:1,uly:0,vis:new Map(),VM:[],PN:[],dim:[],ledger:false,flip:false};
-const SPc=SPEC.constitution,LS=linesOf(SPc),{H,deck,railY,keelY,zF,zA,hx}=LS;
-const YG=2.6,YB=0.3,YO=-1.8,YH=-4.9;                 // gun deck, berth deck, orlop and hold floors (from her spec's room bands)
-const FIT=2.4; window.__HX=hx;                                      // her size against the brig, for the camera
+let SPc,LS,H,deck,railY,keelY,zF,zA,hx,FIT=2.4,SK=1,TOP=12.5;   // the ship in hand: her lines, her size against Constitution (SK) and against the brig (FIT, for the camera)
+function useLines(id){SPc=SPEC[id];
+  if(id==="brig"){const b=brigLines();LS={H:SPc.hull,Lh:SPc.hull.Lwl/2,deck:b.deckW,deckAt:b.deckAt,railY:b.railY,keelY:b.keelY,zF:b.zF,zA:b.zA,hx:b.hx};}   // the brig's 3D model is lofted from her own lines
+  else LS=linesOf(SPc);
+  ({H,deck,railY,keelY,zF,zA,hx}=LS);FIT=H.Lwl/22.2;SK=H.Lwl/53;TOP=railY(-LS.Lh)+5.3*FIT/2.4;window.__HX=hx;}
+const YG=2.6,YB=0.3,YO=-1.8,YH=-4.9;                 // Constitution: gun deck, berth deck, orlop and hold floors (from her spec's room bands)
 const ACT=[
  [ // Upper deck
   ["Holystone the quarterdeck","Heave to and reef on the wheel watch","Let the helmsman name the course for a tot","Take the wheel in a squall, no relief"],
@@ -6085,9 +6088,9 @@ const ACT=[
 ];
 
 const TAGS=[["rig","hull","guns","rig","hull","clean"],["clean","guns","clean","stores"],["clean","clean","clean","clean","clean"],["stores","powder","rig","powder","rig"],["stores","guns","hull","hull"]];
-const BADT={hull:"It goes wrong and a plank is sprung (hull -3%).",rig:"A line parts and the work must be done again (rigging -3%).",clean:"A hand takes a fever from the foul air.",stores:"Weevils and damp spoil some of the stores.",guns:"A gun carriage jumps and crushes a hand.",powder:"A spark in the dark scorches the hull (hull -4%)."};
+const BADT={oars:"An oar loom kicks back and cracks a man's ribs.",hull:"It goes wrong and a plank is sprung (hull -3%).",rig:"A line parts and the work must be done again (rigging -3%).",clean:"A hand takes a fever from the foul air.",stores:"Weevils and damp spoil some of the stores.",guns:"A gun carriage jumps and crushes a hand.",powder:"A spark in the dark scorches the hull (hull -4%)."};
 function doAct(lv,rm,i){
-  if(typeof S==="undefined"||!S||!S.crew)return;crewX(S);const T=S.stores,C=S.crew,tag=TAGS[lv][rm],name=ACT[lv][rm][i],key=lv+"."+rm+"."+i;
+  if(typeof S==="undefined"||!S||!S.crew)return;crewX(S);const T=S.stores,C=S.crew,tag=M.L.tags[lv][rm],name=M.L.act[lv][rm][i],key=SPc.id+"."+lv+"."+rm+"."+i;
   S.actT=S.actT||{};if(S.t-(S.actT[key]??-99)<8){say("The hands need a rest before that again.",{log:false});return;}
   S.actT[key]=S.t;const all=f=>{for(const m of C)f(m);},mo=d=>all(m=>m.mo=Math.max(0,Math.min(1,m.mo+d))),one=d=>{const m=rnd(C.filter(x=>x.r!=="Captain"&&x.hp>.4));if(m){m.hp=Math.max(.1,m.hp+d);return m;}};
   const clamp1=v=>Math.max(0,Math.min(1,v));let msg=name+". ",end="";
@@ -6125,18 +6128,115 @@ const DECKS=[
   stats:[["Water","60 days"],["Shot","4,000"],["Ballast","80 tons"]],
   rooms:[["Water casks","Ground tier, drawn down first"],["Shot locker","Round shot in racks"],["Ballast","Iron pigs and shingle"],["Chain pump","Well amidships"]]}
 ];
+/* ---------- every other ship: her own decks and rooms, built from a kit of fittings ---------- */
+// a room is [fittings, from, to (fractions of her length on that deck, stern first), name, what is in it, options]
+// options: main (labelled in the overview), up (on the quarterdeck or poop), n and gs (how many guns and how big against a 24-pounder), stern (stern lights), act (her own four jobs)
+const KA={  // the four jobs a hand can be set to in each kind of room, and what they risk
+ wheel:["rig","Holystone the quarterdeck","Heave to and reef on the wheel watch","Let the helmsman name the course for a tot","Take the wheel in a squall, no relief"],
+ tiller:["rig","Grease the tiller ropes and the rudder head","Steer a figure of eight round two buoys","Let the youngest hand take the tiller for an hour","Run her off before a breaking sea"],
+ boat:["hull","Scrub and tar the boat covers","Hoist out the boat and race her round the ship","Row the hands ashore for fresh water and fruit","Land a boarding party in the dark"],
+ guns:["guns","Scale and blacken the barrels","Run the guns out and in against the glass","Hold a shooting match, rum for the best crew","Double-shot a gun and see what holds"],
+ swivels:["guns","Oil the swivels and their crutches","Fire a volley at a cask towed astern","Give a twist of tobacco to the best shot","Fire across the bow of a suspected smuggler"],
+ capstan:["rig","Grease the pawls and whip the cable","Heave the anchor against the clock","Strike up the fiddle and walk the capstan round","Weigh in a rising gale"],
+ windlass:["rig","Grease the windlass pawls and whip the cable","Weigh the anchor against the glass","Sing a heaving shanty at the windlass bars","Weigh in a rising gale with the anchor foul"],
+ hatch:["hull","Mend the gratings and caulk the coamings","Drill the fire party at the hatches","Open the hatches for a sing-song on a warm night","Send a man down a smoking hatch"],
+ cabin:["clean","Scrape and white-wash the cabin bulkheads","Practise a swift change of cabin for quarters","Dine the officers on the captain's best","Open a sealed letter from the owners"],
+ state:["clean","Polish the gilding and beat the carpets","Rehearse piping royalty aboard","Lay a royal dinner for the officers in the King's absence","Let a hand sleep one night in the King's bed"],
+ nat:["clean","Dust the specimen jars and press the plants","Sketch the coast from the stern windows","Hear the naturalist lecture on a curious fish","Taste a new fruit before the botanists name it"],
+ saloon:["clean","Polish the silver and the saloon table","Lay the table in a seaway without a breakage","Entertain the guests with a hand of whist","Uncork the owner's best claret, unasked"],
+ bunks:["clean","Swab the cabins and rinse the glasses","Muster the officers for a mock court martial","Dine with the officers and hear the gossip","Settle a quarrel between two officers"],
+ mess:["clean","Scrub the tables and mess kids","Clear for action against the glass","Dole out an extra half-pint for a good week","Settle a dispute over the pork shares"],
+ hammocks:["clean","Air the hammocks on deck and sling them in the sun","Pipe up hammocks in ninety seconds","Let the hands play cards and dice at the mess","Search for contraband rum under the bedding"],
+ galley:["clean","Scour the stove and the great copper","Run a galley fire drill with buckets","Brew a pea soup with the last of the vegetables","Light the stove in a heavy sea"],
+ sick:["clean","Scrub the cots and burn sulphur against fever","Drill the loblolly boys in lifting the wounded","Visit the sick and cheer them with a ration of port","Operate by lantern light on a shattered leg"],
+ bread:["stores","Check the biscuit for weevils and bake fresh","Count the barrels by candle against the log","Sort the sound biscuit for the officers' table","Open a cask with a doubtful smell"],
+ powder:["powder","Sweep the powder dust and change the felt slippers","Hold a powder-passing drill, silent and fast","Swap the lanterns for fresh oil and wicks","Move powder across the ship in a thunderstorm"],
+ cable:["rig","Flake out the cable and coil it fresh","Haul spare sails up through the hatch","Mend the spare canvas in a night's sewing","Sell spare cordage to a passing trader for coin"],
+ store:["rig","Tally the boatswain's twine and tar","Rig a jury spar from the spare timber","Lend the carpenter's mate to an apprentice","Barter spare blocks for fresh fruit ashore"],
+ sails:["rig","Air the spare canvas and look for mildew","Bend a spare topsail in the dark","Sew a new ensign for Sunday","Cut up an old sail for hammock covers"],
+ water:["stores","Rouse out the water casks and sweeten with charcoal","Bail and rig the buckets for a leak drill","Open a cask to share the last sweet water","Drink from the lowest cask and risk the flux"],
+ shot:["guns","Count the round shot and chip off the rust","Pass shot up the hatch in a mock action","Pile shot into pyramids for the gunners' pride","Shift shot to trim her by the head"],
+ ballast:["hull","Shift the ballast to trim her fore and aft","Hold a mock fire and flood drill in the dark","Add shingle to steady her in the swell","Throw pigs overboard to lighten her over a bar"],
+ pump:["hull","Grease the pump and clear the well","Pump out for an hour to test the leak","Cheer the men at the pump with a shanty","Open a seam to find a hidden leak"],
+ cargo:["stores","Check the cargo lashings and dunnage","Shift cargo to trim her by the stern","Broach a damaged bale for the hands' comfort","Open a sealed crate to see what she carries"],
+ tea:["stores","Restow the tea chests off the damp","Tally the chests against the Canton bills","Brew a pot of the best bohea for all hands","Trade a chest quietly at the next port"],
+ china:["stores","Repack the porcelain in fresh sago and straw","Check every crate after a heavy roll","Let each hand drink from a fine cup","Open a bale of silk to air it"],
+ benches:["oars","Scrub the benches and grease the thole pins","Row a measured mile against the glass","Strike up a rowing song and pull for an hour","Row her out of a calm under the guns of a fort"],
+ thwarts:["oars","Bail her dry and scrub the bottom boards","Toss oars and come alongside smartly","Race another boat's crew for a tot","Row through the surf to land on a beach"],
+ bow:["rig","Coil the painter and stow the grapnel","Drop and weigh the grapnel against the glass","Let the bowman call the fish he sees","Grapple a floating spar in a swell"],
+ lazarette:["stores","Restow the lazarette and air the spare gear","Find any line by lamplight in a minute","Break out the owner's preserves for the crew","Crawl aft to check the rudder trunk in a seaway"],
+ manger:["stores","Rake out the manger and mend the scuppers","Check the hawse plugs in a seaway","Pen the goat and the hens for fresh milk and eggs","Take in livestock from a trader, no questions"],
+ chests:["clean","Scrub out the berths and air the sea chests","Turn out all hands from below in two minutes","Let the hands spin yarns over a pipe","Break open a chest to find a thief"]};
+const CLOSED=["cabin","state","nat","saloon","bunks","sick","bread","powder","store","sails","lazarette"];   // rooms with a bulkhead round them
+const DUTY=["wheel","tiller","guns","swivels","boat","hatch","capstan","windlass","bow","thwarts","benches"];
+const LAYOUT={constitution:1,
+ jolly:{open:1,decks:[
+  {name:"The boat",y:-.2,ic:0,rooms:[["tiller",0,.2,"Stern sheets","The coxswain at the tiller",{main:1}],["thwarts",.2,.85,"Thwarts","Four oars over the gunwales",{n:3,main:1}],["bow",.85,1,"Bow","Painter, grapnel and a water breaker"]]}]},
+ cutter:{decks:[
+  {name:"Deck",y:"deck",ic:0,rooms:[["tiller",0,.16,"Tiller","A long tiller over the counter",{main:1}],["swivels",.16,.42,"Saluting guns","Three small guns a side, for the fleet's salutes",{n:3}],["hatch",.42,.6,"Companion","Skylight and the ladder below"],["windlass",.78,.95,"Windlass","Heaves the cable and the running bowsprit"]]},
+  {name:"Below",y:-1.0,ic:2,rooms:[["lazarette",0,.17,"Lazarette","Spare gear in the run of the stern"],["cabin",.17,.55,"Owner's cabin","Cot, table and the owner's charts",{main:1}],["saloon",.55,.78,"Saloon","Table, settees and the pantry"],[["chests","galley"],.78,1,"Fo'c'sle","Berths for ten and a little stove",{act:["clean","Scrub out the fo'c'sle and air the bedding","Turn out all hands for a sail change in a minute","Let the hands sing round the stove","Light the stove in a seaway"]}]]},
+  {name:"Hold",y:-1.55,ic:4,rooms:[["water",0,.55,"Water casks","A low tier under the cabin sole",{main:1}],["ballast",.55,1,"Ballast","Iron pigs to keep her on her feet"]]}]},
+ sultana:{decks:[
+  {name:"Deck",y:"deck",ic:0,rooms:[["tiller",0,.18,"Tiller","On the little quarterdeck",{up:1,main:1}],["swivels",.18,.58,"Swivel guns","Eight half-pounders on the rails",{n:4}],[["boat","hatch"],.58,.78,"Boat & hatch","The yawl chocked over the main hatch"],["windlass",.84,.98,"Windlass","Heaves the anchor"]]},
+  {name:"Below",y:-.5,ic:2,rooms:[["cabin",0,.2,"Captain's cabin","Lieutenant Inglis's table and cot",{stern:1}],["bunks",.2,.32,"Mates","Two berths and a locker"],["cable",.32,.7,"Hold & stores","Cable, casks and spare canvas"],[["hammocks","galley"],.7,1,"Crew","Twenty-five men forward of the mast, and the stove",{main:1}]]},
+  {name:"Hold",y:-1.35,ic:4,rooms:[[["bread","powder"],0,.3,"Bread & powder","Biscuit and a few kegs, kept dry"],[["water","ballast"],.3,1,"Water & ballast","Casks on a bed of shingle",{main:1}]]}]},
+ brig:{decks:[
+  {name:"Upper deck",y:"deck",ic:0,rooms:[["cabin",0,.28,"Great cabin","Under the quarterdeck, the stern windows",{stern:1}],["wheel",.15,.27,"Wheel","On the quarterdeck",{up:1}],["guns",.3,.74,"Carriage guns","Four a side through the ports",{n:4,gs:.75,main:1}],[["boat","hatch"],.42,.62,"Longboat & hatch","The boat chocked over the main hatch"],[["windlass","chests"],.8,1,"Fo'c'sle","The windlass and the hands' chests"]]},
+  {name:"'Tween deck",y:.3,ic:2,rooms:[["bread",0,.13,"Bread room","Biscuit in lined lockers"],["bunks",.13,.3,"Steerage","The mate and the bosun"],[["hammocks","mess"],.3,.75,"Mess deck","Hammocks and mess tables",{main:1}],["galley",.75,.88,"Galley","Brick stove and copper"],["store",.88,1,"Boatswain","Rope, blocks and paint"]]},
+  {name:"Hold",y:-2.0,ic:4,rooms:[["powder",0,.2,"Powder room","Kegs behind a copper screen"],[["water","cargo","pump"],.2,.75,"Casks & cargo","Water, provisions and the trade goods",{main:1}],["store",.75,1,"Carpenter's store","Plank, oakum and spare spars"]]}]},
+ caroline:{decks:[
+  {name:"Upper deck",y:"deck",ic:0,rooms:[["state",0,.27,"State rooms","The King's day cabin under the quarterdeck",{stern:1,main:1}],["wheel",.17,.27,"Wheel","On the quarterdeck",{up:1}],["guns",.3,.74,"4-pounders","Five a side, for salutes",{n:5,gs:.6}],["boat",.45,.62,"Barge","The royal barge on the booms"],["galley",.82,1,"Galley","Under the forecastle"]]},
+  {name:"Lower deck",y:-.4,ic:2,rooms:[["state",0,.25,"Royal bedchamber","The King's bed under a canopy",{stern:1}],[["bunks","mess"],.25,.5,"Wardroom","Officers' cabins round a table"],[["hammocks","mess"],.5,.8,"Crew","Seventy men in hammocks",{main:1}],["store",.8,1,"Stores","Boatswain's and carpenter's gear"]]},
+  {name:"Hold",y:-2.4,ic:4,rooms:[[["bread","powder"],0,.25,"Bread & powder","Biscuit and the saluting powder"],[["water","pump"],.25,1,"Water & beer","Casks for the voyage, and the pump",{main:1}]]}]},
+ endeavour:{decks:[
+  {name:"Upper deck",y:"deck",ic:0,rooms:[["nat",0,.24,"Great cabin","Cook and Banks: charts, books and specimens",{stern:1,main:1}],["wheel",.15,.24,"Wheel","On the quarterdeck",{up:1}],["guns",.3,.72,"4-pounders","Five a side",{n:5,gs:.55}],["boat",.42,.6,"Pinnace & longboat","Nested on the booms"],["windlass",.84,1,"Windlass","A collier's windlass for the bower"]]},
+  {name:"Lower deck",y:.3,ic:2,rooms:[["bunks",0,.12,"Officers","Lieutenants' and master's cabins"],["bunks",.12,.24,"Gunroom","Midshipmen and gentlemen"],[["hammocks","mess"],.24,.8,"Mess deck","Ninety-four people in a collier's hold",{main:1}],[["galley","store"],.8,1,"Galley & boatswain","The stove and the bosun's store"]]},
+  {name:"Hold",y:-3.1,ic:4,rooms:[[["powder","bread"],0,.2,"Powder & bread","Kegs and biscuit kept dry"],[["cargo","pump"],.2,.6,"Provisions","Eighteen months of beef, pease and sauerkraut",{main:1}],[["water","ballast"],.6,1,"Water & ballast","Casks over the shingle"]]}]},
+ xebec:{decks:[
+  {name:"Upper deck",y:"deck",ic:0,rooms:[["tiller",0,.12,"Tiller","Steered from the poop grating",{main:1}],["guns",.14,.82,"Guns","Eight a side through the ports",{n:8,gs:.6,main:1}],["hatch",.4,.5,"Main hatch","Down to the rowing deck"],["windlass",.86,1,"Windlass","Heaves the anchor"]]},
+  {name:"Rowing deck",y:-.2,ic:1,rooms:[["cabin",0,.15,"Captain's cabin","Low, under the poop",{stern:1}],["benches",.15,.85,"Rowing benches","Fourteen sweeps a side",{n:14,main:1}],[["store","galley"],.85,1,"Stores & galley","Gear and the cook's fire"]]},
+  {name:"Hold",y:-1.7,ic:4,rooms:[["powder",0,.2,"Powder","Kegs behind a copper screen"],[["water","shot"],.2,1,"Water, biscuit & shot","Casks and the shot locker",{main:1}]]}]},
+ gotheborg:{decks:[
+  {name:"Upper deck",y:"deck",ic:0,rooms:[["cabin",0,.13,"Roundhouse","The captain's cabin under the poop",{stern:1}],["saloon",.13,.3,"Great cabin","The supercargoes' table",{main:1}],["wheel",.24,.31,"Wheel","On the quarterdeck",{up:1}],["capstan",.36,.43,"Capstan","Heaves the bower"],[["boat","hatch"],.46,.64,"Longboat","Over the main hatch"],["galley",.8,1,"Cook room","Under the forecastle"]]},
+  {name:"Gun deck",y:.8,ic:1,rooms:[["bunks",0,.2,"Officers & passengers","Cabins along the sides",{stern:1}],[["guns","hammocks"],.2,.78,"Guns & crew","Eleven guns a side; 144 men sling between them",{n:9,gs:.9,main:1}],["sails",.78,1,"Sail room","Spare canvas for the long passage"]]},
+  {name:"Orlop",y:-2.2,ic:3,rooms:[["powder",0,.15,"Powder","The magazine aft"],["tea",.15,.58,"Tea","Chests of bohea and congou from Canton",{main:1}],["china",.58,1,"Porcelain & silk","Crates of china and bales of silk"]]},
+  {name:"Hold",y:-4.0,ic:4,rooms:[["water",0,.6,"Water","Casks for the passage home",{main:1}],[["ballast","pump"],.6,1,"Ballast","Iron and shingle, and the pump well"]]}]},
+ trinidad:{decks:[
+  {name:"Upper deck",y:"deck",ic:0,rooms:[["state",0,.17,"Admiral's cabin","Under the poop",{stern:1,main:1}],["wheel",.17,.24,"Wheel","Under the poop break",{}],["guns",.26,.9,"8-pounders","The quarterdeck and forecastle guns",{n:10,gs:.8}],["boat",.44,.6,"Boats","Launch and barge on the booms"],["capstan",.34,.4,"Capstan","Heaves the bower"]]},
+  {name:"Upper gun deck",y:6.5,ic:1,rooms:[["cabin",0,.15,"Captain's quarters","Stern lights and a long table",{stern:1}],[["guns","hammocks"],.15,1,"12-pounders","Sixteen a side, and the hands' hammocks",{n:14,gs:1,main:1}]]},
+  {name:"Middle gun deck",y:4.4,ic:1,rooms:[["bunks",0,.14,"Wardroom","Officers' cabins"],[["guns","hammocks"],.14,.86,"24-pounders","Sixteen a side",{n:12,gs:1.1,main:1}],["galley",.86,1,"Galley","Stoves for 1,050 men"]]},
+  {name:"Lower gun deck",y:2.3,ic:1,rooms:[["bunks",0,.1,"Gunroom","Gunner and the young officers"],[["guns","hammocks","mess"],.1,.92,"36-pounders","Fifteen a side, the heaviest guns afloat",{n:13,gs:1.2,main:1}],["manger",.92,1,"Manger","Bulkhead and scuppers at the hawse"]]},
+  {name:"Orlop",y:-.2,ic:3,rooms:[["bread",0,.14,"Bread room","Biscuit in lined lockers"],["powder",.14,.24,"Magazine","Copper-lined"],["cable",.24,.6,"Cable tier","Cables and stores",{main:1}],["sick",.6,.8,"Surgeon","The cockpit and cots"],["powder",.8,.9,"Fore magazine","Powder for the forward guns"],["store",.9,1,"Boatswain","Rope, blocks and paint"]]},
+  {name:"Hold",y:-6.3,ic:4,rooms:[["water",0,.55,"Water casks","Water for 1,050 men",{main:1}],["shot",.55,.7,"Shot locker","Round shot in racks"],[["ballast","pump"],.7,1,"Ballast","Iron pigs, shingle and the pumps"]]}]}};
+function prepLayout(id){
+  if(id==="constitution")return{decks:DECKS.map((d,i)=>Object.assign({ic:i,y:[0,YG,YB,YO,YH][i]},d)),act:ACT,tags:TAGS,wet:[0,0,0,1,1]};
+  const X=LAYOUT[id],s=Math.max(.3,SK),decks=[],act=[],tags=[],bands=[],lz=[],kx={},duty=[];
+  X.decks.forEach((d,k)=>{let zs,ze;
+    if(d.y==="deck"){zs=zA(deck(-LS.Lh))+.35*s;ze=zF(deck(LS.Lh))-.6*s;}
+    else{const last=k>0&&k===X.decks.length-1,yy=last?d.y+.4*(ceilOf(X,k,0)-d.y):d.y;zs=zA(yy)+.35*s;ze=zF(yy)-.6*s;if(last){zs+=.5*s;ze-=.5*s;}}
+    lz.push([zs,ze]);
+    const rooms=d.rooms.map(r=>({k:[].concat(r[0]),a:r[1],b:r[2],n:r[3],d:r[4],o:r[5]||{}}));
+    bands.push(rooms.map(r=>[zs+r.a*(ze-zs),zs+r.b*(ze-zs)]));
+    act.push(rooms.map(r=>(r.o.act||KA[r.k[0]]).slice(1)));tags.push(rooms.map(r=>(r.o.act||KA[r.k[0]])[0]));
+    rooms.forEach((r,i)=>{for(const kt of r.k)(kx[kt]=kx[kt]||[]).push([k,i]);if((d.y==="deck"||X.open||r.k.includes("benches"))&&r.k.some(t=>DUTY.includes(t)))duty.push([k,i]);});
+    decks.push({name:d.name,ic:d.ic,y:d.y,rooms:rooms.map(r=>[r.n,r.d]),R:rooms});});
+  return{decks,act,tags,bands,lz,kx,duty,open:!!X.open,X,wet:decks.map(d=>d.y!=="deck"&&d.y<0)};}
+function ceilOf(X,k,z){const d=X.decks[k];if(d.y==="deck")return LS.deckAt(z);if(k===0)return deck(z);const u=X.decks[k-1];return u.y==="deck"?deck(z):u.y;}   // underside of the deck above
+function floorAt(lv,rm,z){if(SPc.id==="constitution")return lv===0?deck(z):[0,YG,YB,YO,YH][lv];
+  const d=M.L.decks[lv];return d.y==="deck"?(d.R[rm]&&d.R[rm].o.up?LS.deckAt(z):deck(z)):d.y;}
 /* ---------- build ---------- */
 function level(y){const a=[zA(y)+.35,zF(y)-.6];a.zs=a[0];a.ze=a[1];return a;}
 function bandify(m){const bu={value:new THREE.Vector3(0,0,0)};m.userData.bu=bu;m.onBeforeCompile=sh=>{sh.uniforms.uBand=bu;
   sh.vertexShader="varying float vBz;\n"+sh.vertexShader.replace("#include <begin_vertex>","#include <begin_vertex>\nvBz=position.z;");
   sh.fragmentShader="varying float vBz;uniform vec3 uBand;\n"+sh.fragmentShader.replace("#include <dithering_fragment>","#include <dithering_fragment>\nif(uBand.z>.5&&(vBz<uBand.x||vBz>uBand.y))gl_FragColor.a*=.2;");};}
 function build(R){
-  if(M.built||!R.bob||R.shipId!=="constitution")return;M.built=true;
+  if(!R.bob||!LAYOUT[R.shipId])return;if(M.built&&M.bob===R.bob)return;if(M.built)teardown();
+  M.built=true;M.bob=R.bob;useLines(R.shipId);M.L=prepLayout(R.shipId);const NL=M.L.decks.length;
   const G=new THREE.Group();G.name="cutaway";R.bob.add(G);M.G=G;
   const pen=new THREE.LineBasicMaterial({color:0x2e2519,transparent:true,opacity:.7});M.pen=pen;
   const vm=new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.DoubleSide});
   const Lg=new THREE.Vector3(.35,.85,.4).normalize();
-  let LV=0;const AP=[[],[],[],[],[],[]],AC=[[],[],[],[],[],[]],AL=[[],[],[],[],[],[]],SG=[[],[],[],[],[],[]];const LG=[0,1,2,3,4,5].map(()=>{const g=new THREE.Group();G.add(g);return g;});M.LG=LG;   // props and decks gathered per level so a level can be lifted away
+  let LV=0;const nA=()=>Array.from({length:NL+1},()=>[]),AP=nA(),AC=nA(),AL=nA(),SG=nA();const LG=nA().map(()=>{const g=new THREE.Group();G.add(g);return g;});M.LG=LG;   // props and decks gathered per level so a level can be lifted away
   const paint=(g,hex)=>{const n=g.attributes.normal,c=new Float32Array(n.count*3),col=new THREE.Color(hex);
     for(let i=0;i<n.count;i++){const d=n.getX(i)*Lg.x+n.getY(i)*Lg.y+n.getZ(i)*Lg.z,s=.66+.34*d;c[i*3]=col.r*s;c[i*3+1]=col.g*s;c[i*3+2]=col.b*s;}return c;};
   const add=(g,hex,edges,thr)=>{if(!g.attributes.normal)g.computeVertexNormals();const eg=edges===false?null:new THREE.EdgesGeometry(g,thr||35);const ng=g.index?g.toNonIndexed():g;
@@ -6161,6 +6261,7 @@ function build(R){
     for(let i=0;i<n-1;i++){LN(top[i],top[i+1]);LN(bot[i],bot[i+1]);}LN(top[0],bot[0]);LN(top[n-1],bot[n-1]);};
   const edgeStrip=(fy,t,z0,z1)=>{const C=[];let n=0;for(let z=z0;z<=z1+1e-6;z+=.6){C.push(0,fy(z),z,0,fy(z)-t,z);n++;}cutFace(C,n);};
   const deckM=R.deckMat;
+  if(SPc.id!=="constitution")genBuild();else{
   LV=0;edgeStrip(deck,.3,zA(deck(-20))+.4,zF(deck(20))-1.4);
   { const P=[],I=[];let n=0;for(let z=zA(deck(-20))+.4;z<=zF(deck(20))-1.4;z+=.5){const y=deck(z)+.04,w=wd(z,y-.05,.15);if(w<.4)continue;P.push(0,y,z,-w,y,z);if(n>0){const a=(n-1)*2;I.push(a,a+1,a+2,a+1,a+3,a+2);}n++;LN([0,y+.01,z],[-w,y+.01,z]);}
     if(n>1){const g=new THREE.BufferGeometry();g.setAttribute("position",new THREE.Float32BufferAttribute(P,3));g.setIndex(I);g.computeVertexNormals();const ng=g.toNonIndexed();ng.computeVertexNormals();const c=paint(ng,0xb5905f),p=ng.attributes.position.array;for(let i=0;i<p.length;i++){AP[LV].push(p[i]);AC[LV].push(c[i]);}} }
@@ -6249,14 +6350,136 @@ function build(R){
     { const g=new THREE.SphereGeometry(1,16,9,0,2*PI,0,PI/2);g.scale(1.6,.6,5);g.translate(-1.2,YH,-13.5);const ng=g.toNonIndexed();ng.computeVertexNormals();const c=paint(ng,0xaaa491),p=ng.attributes.position.array;for(let i=0;i<p.length;i++){AP[LV].push(p[i]);AC[LV].push(c[i]);} }
     B(-4.0,-2.4,YH,YH+.9,-9.5,-6.5,0x6a6864);for(let a=0;a<6;a++)for(let b=0;b<3;b++)Sp(-3.7+b*.5,YH+1.05,-9.2+a*.45,.16,.16,.16,0x2e2c2a,false);
     Cy(-.4,(YH+deck(-4))/2,-4,.2,deck(-4)-YH,0xc9962f,{seg:10}); }
-  for(let k=0;k<6;k++){if(AP[k].length){const mg=new THREE.BufferGeometry();mg.setAttribute("position",new THREE.Float32BufferAttribute(AP[k],3));mg.setAttribute("color",new THREE.Float32BufferAttribute(AC[k],3));const vk=vm.clone(),pk=pen.clone();bandify(vk);bandify(pk);M.VM[k]=vk;M.PN[k]=pk;LG[k].add(new THREE.Mesh(mg,vk));LG[k].userData.pk=pk;}
+  }
+  function genBuild(){
+    const L=M.L,X=L.X,s=Math.max(.3,SK),sk=Math.max(.15,H.T/6.2),NLv=L.decks.length;
+    const W=(z,y,m)=>wd(z,y,m==null?.15:m);
+    const pz=(z,y,h,hex)=>{const w=W(z,y+Math.min(1,h*.5),.05);if(w>.2&&h>.2)B(-w,0,y,y+h,z-.05,z+.05,hex||0xf1e7cc,false);};
+    const bowl=(sx,sy,sz,x,y,z,hex)=>{const g=new THREE.SphereGeometry(1,16,9,0,2*PI,PI/2,PI/2);g.scale(sx,sy,sz);g.translate(x,y,z);add(g,hex,false);};
+    const dome=(sx,sy,sz,x,y,z,hex)=>{const g=new THREE.SphereGeometry(1,16,9,0,2*PI,0,PI/2);g.scale(sx,sy,sz);g.translate(x,y,z);add(g,hex,false);};
+    const stern=(c)=>{const wz=c.z0+.12,y=c.f(wz),hh=c.hh;if(hh<1.2)return;const top=y+Math.min(1.75,hh-.15),w=W(wz,y+1.1,.2);if(w<.6)return;
+      B(-w,-.2,y+.55,top,wz-.04,wz+.04,0x9fb3b4,false);for(let k=0;k<=6;k++){const x=-w+k*(w-.2)/6;LN([x,y+.55,wz+.05],[x,top,wz+.05]);}LN([-w,(y+.55+top)/2,wz+.05],[-.2,(y+.55+top)/2,wz+.05]);};
+    const table=(c,cloth,big)=>{const y=c.f(c.zc),W0=W(c.zc,y+.6,.3),a=Math.max(.3,Math.min(1,W0/3.5)),len=c.z1-c.z0,tz=Math.min(big?1.4:.8,len*.2),x0=-.6-2.0*a,x1=-.5;
+      B(x0,x1,y,y+.75,c.zc-tz,c.zc+tz,0x8c5f33);B(x0,x1,y+.75,y+.82,c.zc-tz,c.zc+tz,cloth,false);
+      for(const dz of[-tz-.35,tz+.35])if(c.zc+dz>c.z0+.3&&c.zc+dz<c.z1-.3)B((x0+x1)/2-.25,(x0+x1)/2+.25,y,y+.48,c.zc+dz-.22,c.zc+dz+.22,0x6a4423);
+      if(c.hh>1.4)Sp((x0+x1)/2,y+Math.min(2.15,c.hh-.15),c.zc,.13,.17,.13,0xf0c24a,false);return{x0,x1,tz,y,W0};};
+    const KIT={
+     guns(c){const n=c.o.n||Math.max(1,Math.round((c.z1-c.z0)/3)),g=c.o.gs||1;
+      for(let i=0;i<n;i++){const z=c.z0+(i+.5)*(c.z1-c.z0)/n,y=c.f(z),w=hx(z,y+.9*g);if(w<1.7*g)continue;const x=-(w-1.2*g),xh=-w+.05;
+        B(x-1.1*g,x+.8*g,y,y+.55*g,z-.45*g,z+.45*g,0x8a6234);Cy(x-.1*g,y+.9*g,z,.26*g,3.2*g,0x2b2722,{ax:"x",seg:12,e:false,rt:.17*g});Cy(x-1.55*g,y+.9*g,z,.34*g,.25*g,0x2b2722,{ax:"x",seg:12,e:false});
+        B(x-1.0*g,x-.6*g,y+.55*g,y+.75*g,z-.4*g,z+.4*g,0x6a4423,false);
+        for(const sg of[-1,1]){LN([x+1.4*g,y+.85*g,z+sg*.1*g],[xh,y+1.6*g,z+sg*.75*g]);LN([x-.3*g,y+.6*g,z+sg*.45*g],[xh,y+1.25*g,z+sg*1.0*g]);}}},
+     swivels(c){const n=c.o.n||4;for(let i=0;i<n;i++){const z=c.z0+(i+.5)*(c.z1-c.z0)/n,yr=railY(z),x=-(hx(z,yr-.15)-.08);if(x>-.2)continue;
+        Cy(x,yr+.12,z,.04,.3,0x2b2722,{seg:6,e:false});Cy(x-.12,yr+.32,z,.07,.7,0x2b2722,{ax:"x",seg:8,e:false,rt:.045});}},
+     wheel(c){const z=c.zc,y=c.f(z),r=.5,wy=y+1.1;const g=new THREE.TorusGeometry(r,.05,6,20);g.translate(0,wy,z);add(g,0x6a4423,false);
+      for(let k=0;k<8;k++){const a=k/8*PI,cc=Math.cos(a)*(r+.1),ss=Math.sin(a)*(r+.1);LN([-cc,wy-ss,z],[cc,wy+ss,z]);}
+      B(-.14,.14,y,y+1.05,z+.15,z+.4,0x8c5f33);if(z+1.7<c.z1+1.5){B(-.3,.3,y,y+.95,z+1.1,z+1.6,0x8c5f33);B(-.18,.18,y+.95,y+1.1,z+1.2,z+1.5,0x9fb3b4);}},
+     tiller(c){const z0=c.z0+.2,y=c.f(z0+.4),len=Math.max(.7,Math.min(2.4,(c.z1-c.z0)*.75,H.Lwl*.12)),ty=Math.min(y+.75,(X.open?deck(z0)+.05:y+.75)),r=Math.max(.05,Math.min(.12,.12*s*2));
+      Cy(0,(y+ty)/2,z0,r,ty-y+.1,0x6a4423,{seg:8});Cy(0,ty,z0+len/2,r*.5,len,0x6a4423,{ax:"z",seg:6,rt:r*.35});
+      if(!X.open)B(-.2,.2,y,y+.75,Math.min(c.z1-.2,z0+len+.4),Math.min(c.z1,z0+len+.75),0x8c5f33);},
+     boat(c){const y=c.f(c.zc),bw=Math.min(1.35,W(c.zc,y+1)*.42),len=Math.min(9.2,(c.z1-c.z0)*.9)/2,ht=bw*.66;bowl(bw,ht,len,-bw*.25,y+.3+ht,c.zc,0xa8763f);
+      for(const dz of[-len*.55,len*.55])B(-bw*1.05,bw*.55,y,y+.3,c.zc+dz-.2,c.zc+dz+.2,0x6a4423,false);},
+     hatch(c){const y=c.f(c.zc),hw=Math.min(1.5,W(c.zc,y+.3)*.55),len=Math.min(2.6,(c.z1-c.z0)*.6),z0=c.zc-len/2,z1=c.zc+len/2,x1=.3*s;
+      B(-hw,x1,y,y+.14,z0,z1,0x5b4630,false);for(let i=0;i<=6;i++){const x=-hw+i*(hw+x1)/6;LN([x,y+.145,z0],[x,y+.145,z1]);}for(let i=0;i<=len*2;i++)LN([-hw,y+.145,z0+i*.5],[x1,y+.145,z0+i*.5]);},
+     capstan(c){const y=c.f(c.zc),f=Math.max(.55,Math.min(1,s*1.6));Cy(0,y+.5*f,c.zc,.42*f,1.0*f,0xa67844);Cy(0,y+1.05*f,c.zc,.5*f,.14*f,0xc49a5e);
+      for(let k=0;k<4;k++){const a=k*PI/4,cc=Math.cos(a)*1.4*f,ss=Math.sin(a)*1.4*f;LN([cc,y+1.05*f,c.zc+ss],[-cc,y+1.05*f,c.zc-ss]);}},
+     windlass(c){const y=c.f(c.zc),w=Math.min(2.4,W(c.zc,y+.6)-.1),f=Math.max(.5,Math.min(1,s*1.6+.3));if(w<.4)return;
+      Cy(-w/2,y+.55*f,c.zc,.25*f,w,0x8c5f33,{ax:"x",seg:10});B(-.15,.15,y,y+1.0*f,c.zc-.15,c.zc+.15,0x6a4423);B(-w,-w+.3,y,y+1.0*f,c.zc-.15,c.zc+.15,0x6a4423);
+      To(-w/2,y+.08,c.zc+.9*f,.45*f,.12*f,0xd6c08f);},
+     cabin(c){const y=c.f(c.zc),W0=W(c.zc,y+.6,.3);B(-W0,-.2,y,y+.04,c.z0+.15,c.z1-.15,0xcf9a86,false);const t=table(c,0xb3402f);
+      B(t.x0+.2,t.x1-.2,y+.83,y+.86,c.zc-t.tz*.6,c.zc+t.tz*.6,0xefe6cb,false);
+      const zs=c.z0+.3,ze=Math.min(c.z0+2.3,c.zc-t.tz-.5),xw=W(zs+.5,y+.5,.3);if(ze-zs>1.1&&xw>1.3){B(-xw,-xw+1.0,y,y+.5,zs,ze,0xefe6cb);B(-xw,-xw+1.0,y+.5,y+.6,zs,ze,0xb3402f,false);}
+      const len=c.z1-c.z0,xb=W(c.z1-.8,y+1,.3);if(len>3.4&&xb>1&&c.hh>1.3){const z1=c.z1-.3,z0=c.z1-Math.min(2.2,len*.3),h=Math.min(1.7,c.hh-.2);B(-xb,-xb+.4,y,y+h,z0,z1,0x6a4423);for(let k=0;k<4&&k*.17+.3<h;k++)B(-xb+.05,-xb+.3,y+.35+k*.3,y+.5+k*.3,z0+.1,z1-.1,[0xa83b2f,0x2f5f8a,0xb9953a,0x3d5a3a][k],false);}
+      if(c.o.stern)stern(c);},
+     state(c){const y=c.f(c.zc),W0=W(c.zc,y+.6,.3);B(-W0,-.2,y,y+.04,c.z0+.15,c.z1-.15,0xa83b2f,false);const len=c.z1-c.z0,hh=Math.min(2.3,c.hh-.1);
+      const zb=c.z0+Math.min(1.2,len*.25),bl=Math.min(2.1,len*.4),xw=W(zb+bl/2,y+.6,.35),bx=Math.min(1.7,xw-.2);
+      if(bx>.8){B(-xw,-xw+bx,y,y+.55,zb,zb+bl,0xefe6cb);B(-xw,-xw+bx,y+.55,y+.65,zb,zb+bl,0x2f5f8a,false);
+        if(hh>1.3){for(const px of[-xw+.06,-xw+bx-.06])for(const pz2 of[zb+.06,zb+bl-.06])Cy(px,y+hh/2,pz2,.05,hh,0xd4a83a,{seg:6,e:false});B(-xw,-xw+bx,y+hh-.15,y+hh,zb,zb+bl,0xa83b2f);}}
+      const tz=Math.min(.9,len*.15),zt=Math.min(c.z1-tz-.5,zb+bl+tz+.6);if(zt>zb+bl){B(-1.9,-.6,y,y+.75,zt-tz,zt+tz,0xd4a83a);B(-1.9,-.6,y+.75,y+.8,zt-tz,zt+tz,0xefe6cb,false);
+        for(const dz of[-tz-.3,tz+.3])B(-1.5,-1.0,y,y+.55,zt+dz-.2,zt+dz+.2,0xa83b2f);}
+      if(hh>1.4){const xm=W(c.z1-.5,y+1,.3);B(-xm,-xm+.08,y+.6,y+Math.min(1.9,hh-.2),c.z1-1.4,c.z1-.5,0xd4a83a,false);Sp(-1.2,y+hh-.15,zt>zb+bl?zt:c.zc,.16,.2,.16,0xf0c24a,false);}
+      if(c.o.stern)stern(c);},
+     nat(c){const y=c.f(c.zc),W0=W(c.zc,y+.6,.3);B(-W0,-.2,y,y+.04,c.z0+.15,c.z1-.15,0xb59a6a,false);const t=table(c,0x3d6b52,1);
+      for(let k=0;k<5;k++)B(t.x0+.2+k*.25,t.x0+.4+k*.25,y+.82,y+.9+(k%3)*.04,c.zc-t.tz*.7,c.zc-t.tz*.7+.3,[0xa83b2f,0x2f5f8a,0xb9953a,0x3d5a3a,0x6a4423][k],false);
+      for(let k=0;k<3;k++)Cy(t.x1-.2-k*.22,y+.95,c.zc+t.tz*.5,.08,.22,0x7fa89a,{seg:8,e:false});
+      const xs=W(c.z1-1,y+.6,.3);for(let k=0;k<4;k++)B(-xs,-xs+.9,y+k*.16,y+.12+k*.16,c.z1-1.5,c.z1-.6,0xd9b46e,false);
+      const xj=W(c.z0+1.2,y+1,.3);if(c.hh>1.4)for(let k=0;k<6;k++)Cy(-xj+.18,y+1.1+(k%2)*.35,c.z0+.9+Math.floor(k/2)*.35,.1,.28,[0x7fa89a,0x9fb3b4,0xa9c0a0][k%3],{seg:8,e:false});
+      if(c.o.stern)stern(c);},
+     saloon(c){const y=c.f(c.zc),W0=W(c.zc,y+.6,.3),a=Math.max(.3,Math.min(1,W0/3.5)),z0=c.z0+.5,z1=c.z1-.5;if(z1<=z0)return;
+      B(-W0,-W0+.55,y,y+.45,z0,z1,0x7a3b2e);B(-.5-1.5*a,-.5,y,y+.72,z0+.4,z1-.4,0x8c5f33);B(-.5-1.5*a,-.5,y+.72,y+.78,z0+.4,z1-.4,0xefe6cb,false);
+      const xs=W(c.z1-.4,y+.6,.3);if(xs>1)B(-xs,-xs+.5,y,y+.9,c.z1-.5,c.z1-.15,0x6a4423);if(c.hh>1.4)Sp(-.5-.75*a,y+Math.min(2.1,c.hh-.15),c.zc,.13,.17,.13,0xf0c24a,false);if(c.o.stern)stern(c);},
+     bunks(c){const y=c.f(c.zc),len=c.z1-c.z0,n=Math.max(1,Math.floor(len/1.3)),h=Math.min(1.8,c.hh-.1);
+      for(let i=0;i<n;i++){const z=n===1?c.zc:c.z0+.65+i*(len-1.3)/(n-1),xw=W(z,y+.6,.2);if(xw<1.1)continue;B(-xw,-xw+1.0,y+.1,y+.5,z-.45,z+.45,0xefe6cb);B(-xw,-xw+1.0,y+.5,y+.56,z-.45,z+.45,0x2f5f8a,false);if(i<n-1&&h>.8)B(-xw,-xw+1.2,y,y+h,z+.58,z+.64,0xf1e7cc,false);}
+      const W0=W(c.zc,y+.6,.2);if(W0>2.7){B(-W0+1.3,-.5,y,y+.72,c.zc-.5,c.zc+.5,0x8c5f33);B(-W0+1.3,-.5,y+.72,y+.78,c.zc-.5,c.zc+.5,0xb3402f,false);}},
+     mess(c){const y=c.f(c.zc),n=Math.max(1,Math.floor((c.z1-c.z0)/4));for(let i=0;i<n;i++){const zm=c.z0+(i+.5)*(c.z1-c.z0)/n,f=Math.max(.5,Math.min(1,W(zm,y+.5)/2.6)),zs=zm-1.2,ze=zm+1.2;
+      B(-1.1*f,-.25*f,y,y+.42+.25*f,zs,ze,0x8c5f33);B(-1.5*f,-1.27*f,y,y+.4*f+.05,zs,ze,0x6a4423);B(-.08*f,.15*f,y,y+.4*f+.05,zs,ze,0x6a4423);}},
+     hammocks(c){const y=c.f(c.zc),hy=y+(c.hh>2?1.5:Math.max(.5,c.hh*.68)),nz=Math.min(140,Math.floor((c.z1-c.z0)/.5)),f=Math.max(.5,Math.min(1,c.hh/2));
+      for(let k=0;k<nz;k++){const z=c.z0+.25+k*.5,w=W(z,hy);for(const[xc,ln]of[[-1.2*f,1.7*f],[-3.0*f,1.7*f],[-4.7*f,1.4*f]]){if(-xc+ln/2>w+.1)continue;Sp(xc,hy,z,ln*.5,.17*f,.19,(k%3)?0xefe6cb:0xdfdcc3,false);}}},
+     galley(c){const y=c.f(c.zc),f=Math.max(.35,Math.min(1,.45+s,W(c.zc,y+.5)/2.6)),top=c.top(c.zc)+(c.lv===0?.9*f:.15);
+      B(-2.3*f,-.6*f,y,y+1.1*f,c.zc-1.0*f,c.zc+1.0*f,0xa04a35);B(-2.3*f,-.6*f,y+1.1*f,y+1.18*f,c.zc-1.0*f,c.zc+1.0*f,0x3d342a,false);Cy(-1.0*f,y+1.36*f,c.zc-.3*f,.4*f,.36*f,0xb8862a,{seg:14});
+      if(top>y+1.3*f)Cy(-1.5*f,(y+1.18*f+top)/2,c.zc+.45*f,.15*f,top-y-1.18*f,0x241c14,{seg:8,e:false});},
+     sick(c){const y=c.f(c.zc),n=Math.max(1,Math.min(5,Math.floor((c.z1-c.z0)/1.1)));pz(c.z0,y,Math.min(1.4,c.hh-.1),0xf8f2e2);
+      for(let i=0;i<n;i++){const z=c.z0+.7+i*(c.z1-c.z0-1.4)/Math.max(1,n-1),xw=W(z,y+.6,.2);if(xw<1.1)continue;B(-xw,-xw+1.0,y+.1,y+.5,z-.4,z+.4,0xf8f2e2);B(-xw,-xw+.3,y+.5,y+.62,z-.4,z+.4,0xb2452c,false);}},
+     bread(c){const y=c.f(c.zc),n=Math.max(1,Math.round((c.z1-c.z0)/1.1)),h=Math.max(.35,Math.min(.9,c.hh-.15));
+      for(let i=0;i<n;i++){const z=c.z0+(i+.5)*(c.z1-c.z0)/n,xw=W(z,y+.6,.3);if(xw<.9)continue;B(-xw,-xw+Math.min(1.2,xw-.3),y,y+h,z-.4,z+.4,0xd9b46e);}},
+     powder(c){const y=c.f(c.zc),bh=Math.max(.4,Math.min(1.5,c.hh-.05)),kr=.28*Math.max(.5,Math.min(1,c.hh/1.3)),tiers=c.hh>1.35?2:1,len=c.z1-c.z0;
+      for(const z of[c.z0,c.z1]){const w=W(z,y+.4,.05);if(w>.3)B(-w,0,y,y+bh,z-.07,z+.07,0xb8862a);}
+      const na=Math.max(1,Math.floor((len-.4)/(kr*3.2)));for(let a=0;a<na;a++)for(let b=0;b<4;b++)for(let t=0;t<tiers;t++){const x=-.8*kr/.28-b*kr*3,z=c.z0+.25+kr*1.5+a*kr*3.2;if(hx(z,y+.4)<-x+kr*1.4)continue;Cy(x,y+kr*1.1+t*kr*1.8,z,kr,kr*1.6,t?0xb45a3a:0xa04a35,{seg:9});}
+      if(c.hh>.9)B(-.4,.15,y+Math.min(.5,c.hh*.4),y+Math.min(1.0,c.hh*.8),c.z1-.1,c.z1+.15,0xf4d36a,false);},
+     cable(c){const y=c.f(c.zc),f=Math.max(.45,Math.min(1,W(c.zc,y+.5)/3.2)),n=Math.max(1,Math.floor((c.z1-c.z0)/(3.2*f)));
+      for(let i=0;i<n;i++){const z=c.z0+(i+.5)*(c.z1-c.z0)/n;To(-1.5*f,y+.15*f,z,1.15*f,.28*f,0xd6c08f);if(c.hh>.9)To(-1.5*f,y+.48*f,z,1.05*f,.28*f,0xcdb680);}
+      const m=Math.floor((c.z1-c.z0)/1.2);for(let i=0;i<m;i++){const z=c.z0+.6+i*1.2,x=-(W(z,y+.5,.2)-.45*f);if(x>-2.9*f)continue;Cy(x,y+.42*f,z,.38*f,.8*f,0xc99a5a,{ax:"z",seg:10});}},
+     store(c){const y=c.f(c.zc),xs=W(c.zc,y+.6,.3),f=Math.max(.45,Math.min(1,xs/2.6)),z0=c.z0+.4,z1=c.z1-.4;if(z1<=z0)return;
+      for(let i=0;i<4&&.28+i*.35<c.hh-.1;i++)B(-1.8*f-.1,-.4*f,y+.05+i*.35,y+.28+i*.35,z0,z1,0xd9b46e);
+      const xc=-Math.min(3.0,xs-.8*f);if(xc<-1.9*f-.6)To(xc,y+.18,c.zc,.7*f,.2*f,0xd6c08f);},
+     sails(c){const y=c.f(c.zc),len=c.z1-c.z0-.8,f=Math.max(.5,Math.min(1,c.hh/1.4));if(len<=0)return;
+      for(const[x,t]of[[-1.0,0],[-1.75,0],[-2.5,0],[-1.4,1],[-2.15,1]]){if(t&&c.hh<1.2)continue;if(W(c.zc,y+.5)<-x*f+.45)continue;Cy(x*f,y+.35*f+t*.62*f,c.zc,.33*f,len,0xefe6cb,{ax:"z",seg:10,e:false});}},
+     water(c){const y=c.f(c.zc),cs=Math.max(.35,Math.min(1,c.hh/1.15)),r=.46*cs,st=.95*cs,nz=Math.min(90,Math.floor((c.z1-c.z0-.4)/st));
+      for(let k=0;k<nz;k++){const z=c.z0+.2+st*(k+.5);for(let b=0;b<6;b++){const x=-.55*cs-b*cs;if(hx(z,y+r*1.5)<-x+r*1.1)continue;Cy(x,y+r*1.2,z,r,.9*cs,0xc99a5a,{ax:"z",seg:10});if(c.hh>2.1&&k%2===0&&b<3)Cy(x-.5*cs,y+r*3.1,z+.45*cs,r*.92,.85*cs,0xd6a965,{ax:"z",seg:10});}}},
+     shot(c){const y=c.f(c.zc),xs=W(c.zc,y+.5,.2),f=Math.max(.4,Math.min(1,xs/4.2,c.hh/1.2)),x0=-Math.min(4.0*f,xs-.1),x1=x0+1.6*f,len=Math.min(3,c.z1-c.z0-.4);
+      B(x0,x1,y,y+.9*f,c.zc-len/2,c.zc+len/2,0x6a6864);for(let a=0;a<Math.floor(len/.45);a++)for(let b=0;b<3;b++)Sp(x0+.3*f+b*.5*f,y+1.05*f,c.zc-len/2+.25+a*.45,.16*f,.16*f,.16*f,0x2e2c2a,false);},
+     ballast(c){const y=c.f(c.zc),len=c.z1-c.z0,xs=W(c.zc,y+.4,.2),f=Math.max(.35,Math.min(1,xs/3.6));
+      for(let k=0;k<Math.floor((len-.4)/.9);k++)B(-.2*f,.2*f,y,y+.3*f,c.z0+.3+k*.9,c.z0+.95+k*.9,0x5b5a58,false);
+      dome(Math.min(1.6,xs*.4),.55*f,len*.32,-xs*.45,y,c.zc,0xaaa491);
+      for(let k=0;k<Math.floor((len-.4)/.9);k++){const z=c.z0+.3+k*.9,x=-Math.min(3.75,W(z,y+.3,.2)*.75);if(x>-1.2*f)continue;B(x-.55*f,x+.55*f,y,y+.35*f,z,z+.75,0x6a6864);}},
+     pump(c){const z=c.zc,y=c.f(z),f=Math.max(.5,Math.min(1,s*1.5)),top=deck(z)+.2;Cy(-.4*f,(y+top)/2,z,.2*f,top-y,0xc9962f,{seg:10});},
+     cargo(c){crates(c,[0x8a6234,0xa8763f,0x7a5a3a,0xd9c08f],.9);},
+     tea(c){crates(c,[0x8a5a2b,0x9a6a3b,0xb08040],.6);},
+     china(c){crates(c,[0xd9c9a0,0xcbb88a],.8);const y=c.f(c.zc);for(let k=0;k<4;k++){const z=c.z1-.6-k*.55;if(z<c.z0)break;Cy(-.5,y+.3,z,.22,.6,k%2?0xe8eef2:0x2f5f8a,{seg:10,e:false});}},
+     benches(c){const n=c.o.n||8;for(let i=0;i<n;i++){const z=c.z0+(i+.5)*(c.z1-c.z0)/n,y=c.f(z),w=hx(z,y+.6);if(w<1)continue;
+        B(-w+.15,-.45,y+.42,y+.5,z-.16,z+.16,0x8c5f33);B(-.6,-.45,y,y+.42,z-.1,z+.1,0x6a4423,false);B(-w+.3,-.6,y,y+.12,z+.45,z+.55,0x6a4423,false);
+        Cy(-w*.5-.3,y+.95,z+.3,.045,w*1.25,0xc49a5e,{ax:"x",seg:6,e:false});}},
+     thwarts(c){const n=c.o.n||3;for(let i=0;i<n;i++){const z=c.z0+(i+.5)*(c.z1-c.z0)/n,yt=deck(z)-.28,w=hx(z,yt)-.03;if(w<.2)continue;B(-w,0,yt,yt+.05,z-.11,z+.11,0x8c5f33);}
+      const zm=c.zc,yo=deck(zm)-.2,ln=Math.min(2.4,(c.z1-c.z0)*.95);for(const x of[-.2,-.35])Cy(x,yo,zm,.025,ln,0xc49a5e,{ax:"z",seg:6,e:false});},
+     bow(c){const y=c.f(c.zc);To(-.22,y+.05,c.zc-.15,.14,.04,0xd6c08f);Sp(-.18,y+.1,c.zc+.15,.07,.07,.07,0x2b2722,false);Cy(-.3,y+.13,c.zc-.45,.11,.28,0xc99a5a,{ax:"x",seg:8});},
+     lazarette(c){const y=c.f(c.zc),h=Math.max(.3,Math.min(.6,c.hh-.1));for(let k=0;k<3;k++){const z=c.z0+.4+k*(c.z1-c.z0-.8)/2,xw=W(z,y+.4,.2);if(xw<.6)continue;B(-xw,-xw+Math.min(.7,xw-.2),y,y+h,z-.25,z+.25,[0x8a6234,0xd9b46e,0xa8763f][k]);}To(-.6,y+.1,c.zc,.35,.1,0xd6c08f);},
+     manger(c){const y=c.f(c.zc),h=Math.min(1.3,c.hh-.1);pz(c.z0,y,h,0xcfa575);Cy(-1.0,y+.6,c.zc,.18,1.2,0x3d342a,{seg:8});To(-Math.min(2.4,W(c.zc,y+.4)-.9),y+.18,c.zc,.7,.16,0xd6c08f);},
+     chests(c){const y=c.f(c.zc),n=Math.max(1,Math.floor((c.z1-c.z0)/.9));for(let i=0;i<n;i++){const z=c.z0+.45+i*.9,xw=W(z,y+.4,.2);if(xw<.9)continue;B(-xw,-xw+.65,y,y+.42,z-.3,z+.3,0x6a4423);B(-xw,-xw+.65,y+.42,y+.47,z-.3,z+.3,0x8c5f33,false);}}};
+    function crates(c,cols,sz){const y=c.f(c.zc),t=Math.max(1,Math.min(3,Math.floor((c.hh-.1)/sz))),st=sz*1.08,nz=Math.min(60,Math.floor((c.z1-c.z0-.3)/st));
+      for(let k=0;k<nz;k++){const z=c.z0+.15+st*(k+.5);for(let b=0;b<5;b++){const x=-.6-b*st;if(hx(z,y+sz)<-x+sz*.6)continue;for(let q=0;q<t-(b+k)%2;q++)B(x-sz/2,x+sz/2,y+q*sz,y+(q+1)*sz-.03,z-sz/2,z+sz/2,cols[(k+b+q)%cols.length]);}}}
+    /* decks: the weather deck, the floors below, the keel and the ribs */
+    if(!L.open){LV=0;const za=zA(deck(-LS.Lh))+.4*s,zb=zF(deck(LS.Lh))-1.4*s;edgeStrip(deck,.3*sk,za,zb);
+      const P=[],I=[];let n=0;for(let z=za;z<=zb;z+=.5){const y=deck(z)+.04,w=wd(z,y-.05,.15);if(w<.3)continue;P.push(0,y,z,-w,y,z);if(n>0){const a=(n-1)*2;I.push(a,a+1,a+2,a+1,a+3,a+2);}n++;LN([0,y+.01,z],[-w,y+.01,z]);}
+      if(n>1){const g=new THREE.BufferGeometry();g.setAttribute("position",new THREE.Float32BufferAttribute(P,3));g.setIndex(I);const ng=g.toNonIndexed();ng.computeVertexNormals();const c=paint(ng,0xb5905f),p=ng.attributes.position.array;for(let i=0;i<p.length;i++){AP[LV].push(p[i]);AC[LV].push(c[i]);}}}
+    L.decks.forEach((d,k)=>{if(d.y==="deck")return;LV=k;const last=k===NLv-1&&k>0;slab(d.y,(last?.22:.3)*sk,L.lz[k][0],L.lz[k][1],null,last?.05:.1);});
+    LV=NLv;{const yk=keelY(0)+.7*sk,C=[];let n=0;for(let z=zA(yk)+.7*s;z<=zF(yk)-1.5*s;z+=.7*s){C.push(0,keelY(z)+.55*sk,z,0,keelY(z),z);n++;}if(n>1)cutFace(C,n);}
+    for(let z=-LS.Lh*.92;z<=LS.Lh*.95;z+=Math.max(.4,1.6*SK)){let prev=null;for(let y=keelY(z)+.5*sk;y<=deck(z)-.02;y+=Math.max(.12,.45*sk)){const w=hx(z,y);if(w<.3){prev=null;continue;}const p=[-w+.04,y,z];if(prev)LN(prev,p);prev=p;}}
+    /* rooms */
+    L.decks.forEach((d,k)=>{LV=k;d.R.forEach((r,i)=>{const[z0,z1]=L.bands[k][i],zc=(z0+z1)/2,f=z=>floorAt(k,i,z),top=z=>(d.y==="deck"?(r.o.up?LS.deckAt(z)+1.6:LS.deckAt(z)):ceilOf(X,k,z));
+      const hh=d.y==="deck"?(r.o.up?2.2:(LS.deckAt(zc)-deck(zc)>.6?LS.deckAt(zc)-deck(zc)-.15:2.2)):ceilOf(X,k,zc)-d.y-.3*sk;
+      const c={z0,z1,zc,f,top,hh,o:r.o,lv:k};for(const kt of r.k)if(KIT[kt])KIT[kt](c);
+      // bulkheads: round the closed rooms below, and at the break of a raised deck
+      if(d.y!=="deck"){if(r.k.some(t=>CLOSED.includes(t))){if(i>0)pz(z0,d.y,hh);if(i<d.R.length-1)pz(z1,d.y,hh);}}
+      else if(!r.o.up&&LS.deckAt(zc)-deck(zc)>.6){const zb=zc<0?z1:z0,hb=LS.deckAt(zb+(zc<0?-.4:.4))-deck(zb);if(hb>.6)pz(zb,deck(zb),hb-.05,0xcfa575);}});});
+  }
+  for(let k=0;k<=NL;k++){if(AP[k].length){const mg=new THREE.BufferGeometry();mg.setAttribute("position",new THREE.Float32BufferAttribute(AP[k],3));mg.setAttribute("color",new THREE.Float32BufferAttribute(AC[k],3));const vk=vm.clone(),pk=pen.clone();bandify(vk);bandify(pk);M.VM[k]=vk;M.PN[k]=pk;LG[k].add(new THREE.Mesh(mg,vk));LG[k].userData.pk=pk;}
     const lg=new THREE.BufferGeometry();lg.setAttribute("position",new THREE.Float32BufferAttribute(AL[k].concat(SG[k]),3));LG[k].add(new THREE.LineSegments(lg,LG[k].userData.pk||pen));}
   G.traverse(o=>{o.frustumCulled=false;});
   /* seabed under the see-through water */
-  { const zl=LS.Lh+10,g=new THREE.PlaneGeometry(36,zl*2+4);g.rotateX(-PI/2);g.translate(6,-H.T-1.6,0);const pm=new THREE.Mesh(g,new THREE.MeshBasicMaterial({color:0x6e93a8,fog:false}));pm.frustumCulled=false;R.ship.add(pm);M.seabed=pm; }
+  { const zl=LS.Lh+10*SK,g=new THREE.PlaneGeometry(Math.max(6,36*SK),zl*2+4*SK);g.rotateX(-PI/2);g.translate(6*SK,-H.T-Math.max(.3,1.6*SK),0);const pm=new THREE.Mesh(g,new THREE.MeshBasicMaterial({color:0x6e93a8,fog:false}));pm.frustumCulled=false;R.ship.add(pm);M.seabed=pm; }
   R.renderer.localClippingEnabled=true;
   { const G2=G.clone();G2.scale.x=-1;G2.visible=false;R.bob.add(G2);M.G2=G2; }
-  M.labels=makeLabels();makeFig(R);
+  M.labels=SPc.id==="constitution"?makeLabels():genLabels();makeFig(R);
 
 }
 /* ---------- labels: anchors from the room bands ---------- */
@@ -6273,26 +6496,31 @@ function makeLabels(){const f=(y,a,b)=>M.fr(y,a,b),m=(y,a,b)=>(f(y,a,b)[0]+f(y,a
    [2,["Wardroom"],[-2.2,YB+.9,m(YB,0,.17)],0,0],[2,["Steerage"],[-2.5,YB+.7,m(YB,.17,.25)],0,1],[2,["Hammocks"],[-1.5,YB+1.6,m(YB,.4,.5)],1,2],[2,["Galley","stove"],[-1.5,YB+1.2,m(YB,.75,.75)+1.5],0,3],[2,["Sick bay"],[-1.6,YB+.8,m(YB,.88,1)],0,4],
    [3,["Bread","room"],[-1.2,YO+1.0,m(YO,0,.15)],0,0],[3,["Magazine"],[-1.8,YO+1.0,m(YO,.15,.25)],1,1],[3,["Cable tier","& stores"],[-1.6,YO+1.2,m(YO,.25,.75)],0,2],[3,["Fore","magazine"],[-1.6,YO+.8,m(YO,.75,.88)],0,3],[3,["Boatswain's","store"],[-1.0,YO+1.0,m(YO,.88,1)],0,4],
    [4,["Water casks"],[-2.0,YH+1.1,-8],1,0],[4,["Shot","locker"],[-3.2,YH+1.3,-8],0,1],[4,["Ballast"],[-1.4,YH+.8,-14],0,2],[4,["Chain","pump"],[-.4,YH+2.0,-4],0,3]];}
+function genLabels(){const L=M.L,out=[];M.bands=L.bands;
+  L.decks.forEach((d,k)=>{let mi=d.R.findIndex(r=>r.o.main);if(mi<0){let b=-1;d.R.forEach((r,i)=>{if(r.b-r.a>b){b=r.b-r.a;mi=i;}});}
+    d.R.forEach((r,i)=>{const[z0,z1]=L.bands[k][i],zc=(z0+z1)/2,y=floorAt(k,i,zc),hh=d.y==="deck"?1.6:ceilOf(L.X,k,zc)-y,w=Math.max(.1,hx(zc,y+Math.min(.8,hh*.5)));
+      out.push([k,[r.n],[-Math.min(1.6,w*.45),y+Math.min(1.0,hh*.55),zc],(r.o.main||i===mi)?1:0,i]);});});
+  return out;}
 /* ---------- camera ---------- */
-const FOV=28,TOP=12.5;
+const FOV=28;
 const _v=new THREE.Vector3(),_s=new THREE.Vector3(),_b=new THREE.Vector3(),_c=new THREE.Vector3(),_pl=new THREE.Plane(),_pt=new THREE.Plane();
 function pose(R){const asp=R.W/Math.max(1,R.H);const port=asp<1;
   const hf=2*Math.atan(Math.tan(FOV*PI/360)*asp),fit=(port?25.5:27)*FIT*(M.sel>=0?(port?1.0:1.1):(port?1.3:1.1));
   const deck=M.sel>=0;
-  return{az:deck?(port?66:18):(port?38:22),pt:deck?(port?32:22):(port?17:18),dist:fit/(2*Math.tan(hf/2)),lx:0,ly:-8.6,lz:0};}
+  return{az:deck?(port?66:18):(port?38:22),pt:deck?(port?32:22):(port?17:18),dist:fit/(2*Math.tan(hf/2)),lx:0,ly:-8.6*FIT/2.4,lz:0};}
 const hide=o=>{if(!M.vis.has(o))M.vis.set(o,o.visible);o.visible=false;};
 window.CUTCAM=function(R){
-  if(!M.on)return;build(R);if(!M.built)return;
+  if(!M.on)return;build(R);if(!M.built||!M.on)return;
   R.ship.updateMatrixWorld(true);const m=R.bob.matrixWorld;
   _s.set(1,0,0).transformDirection(m);_b.set(0,0,1).transformDirection(m);_c.setFromMatrixPosition(m);
   if(M.flip){_s.negate();_b.negate();}if(M.G)M.G.scale.x=M.flip?-1:1;if(M.G2){M.G2.scale.x=-M.G.scale.x;M.G2.visible=M.sel>=0;}
-  const T=M.ov||pose(R);T.az+=M.uaz;T.pt=Math.max(3,Math.min(85,T.pt+M.upt));T.dist*=M.uz;T.ly+=M.uly;T.lz+=M.pan;if(!M.cur){M.cur={az:-100,pt:14,dist:T.dist*1.7,lx:0,ly:8,lz:0};}
+  const T=M.ov||pose(R);T.az+=M.uaz;T.pt=Math.max(3,Math.min(85,T.pt+M.upt));T.dist*=M.uz;T.ly+=M.uly;T.lz+=M.pan;if(!M.cur){M.cur={az:-100,pt:14,dist:T.dist*1.7,lx:0,ly:8*FIT/2.4,lz:0};}
   const e=M.fast?1:.045;for(const f of["az","pt","dist","lx","ly","lz"])M.cur[f]+=(T[f]-M.cur[f])*e;
   const c=M.cur,az=c.az*PI/180,pt=c.pt*PI/180;R.camera.fov=FOV;
   _v.set(c.lx,c.ly,c.lz).applyMatrix4(m);
   const cp=R.camera.position;cp.copy(_v).addScaledVector(_s,Math.cos(az)*Math.cos(pt)*c.dist).addScaledVector(_b,Math.sin(az)*Math.cos(pt)*c.dist);cp.y+=Math.sin(pt)*c.dist;
   R.camera.lookAt(_v);
-  const U=R.U;U.uCutOn.value=1;U.uCutSl.value=M.sel<0?1:0;U.uGhost.value=M.sel<0?1:0;U.uCutC.value.copy(_c);U.uCutN.value.copy(_s);U.uCutB.value.copy(_b);U.uCutR.value=90;U.uCutTop.value=TOP;const deckWet=M.sel>=3,wet=M.sel<0||deckWet;if(M.sel<0)U.uCutBox.value.set(-(H.B+3),24,LS.Lh+6);else U.uCutBox.value.set(1000,1001,1);U.uCutE.value.set(H.B+1.4,LS.Lh+1.6,deckWet?1:0);if(M.seabed)M.seabed.visible=wet;
+  const U=R.U;U.uCutOn.value=1;U.uCutSl.value=M.sel<0?1:0;U.uGhost.value=M.sel<0?1:0;U.uCutC.value.copy(_c);U.uCutN.value.copy(_s);U.uCutB.value.copy(_b);U.uCutR.value=90;U.uCutTop.value=TOP;const deckWet=M.sel>=0&&!!M.L.wet[M.sel],wet=M.sel<0||deckWet;if(M.sel<0)U.uCutBox.value.set(-(H.B*1.45),3.6*H.B,LS.Lh+H.B);else U.uCutBox.value.set(1000,1001,1);U.uCutE.value.set(H.B+1.4,LS.Lh+1.6,deckWet?1:0);if(M.seabed)M.seabed.visible=wet;
   if(R.seaU){R.seaU.uCutB.value.copy(_b);}
   if(R.sea&&!R.sea.material.transparent){R.sea.material.transparent=true;R.sea.material.needsUpdate=true;}
   _pl.setFromNormalAndCoplanarPoint(_s.clone().negate(),_c);_pt.set(new THREE.Vector3(0,-1,0),_c.y+TOP);
@@ -6304,7 +6532,10 @@ window.CUTCAM=function(R){
   if(R.gen)for(const o of R.gen.sails){if(o.s&&o.s.yard&&o.s.yard.y>TOP-1&&o.piv)hide(o.piv);}
   { const sl=S&&S.ship&&S.ship.sls;if(sl)for(const k in sl)sl[k]=0; }
   if(R.crew)for(const c of R.crew)hide(c.m);
-  for(let k=0;k<5;k++){const dm=M.sel>=0&&k!==M.sel,bd=k===M.sel&&M.hi>=0&&M.bands&&M.bands[k]&&M.bands[k][M.hi];const key=(dm?1:0)+(bd?2:0);
+  if(!M.hid){M.hid=[];const bb=new THREE.Box3();R.bob.traverse(o=>{if(!(o.isMesh||o.isLine||o.isSprite))return;for(let q=o;q;q=q.parent)if(q===M.G||q===M.G2)return;   // yards, tops and flags left floating above the cut
+    bb.setFromObject(o);if(!bb.isEmpty()&&bb.min.y-_c.y>TOP-1.2)M.hid.push(o);});}
+  for(const o of M.hid)hide(o);
+  for(let k=0;k<M.L.decks.length;k++){const dm=M.sel>=0&&k!==M.sel,bd=k===M.sel&&M.hi>=0&&M.bands&&M.bands[k]&&M.bands[k][M.hi];const key=(dm?1:0)+(bd?2:0);
     const a=M.VM[k],p=M.PN[k];
     if(a&&bd){const b=M.bands[k][M.hi];a.userData.bu.value.set(b[0],b[1],1);p.userData.bu.value.set(b[0],b[1],1);}else if(a){a.userData.bu.value.z=0;p.userData.bu.value.z=0;}
     if(M.dim[k]!==key){M.dim[k]=key;if(a){const tr=dm||!!bd;a.transparent=tr;a.visible=!dm;a.opacity=1;a.depthWrite=!tr;a.needsUpdate=true;}if(p){p.transparent=true;p.opacity=dm?.3:.7;p.needsUpdate=true;}}}
@@ -6312,7 +6543,23 @@ window.CUTCAM=function(R){
 };
 /* ---------- crew: figures at their stations, rosters in the room cards ---------- */
 const NOFF=["Captain","Lieutenant","Master","Mate","Midshipman"];
-function homeOf(m,i){const du=m.mode==="duty",sl=m.mode==="sleep",r=m.r||"Seaman";
+function homeGen(m,i){const K=M.L.kx,du=m.mode==="duty",sl=m.mode==="sleep",r=m.r||"Seaman";
+  const f=(...ks)=>{for(const k of ks)if(K[k])return K[k][0];return null;},pick=(a,j)=>a&&a.length?a[j%a.length]:null;
+  const sleep=K.hammocks||K.thwarts||K.chests||K.benches||[[0,0]],mess=K.mess||sleep,duty=M.L.duty.length?M.L.duty:[[0,0]],helm=f("wheel","tiller")||duty[0];
+  if(m.sick)return f("sick")||pick(sleep,i);
+  if(r==="Surgeon"||r==="Surgeon's mate")return f("sick","bunks","cabin")||pick(sleep,i);
+  if(r==="Captain")return du?helm:(f("cabin","state","saloon","nat")||helm);
+  if(r==="Coxswain")return helm;
+  if(r==="Lieutenant"||r==="Master"||r==="Mate")return du?helm:(f("bunks","saloon","cabin")||helm);
+  if(r==="Midshipman")return du?helm:((K.bunks&&K.bunks[1])||f("bunks")||pick(mess,i));
+  if(r==="Cook"||r==="Cabin boy")return du?(f("galley")||pick(mess,i)):pick(mess,i);
+  if(r==="Bosun")return du?(f("capstan","windlass","hatch","boat","bow")||helm):(f("store","cable","sails")||pick(mess,i));
+  if(r==="Gunner")return du?(f("powder")||pick(K.guns,i)||helm):(pick(K.guns,i)||pick(mess,i));
+  if(r==="Carpenter")return du?(f("pump","water","ballast")||helm):(f("store")||pick(mess,i));
+  if(r==="Gentleman")return f("nat","saloon","state","cabin")||pick(mess,i);
+  if(r==="Marine"||r==="Soldier")return du?(pick(K.guns&&K.guns.filter(h=>h[0]===0),i)||pick(duty,i)):sl?pick(sleep,i):(pick(K.guns,i)||pick(mess,i));
+  return du?pick(duty,i):sl?pick(sleep,i):pick(mess,i);}
+function homeOf(m,i){if(SPc.id!=="constitution")return homeGen(m,i);const du=m.mode==="duty",sl=m.mode==="sleep",r=m.r||"Seaman";
   if(m.sick)return[2,4];
   if(r==="Surgeon"||r==="Surgeon's mate")return[2,4];
   if(r==="Captain")return du?[0,0]:[1,0];
@@ -6325,23 +6572,22 @@ function homeOf(m,i){const du=m.mode==="duty",sl=m.mode==="sleep",r=m.r||"Seaman
   if(r==="Marine")return du?[0,2]:sl?[2,2]:[1,2];
   return du?[[0,2],[0,3],[0,4],[0,1]][i%4]:sl?[2,2]:[1,2];}
 const stateOf=m=>m.sick?(m.why||"Laid up"):m.mode==="duty"?"On watch":m.mode==="sleep"?"Asleep":"Off watch";
-const SKY={0:0,1:YG,2:YB,3:YO,4:YH};
 function makeFig(R){
   const parts=[];const body=new THREE.CylinderGeometry(.17,.24,.9,7);body.translate(0,.45,0);const head=new THREE.SphereGeometry(.17,8,6);head.translate(0,1.1,0);
   const pos=[],nor=[],col=[];for(const g of[body,head]){const ng=g.toNonIndexed(),p=ng.attributes.position.array,n=ng.attributes.normal.array;for(let i=0;i<p.length;i++){pos.push(p[i]);nor.push(n[i]);}
     for(let i=0;i<n.length;i+=3){const s=.62+.38*Math.max(0,n[i]*.5+n[i+1]*.6+n[i+2]*.4);col.push(s,s,s);}}
   const geo=new THREE.BufferGeometry();geo.setAttribute("position",new THREE.Float32BufferAttribute(pos,3));geo.setAttribute("color",new THREE.Float32BufferAttribute(col,3));
   const mat=new THREE.MeshBasicMaterial({vertexColors:true});
-  const im=new THREE.InstancedMesh(geo,mat,800);im.count=0;im.frustumCulled=false;im.name="crewfig";M.G.add(im);M.fig=im;M.dirty=true;M.csig="";M.home=[];}
+  const im=new THREE.InstancedMesh(geo,mat,1200);im.count=0;im.frustumCulled=false;im.name="crewfig";M.G.add(im);M.fig=im;M.dirty=true;M.csig="";M.home=[];}
 const _m4=new THREE.Matrix4(),_q=new THREE.Quaternion(),_p=new THREE.Vector3(),_sc=new THREE.Vector3(),_cl=new THREE.Color();
 function crewLayout(){const im=M.fig;if(!im||typeof S==="undefined"||!S||!S.crew)return;const C=S.crew;crewX(S);
   const g={};M.home=C.map((m,i)=>{const h=homeOf(m,i);(g[h[0]*10+h[1]]=g[h[0]*10+h[1]]||[]).push(i);return h;});M.grp=g;
-  im.count=Math.min(800,C.length);const place=new Array(C.length);
-  for(const key in g){const lv=Math.floor(key/10),rm=key%10,list=g[key],b=M.bands[lv][rm];const z0=b[0]+.3,z1=b[1]-.3,zm=(z0+z1)/2,y0=lv===0?deck(zm):SKY[lv];
+  im.count=Math.min(1200,C.length);const place=new Array(C.length);
+  for(const key in g){const lv=Math.floor(key/10),rm=key%10,list=g[key],b=M.bands[lv][rm];const z0=b[0]+.3,z1=Math.max(b[0]+.31,b[1]-.3),zm=(z0+z1)/2,y0=floorAt(lv,rm,zm);
     const w0=Math.max(1,hx(zm,y0+1)-.7),cols=Math.max(1,Math.min(Math.floor(w0/.5),list.length)),rows=Math.ceil(list.length/cols),dz=Math.max(.3,Math.min(.75,(z1-z0)/Math.max(1,rows)));
-    list.forEach((i,k)=>{const r=Math.floor(k/cols),c=k%cols,z=Math.min(z1,z0+r*dz+(c%2)*.15),y=(lv===0?deck(z):SKY[lv])+.03,w=Math.max(.8,hx(z,y+1)-.7),dx=cols>1?Math.min(.55,(w-.4)/(cols-1)):0;place[i]=[-(.45+c*dx),y,z];});}
+    list.forEach((i,k)=>{const r=Math.floor(k/cols),c=k%cols,z=Math.min(z1,z0+r*dz+(c%2)*.15),y=floorAt(lv,rm,z)+.03,w=Math.max(.8,hx(z,y+1)-.7),dx=cols>1?Math.min(.55,(w-.4)/(cols-1)):0;place[i]=[-Math.min(.45+c*dx,Math.max(.12,hx(z,y+.8)-.25)),y,z];});}
   const sel=M.sel;
-  C.forEach((m,i)=>{if(i>=800)return;const pl=place[i],h=M.home[i],on=M.sel<0||h[0]===M.sel,s=(i===M.man)?1.7:1;
+  C.forEach((m,i)=>{if(i>=1200)return;const pl=place[i],h=M.home[i],on=M.sel<0||h[0]===M.sel,s=(i===M.man)?1.7:1;
     _p.set(pl[0],pl[1],pl[2]);_sc.set(on?s:0,on?s:0,on?s:0);_m4.compose(_p,_q,_sc);im.setMatrixAt(i,_m4);
     const off=NOFF.includes(m.r);_cl.setHex(i===M.man?0xe0a82a:m.sick?0x7a9a6a:m.mode==="sleep"?0x9a8f78:m.r==="Marine"?0xa83b2f:off?0x2d4a73:0xe6dcc0);im.setColorAt(i,_cl);});
   im.instanceMatrix.needsUpdate=true;if(im.instanceColor)im.instanceColor.needsUpdate=true;}
@@ -6367,12 +6613,12 @@ const svg=root.querySelector("#cutSvg"),chips=root.querySelector("#cutChips"),ca
 const NSV="http://www.w3.org/2000/svg";
 const IC=p=>`<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">${p}</svg>`;
 const CI={a:IC('<path d="M3 8l9-4 9 4-9 4z"/><path d="M3 12l9 4 9-4"/><path d="M3 16l9 4 9-4"/>'),0:IC('<path d="M3 15h18"/><path d="M8 15V5M16 15V8"/><path d="M8 6h6" stroke-width="1.2"/>'),1:IC('<path d="M3 11h18"/><path d="M3 18h18"/><circle cx="7" cy="14.5" r="1.4"/><circle cx="12" cy="14.5" r="1.4"/><circle cx="17" cy="14.5" r="1.4"/>'),2:IC('<path d="M3 8h18"/><path d="M5 8q7 10 14 0"/><path d="M3 20h18"/>'),3:IC('<path d="M3 9h18"/><path d="M3 19h18"/><rect x="6" y="11" width="4" height="6" rx="1"/><rect x="13" y="11" width="5" height="6" rx="1"/>'),4:IC('<path d="M3 20h18"/><path d="M5 20q7-8 14 0"/><path d="M12 12v4"/>'),r:IC('<path d="M5 12a7 7 0 1 0 2.5-5.4"/><path d="M5 4v4h4"/>'),f:IC('<path d="M4 9h13l-3-3M20 15H7l3 3"/>'),l:IC('<path d="M4 5h6a3 3 0 0 1 2 1 3 3 0 0 1 2-1h6v13h-6a3 3 0 0 0-2 1 3 3 0 0 0-2-1H4z"/><path d="M12 6v13"/>')};
-function mkChips(){chips.innerHTML=`<button data-s="-1" title="All decks" aria-label="All decks">${CI.a}</button>`+DECKS.map((d,i)=>`<button data-s="${i}" title="${d.name}" aria-label="${d.name}">${CI[i]}</button>`).join("")+`<button id="cutRe" title="Reset the view" aria-label="Reset the view">${CI.r}</button><button id="cutFlip" title="Show the other side of her" aria-label="Other side">${CI.f}</button><button id="cutLed" title="Stores, jobs and the watch bill" aria-label="Ledger">${CI.l}</button>`;
-  chips.querySelectorAll("button[data-s]").forEach(b=>b.onclick=()=>sel(+b.dataset.s));chips.querySelector("#cutRe").onclick=()=>{M.cur=null;M.sel=-1;M.man=-1;M.dirty=true;M.pan=0;M.uaz=M.upt=M.uly=0;M.uz=1;paint();};chips.querySelector("#cutFlip").onclick=()=>{M.flip=!M.flip;M.cur=null;};chips.querySelector("#cutLed").onclick=()=>{M.ledger=true;};}
+function mkChips(){chips.innerHTML=`<button data-s="-1" title="All decks" aria-label="All decks">${CI.a}</button>`+M.L.decks.map((d,i)=>`<button data-s="${i}" title="${d.name}" aria-label="${d.name}">${CI[d.ic]}</button>`).join("")+`<button id="cutRe" title="Reset the view" aria-label="Reset the view">${CI.r}</button><button id="cutFlip" title="Show the other side of her" aria-label="Other side">${CI.f}</button><button id="cutLed" title="Stores, jobs and the watch bill" aria-label="Ledger">${CI.l}</button>`;
+  chips.querySelectorAll("button[data-s]").forEach(b=>b.onclick=()=>sel(+b.dataset.s));chips.classList.toggle("many",M.L.decks.length>5);chips.querySelector("#cutRe").onclick=()=>{M.cur=null;M.sel=-1;M.man=-1;M.dirty=true;M.pan=0;M.uaz=M.upt=M.uly=0;M.uz=1;paint();};chips.querySelector("#cutFlip").onclick=()=>{M.flip=!M.flip;M.cur=null;};chips.querySelector("#cutLed").onclick=()=>{M.ledger=true;};}
 function sel(i){M.sel=(M.sel===i&&i>=0)?-1:i;M.hi=-1;M.man=-1;M.dirty=true;M.res="";M.pan=0;paint();}
 function paint(){chips.querySelectorAll("button[data-s]").forEach(b=>b.classList.toggle("on",+b.dataset.s===M.sel));
-  if(M.sel<0)card.innerHTML=`<h3>USS Constitution</h3>${crewCard()}<p>Tap a deck, a label or a man.</p>`;
-  else{const d=DECKS[M.sel];card.innerHTML=`<h3>${d.name}</h3>${M.hi>=0?`<div class="rd">${d.rooms[M.hi][1]}</div>${crewCard()}<div class="ra">${ACT[M.sel][M.hi].map((t,i)=>`<button type="button" data-a="${i}"${i===3?' class="risk"':""}><b>${["Chore","Drill","Morale","Risk"][i]}</b> ${t}</button>`).join("")}</div>${M.res?`<div class="rr">${M.res}</div>`:""}`:""}`;
+  if(M.sel<0)card.innerHTML=`<h3>${SPc.name}</h3>${crewCard()}<p>Tap a deck, a label or a man.</p>`;
+  else{const d=M.L.decks[M.sel];card.innerHTML=`<h3>${d.name}</h3>${M.hi>=0?`<div class="rd">${d.rooms[M.hi][1]}</div>${crewCard()}<div class="ra">${M.L.act[M.sel][M.hi].map((t,i)=>`<button type="button" data-a="${i}"${i===3?' class="risk"':""}><b>${["Chore","Drill","Morale","Risk"][i]}</b> ${t}</button>`).join("")}</div>${M.res?`<div class="rr">${M.res}</div>`:""}`:""}`;
     card.querySelectorAll(".ra button").forEach(b=>b.onclick=()=>doAct(M.sel,M.hi,+b.dataset.a));crewBind();}
   card.classList.toggle("tall",M.sel>=0);}
 let labelEls=null;
@@ -6397,9 +6643,11 @@ function labels(){const R=M.R;if(!R||!M.built||!M.on){if(!M.on&&labelEls)labelEl
     e.pl.style.display=e.dot.style.display=ok?"":"none";
     if(ok){const ex=side?bx:bx+e.w,ly=ty+8;e.pl.setAttribute("points",`${ex},${ly} ${ax},${ay}`);e.dot.setAttribute("cx",ax);e.dot.setAttribute("cy",ay);}});
   requestAnimationFrame(labels);}
-/* ---------- boot: a star on her in the ship picker; picking her opens the cutaway ---------- */
-function star(){const b=[...document.querySelectorAll("button")].find(b=>b.textContent.startsWith("USS Constitution"));if(!b||b.querySelector(".cstar"))return!!b;
-  b.insertAdjacentHTML("afterbegin",'<span class="cstar" title="Cutaway ship">★</span>');b.classList.add("cstarred");return true;}
+/* ---------- boot: every ship opens her cutaway on the Ship tab ---------- */
+function teardown(){if(M.on)leave();for(const o of[M.G,M.G2,M.seabed])if(o&&o.parent)o.parent.remove(o);
+  if(M.G)M.G.traverse(o=>{if(o.geometry)o.geometry.dispose();});if(M.seabed)M.seabed.geometry.dispose();
+  if(labelEls){labelEls.forEach(e=>e.g.remove());labelEls=null;}
+  Object.assign(M,{built:false,bob:null,G:null,G2:null,seabed:null,fig:null,VM:[],PN:[],dim:[],grp:null,home:[],bands:null,labels:null,sel:-1,hi:-1,man:-1,cur:null,res:"",flip:false});M.vis.clear();}
 let looping=false;
 function enter(){const R=R3;M.on=true;window.CUTON=true;M.cur=null;M.sel=-1;M.pan=0;M.uaz=M.upt=M.uly=0;M.uz=1;M.hi=-1;M.wasPaused=paused;M.wasMain=main3d;
   try{if(!main3d)setMain(true);}catch(e){}
@@ -6413,26 +6661,26 @@ function leave(){const R=M.R||R3;M.on=false;window.CUTON=false;root.style.displa
   if(R&&R.ship)R.ship.traverse(o=>{const mt=o.material;if(mt&&mt.__cl){mt.clippingPlanes=null;mt.__cl=0;mt.needsUpdate=true;}});
   if(R&&R.sea&&R.sea.material.transparent){R.sea.material.transparent=false;R.sea.material.needsUpdate=true;}
   if(R&&R.ship)R.ship.traverse(o=>{const mt=o.material;if(mt&&mt.__gu){mt.transparent=mt.__t;mt.needsUpdate=true;}});M.gA.value=1;
-  for(const[o,v]of M.vis)o.visible=v;M.vis.clear();M.flip=false;if(M.G)M.G.scale.x=1;
+  for(const[o,v]of M.vis)o.visible=v;M.vis.clear();M.hid=null;M.flip=false;if(M.G)M.G.scale.x=1;
   { const sl=S&&S.ship&&S.ship.sls;if(sl&&M.sls)Object.assign(sl,M.sls); }
   try{if(M.wasMain===false)setMain(false);}catch(e){}
   try{setPaused(!!M.wasPaused);}catch(e){}
   M.cur=null;}
 const back=document.createElement("button");back.id="cutBack";back.type="button";back.hidden=true;back.textContent="Cutaway";document.body.append(back);
 back.onclick=()=>{M.ledger=false;};
-function want(){return typeof SV!=="undefined"&&SV.open&&SHIP&&SHIP.id==="constitution"&&typeof R3!=="undefined"&&R3&&R3.shipId==="constitution"&&R3.bob;}
+function want(){return typeof SV!=="undefined"&&SV.open&&SHIP&&!!LAYOUT[SHIP.id]&&typeof R3!=="undefined"&&R3&&R3.shipId===SHIP.id&&R3.bob;}
 function sync(){const w=want(),on=w&&!M.ledger;
   if(!w)M.ledger=false;
-  if(on&&!M.on){if(!M.built)build(R3);if(M.built)enter();}else if(!on&&M.on)leave();
+  if(on&&!M.on){build(R3);if(M.built)enter();}else if(!on&&M.on)leave();
   back.hidden=!(w&&M.ledger);}
 function boot(){
-  setInterval(star,400);setInterval(sync,120);
+  setInterval(sync,120);
 }
 {const ptr=new Map();const two=()=>{const a=[...ptr.values()];return a.length===2?{d:Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y)||1,x:(a[0].x+a[1].x)/2,y:(a[0].y+a[1].y)/2}:null;};
  addEventListener("pointerdown",e=>{if(M.on&&e.target&&e.target.id==="view3d"){ptr.set(e.pointerId,{x:e.clientX,y:e.clientY,sx:e.clientX,sy:e.clientY,n:ptr.size});e.stopPropagation();}},true);
  addEventListener("pointermove",e=>{const p=ptr.get(e.pointerId);if(!M.on||!p)return;
   if(ptr.size===1){M.uaz-=(e.clientX-p.x)*.35;M.upt+=(e.clientY-p.y)*.25;p.x=e.clientX;p.y=e.clientY;}
-  else{const a=two();p.x=e.clientX;p.y=e.clientY;const b=two();if(a&&b){M.uz=Math.max(.2,Math.min(1.8,M.uz*a.d/b.d));M.uly=Math.max(-14,Math.min(14,M.uly+(b.y-a.y)*.04));M.pan=Math.max(-26,Math.min(26,M.pan-(b.x-a.x)*.05));}}},true);
+  else{const a=two();p.x=e.clientX;p.y=e.clientY;const b=two();if(a&&b){M.uz=Math.max(.2,Math.min(1.8,M.uz*a.d/b.d));M.uly=Math.max(-14*SK-2,Math.min(14*SK+2,M.uly+(b.y-a.y)*.04*Math.max(.3,SK)));M.pan=Math.max(-LS.Lh,Math.min(LS.Lh,M.pan-(b.x-a.x)*.05*Math.max(.3,SK)));}}},true);
  const rcast=new THREE.Raycaster();
  const tapAt=(cx,cy)=>{if(!M.R||!M.fig)return -2;const r=M.R.renderer.domElement.getBoundingClientRect();
    rcast.setFromCamera({x:((cx-r.left)/r.width)*2-1,y:-((cy-r.top)/r.height)*2+1},M.R.camera);M.fig.updateMatrixWorld(true);
@@ -6665,10 +6913,8 @@ body.cutmode #aboutBox,body.cutmode .dockwrap{}
 .rd{margin-top:5px;font:italic 13px "IM Fell English",serif;color:#2e2519}
 #cutCard p{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 #cutCard{max-height:27vh}#cutCard.tall{max-height:34vh}
-.cstar{position:absolute!important;top:8px;right:8px;z-index:3;background:#2e2519;color:#f4d36a!important;font:400 20px Georgia,serif!important;width:30px;height:30px;line-height:30px;text-align:center;border-radius:50%}
-.cstarred{outline:2px solid #b8862a;outline-offset:-2px}
 #cutChips button{padding:5px 6px}
-.cstarred{position:relative}
+#cutChips.many button{padding:5px 3px}
 body.cutmode #shipView{display:none!important}
 #cutBack{position:fixed;right:10px;top:calc(var(--bar-h,56px) + 8px);z-index:40;border:1px solid #2e2519;border-radius:3px;background:rgba(246,238,217,.96);color:#2e2519;font:12px "IM Fell English SC",serif;padding:5px 9px}#cutBack[hidden]{display:none}
 #cutSvg text{font:12.5px Georgia,serif;font-style:normal;fill:#000;stroke:none;paint-order:normal}
