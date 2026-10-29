@@ -676,6 +676,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-
         <p class="svhint" id="svJobTxt"></p></div>
       <div class="svp" id="svHirePanel" hidden><h3>Hands for hire</h3><p class="svhint" id="svHireHint"></p><div class="svbtns" id="svHire"></div><div class="svbtns"><button type="button" id="svLeave" title="Let the hands ashore for the day: spirits rise, but some may not come back">Grant shore leave</button></div></div>
       <div class="svp"><h3>Purse and port</h3><div class="sveff" id="svPurse"></div><p class="svhint" id="svPortHint"></p><p class="svhint" id="svNews"></p><div class="svbtns" id="svTrade" hidden><button type="button" id="svB1"></button><button type="button" id="svB2"></button><button type="button" id="svB3"></button><button type="button" id="svB4"></button><button type="button" id="svB5"></button><button type="button" id="svB6"></button><button type="button" id="svSell"></button><button type="button" data-s="timber"></button><button type="button" data-s="canvas"></button><button type="button" data-s="rope"></button><button type="button" data-s="pitch"></button></div></div>
+      <div class="svp" id="svMkt"><h3>Market and hold</h3><div id="svMktBody"></div></div>
       <div class="svp"><h3>Crew</h3><div id="svSel"></div><div id="svRoster" class="svroster"></div></div>
     </aside>
   </section>
@@ -1043,7 +1044,7 @@ function newState(v){
     ship:{x:p.x,y:p.y,heading:v.hdg,ordered:v.hdg,v:0,turnDir:0,wander:0,bias:gauss()*1.2,anch:{mode:"up",t0:0,depth:0},rig:1,sail:3,sailSet:3,sl:planOf(3),sa:planOf(3),sls:planOf(3),q:[],brace:0,braceCmd:0,autoBrace:false},trim:1,aback:false,
     est:{x:p.x,y:p.y,sx:.5,sy:.5},estSpeed:0,lastLog:null,
     track:[{x:p.x,y:p.y}],estTrack:[{x:p.x,y:p.y}],bearings:[],latLines:[],seen:new Set(),log:[],
-    route:{pts:[],follow:false,t:0},crew,shipId:SHIP.id,stores:{bis:45*nC,meat:45*nC,beer:45*nC,fish:0,lime:0,rum:Math.round(1.5*nC),med:2*nC},ration:1,purse:Math.round(600*Math.pow(Math.max(.25,nC/20),.6)),hull:1,leak:0,water:0,canvas:1,spares:{timber:4,canvas:3,rope:4,pitch:3},jobs:{},pumpMode:"auto",pumping:false,pumpMen:0,fmarks:{},fishing:false,catchTotal:0,fishAcc:0,fish:null,callAll:false,allHands:false,eff:1,fat:0,squall:null,nextSquall:0,squallWarned:false,day:{},noon:{observing:false,readings:[],doneDay:-1},
+    route:{pts:[],follow:false,t:0},crew,shipId:SHIP.id,stores:{bis:45*nC,meat:45*nC,beer:45*nC,fish:0,lime:0,rum:Math.round(1.5*nC),med:2*nC},ration:1,purse:Math.round(2400*Math.pow(Math.max(.25,nC/20),.6)),hull:1,leak:0,water:0,canvas:1,spares:{timber:4,canvas:3,rope:4,pitch:3},jobs:{},pumpMode:"auto",pumping:false,pumpMen:0,fmarks:{},fishing:false,catchTotal:0,fishAcc:0,fish:null,callAll:false,allHands:false,eff:1,fat:0,squall:null,nextSquall:0,squallWarned:false,day:{},noon:{observing:false,readings:[],doneDay:-1},
     distance:0,maxV:0,done:false,arrivedNear:false,breakersWarned:0,strain:0,missed:0,
     heaves:0,fixes:0,sights:0,lastHalfHour:null,lastHour:null};
   // start 07:00 local
@@ -1230,7 +1231,7 @@ function step(dt){
   const sh=s.ship;
   const w=windAt(s,sh.x,sh.y,s.t);
   const bf=beaufort(w.kn);
-  wxStep(s,dt,w);routeStep(s);assistStep(s,dt,w);crewStep(s,dt,w);fishStep(s,dt,w);damageStep(s,dt,w);
+  wxStep(s,dt,w);routeStep(s);assistStep(s,dt,w);crewStep(s,dt,w);fishStep(s,dt,w);damageStep(s,dt,w);tradeStep(s,dt,w);
   // squalls
   if(!s.squall&&s.t>s.nextSquall-.3&&!s.squallWarned){s.squallWarned=true;say("Squall to windward! Dark cloud and white water coming down on us.",{slow:true});}
   if(!s.squall&&s.t>=s.nextSquall){s.squall={t0:s.t,dur:.4+rng()*.5,boost:10+rng()*7,shift:(rng()<.5?-1:1)*(10+rng()*20)};}
@@ -1264,7 +1265,7 @@ function step(dt){
   s.trim=abackNow?0:Math.max(.05,Math.cos(Math.min(terr*1.6,90)*D2R));
   if(abackNow&&!s.aback&&!inIrons)say(SHIP.fa?"Taken aback! The wind is on the wrong side of the sails. Let fly the sheets and bring the booms across.":"Taken aback! The wind is on the wrong side of the sails. Brace the yards round.",{slow:true});
   s.aback=abackNow;
-  let raw=SHIP.speedK*polar(th)*w.kn*sail.eff*(.5+.5*sh.rig)*(.7+.3*s.canvas)*(1-.3*clamp(s.water/80,0,1))*(1-.03*Math.max(0,bf-5))*s.trim*(1-.1*clamp((s.wx.H-1.8)/3.2,0,1)); // a heavy sea slows her
+  let raw=SHIP.speedK*polar(th)*w.kn*sail.eff*(.5+.5*sh.rig)*(.7+.3*s.canvas)*(1-.3*clamp(s.water/80,0,1))*cargoSpeedF(s)*(1-.03*Math.max(0,bf-5))*s.trim*(1-.1*clamp((s.wx.H-1.8)/3.2,0,1)); // a heavy sea slows her
   if(sh.sailSet<.5)raw=th>100?w.kn*.12:0;
   const vRow=rowStep(s,dt,bf);if(vRow>0){const r0=Math.max(0,raw);raw=Math.max(r0,vRow)+.25*Math.min(r0,vRow);} // oars help little once the sails drive her faster than the men can pull
   const tv=HULL_MAX*Math.tanh(raw/HULL_MAX);
@@ -2011,6 +2012,7 @@ function drawChart(){
   if(showTrue){
     ctx.save();ctx.strokeStyle=S.mode==="lost"?"#a8452c":"rgba(46,37,25,.55)";ctx.lineWidth=S.mode==="lost"?1.8:1.2;ctx.beginPath();S.track.forEach((p,i)=>i?ctx.lineTo(sx(p.x),sy(p.y)):ctx.moveTo(sx(p.x),sy(p.y)));ctx.lineTo(sx(S.ship.x),sy(S.ship.y));ctx.stroke();ctx.restore();
     drawShip(sx(S.ship.x),sy(S.ship.y),S.ship.heading);
+    drawPirates();
   }
   drawCurrents();drawFish();drawRoute();drawProj();
   // scale bar
@@ -4619,6 +4621,7 @@ function update3D(dt,now){
   // world objects relative to ship
   for(const o of R.isl){const c=o.isl.c;o.grp.position.set((c.x-sh.x)*NM,0,-(c.y-sh.y)*NM);const dd=Math.hypot(c.x-sh.x,c.y-sh.y);o.grp.visible=dd<75;if(o.veg)o.veg.visible=dd-o.Rr<9;}
   updateFauna(R,dt,gain,wdx,wdz,nightF);
+  updatePirates3D(R);
   const dest=R.towns[S.v.to];
   if(dest){R.beacon.position.set((dest.x-sh.x)*NM,0,-(dest.y-sh.y)*NM);R.beacon.visible=S.mode==="trial";}else R.beacon.visible=false;
   { const rl=R.routeLine,pts=S.route.pts,n=Math.min(pts.length,65);
@@ -4928,7 +4931,7 @@ function portInfoHTML(k){const P=PORTS[k],X=PORTX[k],f=PORTF[k]||1,usual=i=>Math
     tideHTML=`<div class="ptbl"><h4>Tides</h4><div><span>Now</span><span>${nx?"rising":"falling"}, ${lv>=0?"+":""}${lv.toFixed(2)} m</span></div><div><span>Stream at the mouth</span><span>${Math.abs(st)<.04?"slack":(st>0?"flooding in ":"ebbing out ")+Math.abs(st).toFixed(1)+" kn"}</span></div>${bar}${tb}<div><span>Range</span><span>${X.r} m at springs · ${tideSpring(t)} now</span></div></div>`;}
   return `<div class="ptbl"><h4>For sale to the ship</h4>${row("Biscuit",usual("bis"),"/100 lb",pr("bis"))}${row("Salt meat",usual("meat"),"/100 lb",pr("meat"))}${row("Small beer",usual("beer"),"/100 gal",pr("beer"))}${row("Limes",usual("lime"),"/100 lb",pr("lime"))}${row("Rum",usual("rum"),"/100 gal",pr("rum"))}${row("Physic and dressings",usual("med"),"/100 doses",pr("med"))}${row("Timber (plank sets)",sp("timber"),"each")}${row("Canvas (bolt)",sp("canvas"),"each")}${row("Cordage (coil)",sp("rope"),"each")}${row("Pitch (keg)",sp("pitch"),"each")}</div>
   ${tideHTML}<div class="ptbl"><h4>Buys from the ship</h4>${row("Salt fish",portFish(k),"/100 lb",tod?Math.round(priceOf(S,"fish",k)*100):0)}</div>
-  <p class="pnote">Wants ashore: ${X.wants}. Prices are the usual ones; the quay sets today's.</p>`;}
+  ${marketBlurb(k)}<p class="pnote">Wants ashore: ${X.wants}. Prices are the usual ones; the quay sets today's.</p>`;}
 let portSel=null;
 function openPortCard(k){portSel=k;const P=PORTS[k],X=PORTX[k];$("portCard").hidden=false;$("portCard").innerHTML=`<div class="pchead"><div><b>${P.name}</b><small>${X.isl} · ${fmtLat(P.lat)} ${fmtLon(P.lon)}</small></div><span><button class="btn sm" id="pcExp" title="Open the harbour plan">Expand ⤢</button> <button class="ctog" id="pcX" title="Close">×</button></span></div>${portInfoHTML(k)}`;
   $("pcX").onclick=closePortCard;$("pcExp").onclick=openPortPlan;}
@@ -5073,6 +5076,216 @@ function buyStore(item){if(!S)return;const p=atPort(S);if(!p){say("You must be i
   if(S.purse<c){say("The purse is too light for that.",{log:false});return;}if((S.stores[item]||0)+QTY[item]>storeCap()){say("The casks are full.",{log:false});return;}
   S.purse-=c;S.stores[item]=(S.stores[item]||0)+QTY[item];say(`Bought ${QTY[item]} ${ITEMN[item]} at ${p.name} for ${money(c)}.`,{});svBill();}
 function sellFish(){if(!S)return;const p=atPort(S);if(!p){say("You must be in port to trade.",{log:false});return;}const lb=Math.floor(S.stores.fish);if(lb<1)return;const v=lb*priceOf(S,"fish",p.k);S.stores.fish-=lb;S.purse+=v;say(`Sold ${lb} lb of salt fish at ${p.name} for ${money(v)}.`,{});svBill();}
+/* ---------- trade between the ports: twelve goods in three tiers, a hold in tons, prices that follow each port's stock, standing, duties and smuggling, contracts, news, cargo risks, and pirates at sea ---------- */
+// Tier 1 is for sale from the start, tier 2 opens at standing 15, tier 3 comes only as consignments on special contracts (standing 40). Prices are shillings a unit; t is tons a unit.
+const GOODS={
+  sugar:{n:"Muscovado sugar",u:"hogshead",t:.65,p:300,tier:1,spoil:.0015,wet:.03},
+  molasses:{n:"Molasses",u:"puncheon",t:.45,p:90,tier:1,spoil:.001,wet:0,rough:.01},
+  lumber:{n:"Lumber and staves",u:"bundle",t:.8,p:120,tier:1,spoil:0,wet:0},
+  flour:{n:"Flour",u:"barrel",t:.1,p:22,tier:1,spoil:.004,wet:.07},
+  rum:{n:"Rum",u:"puncheon",t:.5,p:220,tier:2,spoil:0,wet:0,rough:.006},
+  cotton:{n:"Cotton",u:"bale",t:.2,p:150,tier:2,spoil:.0005,wet:.06},
+  coffee:{n:"Coffee",u:"tierce",t:.25,p:180,tier:2,spoil:.001,wet:.05},
+  iron:{n:"Bar iron",u:"ton",t:1,p:300,tier:2,spoil:0,wet:.004},
+  madeira:{n:"Madeira wine",u:"pipe",t:.55,p:420,tier:3,spoil:0,wet:0,rough:.004},
+  indigo:{n:"Indigo",u:"chest",t:.1,p:260,tier:3,spoil:.0005,wet:.06},
+  shell:{n:"Tortoiseshell",u:"chest",t:.05,p:380,tier:3,spoil:0,wet:.004},
+  amber:{n:"Ambergris",u:"casket",t:.02,p:900,tier:3,spoil:0,wet:0}};
+const gPl=g=>GOODS[g].u+"s",gName=g=>GOODS[g].n.toLowerCase();
+const MKT_IDS=Object.keys(GOODS).filter(g=>GOODS[g].tier<3),RARE_IDS=Object.keys(GOODS).filter(g=>GOODS[g].tier===3);
+// who makes what (1 = plentiful and cheap, -1 = scarce and dear); the rest is middling
+const PRODN={bridgetown:{sugar:1,molasses:1,rum:1,lumber:-1,iron:-1,coffee:-1},castries:{molasses:1,coffee:1,lumber:1,flour:-1,iron:-1},stjohns:{sugar:1,iron:1,flour:1,lumber:-1,coffee:-1,cotton:-1},kingstown:{cotton:1,lumber:1,rum:-1,flour:-1,iron:-1,molasses:-1},basseterre:{sugar:1,cotton:1,rum:1,coffee:-1,lumber:-1}};
+const NORMST=84,STKM={"1":1.5,"0":1,"-1":.5};
+const DUTYIN={bridgetown:.04,castries:.06,stjohns:.05,kingstown:.03,basseterre:.07},DUTYOUT=.02;
+const CARGOT={jolly:.5,cutter:6,sultana:12,brig:90,caroline:14,endeavour:260,xebec:70,gotheborg:520,constitution:120,trinidad:300};
+const REPN=[[0,"Unknown"],[15,"Known"],[40,"Trusted"],[70,"Eminent"]],REP2=15,REP3=40;
+const repName=r=>{let n="Unknown";for(const [v,m] of REPN)if(r>=v)n=m;return n;};
+const holdCap=()=>CARGOT[SHIP.id]??40;
+const holdUsed=s=>{let t=0;if(s.cargo)for(const g in s.cargo)t+=s.cargo[g].n*GOODS[g].t;return t;};
+const cargoSpeedF=s=>1-.14*clamp(holdUsed(s)/holdCap(),0,1.3);
+const cargoValue=s=>{let v=0;if(s.cargo)for(const g in s.cargo)v+=s.cargo[g].n*GOODS[g].p;return v;};
+const unitsFit=(s,g)=>Math.floor((holdCap()-holdUsed(s))/GOODS[g].t+1e-9);
+const portDist=(a,b)=>Math.hypot(PORTS[a].x-PORTS[b].x,PORTS[a].y-PORTS[b].y);
+
+function mkEq(mk,k,g){let m=NORMST*STKM[(PRODN[k]||{})[g]||0];for(const e of mk.ev)if(e.k===k&&(!e.g||e.g.includes(g)))m*=e.m;return m;}
+function mkInit(s){if(s.mk)return s.mk;const mk={ports:{},ev:[],acc:0,evDay:-1};s.mk=mk;
+  for(const k in PORTS){mk.ports[k]={};for(const g of MKT_IDS)mk.ports[k][g]=mkEq(mk,k,g)*(.85+.3*Math.random());}
+  s.seen=s.seen||{};s.news=s.news||[];s.rep=s.rep||0;s.cargo=s.cargo||{};s.contracts=s.contracts||[];s.cdone=s.cdone||[];s.fees=s.fees||{};return mk;}
+const unitPrice=(k,g,st)=>GOODS[g].p*clamp(Math.pow(NORMST/Math.max(12,st),.4),.5,2.4);
+function buyQuote(s,k,g,n,smug){const st=s.mk.ports[k][g];let c=0;for(let i=0;i<n;i++)c+=unitPrice(k,g,st-i);return c*(1.04+(smug?.1:DUTYOUT));}
+function sellQuote(s,k,g,n,smug){const st=s.mk.ports[k][g];let c=0;for(let i=0;i<n;i++)c+=unitPrice(k,g,st+i);return c*(.96-(smug?.1:DUTYIN[k]||0));}
+const askNow=(s,k,g,smug)=>buyQuote(s,k,g,1,smug),bidNow=(s,k,g,smug)=>sellQuote(s,k,g,1,smug);
+const harbourFee=()=>Math.round(holdCap()*.1+3);
+function tradeSite(s){const p=atPort(s);if(p)return{k:p.k,name:p.name,smug:false};
+  const b=portsNear(s);if(b&&b.d<8&&s.ship.v<.4&&s.ship.anch.mode==="holding"&&isNight(s)&&coastNm(s.ship.x,s.ship.y)<2.5)return{k:b.k,name:b.name,smug:true};return null;}
+function tradeSeen(s,k){const S2=s.seen[k]||(s.seen[k]={});for(const g of MKT_IDS)S2[g]={p:Math.round(unitPrice(k,g,s.mk.ports[k][g])),t:s.t};}
+
+// stock drifts back to what each port normally holds; now and then a glut, a shortage, war news or a hurricane
+function mkEvents(s,mk,day){const ks=Object.keys(PORTS),rp=a=>a[Math.floor(Math.random()*a.length)],add=(k,g,m,days,text)=>{mk.ev.push({k,g,m,until:day+days});if(text)s.news.unshift({k,day,text});};
+  if(Math.random()<.35){const k=rp(ks),g=rp(MKT_IDS),days=4+Math.floor(Math.random()*7);
+    if(Math.random()<.5)add(k,[g],1.9,days,`A ship has glutted ${PORTS[k].name} with ${gName(g)}; the price is down.`);
+    else add(k,[g],.4,days,`${GOODS[g].n} is scarce at ${PORTS[k].name} after a short crop and a late ship; the price is up.`);}
+  if(Math.random()<.015){const k=rp(ks);add(k,null,.55,14,`A hurricane has torn through ${PORTS[k].name}; stores are short and everything is dear.`);}
+  if(Math.random()<.02){for(const k of ks)add(k,["iron","lumber"],.55,12);s.news.unshift({k:rp(ks),day,text:"War with the French is rumoured; iron and timber are dear in every port."});}
+  if(s.news.length>30)s.news.length=30;}
+function mkStep(s,dt){const mk=mkInit(s);mk.acc+=dt;if(mk.acc<.5)return;const h=mk.acc;mk.acc=0;const d=h/24,day=dayIndex(s);
+  mk.ev=mk.ev.filter(e=>e.until>day);if(mk.evDay<day){mk.evDay=day;mkEvents(s,mk,day);}
+  for(const k in mk.ports)for(const g of MKT_IDS){const eq=mkEq(mk,k,g),st=mk.ports[k][g];mk.ports[k][g]=Math.max(3,st+(eq-st)*(1-Math.exp(-d/5))+gauss()*eq*.035*Math.sqrt(d));}
+  const p=atPort(s);if(p)tradeSeen(s,p.k);}
+
+// buying and selling
+function addRep(s,v){s.rep=clamp((s.rep||0)+v,0,100);}
+function smuggleRisk(s,value){const ch=.08+Math.min(.25,value/6000);if(Math.random()>=ch)return;
+  const fine=Math.min(s.purse,Math.round(value*.35+20));s.purse-=fine;addRep(s,-10);say(`A revenue cutter's boat pulls out of the dark and catches you at it. The officer takes ${money(fine)} in fines and a note of your name.`,{});}
+function payFee(s,site){if(site.smug)return 0;const d=dayIndex(s);if(s.fees[site.k]!=null&&d-s.fees[site.k]<3)return 0;return harbourFee();}
+function tradeBuy(g,n){const s=S;if(!s||s.done)return;mkInit(s);const site=tradeSite(s);if(!site){say("You must be in port, or at anchor in a quiet cove after dark, to trade.",{log:false});return;}
+  const G=GOODS[g];if(G.tier>1&&(s.rep||0)<REP2){say("The merchants do not know you well enough to deal in that yet.",{log:false});return;}
+  const st=s.mk.ports[site.k][g];n=Math.min(n,Math.floor(st-6),unitsFit(s,g));
+  if(unitsFit(s,g)<1){say("The hold is full.",{log:false});return;}if(n<1){say("There is no more to be had at a fair price.",{log:false});return;}
+  const fee=payFee(s,site);while(n>0&&buyQuote(s,site.k,g,n,site.smug)+fee>s.purse)n--;
+  if(n<1){say("The purse is too light for that.",{log:false});return;}
+  const c=buyQuote(s,site.k,g,n,site.smug);s.purse-=c+fee;if(fee)s.fees[site.k]=dayIndex(s);
+  s.mk.ports[site.k][g]-=n;const cur=s.cargo[g]||(s.cargo[g]={n:0,cost:0});cur.n+=n;cur.cost+=c;
+  say(`Bought ${n} ${n===1?G.u:gPl(g)} of ${gName(g)} at ${site.name} for ${money(c)}${fee?`, and ${fee}s harbour dues`:""}.`,{});
+  if(site.smug)smuggleRisk(s,c);tradeUI(true);svBill();}
+function tradeSell(g,n){const s=S;if(!s||s.done)return;mkInit(s);const site=tradeSite(s);if(!site){say("You must be in port, or at anchor in a quiet cove after dark, to trade.",{log:false});return;}
+  const cur=s.cargo[g];if(!cur||GOODS[g].tier>2){say("There is none aboard to sell.",{log:false});return;}
+  n=Math.min(n==="all"?Infinity:n,Math.floor(cur.n+1e-9));if(n<1)return;
+  const fee=payFee(s,site),v=sellQuote(s,site.k,g,n,site.smug),basis=cur.cost*n/cur.n,profit=v-basis;
+  s.purse+=v-fee;if(fee)s.fees[site.k]=dayIndex(s);s.mk.ports[site.k][g]+=n;cur.n-=n;cur.cost-=basis;if(cur.n<.01)delete s.cargo[g];
+  if(profit>0)addRep(s,Math.min(2.5,profit/120));
+  say(`Sold ${n} ${n===1?GOODS[g].u:gPl(g)} of ${gName(g)} at ${site.name} for ${money(v)}${profit>=0?`, a profit of ${money(profit)}`:`, a loss of ${money(-profit)}`}.${site.smug?"":` Duty is ${Math.round((DUTYIN[site.k]||0)*100)}%.`}`,{});
+  if(site.smug)smuggleRisk(s,v);tradeUI(true);svBill();}
+function tradeJettison(g,n){const s=S;if(!s||!s.cargo[g])return;const cur=s.cargo[g];n=Math.min(n==="all"?Infinity:n,cur.n);const part=cur.cost*n/cur.n;cur.n-=n;cur.cost-=part;if(cur.n<.01)delete s.cargo[g];
+  say(`The hands heave ${Math.round(n)} ${n===1?GOODS[g].u:gPl(g)} of ${gName(g)} over the side. She rides lighter.`,{});tradeUI(true);}
+
+// contracts: freight for a premium over the usual price, and special consignments of the rare goods
+function contractBoard(s,k){const day=dayIndex(s),blk=Math.floor(day/3),r=mulberry32(hashStr(k+"|"+blk)),out=[],others=Object.keys(PORTS).filter(x=>x!==k),rep=s.rep||0;
+  const pool=MKT_IDS.filter(g=>GOODS[g].tier<=(rep>=REP2?2:1));
+  for(let i=0;i<4;i++){const id=k+"|"+blk+"|"+i,to=others[Math.floor(r()*others.length)],days=Math.ceil(portDist(k,to)/(6*24))+2+Math.floor(r()*4),due=blk*3+days+1;
+    const special=i===3;if(special&&(rep<REP3||r()<.4)){r();r();r();continue;}
+    if(s.cdone.includes(id)||s.contracts.some(c=>c.id===id))continue;
+    if(special){const g=RARE_IDS[Math.floor(r()*RARE_IDS.length)],n=Math.max(2,Math.min(12,Math.round((.4+r()*1.1)/GOODS[g].t)));out.push({id,from:k,to,g,n,due:due+2,special:true,reward:Math.round(n*GOODS[g].p*(1.8+r()*.6))});}
+    else{const g=pool[Math.floor(r()*pool.length)],n=Math.max(2,Math.round(holdCap()*(.12+r()*.2)/GOODS[g].t)),prem=1.18+r()*.25;r();out.push({id,from:k,to,g,n,due,special:false,reward:Math.round(n*GOODS[g].p*prem)});}}
+  return out;}
+function contractText(c,s){const G=GOODS[c.g];return `${c.special?"Consignment: carry":"Deliver"} ${c.n} ${c.n===1?G.u:gPl(c.g)} of ${gName(c.g)} ${c.special?"from":"to"} ${c.special?PORTS[c.from].name+" to "+PORTS[c.to].name:PORTS[c.to].name} within ${Math.max(0,c.due-dayIndex(s))} days for ${money(c.reward)}${c.special?" (a rare cargo, loaded free)":""}.`;}
+function contractAccept(id){const s=S;if(!s)return;const p=atPort(s);if(!p)return;const c=contractBoard(s,p.k).find(x=>x.id===id);if(!c)return;
+  if(c.special){const t=c.n*GOODS[c.g].t;if(holdCap()-holdUsed(s)<t-1e-9){say("There is not room in the hold for that consignment.",{log:false});return;}
+    const cur=s.cargo[c.g]||(s.cargo[c.g]={n:0,cost:0});cur.n+=c.n;}
+  s.contracts.push(c);say(`Contract taken at ${p.name}: ${contractText(c,s)}`,{});tradeUI(true);svBill();}
+function contractDeliver(id){const s=S;if(!s)return;const p=atPort(s),c=s.contracts.find(x=>x.id===id);if(!p||!c||p.k!==c.to)return;
+  const cur=s.cargo[c.g];if(!cur||cur.n<c.n-1e-9){say(`You are short: the contract needs ${c.n} ${gPl(c.g)} of ${gName(c.g)} aboard.`,{log:false});return;}
+  const part=cur.cost*c.n/cur.n;cur.n-=c.n;cur.cost-=part;if(cur.n<.01)delete s.cargo[c.g];
+  const late=dayIndex(s)>c.due,pay=Math.round(c.reward*(late?.5:1));s.purse+=pay;addRep(s,late?-4:(c.special?8:4));
+  s.contracts=s.contracts.filter(x=>x!==c);s.cdone.push(c.id);
+  say(late?`Delivered late at ${p.name}. The factor docks the pay to ${money(pay)} and does not look pleased.`:`Contract delivered at ${p.name}: ${money(pay)} paid and your name is better thought of.`,{});tradeUI(true);svBill();}
+function buyNews(){const s=S;if(!s)return;const p=atPort(s);if(!p||s.purse<8)return;s.purse-=8;for(const k in PORTS)tradeSeen(s,k);s.paidNews=dayIndex(s);
+  say("A coaster's master tells you what he saw in every port this week, for eight shillings. Your price list is up to date.",{});tradeUI(true);svBill();}
+
+// the hold at sea: damp and heat spoil, a heavy sea works the casks, an overloaded ship strains in a gale; and pirates
+function tradeStep(s,dt,w){mkStep(s,dt);const day=dayIndex(s),d=dt/24;
+  if(s.cargo){const wet=clamp(s.water/12,0,1)+clamp((s.wx.H-4)/3,0,1),rough=clamp((s.wx.H-3)/3,0,1);
+    for(const g in s.cargo){const G=GOODS[g],cur=s.cargo[g],rate=G.spoil+G.wet*wet+(G.rough||0)*rough,loss=cur.n*rate*d;
+      if(loss>0){cur.cost*=1-loss/cur.n;cur.n-=loss;s.spoilAcc=(s.spoilAcc||{});s.spoilAcc[g]=(s.spoilAcc[g]||0)+loss;
+        if(s.spoilAcc[g]>=1&&s.t-(s.spoilT||-99)>2){s.spoilT=s.t;const n=Math.floor(s.spoilAcc[g]);s.spoilAcc[g]-=n;say(wet>.3?`Water in the hold has got at the ${gName(g)}: ${n} ${n===1?G.u:gPl(g)} spoiled.`:`${n} ${n===1?G.u:gPl(g)} of ${gName(g)} spoiled in the heat of the hold.`,{log:true});}}
+      if(cur.n<.05)delete s.cargo[g];}
+    const bf=beaufort(w.kn),load=holdUsed(s)/holdCap();
+    if(bf>=8&&load>.5){s.hull=Math.max(.2,s.hull-.0008*(bf-7)*load*dt);if(s.t-(s.galeWarn||-99)>12){s.galeWarn=s.t;say("She is deep and labouring in this gale; the cargo is working in the hold. Lightening her may save the ship.",{slow:true});}}}
+  if(s.contracts&&s.contracts.length&&s.cdayChk!==day){s.cdayChk=day;
+    for(const c of s.contracts.slice())if(day>c.due+5){s.contracts=s.contracts.filter(x=>x!==c);s.cdone.push(c.id);addRep(s,-6);
+      if(c.special&&s.cargo[c.g]){const cur=s.cargo[c.g];cur.n=Math.max(0,cur.n-c.n);if(cur.n<.01)delete s.cargo[c.g];}
+      say(`The ${PORTS[c.to].name} contract has lapsed. Your name suffers${c.special?" and the owners take back their consignment":""}.`,{});}}
+  pirStep(s,dt,w);}
+
+const pirRange=s=>(isNight(s)?3:7)*(s.wx&&s.wx.rain>.4?.6:1);
+function pirStep(s,dt,w){const P=s.pir||(s.pir=[]),sh=s.ship;if(s.done)return;
+  const near=portsNear(s),open=!atPort(s)&&near.d>6&&coastNm(sh.x,sh.y)>3,val=cargoValue(s);
+  if(!P.length&&open&&val>350&&s.t>(s.pirCool||0)&&Math.random()<.02*Math.min(2.5,val/1500)*dt){
+    const a=Math.random()*2*PI,d=6+Math.random()*3,x=sh.x+Math.sin(a)*d,y=sh.y+Math.cos(a)*d;
+    if(coastNm(x,y)>1.5)P.push({x,y,h:norm(a*180/PI+180+(Math.random()-.5)*120),v:0,seen:false,mode:"prowl",t0:s.t});}
+  for(const p of P.slice()){
+    const dx=sh.x-p.x,dy=sh.y-p.y,d=Math.hypot(dx,dy),brg=norm(Math.atan2(dx,dy)*180/PI);
+    if(p.mode==="prowl"&&d<5.5&&val>0)p.mode="chase";
+    let pv=clamp(3+.32*w.kn,3,8.5);const rel=Math.abs(angDiff(p.h,w.from));pv*=rel<50?.4:rel<80?.75:1;if(p.mode==="prowl")pv*=.6;
+    if(p.mode==="chase")p.h=norm(p.h+clamp(angDiff(p.h,brg),-3000*dt,3000*dt));
+    p.v+=(pv-p.v)*(1-Math.exp(-dt/.02));
+    const nx=p.x+Math.sin(p.h*D2R)*p.v*dt,ny=p.y+Math.cos(p.h*D2R)*p.v*dt;
+    if(coastNm(nx,ny)<.5){p.h=norm(p.h+90);}else{p.x=nx;p.y=ny;}
+    const R=pirRange(s);
+    if(!p.seen&&d<R){p.seen=true;say(`Sail ho! The lookout sights a sloop flying no colours, ${d.toFixed(0)} miles to the ${["north","north-east","east","south-east","south","south-west","west","north-west"][Math.round(((Math.atan2(p.x-sh.x,p.y-sh.y)*180/PI+360)%360)/45)%8]}.${p.mode==="chase"?" She has put her helm up and is coming for us.":""}`,{slow:true});}
+    else if(p.seen&&d>R*1.3)p.seen=false;
+    if(d>13||(p.mode==="chase"&&s.t-p.t0>30)){s.pir=P.filter(q=>q!==p);s.pirCool=s.t+24;continue;}
+    if(p.mode==="chase"&&d<.3&&!s.crisis&&!modalOpen){showCrisis(pirateCrisis(p));}}}
+function loseCargo(f){let v=0;for(const g in S.cargo){const c=S.cargo[g];v+=c.n*f*GOODS[g].p;c.n*=1-f;c.cost*=1-f;if(c.n<.05)delete S.cargo[g];}S.contracts=S.contracts.filter(c=>{if(c.special&&!S.cargo[c.g])return false;return true;});return v;}
+function pirateCrisis(p){const s=S,done=()=>{s.pir=s.pir.filter(q=>q!==p);s.pirCool=s.t+18;},hasRum=s.stores.rum>=s.crew.length*.15;
+  const ratio=clamp(.4+.18*(s.ship.v-p.v)+.15*(s.eff-1),.08,.88);
+  const opts=[
+    {label:"Heave to and strike",sub:"Lose nearly half the cargo and a quarter of the purse, but nobody is hurt.",fn:()=>{const v=loseCargo(.45),pu=Math.round(s.purse*.25);s.purse-=pu;done();return `The sloop's boat takes ${money(v)} of cargo and ${money(pu)} from the cabin. They let you go.`;}},
+    {label:"Crowd on sail and run for it",sub:`About ${Math.round(ratio*100)}% to get clear. If she overhauls us they take most of the cargo and the hands will not forget it.`,fn:()=>{
+      if(Math.random()<ratio){done();s.pirCool=s.t+30;return "Every stitch of canvas is set and she draws away. By dusk the sloop is hull down astern.";}
+      const v=loseCargo(.6);s.hull=Math.max(.2,s.hull-.06);for(const m of s.crew)m.mo=Math.max(0,m.mo-.1);done();return `The sloop runs alongside and rakes the deck. They strip ${money(v)} of cargo, and the hands are shaken.`;}}];
+  if(hasRum)opts.push({label:"Parley and offer rum",sub:"Give up the rum and a fifth of the cargo to be let alone.",fn:()=>{const v=loseCargo(.2);s.stores.rum=0;done();return `A cask of rum and ${money(v)} of cargo buy a handshake and a fair wind.`;}});
+  return{title:"Pirates!",text:"The sloop has run up the black flag and lies across our bow with her gunports open. Her people crowd the rail with cutlasses and boarding pikes.",opts};}
+
+// trading page in the Ship panel
+const TS=document.createElement("style");TS.textContent=".mk{width:100%;border-collapse:collapse;font-size:12px}.mk th{font-weight:400;text-align:left;color:var(--ink-soft);border-bottom:1px solid var(--rule);padding:2px 3px}.mk td{padding:3px;border-bottom:1px dotted var(--rule);vertical-align:middle}.mk .num{font-family:var(--f-data);text-align:right;white-space:nowrap}.mk .dim td{color:var(--ink-soft);font-style:italic}.mk button{padding:3px 6px;font-size:11px;background:transparent;color:var(--ink);border:1px solid var(--ink);border-radius:3px;font-family:var(--f-data);margin:1px}.mk button:disabled{opacity:.35}.mkw{overflow-x:auto}.mkc{font-size:12.5px;padding:4px 0;border-bottom:1px dotted var(--rule)}.mkc button{padding:3px 8px;font-size:11px;background:transparent;color:var(--ink);border:1px solid var(--ink);border-radius:3px;font-family:var(--f-data);margin-top:3px}.mkn{font-size:12px;margin:3px 0;font-style:italic;color:var(--ink-soft)}";document.head.append(TS);
+const ageD=(s,t)=>Math.max(0,Math.round((s.t-t)/24));
+function tradeUI(force){const box=document.getElementById("svMktBody");if(!box||!S||!S.crew)return;const s=S;mkInit(s);
+  const site=tradeSite(s),rep=s.rep||0,used=holdUsed(s),cap=holdCap(),day=dayIndex(s),smug=!!(site&&site.smug);
+  const board=site&&!smug?contractBoard(s,site.k):[];
+  const sig=[site&&site.k+site.smug,Math.round(s.purse),Object.keys(s.cargo).map(g=>g+Math.round(s.cargo[g].n*10)).join(),Math.round(rep),site?MKT_IDS.map(g=>Math.round(s.mk.ports[site.k][g])).join():"",s.contracts.map(c=>c.id).join(),board.map(c=>c.id).join(),s.jetArm||"",day,s.news.length,s.paidNews||0,cap,Object.keys(s.seen).length].join("|");
+  if(!force&&box._sig===sig)return;box._sig=sig;
+  const fl=(v)=>Math.round(v*10)/10;
+  let h=`<div class="sveff"><div><span>Hold</span><b>${fl(used)} of ${cap} tons</b></div><div><span>Standing</span><b>${repName(rep)} (${Math.round(rep)})</b></div><div><span>Load slows her by</span><b>${Math.round((1-cargoSpeedF(s))*100)}%</b></div></div>`;
+  h+=`<p class="svhint">${site?(smug?`A quiet cove near ${site.name}, after dark: no duty and no dues, but a worse price, and the revenue cutter may be about.`:`In ${site.name}. Import duty on what you sell here is ${Math.round((DUTYIN[site.k]||0)*100)}%${payFee(s,site)?`, and harbour dues of ${payFee(s,site)}s are charged on your first dealing`:""}.`):"Not in port. Trade in a harbour, or anchor in a quiet cove near a town after dark to smuggle."}</p>`;
+  h+=`<div class="mkw"><table class="mk"><tr><th>Goods</th><th class="num">Ask</th><th class="num">Bid</th><th class="num">Stock</th><th class="num">Aboard</th><th></th></tr>`;
+  for(const g of MKT_IDS){const G=GOODS[g],c=s.cargo[g],locked=G.tier>1&&rep<REP2;
+    if(locked){h+=`<tr class="dim"><td>${G.n}</td><td colspan="5">Opens at standing ${REP2}</td></tr>`;continue;}
+    const st=site?s.mk.ports[site.k][g]:0;
+    h+=`<tr><td>${G.n}<br><small>${G.u}, ${G.t} t</small></td><td class="num">${site?Math.round(askNow(s,site.k,g,smug))+"s":"-"}</td><td class="num">${site?Math.round(bidNow(s,site.k,g,smug))+"s":"-"}</td><td class="num">${site?Math.round(st):"-"}</td><td class="num">${c?fl(c.n)+"<br><small>avg "+Math.round(c.cost/c.n)+"s</small>":"0"}</td><td>${site?`<button data-t="buy" data-g="${g}" data-n="1">Buy 1</button><button data-t="buy" data-g="${g}" data-n="5">Buy 5</button>${c?`<button data-t="sell" data-g="${g}" data-n="1">Sell 1</button><button data-t="sell" data-g="${g}" data-n="all">Sell all</button>`:""}`:""}</td></tr>`;}
+  h+=`</table></div>`;
+  const rare=Object.keys(s.cargo).filter(g=>GOODS[g].tier===3);
+  if(Object.keys(s.cargo).length){h+=`<h3 style="margin-top:10px">Cargo aboard</h3>`;
+    for(const g of Object.keys(s.cargo)){const c=s.cargo[g],arm=s.jetArm===g;h+=`<div class="mkc">${fl(c.n)} ${GOODS[g].tier===3?"(consignment) ":""}${gPl(g)} of ${gName(g)}, ${fl(c.n*GOODS[g].t)} tons <button data-t="jet" data-g="${g}">${arm?"Tap again to throw it all over":"Jettison"}</button></div>`;}}
+  h+=`<h3 style="margin-top:10px">Prices as last seen</h3><div class="mkw"><table class="mk"><tr><th></th>${Object.keys(PORTS).map(k=>`<th class="num">${PORTS[k].name.split(" ")[0]}</th>`).join("")}</tr>`;
+  for(const g of MKT_IDS){if(GOODS[g].tier>1&&rep<REP2)continue;h+=`<tr><td>${GOODS[g].n}</td>${Object.keys(PORTS).map(k=>{const e=s.seen[k]&&s.seen[k][g];return `<td class="num">${e?e.p+"s<br><small>"+(ageD(s,e.t)?ageD(s,e.t)+" d ago":"now")+"</small>":"-"}</td>`;}).join("")}</tr>`;}
+  h+=`</table></div>`;
+  if(site&&!smug){h+=`<p class="svbtns"><button type="button" data-t="news"${s.purse<8?" disabled":""}>Buy a coaster master's news · 8s</button></p>`;
+    h+=`<h3 style="margin-top:10px">Notice board</h3>`;
+    if(!board.length)h+=`<p class="mkn">Nothing posted today.${rep<REP3?` Special consignments open at standing ${REP3}.`:""}</p>`;
+    for(const c of board)h+=`<div class="mkc">${contractText(c,s)}<br><button data-t="acc" data-id="${c.id}">Take it</button></div>`;}
+  if(s.contracts.length){h+=`<h3 style="margin-top:10px">Your contracts</h3>`;
+    for(const c of s.contracts){const here=site&&!smug&&site.k===c.to,have=(s.cargo[c.g]?s.cargo[c.g].n:0)>=c.n-1e-9;h+=`<div class="mkc">${contractText(c,s)}${here?`<br><button data-t="del" data-id="${c.id}"${have?"":" disabled"}>${have?"Deliver":"Cargo not aboard"}</button>`:""}</div>`;}}
+  const gossip=s.news.filter(n=>{if(!site)return false;const age=day-n.day;return age<=20&&(n.k===site.k||age>=2+portDist(n.k,site.k)/60);});
+  if(gossip.length){h+=`<h3 style="margin-top:10px">Port news</h3>`+gossip.slice(0,5).map(n=>`<p class="mkn">${day-n.day<1?"Today":(day-n.day)+" days ago"}: ${n.text}</p>`).join("");}
+  box.innerHTML=h;}
+{ const mb=document.getElementById("svMktBody");
+  if(mb)mb.addEventListener("click",e=>{const b=e.target.closest("button[data-t]");if(!b||!S)return;const t=b.dataset.t,g=b.dataset.g,n=b.dataset.n==="all"?"all":+b.dataset.n;
+    if(t==="buy")tradeBuy(g,n);else if(t==="sell")tradeSell(g,n);else if(t==="news")buyNews();else if(t==="acc")contractAccept(b.dataset.id);else if(t==="del")contractDeliver(b.dataset.id);
+    else if(t==="jet"){if(S.jetArm===g){S.jetArm=null;tradeJettison(g,"all");}else{S.jetArm=g;tradeUI(true);}}}); }
+function marketBlurb(k){if(!S||!S.cargo)return"";const s=S;mkInit(s);const tod=atPort(s)&&atPort(s).k===k,rep=s.rep||0;
+  const rows=MKT_IDS.filter(g=>GOODS[g].tier===1||rep>=REP2).map(g=>{const e=s.seen[k]&&s.seen[k][g];const p=tod?Math.round(unitPrice(k,g,s.mk.ports[k][g])):e?e.p:null;return `<div><span>${GOODS[g].n} (${GOODS[g].u})</span><span>${p==null?"not seen yet":p+"s"+(tod?` <em>(today)</em>`:` <em>(${ageD(s,e.t)} d ago)</em>`)}</span></div>`;}).join("");
+  return `<div class="ptbl"><h4>Goods market</h4>${rows}</div>`;}
+// pirates on the chart (with the course they will hold for the next hour) and in the 3D view
+function drawPirates(){if(!S||!S.pir)return;
+  for(const p of S.pir){if(!p.seen)continue;const x=sx(p.x),y=sy(p.y),h=p.h*D2R,ex=p.x+Math.sin(h)*p.v,ey=p.y+Math.cos(h)*p.v;
+    ctx.save();ctx.strokeStyle="#7a1f1a";ctx.fillStyle="#7a1f1a";ctx.lineWidth=1.6;ctx.setLineDash([6,4]);ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(sx(ex),sy(ey));ctx.stroke();ctx.setLineDash([]);
+    for(const f of[.25,.5,.75]){ctx.beginPath();ctx.arc(sx(p.x+(ex-p.x)*f),sy(p.y+(ey-p.y)*f),2.2,0,2*PI);ctx.fill();}
+    ctx.beginPath();ctx.arc(sx(ex),sy(ey),4,0,2*PI);ctx.stroke();
+    ctx.font="italic 12px 'IM Fell English',Georgia,serif";ctx.fillText("in 1 hour",sx(ex)+8,sy(ey)+4);
+    ctx.translate(x,y);ctx.rotate(h);ctx.beginPath();ctx.moveTo(0,-9);ctx.lineTo(5,6);ctx.lineTo(0,3);ctx.lineTo(-5,6);ctx.closePath();ctx.fill();ctx.rotate(-h);
+    ctx.fillText(`Pirate sloop · ${p.v.toFixed(1)} kn`,10,-6);ctx.restore();}}
+function pirMesh(){const g=new THREE.Group(),M=c=>new THREE.MeshBasicMaterial({color:c,side:THREE.DoubleSide});
+  const add=(geo,mat,x,y,z,ry)=>{const m=new THREE.Mesh(geo,mat);m.position.set(x,y,z);if(ry)m.rotation.y=ry;g.add(m);return m;};
+  add(new THREE.BoxGeometry(4.2,2.4,15),M(0x2a2018),0,1.2,0);add(new THREE.BoxGeometry(3,1.2,6),M(0x3a2c1e),0,2.6,-4.5);
+  add(new THREE.CylinderGeometry(.14,.2,17,6),M(0x3a2c1e),0,10,2);add(new THREE.CylinderGeometry(.12,.18,13,6),M(0x3a2c1e),0,8.5,-3.5);
+  add(new THREE.PlaneGeometry(7,11),M(0xd8cfb4),0,9,.2,PI/2);add(new THREE.PlaneGeometry(5.5,8.5),M(0xd8cfb4),0,7.5,-4.8,PI/2);
+  add(new THREE.PlaneGeometry(2.4,1.6),M(0x111111),0,18.8,2.2,PI/2);
+  g.scale.setScalar(1.6);return g;}
+function updatePirates3D(R){if(!S||!R||!R.scene)return;const L=R.pirL||(R.pirL=[]),P=S.pir||[],sh=S.ship,ax=sh.x*NM,az=-sh.y*NM;let i=0;
+  for(const p of P){if(!p.seen)continue;let m=L[i];if(!m){m=pirMesh();R.scene.add(m);L[i]=m;}m.visible=true;
+    const x=p.x*NM,z=-p.y*NM;m.position.set(x,waveH(R,x-ax,z-az)*.6,z);m.rotation.y=-p.h*D2R;i++;}
+  for(;i<L.length;i++)L[i].visible=false;}
 function toggleFish(){if(!S||S.done)return;const sh=S.ship;
   if(S.fishing){S.fishing=false;say("Lines hauled in.",{});updateUI(true);return;}
   if(sh.anch.mode==="weighing"){return;}
@@ -5660,7 +5873,7 @@ function svBalance(){const C=S.crew,OFF=["Lieutenant","Master","Mate","Midshipma
   for(const m of[...keep.filter(m=>OFF.includes(m.r)),...keep.filter(m=>m.r==="Bosun"),...keep.filter(m=>MEN.includes(m.r))]){m.w=i%3;i++;}if(SHIP.id!=="brig"&&S.crew.length>30)svBuild();
   const bos=C.find(m=>m.r==="Bosun");if(bos)bos.w=1;svRows();}
 function svFrame(dt,now){if(!S||!S.crew)return;if(SHIP.id==="brig"){const ctx=svCtx();S.crew.forEach((m,i)=>svMove(m,i,Math.min(dt,.1),ctx));}else for(const m of S.crew)if(!m.act||(SV.rowT===0))m.act=svAct(m);if(!window.CUTON)svDraw(now); // the painted page is hidden under the 3D cutaway
-  if(now-SV.rowT>250){SV.rowT=now;svRows();svBill();}}
+  if(now-SV.rowT>250){SV.rowT=now;svRows();svBill();tradeUI();}}
 function openShip(on){SV.open=on;$("shipView").hidden=!on;$("bShip").setAttribute("aria-pressed",String(on));$("bShip").title=on?"Back to the helm":"The ship: cutaway, crew quarters and watches";
   if(on){const b=document.querySelector(".bar");document.documentElement.style.setProperty("--bar-h",b.offsetHeight+"px");if(S){svBuildSel();svRows();}}}
 function svNew(){SV.sel=-1;SV.rowT=0;svTitle();if(S&&S.crew){svBuild();svBuildSel();}}
@@ -6798,7 +7011,7 @@ window.addEventListener("load",()=>setTimeout(boot,400));
 window.__CUT=M;window.__CUTfast=()=>{M.fast=1;};
 })();
 
-window.__DR={hour:()=>S&&!S.done?localHours(S,S.t):null,preview:PV,cam:()=>R3,footAt,PF,portGeom,openPortCard,openPortPlan,tideLvl,tideTable,tideStream,plotFix,LMS,currentAt,landInit,WINDK,CURK,dockAtPort,showCrisis,crisisKind,punish,loadState,packState,decS,toggleOars,setStroke,oarPivot,STROKES,pickShip,get SHIP(){return SHIP},SHIPDEFS,SPEC,useShip,applyShip,crewOf,rigOf,linesOf,get shipPick(){return shipPick},set shipPick(v){shipPick=v},svMove,svCtx,sx,sy,openPortCard,openPortPlan,get R3(){return R3},setMain,update3D,get S(){return S},VOYAGES,PORTS,islands,reefs,LMS,step,startVoyage,setCourse,tackOrWear,setSail,assistStep,noonAvailable,windAt:(x,y,t)=>windAt(S,x,y,t),inPoly,crossFix,plotFix,takeBearing,markNoon,startObserve,noonAvailable,endVoyage,toGeo,geo,atPort:()=>atPort(S),buyStore,sellFish,toggleFish,coastNm,fishStep};
+window.__DR={hour:()=>S&&!S.done?localHours(S,S.t):null,preview:PV,cam:()=>R3,footAt,PF,portGeom,openPortCard,openPortPlan,tideLvl,tideTable,tideStream,plotFix,LMS,currentAt,landInit,WINDK,CURK,dockAtPort,showCrisis,crisisKind,punish,loadState,packState,decS,toggleOars,setStroke,oarPivot,STROKES,pickShip,get SHIP(){return SHIP},SHIPDEFS,SPEC,useShip,applyShip,crewOf,rigOf,linesOf,get shipPick(){return shipPick},set shipPick(v){shipPick=v},svMove,svCtx,sx,sy,openPortCard,openPortPlan,get R3(){return R3},setMain,update3D,get S(){return S},VOYAGES,PORTS,islands,reefs,LMS,step,startVoyage,setCourse,tackOrWear,setSail,assistStep,noonAvailable,windAt:(x,y,t)=>windAt(S,x,y,t),inPoly,crossFix,plotFix,takeBearing,markNoon,startObserve,noonAvailable,endVoyage,toGeo,geo,atPort:()=>atPort(S),buyStore,sellFish,toggleFish,coastNm,fishStep,tradeBuy,tradeSell,tradeUI,tradeSite,tradeJettison,contractBoard,contractText,contractAccept,contractDeliver,mkInit,holdUsed,marketBlurb,tradeStep,buyNews};
 })();
 </script>
 <script>
