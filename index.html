@@ -74,7 +74,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-
 .cbfoot-l{display:flex;gap:4px;flex:none}.cbfoot .ws{flex:1;min-width:0;text-align:center}.cbfoot .btn.ico{flex:none;width:var(--stW);height:var(--stW);min-height:0;padding:0;display:flex;align-items:center;justify-content:center}
 .compassbox .cbtog{position:absolute;left:4px;top:4px;z-index:2;width:26px;height:26px;padding:0;display:flex;align-items:center;justify-content:center;background:var(--paper);color:var(--ink);border:1px solid var(--ink);border-radius:50%;cursor:pointer}
 .compassbox.collapsed{padding:0;border:0;background:none;box-shadow:none}.compassbox.collapsed .cbrow,.compassbox.collapsed .ws{display:none}
-.compassbox.collapsed .cbtog svg{width:13px;height:13px}.compassbox.collapsed .cbtog{position:static;width:30px;height:30px;border-radius:3px;background:rgba(246,238,217,.96);box-shadow:0 4px 14px rgba(20,14,10,.3)}.steps5{display:flex;flex-direction:column;gap:3px}.steps5 .btn{min-height:0;height:28px;width:28px;padding:0;display:flex;align-items:center;justify-content:center}.steps5 .btn[aria-pressed="true"]{background:var(--ink);color:var(--paper)}.steps5 .btn.mv{outline:2px dashed var(--brass);outline-offset:1px}.compassbox .ws{font-family:var(--f-data);font-size:9.5px;text-align:center;line-height:1.35;letter-spacing:.03em}.compassbox .ws b{font-size:12px}
+.compassbox.collapsed .cbtog svg{width:13px;height:13px}.compassbox.collapsed .cbtog{position:static;width:30px;height:30px;border-radius:3px;background:rgba(246,238,217,.96);box-shadow:0 4px 14px rgba(20,14,10,.3)}.steps5{display:flex;flex-direction:column;gap:3px}.steps5 .btn{min-height:0;height:28px;width:28px;padding:0;display:flex;align-items:center;justify-content:center}.steps5 .btn[aria-pressed="true"]{background:var(--ink);color:var(--paper)}.steps5 .btn{position:relative;overflow:hidden}.steps5 .btn::after{content:"";position:absolute;left:0;bottom:0;height:3px;width:var(--pg,0%);background:var(--brass)}.steps5 .btn.mv{outline:2px dashed var(--brass);outline-offset:-2px}.compassbox .ws{font-family:var(--f-data);font-size:9.5px;text-align:center;line-height:1.35;letter-spacing:.03em}.compassbox .ws b{font-size:12px}
 .pane.small .compassbox{display:none}
 .mapicon{display:none;border:0;padding:0;cursor:pointer}
 #paneChart.small{width:30px;height:30px;overflow:hidden;cursor:pointer}#paneChart.small .mapicon svg{width:18px;height:18px}
@@ -531,7 +531,6 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-
             <div class="mono" style="font-size:13px">Speed <b id="spdTxt">—</b></div>
             <div class="muted" id="anchTxt"></div>
             <div class="setrows">
-              <div><span class="k">Sails</span><span class="pips" id="sailPips"></span><span id="sailOrd">—</span></div>
               <div><span class="k">Yards</span><span class="pips"><i class="yd" id="brOrdPip"></i></span><span id="brOrd">—</span></div>
             </div>
             <div class="helmbtns">
@@ -2059,12 +2058,10 @@ function updateUI(force){
   { const fb=$("bFish");{const t=S.fishing?`Stop fishing · ${Math.round(S.catchTotal)} lb (F)`:"Put hand-lines over the side (F)";fb.title=t;fb.setAttribute("aria-label",t);}fb.setAttribute("aria-pressed",String(!!S.fishing)); }
   { const A=sh.anch,b=$("bDrop");{const t=A.mode==="up"?"Drop anchor (X)":A.mode==="weighing"?"Weighing anchor…":"Weigh anchor (X)";b.title=t;b.setAttribute("aria-label",t);b.setAttribute("aria-pressed",String(A.mode!=="up"));}b.disabled=A.mode==="weighing";
     $("anchTxt").textContent=S.docked&&A.mode==="holding"?`Docked at ${PORTS[S.docked].name}`:A.mode==="holding"?`At anchor in ${A.depth} fathoms${A.drag>0?" · dragging":""}`:A.mode==="trailing"?`Anchor trailing: no bottom (${A.depth} fathoms)`:A.mode==="weighing"?"Heaving up the anchor…":sh.row&&sh.row.on?`Under ${SHIP.oars&&SHIP.oars.sweeps?"sweeps":"oars"}`:sh.sailSet<.5&&sh.v>.3?"Bare poles: drifting before the wind":""; }
-  { const pe=$("sailPips");if(!pe.firstChild)for(let i=0;i<4;i++)pe.appendChild(document.createElement("i")).appendChild(document.createElement("b"));
-    [...pe.children].forEach((el,i)=>{el.firstChild.style.height=(clamp(sh.sailSet-i,0,1)*100).toFixed(0)+"%";el.classList.toggle("tgt",false);});
+  {
     const moving=SAILIDS.some(k=>Math.abs(sh.sl[k]-sh.sls[k])>.03);
     $("bookBtn").classList.toggle("attn",!!S.arrivedNear&&!$("bookBox").classList.contains("open"));
-    for(const b of document.querySelectorAll("#sailSteps5 button")){const n=+b.dataset.n;b.setAttribute("aria-pressed",String(sh.sail===n));b.classList.toggle("mv",sh.sail===n&&moving);}
-    $("sailOrd").textContent=`${planName(sh.sl)}${moving?(SAILIDS.some(k=>sh.sl[k]>sh.sls[k]+.03)?" · setting…":" · furling…"):" · set"}`;
+    for(const b of document.querySelectorAll("#sailSteps5 button")){const n=+b.dataset.n;b.setAttribute("aria-pressed",String(sh.sail===n));b.classList.toggle("mv",sh.sail===n&&moving);b.style.setProperty("--pg",sh.sail===n&&moving?(clamp(1-Math.abs(sh.sailSet-n)/4,0,1)*100).toFixed(0)+"%":"0%");}
     const bd=Math.abs(sh.braceCmd-sh.brace)>.5;const bs=a=>SHIP.fa?Math.round(90-Math.abs(a))+"° off":Math.abs(a)<2?"square":Math.abs(Math.round(a))+"°";
     $("brOrd").textContent=bd?`ordered ${bs(sh.braceCmd)} · now ${bs(sh.brace)}`:`${bs(sh.brace)} · trimmed`;
     $("brOrdPip").style.setProperty("--p",(50+sh.braceCmd*50/BMAX).toFixed(0)+"%"); }
