@@ -118,6 +118,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-
 body.fs3d #paneV3{position:fixed!important;left:0!important;top:0!important;right:0!important;bottom:0!important;width:auto!important;height:auto!important;z-index:9000!important;margin:0!important;border:0!important;transform:none!important}
 body.fs3d #paneV3>*:not(#view3d):not(#hud):not(#fsBar){display:none!important}
 body.fs3d #fsBar{left:max(12px,env(safe-area-inset-left,0px));bottom:max(12px,env(safe-area-inset-bottom,0px))}
+#tbView{touch-action:manipulation}#camPop{position:fixed;z-index:60;display:flex;gap:4px;padding:4px;background:rgba(246,238,217,.94);border:1px solid var(--ink);border-radius:6px}#camPop[hidden]{display:none}#camPop button{display:flex;flex-direction:column;align-items:center;gap:1px;width:46px;padding:4px 0 3px;background:transparent;border:0;color:var(--ink);cursor:pointer;font:10px/1.1 "IBM Plex Mono",monospace;letter-spacing:.04em;-webkit-tap-highlight-color:transparent}#camPop button[aria-pressed="true"] svg,#camPop button:active svg{stroke-width:2.6}#camPop button[aria-pressed="true"] span{font-weight:700}
 #view3d{touch-action:none;cursor:grab;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}#view3d.drag{cursor:grabbing}
 .swapbtn{position:absolute;left:4px;bottom:4px;width:28px;height:28px;background:var(--paper);border:1px solid var(--ink);color:var(--ink);font-size:15px;line-height:1;border-radius:2px;z-index:3}
 .pane.big .swapbtn{display:none}
@@ -380,13 +381,13 @@ body.fs3d #fsBar{left:max(12px,env(safe-area-inset-left,0px));bottom:max(12px,en
 @media (max-width:860px){
   /* the book page's top padding stays see-through over the 3D view, whatever colour the Look sets */
   :root:root:root .bookbody{background:transparent!important;background-image:none!important;box-shadow:none!important}
-  /* bottom bar: bigger outline icons in a thin box; the pressed one only gets a bolder box, no fill, fade or motion */
-  :root{--tbw:46px}
+  /* bottom bar: outline icons in a thin box at the original size; the pressed one only gets a bolder box, no fill, fade or motion; menus and overlays cover the bar */
+  :root{--tbw:var(--ic)}
   #tabbar{height:calc(var(--tbw) + 30px + env(safe-area-inset-bottom,0px))!important}.app{padding-bottom:calc(var(--tbw) + 40px)!important}
-  :root:root:root .tbtab,:root:root:root #ctlIcon{width:var(--tbw)!important;height:var(--tbw)!important;z-index:30!important;background:transparent!important;background-image:none!important;color:var(--ink)!important;border:1px solid var(--ink)!important;border-radius:6px!important;box-shadow:none!important;transition:none!important;animation:none!important;-webkit-tap-highlight-color:transparent}
+  :root:root:root .tbtab,:root:root:root #ctlIcon{width:var(--tbw)!important;height:var(--tbw)!important;z-index:16!important;background:transparent!important;background-image:none!important;color:var(--ink)!important;border:1px solid var(--ink)!important;border-radius:6px!important;box-shadow:none!important;transition:none!important;animation:none!important;-webkit-tap-highlight-color:transparent}
   :root:root:root .tbtab[aria-pressed="true"],:root:root:root #ctlIcon[aria-pressed="true"]{border-width:3px!important;background:transparent!important;color:var(--ink)!important}
   :root:root:root .tbtab:hover,:root:root:root .tbtab:active,:root:root:root #ctlIcon:hover,:root:root:root #ctlIcon:active{background:transparent!important}
-  :root:root:root .tbtab svg,:root:root:root #ctlIcon svg{width:30px!important;height:30px!important;transition:none!important}
+  :root:root:root .tbtab svg,:root:root:root #ctlIcon svg{width:20px!important;height:20px!important;transition:none!important}
   #tbChart{left:calc(10% - var(--tbw)/2)!important}#tbView{left:calc(30% - var(--tbw)/2)!important}#tbShip{left:calc(50% - var(--tbw)/2)!important}#tbBook{left:calc(70% - var(--tbw)/2)!important}:root:root #ctlIcon{left:calc(90% - var(--tbw)/2)!important}
 }
 #ctlIcon svg{width:20px;height:20px}
@@ -2930,7 +2931,7 @@ function init3D(){
     const sailLine=new THREE.LineBasicMaterial({color:0x2e2519,transparent:true,opacity:.26});
     const ochreLine=new THREE.LineBasicMaterial({color:0xb2452c,fog:false});
     const R={renderer,scene,camera,U,mk:tex,inkMat,terrainMat,sailMat,hullMat,bulwMat,deckMat,boxMat,mastMat,lineMat,solidInk,sailLine,W:1,H:1,dpr:renderer.getPixelRatio(),
-      yaw:60,pitch:16,dist:58,ty:60,tp:16,td:58,hs:0,amp:.3,windFrom:90,wt:0,last:null,cover:0,frame:0,notes:false,nightF:0,camBrg:0,heel:0,roll:0,side:1,bs:1,heave:0,pit:0,
+      yaw:60,pitch:16,dist:58,ty:60,tp:16,td:58,shot:null,cb:8,cl:15,tcb:8,tcl:15,hs:0,amp:.3,windFrom:90,wt:0,last:null,cover:0,frame:0,notes:false,nightF:0,camBrg:0,heel:0,roll:0,side:1,bs:1,heave:0,pit:0,
       paperA:[...PAL.day.paper],inkA:[...PAL.day.ink],clouds:[],tex:{}};
     R.smRT=smRT;R.shDepth=shDepth;R.lcam=new THREE.OrthographicCamera(-1,1,1,-1,.1,10);
     // ---- sea ----
@@ -2962,7 +2963,7 @@ function init3D(){
     R.beacon=new THREE.LineSegments(bg,ochreLine);R.beacon.frustumCulled=false;scene.add(R.beacon);
     { const rg=new THREE.BufferGeometry();rg.setAttribute("position",new THREE.BufferAttribute(new Float32Array(66*3),3));rg.setDrawRange(0,0);
       R.routeLine=new THREE.Line(rg,new THREE.LineBasicMaterial({color:0xb2452c,fog:false,transparent:true,opacity:.8}));R.routeLine.frustumCulled=false;R.routeLine.visible=false;scene.add(R.routeLine); }
-    R3=R;resize3D();
+    R3=R;R.basePR=renderer.getPixelRatio();R.q=0;resize3D();
   }catch(err){
     console.warn("3D unavailable:",err);R3=null;
     $("paneV3").hidden=true;setMain(false,true);
@@ -4642,7 +4643,7 @@ function update3D(dt,now){
     R.lantern.intensity=R.lampF*1.2;
     const lit=R.lampF>.5;if(S.lit!==undefined&&lit!==S.lit&&!paused){say(lit?"The watch lights the stern lantern and the binnacle lamp.":"The lanterns are doused at first light.",{slow:true});}S.lit=lit; }
   // world objects relative to ship
-  for(const o of R.isl){const c=o.isl.c;o.grp.position.set((c.x-sh.x)*NM,0,-(c.y-sh.y)*NM);const dd=Math.hypot(c.x-sh.x,c.y-sh.y);o.grp.visible=dd<75;if(o.veg)o.veg.visible=dd-o.Rr<9;}
+  for(const o of R.isl){const c=o.isl.c;o.grp.position.set((c.x-sh.x)*NM,0,-(c.y-sh.y)*NM);const dd=Math.hypot(c.x-sh.x,c.y-sh.y);const q=R.q||0;o.grp.visible=dd<QDIST[q];if(o.veg)o.veg.visible=dd-o.Rr<QVEG[q];}
   updateFauna(R,dt,gain,wdx,wdz,nightF);
   updatePirates3D(R);
   const dest=R.towns[S.v.to];
@@ -4693,9 +4694,16 @@ function update3D(dt,now){
   // camera
   R.hs+=angDiff(R.hs,sh.heading)*(1-Math.exp(-dt*1.6));
   {const k=1-Math.exp(-Math.min(dt,.25)*14);R.yaw+=(R.ty-R.yaw)*k;R.pitch+=(R.tp-R.pitch)*k;R.dist+=(R.td-R.dist)*k;if(Math.abs(R.ty)>720){const w=360*Math.round(R.ty/360);R.ty-=w;R.yaw-=w;}}
+  if(R.shot==="orbit")R.ty+=Math.min(dt,.25)*3; // the slow wide orbit drifts round the ship on its own
+  {const k=1-Math.exp(-Math.min(dt,.25)*3);R.cb+=((R.shot?R.tcb:8)-R.cb)*k;R.cl+=((R.shot?R.tcl:15)-R.cl)*k;}
   const al=(R.hs+180+R.yaw)*D2R,pt=R.pitch*D2R,dh=R.dist*Math.cos(pt);
-  const ck=R.camK||1;R.camera.position.set(Math.sin(al)*dh*ck,Math.max(4*Math.min(1,ck),(8+R.dist*Math.sin(pt))*ck),-Math.cos(al)*dh*ck);
-  R.camera.lookAt(0,15*(R.camY||1),0);R.camBrg=norm((R.hs+R.yaw));if(window.CUTCAM)window.CUTCAM(R);
+  const ck=R.camK||1;
+  if(R.shot==="deck"){ // the captain's eye on the quarterdeck: rides the deck and looks where the view was turned
+    R.bob.updateWorldMatrix(true,false);const t=R.taff||[-11.6,3.3];R.camera.position.set(0,t[1]+1.1,t[0]+2.6).applyMatrix4(R.bob.matrixWorld);
+    const lp=(R.pitch-16)*-.5*D2R,cp=R.camera.position;R.camera.near=.4;R.camera.lookAt(cp.x-Math.sin(al)*Math.cos(lp)*100,cp.y+Math.sin(lp)*100,cp.z+Math.cos(al)*Math.cos(lp)*100);}
+  else{R.camera.near=3;R.camera.position.set(Math.sin(al)*dh*ck,Math.max((R.shot?1.6:4)*Math.min(1,ck),(R.cb+R.dist*Math.sin(pt))*ck),-Math.cos(al)*dh*ck);
+    R.camera.lookAt(0,R.cl*(R.camY||1),0);}
+  R.camBrg=norm((R.hs+R.yaw));if(window.CUTCAM)window.CUTCAM(R);
   if(R.cover>2)R.camera.setViewOffset(R.W,R.H,0,R.cover*.3,R.W,R.H);else R.camera.clearViewOffset();
   R.camera.updateMatrixWorld();R.camera.updateProjectionMatrix();
   R.sea.position.set(0,0,0);
@@ -4759,7 +4767,16 @@ const end3=e=>{if(!ptr3.delete(e.pointerId))return;v3c.classList.toggle("drag",p
     const now=e.timeStamp;
     if(R3.tapPt&&now-R3.tapT<320&&Math.hypot(e.clientX-R3.tapPt.x,e.clientY-R3.tapPt.y)<30&&!R3.tapMoved){resetCam3();R3.tapT=0;}
     else if(!R3.tapMoved){R3.tapT=now;R3.tapPt={x:e.clientX,y:e.clientY};}else R3.tapT=0;}};
-function resetCam3(){const R=R3;if(!R)return;const k=360*Math.round((R.yaw-CAM0.yaw)/360);R.yaw-=k;R.ty=CAM0.yaw;R.tp=CAM0.pitch;R.td=CAM0.dist;} // glide back by the short way round
+function resetCam3(){const R=R3;if(!R)return;camKeep();R.shot=null;const k=360*Math.round((R.yaw-CAM0.yaw)/360);R.yaw-=k;R.ty=CAM0.yaw;R.tp=CAM0.pitch;R.td=CAM0.dist;} // glide back by the short way round
+/* cinematic camera angles from the 3D icon: [shot, yaw, pitch, dist, camera base height, look-at height] */
+const SHOTS={deck:[null,0,16,58,8,15],bow:[null,148,1.5,34,1.8,13],stern:[null,14,40,120,8,9],orbit:[null,60,11,105,6,12]};
+const camNow=()=>{const R=R3;return{shot:R.shot,ty:R.ty,tp:R.tp,td:R.td};};
+let camPrev=null;
+function camKeep(){if(R3)camPrev=camNow();} // remember where the view was, for a double tap on the 3D icon
+function camSet(c){const R=R3;if(!R||!c)return;R.shot=c.shot;const k=360*Math.round((R.yaw-c.ty)/360);R.yaw-=k;R.ty=c.ty;R.tp=c.tp;R.td=c.td;const v=SHOTS[c.shot];if(v){R.tcb=v[4];R.tcl=v[5];}}
+function camShot(n){const R=R3,v=SHOTS[n];if(!R||!v)return;camKeep();camSet({shot:n,ty:v[1],tp:v[2],td:v[3]});}
+function camBack(){if(!R3||!camPrev)return;const c=camPrev;camPrev=camNow();camSet(c);}
+window.__CAM=()=>R3;
 v3c.addEventListener("pointerdown",e=>{if(!R3)return;if(e.pointerType==="mouse"&&e.button!==0){if(e.button===1)e.preventDefault();return;}
   if(ptr3.size>=2)return;try{v3c.setPointerCapture(e.pointerId);}catch(_){}
   ptr3.set(e.pointerId,{x:e.clientX,y:e.clientY});if(ptr3.size===1)R3.tapMoved=false;anchor3();v3c.classList.add("drag");});
@@ -4782,9 +4799,21 @@ v3c.addEventListener("dblclick",resetCam3);
 let main3d=true;
 function setMain(is3d){main3d=is3d;$("paneV3").className="pane "+(is3d?"big":"small");$("paneChart").className="pane "+(is3d?"small":"big");setTimeout(()=>{resize();resize3D();},0);}
 
+/* ---------- automatic quality: when the frame rate drops, the 3D view draws islands and trees less far and a little less sharp, and puts them back once it runs smoothly ---------- */
+const QDIST=[75,55,40,30],QVEG=[9,6,4,3],QPR=[1,.85,.72,.6]; // island draw distance (nm), trees from shore (nm), share of full sharpness
+const AQ={ms:16.7,t:0,good:0};
+function autoQ(rawMs){const R=R3;if(!R||R.hid||R.basePR==null)return;
+  if(rawMs>2000||skipLeft>0||(SV.open&&innerWidth>860&&!window.CUTON)){AQ.t=0;return;} // ignore a hidden tab, time skips and frames the 3D view did not draw
+  AQ.ms+=(Math.min(rawMs,250)-AQ.ms)*.05;AQ.t+=rawMs;if(AQ.t<2000)return;AQ.t=0;
+  const fps=1000/AQ.ms;let q=R.q;
+  if(fps<40&&q<QDIST.length-1){q++;AQ.good=0;}
+  else if(fps>55){if(++AQ.good>=3&&q>0){q--;AQ.good=0;}}else AQ.good=0;
+  if(q!==R.q){R.q=q;R.renderer.setPixelRatio(Math.max(1,R.basePR*QPR[q]));resize3D();}}
+
 /* ---------- main loop ---------- */
 let lastFrame=performance.now(),acc=0,frameN=0;
 function frame(now){
+  autoQ(now-lastFrame);
   const dtR=Math.min(.1,(now-lastFrame)/1000);lastFrame=now;
   if(skipLeft>0){
     if(!S||S.done||modalOpen||paused){stopSkip();}
@@ -5982,6 +6011,25 @@ $("bookBtn").onclick=()=>{const bx=$("bookBox"),o=!bx.classList.contains("open")
   const mkTab=(id,src,title,fn)=>{const b=document.createElement("button");b.type="button";b.id=id;b.className="tbicon tbtab";b.title=title;b.setAttribute("aria-label",title);const v=$(src).querySelector("svg");if(v)b.innerHTML=v.outerHTML;b.onclick=()=>{fn();setTimeout(fit,0);};cw.append(b);return b;};
   const tbChart=mkTab("tbChart","mapIcon","Sea chart: tap again to come back to the 3D view",()=>{closePanels();setMain(!main3d);});
   const tbView=mkTab("tbView","bView","3D view, full screen",()=>{closePanels();setMain(true);});
+  { // tap the 3D icon for a row of camera angles above it; double tap goes back to the angle before
+    const ic=(d)=>`<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">${d}</svg>`;
+    const SH=[["deck","Command deck: the captain's eye from the quarterdeck",'<circle cx="12" cy="12" r="5.5"/><circle cx="12" cy="12" r="1.4"/><path d="M12 2.5v4M12 17.5v4M2.5 12h4M17.5 12h4M5.3 5.3l2.8 2.8M15.9 15.9l2.8 2.8M18.7 5.3l-2.8 2.8M8.1 15.9l-2.8 2.8"/>',"Deck"],
+      ["bow","Bow wave: low on the water by the cutwater, looking up at the sails",'<path d="M4 17V9l9-5v13"/><path d="M13 8l6 9"/><path d="M2 20c2 0 2.5-1.5 4.5-1.5S9 20 11 20s2.5-1.5 4.5-1.5S18 20 20 20h2"/>',"Bow"],
+      ["stern","Stern chase: high astern, following her wake",'<path d="M12 3c3 3.5 4 7 3.5 11h-7C8 10 9 6.5 12 3z"/><path d="M10 17l-1.5 4M14 17l1.5 4M12 17v4.5"/>',"Stern"],
+      ["orbit","Slow orbit: a wide shot circling the ship",'<ellipse cx="12" cy="13" rx="9.5" ry="4.5"/><path d="M9 11.5l3-6 3 6z"/><path d="M19 9.2l2.4-.2-.9 2.3"/>',"Orbit"]];
+    const pop=document.createElement("div");pop.id="camPop";pop.hidden=true;pop.setAttribute("role","group");pop.setAttribute("aria-label","Camera angles");
+    for(const[k,t,d,l]of SH){const b=document.createElement("button");b.type="button";b.dataset.shot=k;b.title=t;b.setAttribute("aria-label",t);b.setAttribute("aria-pressed","false");b.innerHTML=ic(d)+`<span>${l}</span>`;
+      b.onclick=e=>{e.stopPropagation();camShot(k);shut();};pop.append(b);}
+    document.body.append(pop);
+    const mark=()=>pop.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",String(!!R3&&R3.shot===b.dataset.shot)));
+    const place=()=>{const r=tbView.getBoundingClientRect(),w=pop.offsetWidth;pop.style.left=Math.round(clamp(r.left+r.width/2-w/2,8,innerWidth-w-8))+"px";pop.style.bottom=Math.round(innerHeight-r.top+8)+"px";};
+    const shut=()=>{pop.hidden=true;};
+    let lastT=0;
+    tbView.addEventListener("click",()=>{const now=performance.now();
+      if(now-lastT<340){lastT=0;shut();camBack();return;}
+      lastT=now;if(pop.hidden){mark();pop.hidden=false;place();}else shut();});
+    document.addEventListener("pointerdown",e=>{if(!pop.hidden&&!pop.contains(e.target)&&e.target!==tbView&&!tbView.contains(e.target))shut();},true);
+    addEventListener("resize",()=>{if(!pop.hidden)place();});}
   const tbShip=mkTab("tbShip","bShip","The ship: cutaway, crew quarters and watches; tap again to close",()=>{$("bShip").click();});
   const tbBook=mkTab("tbBook","bookBtn","Navigator's book: reckoning, noon sight, landmarks and log",()=>{$("bookBtn").click();});
   const tb=document.createElement("div");tb.id="tabbar";tb.setAttribute("aria-hidden","true");["Chart","3D","Ship","Book","Helm"].forEach((t,i)=>{const sp=document.createElement("span");sp.textContent=t;sp.style.left=(10+20*i)+"%";tb.append(sp);});document.body.append(tb);
@@ -7005,7 +7053,7 @@ function teardown(){if(M.on)leave();for(const o of[M.G,M.G2,M.seabed])if(o&&o.pa
   if(labelEls){labelEls.forEach(e=>e.g.remove());labelEls=null;}
   Object.assign(M,{built:false,bob:null,G:null,G2:null,seabed:null,fig:null,VM:[],PN:[],dim:[],grp:null,home:[],bands:null,labels:null,sel:-1,hi:-1,man:-1,cur:null,res:"",flip:false});M.vis.clear();}
 let looping=false;
-function enter(){const R=R3;M.on=true;window.CUTON=true;M.cur=null;M.sel=-1;M.pan=0;M.uaz=M.upt=M.uly=0;M.uz=1;M.hi=-1;M.wasPaused=paused;M.wasMain=main3d;
+function enter(){const R=R3;M.on=true;window.CUTON=true;M.cur=null;M.sel=-1;M.pan=0;M.uaz=M.upt=M.uly=0;M.uz=1;M.hi=-1;M.wasPaused=paused;M.wasMain=main3d;M.cam=R&&R.ty!=null?{shot:R.shot,ty:R.ty,tp:R.tp,td:R.td}:null;
   try{if(!main3d)setMain(true);}catch(e){}
   try{setPaused(true);}catch(e){}
   { const sl=S&&S.ship&&S.ship.sls;M.sls=sl?Object.assign({},sl):null; }
@@ -7021,6 +7069,7 @@ function leave(){const R=M.R||R3;M.on=false;window.CUTON=false;root.style.displa
   { const sl=S&&S.ship&&S.ship.sls;if(sl&&M.sls)Object.assign(sl,M.sls); }
   try{if(M.wasMain===false)setMain(false);}catch(e){}
   try{setPaused(!!M.wasPaused);}catch(e){}
+  if(R&&M.cam){Object.assign(R,M.cam);R.yaw=R.ty;M.cam=null;} // back to the 3D angle you left for the ship view
   M.cur=null;}
 const back=document.createElement("button");back.id="cutBack";back.type="button";back.hidden=true;back.textContent="Cutaway";document.body.append(back);
 back.onclick=()=>{M.ledger=false;};
