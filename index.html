@@ -114,7 +114,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-
 .fsbar{position:absolute;left:12px;bottom:12px;z-index:7;display:flex;gap:8px;padding:4px;transition:opacity .6s}.pane.small .fsbar{display:none}
 .fsb{width:38px;height:38px;padding:0;display:flex;align-items:center;justify-content:center;background:transparent;color:var(--ink);border:1px solid var(--ink);border-radius:6px;box-shadow:none;cursor:pointer;-webkit-tap-highlight-color:transparent}.fsb svg{stroke-width:1.6}.fsb[aria-pressed="true"]{border-width:3px}.fsb[aria-pressed="true"] svg{stroke-width:2.4}
 .fsopt,.fsb .fsout{display:none}body.fs3d .fsopt{display:flex}body.fs3d .fsb .fsout{display:inline}body.fs3d .fsb .fsin{display:none}#fsBtn[aria-pressed="true"]{border-width:1px}#fsBtn[aria-pressed="true"] svg{stroke-width:1.6}
-.fsbar.dim{opacity:.06}.walkpad{position:absolute;left:64px;bottom:12px;z-index:7;display:flex;gap:4px;padding:4px}.walkpad[hidden]{display:none}.pane.small .walkpad{display:none}.walkpad button{width:24px;height:24px;padding:0;font-size:10px;line-height:1;background:rgba(246,238,217,.9);color:var(--ink);border:none;border-radius:6px;box-shadow:none;cursor:pointer;touch-action:none;-webkit-tap-highlight-color:transparent}.walkpad button span{display:inline-block;pointer-events:none}.walkpad button:active{background:var(--ink);color:#f6eed9}
+.fsbar.dim{opacity:.06}.walkpad{position:absolute;left:64px;bottom:12px;z-index:7;display:flex;gap:4px;padding:4px}.walkpad[hidden]{display:none}.pane.small .walkpad{display:none}#scopeView{position:absolute;inset:0;z-index:6;touch-action:none;background:radial-gradient(circle var(--sr,150px) at 50% 50%,transparent calc(100% - 1px),#050403 100%)}#scopeView[hidden]{display:none}.walkpad #scopeBtn{margin-left:6px}.walkpad #scopeBtn[aria-pressed=true]{background:#e8c66a}.walkpad button{width:24px;height:24px;padding:0;font-size:10px;line-height:1;background:rgba(246,238,217,.9);color:var(--ink);border:none;border-radius:6px;box-shadow:none;cursor:pointer;touch-action:none;-webkit-tap-highlight-color:transparent}.walkpad button span{display:inline-block;pointer-events:none}.walkpad button:active{background:var(--ink);color:#f6eed9}
 body.fs3d #paneV3{position:fixed!important;left:0!important;top:0!important;right:0!important;bottom:0!important;width:auto!important;height:auto!important;z-index:9000!important;margin:0!important;border:0!important;transform:none!important}
 body.fs3d #paneV3>*:not(#view3d):not(#hud):not(#fsBar):not(#walkPad){display:none!important}
 body.fs3d #fsBar{left:max(12px,env(safe-area-inset-left,0px));bottom:max(12px,env(safe-area-inset-bottom,0px))}
@@ -456,7 +456,7 @@ body.fs3d #fsBar{left:max(12px,env(safe-area-inset-left,0px));bottom:max(12px,en
         <label class="chk"><input type="checkbox" id="aRoute"> <span>Helm follows the route<small>Steers for each mark on your chart route in turn.</small></span></label>
         <label class="chk"><input type="checkbox" id="aNoon"> <span>Navigator shoots the noon sight<small>Takes the sun up from the forenoon watch and marks noon when it dips.</small></span></label>
         <label class="chk"><input type="checkbox" id="aFix"> <span>Lookout takes the bearings<small>Takes bearings on landmarks as they come in sight and plots the fix.</small></span></label>
-        <div id="aPeekSlot"></div>
+        <label class="chk"><input type="checkbox" id="aDR"> <span>Dead reckoning only<small>Off: your true position shows on the chart. On: only your reckoning shows, and you must correct it with sights and bearings.</small></span></label>
         <b class="ah">Sky</b>
         <label class="chk"><input type="checkbox" id="aSky" checked> <span>Sky chart<small>Draws the altitude and bearing grid, the constellation lines and their names over the sky.</small></span></label>
       </div></div>
@@ -479,7 +479,7 @@ body.fs3d #fsBar{left:max(12px,env(safe-area-inset-left,0px));bottom:max(12px,en
         <div class="ptools" id="paneTools"><button type="button" class="tbicon" id="bView" title="Swap the 3D view and the chart (M)" aria-label="Swap the 3D view and the chart"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M3 8h4l1.5-2.5h7L17 8h4v11H3z"/><circle cx="12" cy="13.5" r="3.6"/></svg></button><button type="button" class="tbicon" id="bShip" aria-pressed="false" title="The ship: cutaway, crew quarters and watches" aria-label="The ship: cutaway, crew quarters and watches"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M2.5 16.5h19l-3 4.5h-13z"/><path d="M8 16V3.500M16 16V6"/><path d="M8 5h-4.500v8H8M8 5h3.500v8H8M16 8h-3.500v6H16M16 8h3.500v6H16" stroke-width="1.2"/></svg></button></div>
         <canvas id="view3d" aria-label="3D view from the ship"></canvas>
         <canvas id="hud"></canvas>
-        <div class="walkpad" id="walkPad" hidden><button type="button" data-w="-1,1" aria-label="Step left" title="Step left"><span style="transform:rotate(-90deg)">▲</span></button><button type="button" data-w="0,1" aria-label="Walk forward" title="Walk forward"><span>▲</span></button><button type="button" data-w="1,1" aria-label="Step right" title="Step right"><span style="transform:rotate(90deg)">▲</span></button></div><div class="fsbar" id="fsBar"><button type="button" class="fsb" id="fsBtn" aria-pressed="false" title="Full screen 3D view" aria-label="Full screen 3D view"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path class="fsin" d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/><path class="fsout" d="M9 4v5H4M20 9h-5V4M15 20v-5h5M4 15h5v5"/></svg></button><button type="button" class="fsb fsopt" id="fsWater" aria-pressed="true" title="Water grid on or off" aria-label="Water grid"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17c2-1.500 4-1.500 6 0s4 1.500 6 0 4-1.500 6 0"/><path d="M3 12.500l18 0M8 7l-1.500 10M16 7l1.500 10M5 7h14"/></svg></button><button type="button" class="fsb fsopt" id="fsSky" aria-pressed="true" title="Sky grid on or off" aria-label="Sky grid"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 19a9 9 0 0 1 18 0z"/><path d="M6.500 13.500h11M12 10v9M8 11l-1.500 8M16 11l1.500 8"/></svg></button></div>
+        <div class="walkpad" id="walkPad" hidden><button type="button" data-w="-1,1" aria-label="Step left" title="Step left"><span style="transform:rotate(-90deg)">▲</span></button><button type="button" data-w="0,1" aria-label="Walk forward" title="Walk forward"><span>▲</span></button><button type="button" data-w="1,1" aria-label="Step right" title="Step right"><span style="transform:rotate(90deg)">▲</span></button><button type="button" id="scopeBtn" aria-label="Telescope" title="Telescope" aria-pressed="false"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 14l11-5 2 4-11 5z"/><path d="M16 9l5-2M9 17l-1 4M9 17l4 4"/></svg></button></div><div id="scopeView" hidden></div><div class="fsbar" id="fsBar"><button type="button" class="fsb" id="fsBtn" aria-pressed="false" title="Full screen 3D view" aria-label="Full screen 3D view"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path class="fsin" d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/><path class="fsout" d="M9 4v5H4M20 9h-5V4M15 20v-5h5M4 15h5v5"/></svg></button><button type="button" class="fsb fsopt" id="fsWater" aria-pressed="true" title="Water grid on or off" aria-label="Water grid"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17c2-1.500 4-1.500 6 0s4 1.500 6 0 4-1.500 6 0"/><path d="M3 12.500l18 0M8 7l-1.500 10M16 7l1.500 10M5 7h14"/></svg></button><button type="button" class="fsb fsopt" id="fsSky" aria-pressed="true" title="Sky grid on or off" aria-label="Sky grid"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 19a9 9 0 0 1 18 0z"/><path d="M6.500 13.500h11M12 10v9M8 11l-1.500 8M16 11l1.500 8"/></svg></button></div>
         <div class="compassbox" id="compassBox"><button type="button" class="cbtog" id="cbBtn" aria-expanded="true" aria-label="Compass" title="Collapse or expand the compass"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"><circle cx="12" cy="12" r="9.500"/><path d="M12 5.500l2.600 6.500-2.600 6.500-2.600-6.500z"/></svg></button><div class="cbrow"><canvas id="baro" width="120" height="500" aria-label="The glass: a barometer showing the pressure, its trend and what it means" title="The glass (barometer)"></canvas><canvas id="dial" width="480" height="480" aria-label="Compass with the ship, the wind and the sails" title="Compass. Click the outer card to steer; click inside the inner ring to point the sails."></canvas><canvas class="sailg" id="sailSteps5" width="120" height="500" role="slider" aria-label="Sail set for all sails: tap or drag to set" title="Sail set: tap or drag"></canvas></div></div>
         <button class="ctog ptog" data-pane="paneV3" aria-expanded="true" title="Collapse or expand">–</button><button class="swapbtn" id="swap1" title="Make this the main view (M)">⤢</button><span class="plabel">3D view</span>
       </div>
@@ -1389,15 +1389,14 @@ function assistStep(s,dt,w){
 // full-screen 3D view: only the view itself, with its own water grid and sky grid switches (remembered; the grids always show outside this mode)
 const FS3=(()=>{let g={water:true,sky:true};try{Object.assign(g,JSON.parse(localStorage.getItem("dr.fs3grids")||"{}"));}catch(e){}
   return{on:false,g,save(){try{localStorage.setItem("dr.fs3grids",JSON.stringify(g));}catch(e){}},waterOn(){return!this.on||g.water;},skyOn(){return!this.on||g.sky;}};})();
-const ASSIST_IDS=["aSail","aCrew","aNoon","aFix","bosun","mateLog","aSky"];
+const ASSIST_IDS=["aSail","aCrew","aNoon","aFix","bosun","mateLog","aSky","aDR"];
 function initAssists(){
-  $("aBosunSlot").append($("bosun").closest("label"));$("aLogSlot").append($("mateRow"));$("aPeekSlot").append($("peekWrap"));
+  $("aBosunSlot").append($("bosun").closest("label"));$("aLogSlot").append($("mateRow"));$("peekWrap").hidden=true;
   const bl=$("bosun").closest("label");bl.querySelector("input").insertAdjacentElement("afterend",Object.assign(document.createElement("span"),{innerHTML:"Bosun trims the yards<small>Braces the yards to the best angle for the wind, always.</small>"}));[...bl.childNodes].filter(n=>n.nodeType===3).forEach(n=>n.remove());
   const ml=$("mateLog").closest("label");[...ml.childNodes].filter(n=>n.nodeType===3).forEach(n=>n.remove());ml.append(Object.assign(document.createElement("span"),{innerHTML:"Mate heaves the log each hour<small>Reads the speed off the log line every hour for your reckoning, with a little error.</small>"}));
-  const pl=$("peekWrap");[...pl.childNodes].filter(n=>n.nodeType===3).forEach(n=>n.remove());pl.append(Object.assign(document.createElement("span"),{innerHTML:"Show true position<small>Practice aid for the lost-at-sea voyages.</small>"}));
-  [bl,ml,pl].forEach(l=>{l.style.alignItems="flex-start";});
+  [bl,ml].forEach(l=>{l.style.alignItems="flex-start";});
   let saved={};try{saved=JSON.parse(localStorage.getItem("drAssists")||"{}");}catch(e){}
-  ASSIST_IDS.forEach(id=>{if(id in saved)$(id).checked=!!saved[id];$(id).addEventListener("change",()=>{const o={};ASSIST_IDS.forEach(k=>o[k]=$(k).checked);try{localStorage.setItem("drAssists",JSON.stringify(o));}catch(e){}});});
+  ASSIST_IDS.forEach(id=>{if(id in saved)$(id).checked=!!saved[id];$(id).addEventListener("change",()=>{if(id==="aDR"&&S&&!S.done){S.mode=$("aDR").checked?"lost":"trial";say(S.mode==="lost"?"The chart now shows only your reckoning.":"The chart now shows your true position.",{log:false});updateUI(true);}const o={};ASSIST_IDS.forEach(k=>o[k]=$(k).checked);try{localStorage.setItem("drAssists",JSON.stringify(o));}catch(e){}});});
   const pop=$("assistPop"),btn=$("bAssist");
   btn.onclick=e=>{e.stopPropagation();pop.hidden=!pop.hidden;btn.setAttribute("aria-expanded",String(!pop.hidden));if(!pop.hidden&&S)$("aRoute").checked=!!S.route.follow;};
   document.addEventListener("click",e=>{if(!pop.hidden&&!e.target.closest("#assistPop")&&e.target!==btn){pop.hidden=true;btn.setAttribute("aria-expanded","false");}});
@@ -1905,12 +1904,13 @@ function startVoyage(v){
   S=newState(v);applyShip();setPlotting(false);updateRoute();svNew();openShip(false);selSails.clear();$("sailSl").style.display="none";
   $("ovStart").hidden=true;$("ovEnd").hidden=true;modalOpen=false;
   $("voyTitle").textContent=`${v.tag}: ${v.title}`;
-  $("peek").checked=false;$("peekWrap").hidden=v.mode!=="lost";
+  $("peek").checked=false;$("peekWrap").hidden=true;
+  if(v.free)S.mode=$("aDR").checked?"lost":"trial";else $("aDR").checked=S.mode==="lost";
   setSpeed(1);setPaused(false);follow=true;$("follow").setAttribute("aria-pressed","true");
-  cam.zoom=v.mode==="lost"?2.6:3.2;cam.x=S.ship.x;cam.y=S.ship.y;
+  cam.zoom=S.mode==="lost"?2.6:3.2;cam.x=S.ship.x;cam.y=S.ship.y;
   S.log=[];renderLog();
   if(v.career){careerInit(S,v.from);say(`Career begins at ${PORTS[v.from].name}. You own a small cutter and ${money(S.purse)}. Trade, take contracts and save for a bigger ship: the shipyard is in the Ship tab.`);}else
-  if(v.free)say(`${v.from in PORTS?"Weighed anchor from "+PORTS[v.from].name:"Hove to"}. No orders: the sea is yours.${v.mode==="lost"?" The chart shows only your reckoning.":""}`);else
+  if(v.free){if(v.from in PORTS){startDocked(S,v.from);say(`Made fast alongside the quay at ${PORTS[v.from].name}. Weigh anchor when you are ready: the sea is yours.${S.mode==="lost"?" The chart shows only your reckoning.":""}`);}else say("Hove to. No orders: the sea is yours.");}else
   say(v.mode==="lost"?`Weighed anchor from ${placeOf(v.from).name}. From here on the chart shows only your reckoning.`:`${v.from in PORTS?"Weighed anchor from "+PORTS[v.from].name:"Hove to in the "+placeOf(v.from).name}. Bound for ${PORTS[v.to].name}.`);
   S.estSpeed=0;S.lastLog=null;
   {const w=windAt(S,S.ship.x,S.ship.y,S.t);S.ship.brace=S.ship.braceCmd=optBrace(angDiff(S.ship.heading,w.from));}
@@ -4280,7 +4280,7 @@ function updateSky(R,alt,lh,di,pa,pf,cover,sq,sunDir,lat){
   const dk=x=>skyMix(x,x.map(v=>v*0.28),D);
   {const ng=1-.45*(1-D);S_.gu.uCol.value.set(...dk(skyHex(K.gridCol)).map(v=>v*ng));S_.lu.uCol.value.set(...dk(skyHex(K.lineCol)).map(v=>v*ng));}
   const chart=$("aSky").checked;
-  S_.on=chart;S_.grid.visible=chart&&FS3.skyOn();R.U.uGridOn.value=FS3.waterOn()?1:0;S_.lines.visible=chart;R.horizon.visible=false; // the tuned look has no horizon line
+  S_.on=chart;const dkS=R.shot==="deck";S_.grid.visible=chart&&FS3.skyOn()&&!dkS;R.U.uGridOn.value=FS3.waterOn()?1:0;S_.lines.visible=chart&&!dkS;R.horizon.visible=false; // the tuned look has no horizon line
   /* stars */
   const lam=0.9856*(69+di-80)*D2R,sra=((Math.atan2(Math.cos(SKY_EPS)*Math.sin(lam),Math.cos(lam))*R2D/15)+24)%24;
   const LST=((sra+lh-12)%24+24)%24;
@@ -4321,7 +4321,7 @@ function updateSky(R,alt,lh,di,pa,pf,cover,sq,sunDir,lat){
 }
 /* names, degree numbers and the zenith mark go on the flat overlay */
 function skyLabels(c,R,W,H){
-  const S_=R.sky;if(!S_||!S_.on)return;const K=SKY,D=S_.D,v=new THREE.Vector3(),cam=R.camera.position;
+  const S_=R.sky;if(!S_||!S_.on||R.shot==="deck")return;const K=SKY,D=S_.D,v=new THREE.Vector3(),cam=R.camera.position;
   const day=h=>{const b=skyHex(h);return skyMix(b,b.map(x=>x*0.28),D);};
   const scr=(az,alt)=>{skyDir(az,alt,K.sphR,v).add(cam).project(R.camera);if(v.z>=1||v.z<-1)return null;return[(v.x+1)/2*W,(1-v.y)/2*H];};
   const on=p=>p&&p[0]>8&&p[0]<W-8&&p[1]>26&&p[1]<H-8;
@@ -4714,7 +4714,8 @@ function update3D(dt,now){
     const lp=(R.pitch-16)*-.5*D2R,cp=R.camera.position;R.camera.near=.4;R.camera.lookAt(cp.x-Math.sin(al)*Math.cos(lp)*100,cp.y+Math.sin(lp)*100,cp.z+Math.cos(al)*Math.cos(lp)*100);}
   else{R.camera.near=3;R.camera.position.set(Math.sin(al)*dh*ck,Math.max((R.shot?1.6:4)*Math.min(1,ck),(R.cb+R.dist*Math.sin(pt))*ck),-Math.cos(al)*dh*ck);
     R.camera.lookAt(0,R.cl*(R.camY||1),0);}
-  {const wp=$("walkPad");if(wp){const on=R.shot==="deck";if(wp.hidden===on)wp.hidden=!on;}}R.camBrg=norm((R.hs+R.yaw));if(window.CUTCAM)window.CUTCAM(R);
+  {const sz=R.shot==="deck"&&R.scope?R.scopeZ:1,k=55/sz;if(Math.abs(R.camera.fov-k)>.01){R.camera.fov=k;R.camera.updateProjectionMatrix();}}
+  {const wp=$("walkPad");if(wp){const on=R.shot==="deck";if(wp.hidden===on)wp.hidden=!on;if(!on&&R.scope)window.setScope(false);}}R.camBrg=norm((R.hs+R.yaw));if(window.CUTCAM)window.CUTCAM(R);
   if(R.cover>2)R.camera.setViewOffset(R.W,R.H,0,R.cover*.3,R.W,R.H);else R.camera.clearViewOffset();
   R.camera.updateMatrixWorld();R.camera.updateProjectionMatrix();
   R.sea.position.set(0,0,0);
@@ -4787,8 +4788,23 @@ function camKeep(){if(R3)camPrev=camNow();} // remember where the view was, for 
 function camSet(c){const R=R3;if(!R||!c)return;R.shot=c.shot;const k=360*Math.round((R.yaw-c.ty)/360);R.yaw-=k;R.ty=c.ty;R.tp=c.tp;R.td=c.td;const v=SHOTS[c.shot];if(v){R.tcb=v[4];R.tcl=v[5];}}
 function camShot(n){const R=R3,v=SHOTS[n];if(!R||!v)return;camKeep();camSet({shot:n,ty:v[1],tp:v[2],td:v[3]});}
 function camBack(){if(!R3||!camPrev)return;const c=camPrev;camPrev=camNow();camSet(c);}
+
+{const sv=$("scopeView"),sb=$("scopeBtn"),pts=new Map();let pd=null;
+  const size=()=>{const r=sv.getBoundingClientRect();sv.style.setProperty("--sr",Math.max(60,Math.min(r.width,r.height)*.46)+"px");};
+  window.setScope=on=>{const R=R3;if(!R)return;R.scope=!!on;if(on&&!R.scopeZ)R.scopeZ=4;sv.hidden=!on;sb.setAttribute("aria-pressed",on?"true":"false");if(on)size();pts.clear();pd=null;};
+  sb.addEventListener("click",()=>window.setScope(!(R3&&R3.scope)));
+  sb.addEventListener("pointerdown",e=>e.stopPropagation());
+  addEventListener("resize",()=>{if(!sv.hidden)size();});
+  const zoom=f=>{const R=R3;R.scopeZ=clamp((R.scopeZ||4)*f,1.5,12);};
+  sv.addEventListener("wheel",e=>{e.preventDefault();zoom(e.deltaY<0?1.12:1/1.12);},{passive:false});
+  sv.addEventListener("pointerdown",e=>{e.preventDefault();try{sv.setPointerCapture(e.pointerId);}catch(_){}pts.set(e.pointerId,{x:e.clientX,y:e.clientY});const p=[...pts.values()];pd=p.length>=2?{d:Math.max(8,Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y)),z:R3.scopeZ||4}:null;});
+  sv.addEventListener("pointermove",e=>{const R=R3;if(!R||!pts.has(e.pointerId))return;const o=pts.get(e.pointerId),n={x:e.clientX,y:e.clientY};pts.set(e.pointerId,n);const p=[...pts.values()];
+    if(p.length>=2&&pd){R.scopeZ=clamp(pd.z*Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y)/pd.d,1.5,12);return;}
+    const k=.25/(R.scopeZ||4);R.ty-=(n.x-o.x)*k*1.6;R.tp=clamp(R.tp+(n.y-o.y)*k*1.2,3,75);});
+  for(const ev of["pointerup","pointercancel"])sv.addEventListener(ev,e=>{pts.delete(e.pointerId);pd=null;});
+}
 window.__CAM=()=>R3;
-{const wp=document.getElementById("walkPad");if(wp){const stop=()=>{if(R3)R3.wk=null;};for(const b of wp.querySelectorAll("button")){b.addEventListener("pointerdown",e=>{e.preventDefault();e.stopPropagation();const[x,y]=b.dataset.w.split(",").map(Number);if(R3)R3.wk={s:x,f:y};try{b.setPointerCapture(e.pointerId);}catch(_){}});for(const ev of["pointerup","pointercancel","lostpointercapture"])b.addEventListener(ev,stop);}}}
+{const wp=document.getElementById("walkPad");if(wp){const stop=()=>{if(R3)R3.wk=null;};for(const b of wp.querySelectorAll("button[data-w]")){b.addEventListener("pointerdown",e=>{e.preventDefault();e.stopPropagation();const[x,y]=b.dataset.w.split(",").map(Number);if(R3)R3.wk={s:x,f:y};try{b.setPointerCapture(e.pointerId);}catch(_){}});for(const ev of["pointerup","pointercancel","lostpointercapture"])b.addEventListener(ev,stop);}}}
 v3c.addEventListener("pointerdown",e=>{if(!R3)return;if(e.pointerType==="mouse"&&e.button!==0){if(e.button===1)e.preventDefault();return;}
   if(ptr3.size>=2)return;try{v3c.setPointerCapture(e.pointerId);}catch(_){}
   ptr3.set(e.pointerId,{x:e.clientX,y:e.clientY});if(ptr3.size===1)R3.tapMoved=false;anchor3();v3c.classList.add("drag");});
@@ -5335,7 +5351,8 @@ const priceOf_=id=>{const r=LADDER.find(x=>x[0]===id);return r?r[1]:0;};
 const rungOf=id=>LADDER.findIndex(x=>x[0]===id);
 const shipTradeIn=s=>Math.round(TRADEIN*priceOf_(s.shipId));
 const netWorth=s=>Math.round(s.purse+shipTradeIn(s)+cargoValue(s));
-function careerInit(s,k){s.career={t0:s.t,start:k,owned:[CAREER_START],noted:null,done:false};s.purse=CAREER_PURSE;mkInit(s);
+function careerInit(s,k){s.career={t0:s.t,start:k,owned:[CAREER_START],noted:null,done:false};s.purse=CAREER_PURSE;startDocked(s,k);}
+function startDocked(s,k){mkInit(s);
   const P=PORTS[k],sh=s.ship,A=sh.anch;{const f=PF[k];if(f&&f.dock){sh.x=f.dock.x;sh.y=f.dock.y;sh.heading=f.dock.hdg;}else{sh.x=P.x;sh.y=P.y;}}
   sh.ordered=sh.heading;sh.v=0;for(const id of SAILIDS){sh.sls[id]=0;sh.sa[id]=0;}
   A.mode="holding";A.depth=Math.max(2,Math.round(depthFm(sh.x,sh.y)));A.drag=0;A.dragWarned=false;A.t0=s.t;s.docked=k;s.arrivedNear=k;if(s.est){s.est.x=sh.x;s.est.y=sh.y;}
@@ -6224,7 +6241,7 @@ async function readSlot(slot){let best=null;try{const r=JSON.parse(localStorage.
 function loadState(o){stopSkip();useShip(o.shipId||"brig");o.shipId=SHIP.id;S=o;rng=mulberry32((Math.random()*2**31)|0);const v=S.v;applyShip();
   setPlotting(false);updateRoute();svNew();openShip(false);selSails.clear();$("sailSl").style.display="none";
   $("ovStart").hidden=true;$("ovEnd").hidden=true;$("ovSave").hidden=true;modalOpen=false;
-  $("voyTitle").textContent=`${v.tag}: ${v.title}`;$("peek").checked=false;$("peekWrap").hidden=v.mode!=="lost";
+  $("voyTitle").textContent=`${v.tag}: ${v.title}`;$("peek").checked=false;$("peekWrap").hidden=true;$("aDR").checked=S.mode==="lost";
   setSpeed(1);follow=true;$("follow").setAttribute("aria-pressed","true");cam.zoom=v.mode==="lost"?2.6:3.2;cam.x=S.ship.x;cam.y=S.ship.y;
   if(R3){R3.last=null;R3.lampF=null;R3.nfc=null;}
   renderLog();setPaused(true);say("Game loaded. The ship is paused. Press play to sail on.");updateUI(true);}
@@ -6291,7 +6308,7 @@ $("voyList").innerHTML=VOYAGES.map((v,i)=>`<button class="voycard" data-v="${i}"
 $("voyList").querySelectorAll("button").forEach(b=>b.onclick=()=>startVoyage(VOYAGES[+b.dataset.v]));
 {const fb=document.createElement("button");fb.className="voycard";fb.id="freeCard";fb.innerHTML='<span class="tag">No orders</span><b>Free sailing</b><span class="d">Start from any port and sail where you like. No mission, no end: trade, fish, explore the islands and come to anchor when you please.</span>';
   const fp=$("freePick"); // free roam is the only way to start: the sea trial and lost-at-sea voyages stay in VOYAGES for old saves but are not offered
-  fp.innerHTML='<div class="row" role="radiogroup" aria-label="Game mode" style="gap:8px"><button type="button" class="btn" id="modeFree" role="radio">Free sailing</button><button type="button" class="btn" id="modeCareer" role="radio">Career</button></div><p class="muted" id="modeNote" style="margin:0"></p><b id="freeHead" style="font-family:var(--f-display);font-weight:400;font-size:17px">Free roam: where do you weigh from?</b><div class="voylist" id="freePorts" style="grid-template-columns:repeat(auto-fill,minmax(130px,1fr))"></div><label class="chk"><input type="checkbox" id="freeLost"> <span>Navigate by dead reckoning only<small style="display:block;color:var(--ink-soft)">Hides your true position, as on the lost-at-sea voyages.</small></span></label><div><button class="btn" id="freeBack">Back</button></div>';
+  fp.innerHTML='<div class="row" role="radiogroup" aria-label="Game mode" style="gap:8px"><button type="button" class="btn" id="modeFree" role="radio">Free sailing</button><button type="button" class="btn" id="modeCareer" role="radio">Career</button></div><p class="muted" id="modeNote" style="margin:0"></p><b id="freeHead" style="font-family:var(--f-display);font-weight:400;font-size:17px">Free roam: where do you weigh from?</b><div class="voylist" id="freePorts" style="grid-template-columns:repeat(auto-fill,minmax(130px,1fr))"></div><div><button class="btn" id="freeBack">Back</button></div>';
   let gameMode="free";try{if(localStorage.getItem("drMode")==="career")gameMode="career";}catch(e){}
   const setMode=m=>{gameMode=m;try{localStorage.setItem("drMode",m);}catch(e){}
     $("modeFree").setAttribute("aria-checked",String(m==="free"));$("modeCareer").setAttribute("aria-checked",String(m==="career"));$("modeFree").setAttribute("aria-pressed",String(m==="free"));$("modeCareer").setAttribute("aria-pressed",String(m==="career"));
@@ -6301,8 +6318,8 @@ $("voyList").querySelectorAll("button").forEach(b=>b.onclick=()=>startVoyage(VOY
   $("modeFree").onclick=()=>setMode("free");$("modeCareer").onclick=()=>setMode("career");setMode(gameMode);
   $("freePorts").innerHTML=Object.keys(PORTS).map(k=>`<button class="voycard" data-p="${k}" style="padding:8px 10px"><b style="font-size:16px">${PORTS[k].name}</b></button>`).join("");
   $("voyList").hidden=true;fp.hidden=false;$("freeBack").parentNode.hidden=true;
-  $("freePorts").querySelectorAll("button").forEach(b=>b.onclick=()=>{const k=b.dataset.p,lost=$("freeLost").checked;
-    startVoyage(gameMode==="career"?{id:"career",tag:"Career",title:"From "+PORTS[k].name,from:k,to:null,mode:lost?"lost":"trial",hdg:280,free:true,career:true,ship:CAREER_START,desc:""}:{id:"free",tag:"Free sailing",title:"From "+PORTS[k].name,from:k,to:null,mode:lost?"lost":"trial",hdg:280,free:true,desc:""});});}
+  $("freePorts").querySelectorAll("button").forEach(b=>b.onclick=()=>{const k=b.dataset.p;
+    startVoyage(gameMode==="career"?{id:"career",tag:"Career",title:"From "+PORTS[k].name,from:k,to:null,mode:"trial",hdg:280,free:true,career:true,ship:CAREER_START,desc:""}:{id:"free",tag:"Free sailing",title:"From "+PORTS[k].name,from:k,to:null,mode:"trial",hdg:280,free:true,desc:""});});}
 { const mq=matchMedia("(max-width:860px)"),box=document.querySelector(".compassbox"),home=$("paneV3");
   const place=()=>{const tgt=mq.matches?document.querySelector(".dock-all .dockbody"):home;if(box.parentNode!==tgt)mq.matches?tgt.insertBefore(box,tgt.firstChild):tgt.appendChild(box);};
   place();mq.addEventListener("change",()=>{place();resize();resize3D();}); }
