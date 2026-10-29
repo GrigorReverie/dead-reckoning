@@ -317,7 +317,7 @@ body.fs3d #fsBar{left:max(12px,env(safe-area-inset-left,0px));bottom:max(12px,en
 /* the glass sits left of the compass; on a phone it shrinks with the dial */
 @media (max-width:860px){.compassbox{--baroW:calc((min(230px,64vw) - 28px)*.24);--stW:32px;--gp:6px}#baro,#sailSteps5{height:calc(min(230px,64vw) - 28px)}.cbrow{gap:6px}}
 /* the four view icons (chart, camera, ship, book) share one centred row along the bottom */
-:root{--ic:38px;--icg:22px}
+:root{--ic:40px;--icg:24px}
 #paneV3.small ~ #paneTools{display:none!important}
 .ptools .tbicon,.bookbtn,.shipchart,#paneChart.small{width:var(--ic)!important;height:var(--ic)!important}
 .ptools .tbicon svg,.bookbtn svg,#paneChart.small .mapicon svg{width:20px!important;height:20px!important}
@@ -348,8 +348,8 @@ body.fs3d #fsBar{left:max(12px,env(safe-area-inset-left,0px));bottom:max(12px,en
   /* the five icons sit in a bottom menu bar, evenly spaced, each with its name */
   #tabbar{display:block;position:fixed;left:0;right:0;bottom:0;height:calc(var(--ic) + 30px + env(safe-area-inset-bottom,0px));background:var(--paper);border-top:1px solid var(--ink);z-index:14}
   html,body{background:var(--paper)}.app{height:var(--app-h,100dvh)}#tabbar::after{content:"";position:absolute;left:0;right:0;top:100%;height:200px;background:var(--paper)} /* no darker band under the menu bar, whatever the browser leaves below the page */
-  #tabbar span{position:absolute;bottom:calc(env(safe-area-inset-bottom,0px) + 6px);transform:translateX(-50%);font:11px/1 var(--f-data);letter-spacing:.05em;text-transform:uppercase;color:var(--ink)}
-  .ptools .tbicon,.bookbtn,.shipchart,#paneChart.small,#ctlIcon{bottom:calc(env(safe-area-inset-bottom,0px) + 22px)!important;border-color:transparent!important;background:transparent!important;box-shadow:none!important;border-radius:6px}
+  #tabbar span{position:absolute;bottom:3px;transform:translateX(-50%);font:8px/1 var(--f-data);letter-spacing:.05em;text-transform:uppercase;color:var(--ink)}
+  .ptools .tbicon,.bookbtn,.shipchart,#paneChart.small,#ctlIcon{bottom:15px!important;border-color:transparent!important;background:transparent!important;box-shadow:none!important;border-radius:6px}
   .ptools .tbicon[aria-pressed="true"],.bookbox.open .bookbtn,#ctlIcon[aria-pressed="true"]{background:var(--ink)!important;color:var(--paper)!important}
   #paneChart.small .mapicon{background:transparent!important}
   .tbtab{display:flex!important;position:fixed;z-index:16;width:var(--ic);height:var(--ic);bottom:calc(env(safe-area-inset-bottom,0px) + 22px);border:0!important;background:transparent!important;box-shadow:none!important;border-radius:6px;padding:0;align-items:center;justify-content:center;color:var(--ink);cursor:pointer}
@@ -374,7 +374,7 @@ body.fs3d #fsBar{left:max(12px,env(safe-area-inset-left,0px));bottom:max(12px,en
 .menupop .tb:hover,.bar .menupop .tb:hover{background:var(--paper-2)}
 .btn.primary:disabled{background:transparent;color:var(--ink);border-color:var(--ink)}
 @media (max-width:860px){
-  .tbtab{position:fixed;bottom:calc(env(safe-area-inset-bottom,0px) + 22px);z-index:16;border:0!important;background:transparent!important;box-shadow:none!important;border-radius:6px}
+  .tbtab{position:fixed;bottom:15px;z-index:16;border:0!important;background:transparent!important;box-shadow:none!important;border-radius:3px}
   .tbtab[aria-pressed="true"]{background:var(--ink)!important;color:var(--paper)!important}
   #tbChart{left:calc(10% - var(--ic)/2)}#tbView{left:calc(30% - var(--ic)/2)}#tbShip{left:calc(50% - var(--ic)/2)}#tbBook{left:calc(70% - var(--ic)/2)}
 }
@@ -384,11 +384,11 @@ body.fs3d #fsBar{left:max(12px,env(safe-area-inset-left,0px));bottom:max(12px,en
   :root:root:root .bookbody{background:transparent!important;background-image:none!important;box-shadow:none!important}
   /* bottom bar: outline icons in a thin box at the original size; the pressed one only gets a bolder box, no fill, fade or motion; menus and overlays cover the bar */
   :root{--tbw:var(--ic)}
-  #tabbar{height:calc(var(--tbw) + 30px + env(safe-area-inset-bottom,0px))!important}.app{padding-bottom:calc(var(--tbw) + 40px)!important}
-  :root:root:root .tbtab,:root:root:root #ctlIcon{width:var(--tbw)!important;height:var(--tbw)!important;z-index:16!important;background:transparent!important;background-image:none!important;color:var(--ink)!important;border:1px solid var(--ink)!important;border-radius:6px!important;box-shadow:none!important;transition:none!important;animation:none!important;-webkit-tap-highlight-color:transparent}
+  #tabbar{height:calc(var(--tbw) + 25px)!important;background:color-mix(in srgb,var(--paper) 70%,transparent)}.app{padding-bottom:calc(var(--tbw) + 35px)!important}
+  :root:root:root .tbtab,:root:root:root #ctlIcon{width:var(--tbw)!important;height:var(--tbw)!important;z-index:16!important;background:transparent!important;background-image:none!important;color:var(--ink)!important;border:1px solid var(--ink)!important;border-radius:3px!important;box-shadow:none!important;transition:none!important;animation:none!important;-webkit-tap-highlight-color:transparent}
   :root:root:root .tbtab[aria-pressed="true"],:root:root:root #ctlIcon[aria-pressed="true"]{border-width:3px!important;background:transparent!important;color:var(--ink)!important}
   :root:root:root .tbtab:hover,:root:root:root .tbtab:active,:root:root:root #ctlIcon:hover,:root:root:root #ctlIcon:active{background:transparent!important}
-  :root:root:root .tbtab svg,:root:root:root #ctlIcon svg{width:20px!important;height:20px!important;transition:none!important}
+  :root:root:root .tbtab svg,:root:root:root #ctlIcon svg{width:22px!important;height:22px!important;transition:none!important}
   #tbChart{left:calc(10% - var(--tbw)/2)!important}#tbView{left:calc(30% - var(--tbw)/2)!important}#tbShip{left:calc(50% - var(--tbw)/2)!important}#tbBook{left:calc(70% - var(--tbw)/2)!important}:root:root #ctlIcon{left:calc(90% - var(--tbw)/2)!important}
 }
 #ctlIcon svg{width:20px;height:20px}
@@ -7426,7 +7426,7 @@ body.cutmode #view3d{touch-action:none}
 #cutCard .ra{list-style:none;margin:4px 0 0;padding:0}#cutCard .ra li{font:12px Georgia,serif;line-height:1.3;padding:2px 0;border-top:1px dotted #cbbd98}#cutCard .ra b{font:10px "IBM Plex Mono",monospace;text-transform:uppercase;letter-spacing:.06em;color:#7b6a55;margin-right:5px}#cutCard .ra .risk b{color:#a83b2f}
 #cutCard .ra{display:flex;flex-direction:column;gap:3px;margin-top:5px}#cutCard .ra button{text-align:left;font:12px Georgia,serif;line-height:1.3;padding:4px 6px;border:1px solid #2e2519;border-radius:3px;background:#fff;color:#000}#cutCard .ra button.risk{border-color:#a83b2f}#cutCard .ra button b{font:10px "IBM Plex Mono",monospace;text-transform:uppercase;letter-spacing:.06em;color:#7b6a55;margin-right:5px}#cutCard .ra button.risk b{color:#a83b2f}#cutCard .rr{margin-top:5px;font:italic 12.5px Georgia,serif;color:#2e2519}
 #cutCard{max-height:46vh;overflow:auto}#cutCard .mc{margin-top:6px;border-top:1px dotted #cbbd98;padding-top:5px;font:12.5px Georgia,serif}#cutCard .mc .svhint{font:11.5px Georgia,serif;color:#4a3f30;margin-top:2px}#cutCard .mb{display:flex;gap:5px;margin-top:5px}#cutCard .mb button{font:12px Georgia,serif;padding:4px 8px;border:1px solid #000;border-radius:3px;background:#fff;color:#000}
-#cutChips{justify-content:space-between;gap:2px}#cutChips button{flex:1 1 0;max-width:var(--ic,44px);min-width:0;height:var(--ic,44px);padding:0;display:flex;align-items:center;justify-content:center;border:0;border-radius:6px;background:transparent;color:var(--ink,#2e2519)}#cutChips button svg{width:20px;height:20px}#cutChips button span{display:block;font:8.5px/1 "IBM Plex Mono",monospace;letter-spacing:0;text-transform:uppercase;margin-top:3px;max-width:100%;overflow:hidden;text-overflow:clip;white-space:nowrap}#cutChips button{flex-direction:column;max-width:calc(var(--ic,44px) + 8px);height:calc(var(--ic,44px) + 12px)}#cutChips button.on,#cutChips button:active{background:var(--ink,#2e2519);color:var(--paper,#f6eed9)}#cutChips #cutRe{margin-left:0}#cutChips #cutLed{border-style:solid}
+#cutChips{justify-content:space-between;gap:6px}#cutChips button{flex:1 1 0;max-width:38px;min-width:0;height:42px;padding:0;display:flex;flex-direction:column;align-items:center;justify-content:center;border:0;border-radius:3px;background:var(--paper,#f6eed9);color:var(--ink,#2e2519)}#cutChips button svg{width:21px;height:21px}#cutChips button span{display:block;font:6.5px/1 "IBM Plex Mono",monospace;letter-spacing:0;text-transform:uppercase;margin-top:3px;max-width:100%;overflow:hidden;white-space:nowrap}#cutChips button.on,#cutChips button:active{background:var(--ink,#2e2519);color:var(--paper,#f6eed9)}#cutChips #cutRe{margin-left:0}#cutChips #cutLed{border-style:solid}@media (max-width:860px){#cutChips{left:12px;right:12px;bottom:calc(var(--pbot,72px) + 3px)}}
 
 #cutSvg .sel rect{fill:#000!important}#cutSvg rect{stroke-width:1.4px}#cutSvg text{font-weight:600}
 #cutSvg g.em rect{fill:#ffd400}#cutSvg g.em.sel rect{fill:#000!important}
