@@ -7131,18 +7131,21 @@ function labels(){const R=M.R;if(!M.on){if(labelEls)labelEls.forEach(e=>e.g.styl
   R.bob.updateMatrixWorld(true);R.camera.updateMatrixWorld();
   const cardTop=card.getBoundingClientRect().top;const EM=emergencies();
   const act=labelEls.filter(e=>{const l=e.l;const em=EM[l[0]*10+l[4]],show=M.sel<0?(l[3]===1||!!em):l[0]===M.sel;e.g.style.display=show?"":"none";e.g.classList.toggle("em",!!em);return show;});
-  const top=Math.max(rc.top,88)+6,bot=Math.min(rc.bottom,cardTop)-6,half=Math.ceil(act.length/2),cnt=[half,act.length-half];
-  act.forEach((e,n)=>{const l=e.l,side=n<half?0:1,k=side?n-half:n,c=cnt[side],slot=(bot-top)/c;
-    _v.set(M.flip?-l[2][0]:l[2][0],l[2][1],l[2][2]).applyMatrix4(R.bob.matrixWorld).project(R.camera);
-    const ax=rc.left+(_v.x*.5+.5)*rc.width,ay=rc.top+(1-(_v.y*.5+.5))*rc.height;
-    { const n=M.grp&&M.grp[l[0]*10+l[4]]?M.grp[l[0]*10+l[4]].length:0,t=e.base+(n?" "+n:"");if(e.tx.textContent!==t){e.tx.textContent=t;e.w=t.length*5.3+10;} }
-    e.g.classList.toggle("sel",M.sel===l[0]&&M.hi===l[4]);
-    const ty=top+(k+.5)*slot-8,bx=side?W-6-e.w:6;
-    e.rc.setAttribute("x",bx);e.rc.setAttribute("y",ty);e.rc.setAttribute("width",e.w);
-    e.tx.setAttribute("x",bx+5);e.tx.setAttribute("y",ty+11.5);
-    const ok=!(_v.z>1||ax<8||ax>W-8||ay<70||ay>cardTop-6);
-    e.pl.style.display=e.dot.style.display=ok?"":"none";
-    if(ok){const ex=side?bx:bx+e.w,ly=ty+8;e.pl.setAttribute("points",`${ex},${ly} ${ax},${ay}`);e.dot.setAttribute("cx",ax);e.dot.setAttribute("cy",ay);}});
+  const top=Math.max(rc.top,88)+6,bot=Math.min(rc.bottom,cardTop)-6;
+  // where each room sits on screen; boxes go to the nearer side, ordered top to bottom so the lines never cross
+  act.forEach(e=>{const l=e.l;_v.set(M.flip?-l[2][0]:l[2][0],l[2][1],l[2][2]).applyMatrix4(R.bob.matrixWorld).project(R.camera);e.ax=rc.left+(_v.x*.5+.5)*rc.width;e.ay=rc.top+(1-(_v.y*.5+.5))*rc.height;e.vz=_v.z;});
+  const mid=rc.left+rc.width/2,sides=[act.filter(e=>e.ax<mid).sort((p,q)=>p.ay-q.ay),act.filter(e=>e.ax>=mid).sort((p,q)=>p.ay-q.ay)];
+  if(Math.abs(sides[0].length-sides[1].length)>Math.ceil(act.length/2)-1+2){const big=sides[0].length>sides[1].length?0:1,mv=sides[big].splice(sides[big].length>>1);sides[1-big]=sides[1-big].concat(mv);sides[1-big].sort((p,q)=>p.ay-q.ay);}
+  sides.forEach((arr,side)=>{const c=arr.length;if(!c)return;const slot=Math.min((bot-top)/c,26),mean=arr.reduce((t,e)=>t+e.ay,0)/c,y0=clamp(mean-slot*c/2,top,Math.max(top,bot-slot*c));
+    arr.forEach((e,k)=>{const l=e.l,ax=e.ax,ay=e.ay;
+      { const n=M.grp&&M.grp[l[0]*10+l[4]]?M.grp[l[0]*10+l[4]].length:0,t=e.base+(n?" "+n:"");if(e.tx.textContent!==t){e.tx.textContent=t;e.w=t.length*5.3+10;} }
+      e.g.classList.toggle("sel",M.sel===l[0]&&M.hi===l[4]);
+      const ty=y0+(k+.5)*slot-8,bx=side?W-6-e.w:6;
+      e.rc.setAttribute("x",bx);e.rc.setAttribute("y",ty);e.rc.setAttribute("width",e.w);
+      e.tx.setAttribute("x",bx+5);e.tx.setAttribute("y",ty+11.5);
+      const ok=!(e.vz>1||ax<8||ax>W-8||ay<70||ay>cardTop-6);
+      e.pl.style.display=e.dot.style.display=ok?"":"none";
+      if(ok){const ex=side?bx:bx+e.w,ly=ty+8;e.pl.setAttribute("points",`${ex},${ly} ${ax},${ay}`);e.dot.setAttribute("cx",ax);e.dot.setAttribute("cy",ay);}});});
   requestAnimationFrame(labels);}
 /* ---------- boot: every ship opens her cutaway on the Ship tab ---------- */
 function teardown(){if(M.on)leave();for(const o of[M.G,M.G2,M.seabed])if(o&&o.parent)o.parent.remove(o);
