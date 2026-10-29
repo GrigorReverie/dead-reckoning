@@ -2451,6 +2451,51 @@ vec3 sunShade(vec3 col,vec3 nw,vec3 wp,vec2 hc){
   }
   return col*(1.0-0.38*cs); // under cloud the whole ship simply darkens, no cast shape
 }`;
+/* Style engine: per-style recolouring, light bands, shade tint, rim light, screen hatching, pen-line strength, sea bands and engraved lines, sky bands.
+   Driven by DRStyle scene settings (Aesthetics Lab). Off (uStOn=0) for the plain Hashed diagram look, so the default game is unchanged. */
+const STU={uStOn:{value:0},uStBands:{value:0},uStBandMix:{value:1},uStRim:{value:0},uStHatch:{value:0},uStHatchSc:{value:5},uStCross:{value:0},uStPen:{value:1},uStRecol:{value:0},uStTint:{value:0},
+  uStSeaBands:{value:0},uStSeaLines:{value:0},uStSkyBands:{value:0},uStSurf:{value:0},uStDpr:{value:1},
+  uStShadow:{value:new THREE.Color(1,1,1)},uStInk:{value:new THREE.Color(0,0,0)},uStSunC:{value:new THREE.Color(1,1,1)},uStHull:{value:new THREE.Color()},uStSail:{value:new THREE.Color()},uStWood:{value:new THREE.Color()},
+  uStSeaD:{value:new THREE.Color()},uStSeaL:{value:new THREE.Color()},uStSkyT:{value:new THREE.Color()},uStSkyH:{value:new THREE.Color()},uStSunDir:{value:new THREE.Vector3(0,1,0)}};
+const GLSL_STYLE=`
+uniform float uStOn,uStBands,uStBandMix,uStRim,uStHatch,uStHatchSc,uStCross,uStPen,uStRecol,uStTint,uStSeaBands,uStSeaLines,uStSkyBands,uStSurf,uStDpr;
+uniform vec3 uStShadow,uStInk,uStSunC,uStHull,uStSail,uStWood,uStSeaD,uStSeaL,uStSkyT,uStSkyH,uStSunDir;
+float stLum(vec3 c){return dot(c,vec3(0.299,0.587,0.114));}
+float stH(vec2 p){p=fract(p*vec2(123.34,456.21));p+=dot(p,p+45.32);return fract(p.x*p.y);}
+float stN(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.0-2.0*f);return mix(mix(stH(i),stH(i+vec2(1.0,0.0)),f.x),mix(stH(i+vec2(0.0,1.0)),stH(i+vec2(1.0,1.0)),f.x),f.y);}
+vec3 stBandC(vec3 c,float n,float m){if(n<1.5)return c;float L=stLum(c);float q=floor(L*n+0.5)/n;return c*mix(1.0,q/max(L,0.02),m);}
+vec3 stRecolour(vec3 c,vec3 k){float L=stLum(c);return mix(c,k*clamp(L/max(stLum(k),0.05),0.0,1.6),uStRecol);}
+float stHatchAmt(float dark){
+  if(uStHatch<=0.0)return 0.0;
+  float f=1.0/(max(uStHatchSc,1.5)*uStDpr);
+  float d1=abs(fract((gl_FragCoord.x+gl_FragCoord.y)*0.7071*f)-0.5)*2.0;float l1=(1.0-step(dark*0.85,d1))*step(0.12,dark);
+  float d2=abs(fract((gl_FragCoord.x-gl_FragCoord.y)*0.7071*f)-0.5)*2.0;float l2=(1.0-step((dark-0.45)*1.4,d2))*step(0.45,dark)*uStCross;
+  return uStHatch*clamp(l1+l2,0.0,1.0);}
+vec3 stObj(vec3 c,vec3 n,vec3 wp,vec3 k){
+  if(uStOn<0.5)return c;
+  c=stRecolour(c,k);
+  float ndl=clamp(dot(n,normalize(uStSunDir))*0.5+0.5,0.0,1.0);
+  c=mix(c,c*uStShadow*1.5,(1.0-ndl)*uStTint);
+  c*=mix(vec3(1.0),uStSunC,0.35*uStTint);
+  c*=1.0+(stN(wp.xz*0.6+wp.y*0.8)-0.5)*uStSurf*0.6;
+  float rim=pow(1.0-max(dot(n,normalize(cameraPosition-wp)),0.0),3.0);c+=uStRim*rim*uStSunC*0.22;
+  c=stBandC(c,uStBands,uStBandMix);
+  float dark=max(1.0-clamp(stLum(c)*1.3,0.0,1.0),1.0-ndl);
+  return mix(c,uStInk,stHatchAmt(dark));}
+vec3 stSea(vec3 c,vec3 wp,float h){
+  if(uStOn<0.5)return c;
+  float L=stLum(c);
+  c=stRecolour(c,mix(uStSeaD,uStSeaL,smoothstep(0.15,0.95,L)));
+  c=stBandC(c,uStSeaBands,1.0);
+  if(uStSeaLines>0.0){float dist=length(cameraPosition-wp);float k=wp.z*0.55+wp.x*0.12+h*1.2+stN(wp.xz*0.15)*1.2;float w=(1.0-L)*0.55+0.25;
+    float ln=(1.0-smoothstep(w*0.5,w*0.5+0.12,abs(fract(k)-0.5)*2.0))*(1.0-smoothstep(60.0,220.0,dist));c=mix(c,uStInk,ln*uStSeaLines*0.75);}
+  return c;}
+vec3 stSky(vec3 c,vec3 d){
+  if(uStOn<0.5)return c;
+  c=stRecolour(c,mix(uStSkyH,uStSkyT,pow(clamp(d.y,0.0,1.0),0.55)));
+  return stBandC(c,uStSkyBands,1.0);}
+vec3 stFog(vec3 p){return uStOn<0.5?p:stRecolour(p,uStSkyH);}
+`;
 const VS_INK=`
 attribute float aTone; uniform vec3 uCutC,uCutN; uniform float uCutR,uCutOn,uCutTop,uCutSl,uGhost; varying float vCutD,vCutH,vCutG;
 varying vec3 vWN; varying vec3 vWP; varying vec3 vN; varying vec3 vVP; varying float vTone; varying float vY; varying vec3 vObj; varying vec3 vNo;
@@ -2472,8 +2517,9 @@ uniform vec4 uCvA,uCvB;
 #endif
 uniform vec3 uPaper,uInk,uLight; uniform float uFogNear,uFogFar;
 varying float vCutD,vCutH,vCutG;
-varying vec3 vN; varying vec3 vVP; varying float vTone; varying float vY; varying vec3 vObj; varying vec3 vNo;
+varying vec3 vN; varying vec3 vVP; varying float vTone; varying float vY; varying vec3 vObj; varying vec3 vNo; varying vec3 vWN; varying vec3 vWP;
 ${GLSL_LINES}
+${GLSL_STYLE}
 void main(){
 #ifndef HATCH_UV
  if(vCutH>0.0)discard;
@@ -2513,8 +2559,9 @@ void main(){
     base=mix(base,vec3(0.0),nt);
   #endif
   vec3 col=mix(base,uInk,clamp(ink,0.0,1.0));
+  { vec3 sn=normalize(vWN); if(!gl_FrontFacing)sn=-sn; col=stObj(col,sn,vWP,col); }
   float f=smoothstep(uFogNear,uFogFar,length(vVP));
-  col=mix(col,uPaper,f);
+  col=mix(col,stFog(uPaper),f);
   gl_FragColor=vec4(col,1.0);
 }`;
 const FS_TEX=`
@@ -2530,6 +2577,7 @@ varying vec3 vN; varying vec3 vVP; varying float vTone; varying float vY; varyin
 ${SH_UH}
 ${GLSL_LINES}
 ${GLSL_SUN}
+${GLSL_STYLE}
 float aaOne(float d,float c,float w){ float fw=fwidth(d); float px=abs(d-c)/max(fw,1e-5); return (1.0-smoothstep(w-0.5,w+0.5,px))*(1.0-smoothstep(0.35,0.7,fw*3.0)); }
 float hsh(float k){ return fract(sin(k*12.9898)*43758.5453); }
 float vn(vec2 p){ vec2 i=floor(p),f=fract(p); f=f*f*(3.0-2.0*f); float a=hsh(i.x+i.y*57.0),b=hsh(i.x+1.0+i.y*57.0),c=hsh(i.x+(i.y+1.0)*57.0),d=hsh(i.x+1.0+(i.y+1.0)*57.0); return mix(mix(a,b,f.x),mix(c,d,f.x),f.y); }
@@ -2604,6 +2652,7 @@ void main(){
   #if !defined(TEX_MAST) && !defined(TEX_SAIL)
     ink=max(ink,dark*0.06);
   #endif
+  ink*=mix(1.0,uStPen,uStOn);
   // pen-and-wash: sepia pen line over a watercolour wash, as on a printed ship plate
   float night=step(dot(uPaper,vec3(0.33)),0.5);
   vec3 pen=mix(vec3(0.16,0.115,0.085),uInk,night);
@@ -2662,8 +2711,19 @@ void main(){
 colr=sunShade(colr,nw,vWP,hc); }
   
   #endif
+  { vec3 sn=normalize(vWN); if(!gl_FrontFacing)sn=-sn; vec3 sk=uStWood;
+  #ifdef TEX_SAIL
+    sk=uStSail;
+  #endif
+  #ifdef TEX_HULL
+    sk=uStHull;
+  #endif
+  #if defined(TEX_FLAT)||defined(TEX_FIG)
+    sk=colr;
+  #endif
+    colr=stObj(colr,sn,vWP,sk); }
   float f=smoothstep(uFogNear,uFogFar,length(vVP));
-  colr=mix(colr,uPaper,f);
+  colr=mix(colr,stFog(uPaper),f);
   gl_FragColor=vec4(colr,1.0);
 }`;
 const VS_SEA=`
@@ -2690,6 +2750,7 @@ varying vec3 vPos; varying vec3 vN; varying float vH; uniform vec3 uCutC,uCutN,u
 ${GLSL_LINES}
 ${SH_UH}
 ${GLSL_SUN}
+${GLSL_STYLE}
 float h21(vec2 p){ return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453); }
 float vn(vec2 p){ vec2 i=floor(p),f=fract(p); f=f*f*(3.0-2.0*f); return mix(mix(h21(i),h21(i+vec2(1.0,0.0)),f.x),mix(h21(i+vec2(0.0,1.0)),h21(i+vec2(1.0,1.0)),f.x),f.y); }
 float fbm(vec2 p){ return 0.5*vn(p)+0.25*vn(p*2.03+7.1)+0.125*vn(p*4.1+3.3)+0.0625*vn(p*8.2); }
@@ -2741,7 +2802,8 @@ void main(){
     col=mix(nw,uSeaInk*0.55,ink*0.8);
     float fo2=smoothstep(0.82,0.97,crest+(fbm(q*vec2(1.1,1.7))-0.5)*0.7)*mid*0.4*(0.25+mk);
     col=mix(col,vec3(0.55,0.62,0.75),fo2);
-    col=mix(col,uPaper,smoothstep(uFogNear,uFogFar,dist));
+    col=stSea(col,vPos,vH);
+  col=mix(col,stFog(uPaper),smoothstep(uFogNear,uFogFar,dist));
     vec3 cp2=vPos-uCutC;float cx2=dot(cp2,uCutN),cz2=dot(cp2,uCutB);float cutM2=uCutOn*smoothstep(uCutBox.x-1.5,uCutBox.x,cx2)*(1.0-smoothstep(uCutBox.y,uCutBox.y+2.0,cx2))*(1.0-smoothstep(uCutBox.z,uCutBox.z+2.0,abs(cz2)));
     gl_FragColor=vec4(col,1.0-0.78*cutM2); return;
   }
@@ -2847,7 +2909,8 @@ void main(){
     if(tt2>3.5){ hc2+=u_cDir*(vH*1.0+0.4*fbm(q*0.3))*u_cHSp; tt2=1.0; }
     float hh2=hatchP(hc2,tt2,u_cHAng,u_cHSp,u_cHW,u_cHGain,u_cHStart,u_cHCrossAng,u_cHCrossStart,csG)*u_cHOpac;
     col=mix(col,u_cHCol,clamp(hh2,0.0,1.0)); }
-  col=mix(col,uPaper,smoothstep(uFogNear,uFogFar,dist));
+  col=stSea(col,vPos,vH);
+  col=mix(col,stFog(uPaper),smoothstep(uFogNear,uFogFar,dist));
   vec3 cp=vPos-uCutC;float cx=dot(cp,uCutN),cz=dot(cp,uCutB);float ce=(cx*cx)/(uCutE.x*uCutE.x)+(cz*cz)/(uCutE.y*uCutE.y);float cutM=max(uCutOn*uCutE.z*(1.0-smoothstep(.72,1.0,ce)),uCutOn*smoothstep(uCutBox.x-1.5,uCutBox.x,cx)*(1.0-smoothstep(uCutBox.y,uCutBox.y+2.0,cx))*(1.0-smoothstep(uCutBox.z,uCutBox.z+2.0,abs(cz))));gl_FragColor=vec4(col,1.0-0.78*cutM);
 }`;
 
@@ -2929,6 +2992,7 @@ function init3D(){
     const SMS=(window.matchMedia&&matchMedia("(pointer:coarse)").matches)?1024:2048;
     const smRT=new THREE.WebGLRenderTarget(SMS,SMS,{minFilter:THREE.NearestFilter,magFilter:THREE.NearestFilter,format:THREE.RGBAFormat,type:THREE.UnsignedByteType});
     Object.assign(U,{u_SMap:{value:smRT.texture},u_SMat:{value:new THREE.Matrix4()},u_SSize:{value:100},u_SRange:{value:100},u_STex:{value:1/SMS},u_ShadowOn:{value:0},u_LightK:{value:0},uNightK:{value:0},uMoon:{value:new THREE.Vector4(0,1,0,0)},uLant:{value:new THREE.Vector3()},u_cl:{value:Array.from({length:CL_N},()=>new THREE.Vector4(0,0,0,0))},u_cPar:{value:new THREE.Vector2()},u_cHSh:{value:0}});
+    Object.assign(U,STU); // style engine uniforms, shared by every ship, land, sea and sky material
     const shDepth=new THREE.ShaderMaterial({vertexShader:"void main(){gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}",fragmentShader:"precision highp float;void main(){float v=gl_FragCoord.z;vec3 e=vec3(1.0,255.0,65025.0)*v;e=fract(e);e-=e.yzz*vec3(1.0/255.0,1.0/255.0,0.0);gl_FragColor=vec4(e,1.0);}",side:THREE.DoubleSide,blending:THREE.NoBlending});
     const ink=(defs)=>new THREE.ShaderMaterial({uniforms:U,vertexShader:VS_INK,fragmentShader:FS_INK,side:THREE.DoubleSide,defines:Object.assign({HATCH_SCALE:"5.0",SHADE_FLOOR:"0.0"},defs||{}),extensions:{derivatives:true}});
     const inkMat=ink({OBJ:1}),terrainMat=ink({CONTOUR:1});
@@ -3543,6 +3607,7 @@ varying vec3 vN; varying vec3 vVP; varying float vTone; varying float vY; varyin
 ${SH_UH}
 ${GLSL_LINES}
 ${GLSL_SUN}
+${GLSL_STYLE}
 float aaOne(float d,float c,float w){ float fw=fwidth(d); float px=abs(d-c)/max(fw,1e-5); return (1.0-smoothstep(w-0.5,w+0.5,px))*(1.0-smoothstep(0.35,0.7,fw*3.0)); }
 float hsh(float k){ return fract(sin(k*12.9898)*43758.5453); }
 float vn(vec2 p){ vec2 i=floor(p),f=fract(p); f=f*f*(3.0-2.0*f); float a=hsh(i.x+i.y*57.0),b=hsh(i.x+1.0+i.y*57.0),c=hsh(i.x+(i.y+1.0)*57.0),d=hsh(i.x+1.0+(i.y+1.0)*57.0); return mix(mix(a,b,f.x),mix(c,d,f.x),f.y); }
@@ -3571,6 +3636,7 @@ void main(){
   float boot=uBoot*smoothstep(uBotY-0.02,uBotY+0.02,p.y)*(1.0-smoothstep(uBotY+0.1,uBotY+0.14,p.y)); wash=mix(wash,vec3(0.93,0.88,0.74),boot*0.9);
   wash*=0.86+0.26*vn(vec2(p.z*0.55,p.y*1.9))+0.06*(vn(vec2(p.z*3.1,p.y*7.0))-0.5);
   
+  ink*=mix(1.0,uStPen,uStOn);
   float night=step(dot(uPaper,vec3(0.33)),0.5);
   vec3 pen=mix(vec3(0.16,0.115,0.085),uInk,night);
   wash=mix(wash,wash*vec3(0.34,0.37,0.46),night);
@@ -3580,8 +3646,9 @@ void main(){
   { vec3 nw=normalize(vWN); if(!gl_FrontFacing)nw=-nw;
 vec2 hc=vec2(vObj.z+0.5*vObj.x,vObj.y);
 colr=sunShade(colr,nw,vWP,hc); }
+  { vec3 sn=normalize(vWN); if(!gl_FrontFacing)sn=-sn; colr=stObj(colr,sn,vWP,uStHull); }
   float f=smoothstep(uFogNear,uFogFar,length(vVP));
-  colr=mix(colr,uPaper,f);
+  colr=mix(colr,stFog(uPaper),f);
   gl_FragColor=vec4(colr,1.0);
 }`;
 function hullMaterial(U,P){
@@ -4203,6 +4270,7 @@ const SKY_FS_DOME=`
 varying vec3 vD;
 uniform vec3 uZen,uHor,uHaze,uGlow,uDusk,uHatCol,uSun;
 uniform float uGrad,uHazeAmt,uHazeH,uGlowAmt,uGlowSz,uGlowK,uDuskK,uHatOp,uHatSp,uHatW,uHatFull,uHatLow,uHatTight,uHatCross;
+${GLSL_STYLE}
 void main(){
   vec3 d=normalize(vD);
   float alt=degrees(asin(clamp(d.y,-1.0,1.0)));
@@ -4226,6 +4294,7 @@ void main(){
   float lz=(1.0-smoothstep(0.0,max(aaZ,1e-4)*1.2,abs(fract(nZ+0.5)-0.5)))*(1.0-smoothstep(0.3,0.8,aaZ));
   s=max(s,sOn*uHatOp*uHatCross*0.8*lz);
   col=mix(col,uHatCol,s);
+  col=stSky(col,d);
   gl_FragColor=vec4(col,1.0);
 }`;
 const SKY_VS_PT="attribute float aSize,aAlpha;attribute vec3 aCol;uniform float uDpr;varying vec3 vC;varying float vA;void main(){vC=aCol;vA=aAlpha;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);gl_PointSize=aSize*uDpr;}";
@@ -4245,7 +4314,7 @@ function initSky(R){
   const du={uZen:{value:new THREE.Vector3()},uHor:{value:new THREE.Vector3()},uHaze:{value:new THREE.Vector3()},uGlow:{value:C(K.glowCol)},uDusk:{value:C(K.duskCol)},uHatCol:{value:new THREE.Vector3()},uSun:{value:new THREE.Vector3(0,1,0)},
     uGrad:{value:K.grad},uHazeAmt:{value:K.hazeAmt},uHazeH:{value:K.hazeH},uGlowAmt:{value:K.glowAmt},uGlowSz:{value:K.glowSize},uGlowK:{value:1},uDuskK:{value:0},uHatOp:{value:K.hOpac},uHatSp:{value:K.hSp},uHatW:{value:K.hW},uHatFull:{value:K.hFull},uHatLow:{value:K.hLow},uHatTight:{value:K.hTight},uHatCross:{value:K.hCross}};
   const dome=new THREE.Mesh(new THREE.SphereGeometry(95000,32,20),new THREE.ShaderMaterial({uniforms:du,vertexShader:SKY_VS,fragmentShader:SKY_FS_DOME,side:THREE.BackSide,depthTest:false,depthWrite:false,fog:false,extensions:{derivatives:true}}));
-  dome.renderOrder=-100;dome.frustumCulled=false;sc.add(dome);
+  Object.assign(du,STU);dome.renderOrder=-100;dome.frustumCulled=false;sc.add(dome);
   const ptGeo=n=>{const g=new THREE.BufferGeometry();g.setAttribute("position",new THREE.BufferAttribute(new Float32Array(n*3),3));g.setAttribute("aCol",new THREE.BufferAttribute(new Float32Array(n*3),3));g.setAttribute("aSize",new THREE.BufferAttribute(new Float32Array(n),1));g.setAttribute("aAlpha",new THREE.BufferAttribute(new Float32Array(n),1));return g;};
   const ptMat=h=>new THREE.ShaderMaterial({uniforms:{uDpr:{value:dpr},uHalo:{value:h}},vertexShader:SKY_VS_PT,fragmentShader:SKY_FS_PT,transparent:true,depthWrite:false,fog:false});
   const pts=new THREE.Points(ptGeo(N),ptMat(0));pts.renderOrder=-50;pts.frustumCulled=false;sc.add(pts);
@@ -4859,21 +4928,30 @@ const PRESETS={
  woodcut:{name:"Woodcut",note:"Bold black lines, three flat tones, an old sea-chart print.",p:{cols:3,bands:4,bandMix:.9,oW:1.6,oS:1,oK:.4,sat:.5,con:1.4,tintH:40,tintA:.25,paperS:.35,grain:.1,dith:.7}},
  toon:{name:"Toon / cel",note:"Flat shading bands, thick outlines, bright colours.",p:{bands:4,bandMix:.85,oW:2,oS:1,sat:1.4,con:1.1}}
 };
+// scene settings for the style engine (GLSL_STYLE): [key,min,max,neutral]; colours as #rrggbb
+const SKEYS=[["bands",0,8,0],["bandSoft",0,1,1],["rim",0,1,0],["surf",0,1,0],["hatch",0,1,0],["hatchScale",2,12,5],["cross",0,1,0],["pen",0,1.5,1],["recol",0,1,0],["tint",0,1,0],["seaBands",0,8,0],["seaLines",0,1,0],["skyBands",0,6,0]];
+const SCOLS={hull:"uStHull",sail:"uStSail",wood:"uStWood",ink:"uStInk",shadowCol:"uStShadow",seaDeep:"uStSeaD",seaLight:"uStSeaL",skyTop:"uStSkyT",skyHor:"uStSkyH",sunCol:"uStSunC"};
+const SUNI={bands:"uStBands",bandSoft:"uStBandMix",rim:"uStRim",surf:"uStSurf",hatch:"uStHatch",hatchScale:"uStHatchSc",cross:"uStCross",pen:"uStPen",recol:"uStRecol",tint:"uStTint",seaBands:"uStSeaBands",seaLines:"uStSeaLines",skyBands:"uStSkyBands"};
 const KEY="drStyle.v1";
-let st={preset:"hashed",amt:1,p:Object.assign({},NEUTRAL)},active=false,mat=null,rt=null,quad=null,ocam=null,rw=0,rh=0;
+let st={preset:"hashed",amt:1,p:Object.assign({},NEUTRAL),s:{on:0}},active=false,mat=null,rt=null,quad=null,ocam=null,rw=0,rh=0;
 const clampN=(v,a,b)=>Math.min(b,Math.max(a,+v));
 function recalc(){active=st.amt>0&&DEFS.some(d=>Math.abs((st.p[d[0]]??d[5])-d[5])>1e-4);}
-function save(){try{localStorage.setItem(KEY,JSON.stringify({preset:st.preset,amt:st.amt,p:st.p}));}catch(e){}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify({preset:st.preset,amt:st.amt,p:st.p,s:st.s}));}catch(e){}}
+function syncST(){const S=st.s||{on:0};STU.uStOn.value=S.on&&st.amt>0?1:0;
+  for(const d of SKEYS)STU[SUNI[d[0]]].value=S[d[0]]??d[3];
+  for(const k in SCOLS)if(S[k])STU[SCOLS[k]].value.set(S[k]);}
 function set(o,persist){ // o: {preset?, amt?, p?: {key:value}}; unknown keys and out-of-range values are ignored or clamped
   if(!o||typeof o!=="object")return;
   if(typeof o.preset==="string")st.preset=PRESETS[o.preset]?o.preset:"custom";
   if(o.amt!=null&&isFinite(o.amt))st.amt=clampN(o.amt,0,1);
   if(o.p&&typeof o.p==="object")for(const d of DEFS)if(o.p[d[0]]!=null&&isFinite(o.p[d[0]]))st.p[d[0]]=clampN(o.p[d[0]],d[2],d[3]);
-  recalc();if(persist!==false)save();
+  if(o.s&&typeof o.s==="object"){const n={on:o.s.on?1:0};for(const d of SKEYS)if(o.s[d[0]]!=null&&isFinite(o.s[d[0]]))n[d[0]]=clampN(o.s[d[0]],d[1],d[2]);
+    for(const k in SCOLS)if(typeof o.s[k]==="string"&&/^#[0-9a-fA-F]{6}$/.test(o.s[k]))n[k]=o.s[k];st.s=n;}
+  recalc();syncST();if(persist!==false)save();
 }
-function usePreset(k){const pr=PRESETS[k];if(!pr)return;st.preset=k;st.p=Object.assign({},NEUTRAL,pr.p);recalc();save();}
+function usePreset(k){const pr=PRESETS[k];if(!pr)return;st.preset=k;st.p=Object.assign({},NEUTRAL,pr.p);st.s={on:0};recalc();syncST();save();}
 try{const j=JSON.parse(localStorage.getItem(KEY)||"null");if(j){st.p=Object.assign({},NEUTRAL);set(j,false);}}catch(e){}
-recalc();
+recalc();syncST();
 
 const FRAG=`
 precision highp float;
@@ -4952,6 +5030,7 @@ function build(R){
 const _v=[0,0,0];
 function render(R){
   const rd=R.renderer;
+  if(STU.uStOn.value){STU.uStSunDir.value.copy(R.U.uSunW.value);STU.uStDpr.value=rd.getPixelRatio();}
   if(!active){rd.render(R.scene,R.camera);return;}
   if(!mat)build(R);
   const sz=rd.getDrawingBufferSize(new THREE.Vector2());
@@ -4968,7 +5047,7 @@ function render(R){
   const ac=rd.autoClear;rd.autoClear=true;rd.render(window.__stScene,ocam);rd.autoClear=ac;
 }
 window.addEventListener("message",e=>{const d=e.data;if(d&&d.type==="drstyle")set(d,false);});
-return{DEFS,GROUPS,PRESETS,NEUTRAL,get:()=>st,set,usePreset,render,isActive:()=>active};
+return{DEFS,GROUPS,PRESETS,NEUTRAL,SKEYS,SCOLS,get:()=>st,set,usePreset,render,isActive:()=>active};
 })();
 window.DRStyle=DRStyle;
 
