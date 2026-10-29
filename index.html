@@ -456,7 +456,7 @@ body.fs3d #fsBar{left:max(12px,env(safe-area-inset-left,0px));bottom:max(12px,en
         <label class="chk"><input type="checkbox" id="aRoute"> <span>Helm follows the route<small>Steers for each mark on your chart route in turn.</small></span></label>
         <label class="chk"><input type="checkbox" id="aNoon"> <span>Navigator shoots the noon sight<small>Takes the sun up from the forenoon watch and marks noon when it dips.</small></span></label>
         <label class="chk"><input type="checkbox" id="aFix"> <span>Lookout takes the bearings<small>Takes bearings on landmarks as they come in sight and plots the fix.</small></span></label>
-        <div id="aPeekSlot"></div>
+        <label class="chk"><input type="checkbox" id="aDR"> <span>Dead reckoning only<small>Off: your true position shows on the chart. On: only your reckoning shows, and you must correct it with sights and bearings.</small></span></label>
         <b class="ah">Sky</b>
         <label class="chk"><input type="checkbox" id="aSky" checked> <span>Sky chart<small>Draws the altitude and bearing grid, the constellation lines and their names over the sky.</small></span></label>
       </div></div>
@@ -1389,15 +1389,14 @@ function assistStep(s,dt,w){
 // full-screen 3D view: only the view itself, with its own water grid and sky grid switches (remembered; the grids always show outside this mode)
 const FS3=(()=>{let g={water:true,sky:true};try{Object.assign(g,JSON.parse(localStorage.getItem("dr.fs3grids")||"{}"));}catch(e){}
   return{on:false,g,save(){try{localStorage.setItem("dr.fs3grids",JSON.stringify(g));}catch(e){}},waterOn(){return!this.on||g.water;},skyOn(){return!this.on||g.sky;}};})();
-const ASSIST_IDS=["aSail","aCrew","aNoon","aFix","bosun","mateLog","aSky"];
+const ASSIST_IDS=["aSail","aCrew","aNoon","aFix","bosun","mateLog","aSky","aDR"];
 function initAssists(){
-  $("aBosunSlot").append($("bosun").closest("label"));$("aLogSlot").append($("mateRow"));$("aPeekSlot").append($("peekWrap"));
+  $("aBosunSlot").append($("bosun").closest("label"));$("aLogSlot").append($("mateRow"));$("peekWrap").hidden=true;
   const bl=$("bosun").closest("label");bl.querySelector("input").insertAdjacentElement("afterend",Object.assign(document.createElement("span"),{innerHTML:"Bosun trims the yards<small>Braces the yards to the best angle for the wind, always.</small>"}));[...bl.childNodes].filter(n=>n.nodeType===3).forEach(n=>n.remove());
   const ml=$("mateLog").closest("label");[...ml.childNodes].filter(n=>n.nodeType===3).forEach(n=>n.remove());ml.append(Object.assign(document.createElement("span"),{innerHTML:"Mate heaves the log each hour<small>Reads the speed off the log line every hour for your reckoning, with a little error.</small>"}));
-  const pl=$("peekWrap");[...pl.childNodes].filter(n=>n.nodeType===3).forEach(n=>n.remove());pl.append(Object.assign(document.createElement("span"),{innerHTML:"Show true position<small>Practice aid for the lost-at-sea voyages.</small>"}));
-  [bl,ml,pl].forEach(l=>{l.style.alignItems="flex-start";});
+  [bl,ml].forEach(l=>{l.style.alignItems="flex-start";});
   let saved={};try{saved=JSON.parse(localStorage.getItem("drAssists")||"{}");}catch(e){}
-  ASSIST_IDS.forEach(id=>{if(id in saved)$(id).checked=!!saved[id];$(id).addEventListener("change",()=>{const o={};ASSIST_IDS.forEach(k=>o[k]=$(k).checked);try{localStorage.setItem("drAssists",JSON.stringify(o));}catch(e){}});});
+  ASSIST_IDS.forEach(id=>{if(id in saved)$(id).checked=!!saved[id];$(id).addEventListener("change",()=>{if(id==="aDR"&&S&&!S.done){S.mode=$("aDR").checked?"lost":"trial";say(S.mode==="lost"?"The chart now shows only your reckoning.":"The chart now shows your true position.",{log:false});updateUI(true);}const o={};ASSIST_IDS.forEach(k=>o[k]=$(k).checked);try{localStorage.setItem("drAssists",JSON.stringify(o));}catch(e){}});});
   const pop=$("assistPop"),btn=$("bAssist");
   btn.onclick=e=>{e.stopPropagation();pop.hidden=!pop.hidden;btn.setAttribute("aria-expanded",String(!pop.hidden));if(!pop.hidden&&S)$("aRoute").checked=!!S.route.follow;};
   document.addEventListener("click",e=>{if(!pop.hidden&&!e.target.closest("#assistPop")&&e.target!==btn){pop.hidden=true;btn.setAttribute("aria-expanded","false");}});
@@ -1905,12 +1904,13 @@ function startVoyage(v){
   S=newState(v);applyShip();setPlotting(false);updateRoute();svNew();openShip(false);selSails.clear();$("sailSl").style.display="none";
   $("ovStart").hidden=true;$("ovEnd").hidden=true;modalOpen=false;
   $("voyTitle").textContent=`${v.tag}: ${v.title}`;
-  $("peek").checked=false;$("peekWrap").hidden=v.mode!=="lost";
+  $("peek").checked=false;$("peekWrap").hidden=true;
+  if(v.free)S.mode=$("aDR").checked?"lost":"trial";else $("aDR").checked=S.mode==="lost";
   setSpeed(1);setPaused(false);follow=true;$("follow").setAttribute("aria-pressed","true");
-  cam.zoom=v.mode==="lost"?2.6:3.2;cam.x=S.ship.x;cam.y=S.ship.y;
+  cam.zoom=S.mode==="lost"?2.6:3.2;cam.x=S.ship.x;cam.y=S.ship.y;
   S.log=[];renderLog();
   if(v.career){careerInit(S,v.from);say(`Career begins at ${PORTS[v.from].name}. You own a small cutter and ${money(S.purse)}. Trade, take contracts and save for a bigger ship: the shipyard is in the Ship tab.`);}else
-  if(v.free)say(`${v.from in PORTS?"Weighed anchor from "+PORTS[v.from].name:"Hove to"}. No orders: the sea is yours.${v.mode==="lost"?" The chart shows only your reckoning.":""}`);else
+  if(v.free){if(v.from in PORTS){startDocked(S,v.from);say(`Made fast alongside the quay at ${PORTS[v.from].name}. Weigh anchor when you are ready: the sea is yours.${S.mode==="lost"?" The chart shows only your reckoning.":""}`);}else say("Hove to. No orders: the sea is yours.");}else
   say(v.mode==="lost"?`Weighed anchor from ${placeOf(v.from).name}. From here on the chart shows only your reckoning.`:`${v.from in PORTS?"Weighed anchor from "+PORTS[v.from].name:"Hove to in the "+placeOf(v.from).name}. Bound for ${PORTS[v.to].name}.`);
   S.estSpeed=0;S.lastLog=null;
   {const w=windAt(S,S.ship.x,S.ship.y,S.t);S.ship.brace=S.ship.braceCmd=optBrace(angDiff(S.ship.heading,w.from));}
@@ -5351,7 +5351,8 @@ const priceOf_=id=>{const r=LADDER.find(x=>x[0]===id);return r?r[1]:0;};
 const rungOf=id=>LADDER.findIndex(x=>x[0]===id);
 const shipTradeIn=s=>Math.round(TRADEIN*priceOf_(s.shipId));
 const netWorth=s=>Math.round(s.purse+shipTradeIn(s)+cargoValue(s));
-function careerInit(s,k){s.career={t0:s.t,start:k,owned:[CAREER_START],noted:null,done:false};s.purse=CAREER_PURSE;mkInit(s);
+function careerInit(s,k){s.career={t0:s.t,start:k,owned:[CAREER_START],noted:null,done:false};s.purse=CAREER_PURSE;startDocked(s,k);}
+function startDocked(s,k){mkInit(s);
   const P=PORTS[k],sh=s.ship,A=sh.anch;{const f=PF[k];if(f&&f.dock){sh.x=f.dock.x;sh.y=f.dock.y;sh.heading=f.dock.hdg;}else{sh.x=P.x;sh.y=P.y;}}
   sh.ordered=sh.heading;sh.v=0;for(const id of SAILIDS){sh.sls[id]=0;sh.sa[id]=0;}
   A.mode="holding";A.depth=Math.max(2,Math.round(depthFm(sh.x,sh.y)));A.drag=0;A.dragWarned=false;A.t0=s.t;s.docked=k;s.arrivedNear=k;if(s.est){s.est.x=sh.x;s.est.y=sh.y;}
@@ -6240,7 +6241,7 @@ async function readSlot(slot){let best=null;try{const r=JSON.parse(localStorage.
 function loadState(o){stopSkip();useShip(o.shipId||"brig");o.shipId=SHIP.id;S=o;rng=mulberry32((Math.random()*2**31)|0);const v=S.v;applyShip();
   setPlotting(false);updateRoute();svNew();openShip(false);selSails.clear();$("sailSl").style.display="none";
   $("ovStart").hidden=true;$("ovEnd").hidden=true;$("ovSave").hidden=true;modalOpen=false;
-  $("voyTitle").textContent=`${v.tag}: ${v.title}`;$("peek").checked=false;$("peekWrap").hidden=v.mode!=="lost";
+  $("voyTitle").textContent=`${v.tag}: ${v.title}`;$("peek").checked=false;$("peekWrap").hidden=true;$("aDR").checked=S.mode==="lost";
   setSpeed(1);follow=true;$("follow").setAttribute("aria-pressed","true");cam.zoom=v.mode==="lost"?2.6:3.2;cam.x=S.ship.x;cam.y=S.ship.y;
   if(R3){R3.last=null;R3.lampF=null;R3.nfc=null;}
   renderLog();setPaused(true);say("Game loaded. The ship is paused. Press play to sail on.");updateUI(true);}
@@ -6307,7 +6308,7 @@ $("voyList").innerHTML=VOYAGES.map((v,i)=>`<button class="voycard" data-v="${i}"
 $("voyList").querySelectorAll("button").forEach(b=>b.onclick=()=>startVoyage(VOYAGES[+b.dataset.v]));
 {const fb=document.createElement("button");fb.className="voycard";fb.id="freeCard";fb.innerHTML='<span class="tag">No orders</span><b>Free sailing</b><span class="d">Start from any port and sail where you like. No mission, no end: trade, fish, explore the islands and come to anchor when you please.</span>';
   const fp=$("freePick"); // free roam is the only way to start: the sea trial and lost-at-sea voyages stay in VOYAGES for old saves but are not offered
-  fp.innerHTML='<div class="row" role="radiogroup" aria-label="Game mode" style="gap:8px"><button type="button" class="btn" id="modeFree" role="radio">Free sailing</button><button type="button" class="btn" id="modeCareer" role="radio">Career</button></div><p class="muted" id="modeNote" style="margin:0"></p><b id="freeHead" style="font-family:var(--f-display);font-weight:400;font-size:17px">Free roam: where do you weigh from?</b><div class="voylist" id="freePorts" style="grid-template-columns:repeat(auto-fill,minmax(130px,1fr))"></div><label class="chk"><input type="checkbox" id="freeLost"> <span>Navigate by dead reckoning only<small style="display:block;color:var(--ink-soft)">Hides your true position, as on the lost-at-sea voyages.</small></span></label><div><button class="btn" id="freeBack">Back</button></div>';
+  fp.innerHTML='<div class="row" role="radiogroup" aria-label="Game mode" style="gap:8px"><button type="button" class="btn" id="modeFree" role="radio">Free sailing</button><button type="button" class="btn" id="modeCareer" role="radio">Career</button></div><p class="muted" id="modeNote" style="margin:0"></p><b id="freeHead" style="font-family:var(--f-display);font-weight:400;font-size:17px">Free roam: where do you weigh from?</b><div class="voylist" id="freePorts" style="grid-template-columns:repeat(auto-fill,minmax(130px,1fr))"></div><div><button class="btn" id="freeBack">Back</button></div>';
   let gameMode="free";try{if(localStorage.getItem("drMode")==="career")gameMode="career";}catch(e){}
   const setMode=m=>{gameMode=m;try{localStorage.setItem("drMode",m);}catch(e){}
     $("modeFree").setAttribute("aria-checked",String(m==="free"));$("modeCareer").setAttribute("aria-checked",String(m==="career"));$("modeFree").setAttribute("aria-pressed",String(m==="free"));$("modeCareer").setAttribute("aria-pressed",String(m==="career"));
@@ -6317,8 +6318,8 @@ $("voyList").querySelectorAll("button").forEach(b=>b.onclick=()=>startVoyage(VOY
   $("modeFree").onclick=()=>setMode("free");$("modeCareer").onclick=()=>setMode("career");setMode(gameMode);
   $("freePorts").innerHTML=Object.keys(PORTS).map(k=>`<button class="voycard" data-p="${k}" style="padding:8px 10px"><b style="font-size:16px">${PORTS[k].name}</b></button>`).join("");
   $("voyList").hidden=true;fp.hidden=false;$("freeBack").parentNode.hidden=true;
-  $("freePorts").querySelectorAll("button").forEach(b=>b.onclick=()=>{const k=b.dataset.p,lost=$("freeLost").checked;
-    startVoyage(gameMode==="career"?{id:"career",tag:"Career",title:"From "+PORTS[k].name,from:k,to:null,mode:lost?"lost":"trial",hdg:280,free:true,career:true,ship:CAREER_START,desc:""}:{id:"free",tag:"Free sailing",title:"From "+PORTS[k].name,from:k,to:null,mode:lost?"lost":"trial",hdg:280,free:true,desc:""});});}
+  $("freePorts").querySelectorAll("button").forEach(b=>b.onclick=()=>{const k=b.dataset.p;
+    startVoyage(gameMode==="career"?{id:"career",tag:"Career",title:"From "+PORTS[k].name,from:k,to:null,mode:"trial",hdg:280,free:true,career:true,ship:CAREER_START,desc:""}:{id:"free",tag:"Free sailing",title:"From "+PORTS[k].name,from:k,to:null,mode:"trial",hdg:280,free:true,desc:""});});}
 { const mq=matchMedia("(max-width:860px)"),box=document.querySelector(".compassbox"),home=$("paneV3");
   const place=()=>{const tgt=mq.matches?document.querySelector(".dock-all .dockbody"):home;if(box.parentNode!==tgt)mq.matches?tgt.insertBefore(box,tgt.firstChild):tgt.appendChild(box);};
   place();mq.addEventListener("change",()=>{place();resize();resize3D();}); }
