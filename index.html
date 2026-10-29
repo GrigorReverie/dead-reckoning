@@ -111,7 +111,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-
 .pane.small{left:12px;top:12px;width:min(210px,32%);height:150px;z-index:4;border:2px solid var(--ink);box-shadow:0 6px 20px rgba(18,36,90,.3)}
 .pane canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 #hud{pointer-events:none}
-#camPop{position:fixed;z-index:60;display:flex;gap:4px;padding:4px;background:rgba(246,238,217,.94);border:1px solid var(--ink);border-radius:6px}#camPop[hidden]{display:none}#camPop button{display:flex;flex-direction:column;align-items:center;gap:1px;width:46px;padding:4px 0 3px;background:transparent;border:0;color:var(--ink);cursor:pointer;font:10px/1.1 "IBM Plex Mono",monospace;letter-spacing:.04em;-webkit-tap-highlight-color:transparent}#camPop button[aria-pressed="true"] svg,#camPop button:active svg{stroke-width:2.6}#camPop button[aria-pressed="true"] span{font-weight:700}
+#tbView{touch-action:manipulation}#camPop{position:fixed;z-index:60;display:flex;gap:4px;padding:4px;background:rgba(246,238,217,.94);border:1px solid var(--ink);border-radius:6px}#camPop[hidden]{display:none}#camPop button{display:flex;flex-direction:column;align-items:center;gap:1px;width:46px;padding:4px 0 3px;background:transparent;border:0;color:var(--ink);cursor:pointer;font:10px/1.1 "IBM Plex Mono",monospace;letter-spacing:.04em;-webkit-tap-highlight-color:transparent}#camPop button[aria-pressed="true"] svg,#camPop button:active svg{stroke-width:2.6}#camPop button[aria-pressed="true"] span{font-weight:700}
 #view3d{touch-action:none;cursor:grab;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}#view3d.drag{cursor:grabbing}
 .swapbtn{position:absolute;left:4px;bottom:4px;width:28px;height:28px;background:var(--paper);border:1px solid var(--ink);color:var(--ink);font-size:15px;line-height:1;border-radius:2px;z-index:3}
 .pane.big .swapbtn{display:none}
@@ -4765,6 +4765,7 @@ function camKeep(){if(R3)camPrev=camNow();} // remember where the view was, for 
 function camSet(c){const R=R3;if(!R||!c)return;R.shot=c.shot;const k=360*Math.round((R.yaw-c.ty)/360);R.yaw-=k;R.ty=c.ty;R.tp=c.tp;R.td=c.td;const v=SHOTS[c.shot];if(v){R.tcb=v[4];R.tcl=v[5];}}
 function camShot(n){const R=R3,v=SHOTS[n];if(!R||!v)return;camKeep();camSet({shot:n,ty:v[1],tp:v[2],td:v[3]});}
 function camBack(){if(!R3||!camPrev)return;const c=camPrev;camPrev=camNow();camSet(c);}
+window.__CAM=()=>R3;
 v3c.addEventListener("pointerdown",e=>{if(!R3)return;if(e.pointerType==="mouse"&&e.button!==0){if(e.button===1)e.preventDefault();return;}
   if(ptr3.size>=2)return;try{v3c.setPointerCapture(e.pointerId);}catch(_){}
   ptr3.set(e.pointerId,{x:e.clientX,y:e.clientY});if(ptr3.size===1)R3.tapMoved=false;anchor3();v3c.classList.add("drag");});
