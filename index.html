@@ -359,9 +359,9 @@ body.fs3d #fsBar{left:max(12px,env(safe-area-inset-left,0px));bottom:max(12px,en
   .tbtab{display:flex!important;position:fixed;z-index:16;width:var(--ic);height:var(--ic);bottom:calc(env(safe-area-inset-bottom,0px) + 22px);border:0!important;background:transparent!important;box-shadow:none!important;border-radius:6px;padding:0;align-items:center;justify-content:center;color:var(--ink);cursor:pointer}
   .tbtab svg{width:20px;height:20px;stroke-width:1.7}
   .tbtab[aria-pressed="true"]{background:var(--ink)!important;color:var(--paper)!important}
-  #tbChart{left:calc(10% - var(--ic)/2)}#tbView{left:calc(30% - var(--ic)/2)}#tbShip{left:calc(50% - var(--ic)/2)}#tbBook{left:calc(70% - var(--ic)/2)}
+  #tbChart{left:calc(8.333% - var(--ic)/2)}#tbView{left:calc(25% - var(--ic)/2)}#tbShip{left:calc(41.667% - var(--ic)/2)}#tbStores{left:calc(58.333% - var(--ic)/2)}#tbBook{left:calc(75% - var(--ic)/2)}
   #paneV3.small{top:auto!important;bottom:12px;left:8px!important}.routebar{left:8px!important}
-  #ctlIcon{display:flex!important;position:fixed;z-index:16;left:calc(90% - var(--ic)/2)!important}
+  #ctlIcon{display:flex!important;position:fixed;z-index:16;left:calc(91.667% - var(--ic)/2)!important}
   .app{padding-bottom:calc(var(--ic) + 40px)}
   .dock-all .ctog[data-dock="all"]{display:none!important}
   .side:has(.dock-all.collapsed){display:none}
@@ -373,14 +373,14 @@ body.fs3d #fsBar{left:max(12px,env(safe-area-inset-left,0px));bottom:max(12px,en
 .tbtab svg{width:20px;height:20px;stroke-width:1.7}
 .tbtab[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
 .tbtab.attn{animation:bookpulse 1.4s ease-in-out infinite}
-#tbChart{left:calc(50% - 2*var(--ic) - 1.5*var(--icg))}#tbView{left:calc(50% - var(--ic) - .5*var(--icg))}#tbShip{left:calc(50% + .5*var(--icg))}#tbBook{left:calc(50% + var(--ic) + 1.5*var(--icg))}
+#tbChart{left:calc(50% - 2.5*var(--ic) - 2*var(--icg))}#tbView{left:calc(50% - 1.5*var(--ic) - var(--icg))}#tbShip{left:calc(50% - .5*var(--ic))}#tbStores{left:calc(50% + .5*var(--ic) + var(--icg))}#tbBook{left:calc(50% + 1.5*var(--ic) + 2*var(--icg))}
 .menupop .tb,.bar .menupop .tb{border:0;background:none;text-align:left;padding:7px 10px;font-size:12.5px;line-height:1.3;width:100%;border-radius:2px;color:var(--ink)}
 .menupop .tb:hover,.bar .menupop .tb:hover{background:var(--paper-2)}
 .btn.primary:disabled{background:transparent;color:var(--ink);border-color:var(--ink)}
 @media (max-width:860px){
   .tbtab{position:fixed;bottom:24px;z-index:16;border:0!important;background:transparent!important;box-shadow:none!important;border-radius:3px}
   .tbtab[aria-pressed="true"]{background:var(--ink)!important;color:var(--paper)!important}
-  #tbChart{left:calc(10% - var(--ic)/2)}#tbView{left:calc(30% - var(--ic)/2)}#tbShip{left:calc(50% - var(--ic)/2)}#tbBook{left:calc(70% - var(--ic)/2)}
+  #tbChart{left:calc(8.333% - var(--ic)/2)}#tbView{left:calc(25% - var(--ic)/2)}#tbShip{left:calc(41.667% - var(--ic)/2)}#tbStores{left:calc(58.333% - var(--ic)/2)}#tbBook{left:calc(75% - var(--ic)/2)}
 }
 .sheet{display:contents}@media (min-width:861px){#tabbar{display:none}}
 @media (max-width:860px){
@@ -393,7 +393,7 @@ body.fs3d #fsBar{left:max(12px,env(safe-area-inset-left,0px));bottom:max(12px,en
   :root:root:root .tbtab[aria-pressed="true"],:root:root:root #ctlIcon[aria-pressed="true"]{border-width:3px!important;background:transparent!important;color:var(--ink)!important}
   :root:root:root .tbtab:hover,:root:root:root .tbtab:active,:root:root:root #ctlIcon:hover,:root:root:root #ctlIcon:active{background:transparent!important}
   :root:root:root .tbtab svg,:root:root:root #ctlIcon svg{width:22px!important;height:22px!important;transition:none!important}
-  #tbChart{left:calc(10% - var(--tbw)/2)!important}#tbView{left:calc(30% - var(--tbw)/2)!important}#tbShip{left:calc(50% - var(--tbw)/2)!important}#tbBook{left:calc(70% - var(--tbw)/2)!important}:root:root #ctlIcon{left:calc(90% - var(--tbw)/2)!important}
+  #tbChart{left:calc(8.333% - var(--tbw)/2)!important}#tbView{left:calc(25% - var(--tbw)/2)!important}#tbShip{left:calc(41.667% - var(--tbw)/2)!important}#tbStores{left:calc(58.333% - var(--tbw)/2)!important}#tbBook{left:calc(75% - var(--tbw)/2)!important}:root:root #ctlIcon{left:calc(91.667% - var(--tbw)/2)!important}
 }
 #ctlIcon svg{width:20px;height:20px}
 .ptools .tbicon svg,.bookbtn svg,#paneChart.small .mapicon svg,#ctlIcon svg{stroke-width:1.7!important}
@@ -6128,10 +6128,12 @@ $("bookBtn").onclick=()=>{const bx=$("bookBox"),o=!bx.classList.contains("open")
       lastT=now;if(pop.hidden){mark();pop.hidden=false;place();}else shut();});
     document.addEventListener("pointerdown",e=>{if(!pop.hidden&&!pop.contains(e.target)&&e.target!==tbView&&!tbView.contains(e.target))shut();},true);
     addEventListener("resize",()=>{if(!pop.hidden)place();});}
-  const tbShip=mkTab("tbShip","bShip","The ship: cutaway, crew quarters and watches; tap again to close",()=>{$("bShip").click();});
+  const tbShip=mkTab("tbShip","bShip","The ship: cutaway, crew quarters and watches; tap again to close",()=>{if(SV.open&&window.__cutLedger&&window.__cutLedger()){window.__cutLedger(false);return;}$("bShip").click();});
+  const tbStores=mkTab("tbStores","bookBtn","Stores page: food, water, rum, spares, market and hold, crew and watches; tap again to close",()=>{if(SV.open&&window.__cutLedger&&window.__cutLedger()){$("bShip").click();return;}if(!SV.open)$("bShip").click();if(window.__cutLedger)window.__cutLedger(true);});
+  tbStores.innerHTML='<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8l8-4 8 4v10l-8 4-8-4z"/><path d="M4 8l8 4 8-4M12 12v10"/></svg>';
   const tbBook=mkTab("tbBook","bookBtn","Navigator's book: reckoning, noon sight, landmarks and log",()=>{$("bookBtn").click();});
-  const tb=document.createElement("div");tb.id="tabbar";tb.setAttribute("aria-hidden","true");["Chart","3D","Ship","Book","Helm"].forEach((t,i)=>{const sp=document.createElement("span");sp.textContent=t;sp.style.left=(10+20*i)+"%";tb.append(sp);});document.body.append(tb);
-  const fit=()=>{tbChart.setAttribute("aria-pressed",String(!main3d));tbView.setAttribute("aria-pressed",String(main3d&&dk.classList.contains("collapsed")&&!bx.classList.contains("open")&&!SV.open));tbShip.setAttribute("aria-pressed",String(!!SV.open));tbBook.setAttribute("aria-pressed",String(bx.classList.contains("open")));tbBook.classList.toggle("attn",$("bookBtn").classList.contains("attn"));if(!matchMedia("(max-width:860px)").matches){if(cw.style.height)cw.style.height="";return;}
+  const tb=document.createElement("div");tb.id="tabbar";tb.setAttribute("aria-hidden","true");["Chart","3D","Ship","Stores","Book","Helm"].forEach((t,i)=>{const sp=document.createElement("span");sp.textContent=t;sp.style.left=(8.333+16.667*i)+"%";tb.append(sp);});document.body.append(tb);
+  const fit=()=>{tbChart.setAttribute("aria-pressed",String(!main3d));tbView.setAttribute("aria-pressed",String(main3d&&dk.classList.contains("collapsed")&&!bx.classList.contains("open")&&!SV.open));const lg=!!(window.__cutLedger&&window.__cutLedger());tbShip.setAttribute("aria-pressed",String(!!SV.open&&!lg));tbStores.setAttribute("aria-pressed",String(!!SV.open&&lg));tbBook.setAttribute("aria-pressed",String(bx.classList.contains("open")));tbBook.classList.toggle("attn",$("bookBtn").classList.contains("attn"));if(!matchMedia("(max-width:860px)").matches){if(cw.style.height)cw.style.height="";return;}
     const open=!dk.classList.contains("collapsed")||bx.classList.contains("open")||(SV.open&&!window.CUTON);
     const top=cw.getBoundingClientRect().top,barTop=tb.getBoundingClientRect().top,avail=Math.max(260,Math.round(barTop-top));
     const h=open?Math.max(190,Math.round(avail*.4)):avail;if(cw.style.height!==h+"px"){cw.style.height=h+"px";try{resize();resize3D();}catch(e){}}
@@ -7201,7 +7203,7 @@ function leave(){const R=M.R||R3;M.on=false;window.CUTON=false;root.style.displa
   if(R&&M.cam){Object.assign(R,M.cam);R.yaw=R.ty;M.cam=null;} // back to the 3D angle you left for the ship view
   M.cur=null;}
 const back=document.createElement("button");back.id="cutBack";back.type="button";back.hidden=true;back.textContent="Cutaway";document.body.append(back);
-back.onclick=()=>{M.ledger=false;};
+back.onclick=()=>{M.ledger=false;};window.__cutLedger=v=>{if(v!==undefined)M.ledger=!!v;return!!M.ledger;};
 function want(){return typeof SV!=="undefined"&&SV.open&&SHIP&&!!LAYOUT[SHIP.id]&&typeof R3!=="undefined"&&R3&&R3.shipId===SHIP.id&&R3.bob;}
 function sync(){const w=want(),on=w&&!M.ledger;
   if(!w)M.ledger=false;
