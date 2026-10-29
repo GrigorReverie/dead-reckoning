@@ -62,19 +62,27 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-
 .infobar small{font-family:var(--f-data);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft)}
 .infobar .it{display:inline-flex;align-items:baseline;gap:6px;min-width:0}.infobar .it i{font-style:normal;color:var(--ink-soft);font-family:var(--f-data);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase}
 .compassbox{position:absolute;right:12px;top:46px;z-index:3;background:rgba(246,238,217,.92);border:1px solid var(--ink);padding:6px 8px 7px;display:flex;flex-direction:column;align-items:center;gap:4px;box-shadow:0 4px 14px rgba(20,14,10,.25)}
-.pane .compassbox #dial{position:static;width:250px;height:250px}.cbrow{display:flex;gap:8px;align-items:center}.compassbox{--baroW:53px;--stW:28px;--gp:8px}
+.pane .compassbox #dial{position:static;width:250px;height:250px}.cbrow{display:flex;gap:8px;align-items:center}.compassbox{--baroW:53px;--stW:32px;--gp:8px}
 #baro{position:static!important;flex:none;align-self:flex-end;height:222px;width:var(--baroW)}
 .cbfoot{align-self:stretch;display:flex;align-items:center;justify-content:space-between;gap:6px;padding:0 calc(var(--stW) + var(--gp)) 0 calc(var(--baroW) + var(--gp))}
 #bHeave,#bNip{width:38px;height:38px;padding:0;display:flex;align-items:center;justify-content:center;flex:none}
-.cbfoot:has(#logbox:not([hidden])) .ws,.cbfoot #glassMsg{display:none}.cbfoot #logbox #glass{position:static!important;flex:none;width:22px!important;height:34px!important}.cbfoot #logbox .mono{font-size:12px!important}.cbfoot #bNip{width:var(--stW);height:var(--stW)}.cbfoot .btn.ico svg{width:22px;height:22px}
+.cbfoot:has(#logbox:not([hidden])) .ws,.cbfoot #glassMsg{display:none}.cbfoot #logbox #glass{position:static!important;flex:none;width:22px!important;height:34px!important}.cbfoot #logbox .mono{font-size:12px!important}.cbfoot #bNip{width:var(--stW);height:var(--stW)}.cbfoot .btn.ico svg{width:24px;height:24px}
 .cbtop{align-self:stretch;display:flex;justify-content:space-between;padding:0 calc(var(--stW) + var(--gp)) 0 calc(var(--baroW) + var(--gp));margin-bottom:-14px;position:relative;z-index:1;pointer-events:none}.cbtop button{pointer-events:auto;position:relative;top:0}
 .cbtop button{border:0;background:none;color:var(--ink);padding:0 4px;font-size:13px;line-height:1;cursor:pointer;touch-action:manipulation;min-width:28px;height:26px}.cbtop button:hover{color:var(--red,#a8452c)}
 .compassbox.collapsed .cbtop{display:none}
 @media (max-width:860px){.cbtog{display:none!important}.cbtop{margin-bottom:-26px}}
+.winf{font-size:12px;white-space:nowrap}.winf b{font-weight:600}
+.sailsl{position:relative;width:30px;height:176px;margin:8px 0;border:1.5px solid var(--ink);background:var(--paper);touch-action:none;flex:none;align-self:center;cursor:pointer}
+.sailsl .slfill{position:absolute;left:0;right:0;bottom:0;height:var(--lvl,0%);background:var(--ink);transition:none}
+.sailsl .sltick{position:absolute;left:-5px;right:-5px;height:0;border-top:1.5px solid var(--ink);mix-blend-mode:normal;pointer-events:none}
+.sailsl .sltick:nth-of-type(n){margin-bottom:-1px}
+.sailsl .slhit{position:absolute;left:-6px;right:-6px;height:34px;margin-bottom:-17px;padding:0;border:0;background:none;cursor:pointer;opacity:1}
+.sailsl .slhit[aria-pressed="true"]::after{content:"";position:absolute;left:-1px;top:50%;margin-top:-5px;border:5px solid transparent;border-right-color:var(--brass);border-left:0;transform:translateX(-6px)}
+.cbfoot{flex-wrap:wrap;justify-content:center!important;gap:8px 10px}.cbfoot #logbox{order:9;flex:1 1 100%!important}
 .cbfoot-l{display:flex;gap:4px;flex:none}.cbfoot .ws{flex:1;min-width:0;text-align:center}.cbfoot .btn.ico{flex:none;width:var(--stW);height:var(--stW);min-height:0;padding:0;display:flex;align-items:center;justify-content:center}
 .compassbox .cbtog{position:absolute;left:4px;top:4px;z-index:2;width:26px;height:26px;padding:0;display:flex;align-items:center;justify-content:center;background:var(--paper);color:var(--ink);border:1px solid var(--ink);border-radius:50%;cursor:pointer}
 .compassbox.collapsed{padding:0;border:0;background:none;box-shadow:none}.compassbox.collapsed .cbrow,.compassbox.collapsed .ws{display:none}
-.compassbox.collapsed .cbtog svg{width:13px;height:13px}.compassbox.collapsed .cbtog{position:static;width:30px;height:30px;border-radius:3px;background:rgba(246,238,217,.96);box-shadow:0 4px 14px rgba(20,14,10,.3)}.steps5{display:flex;flex-direction:column;gap:3px}.steps5 .btn{min-height:0;height:28px;width:28px;padding:0;display:flex;align-items:center;justify-content:center}.steps5 .btn{background:linear-gradient(0deg,var(--ink) var(--pg,0%),var(--paper) var(--pg,0%))}.steps5 .btn[aria-pressed="true"]{box-shadow:inset 0 0 0 2px var(--brass)}.steps5 .btn.dk{color:var(--paper)!important}.compassbox .ws{position:absolute;right:calc(var(--stW) + var(--gp) + 12px);bottom:46px;text-align:right!important;flex:none!important;z-index:1;pointer-events:none}.compassbox .ws{font-family:var(--f-data);font-size:9.5px;text-align:center;line-height:1.35;letter-spacing:.03em}.compassbox .ws b{font-size:12px}
+.compassbox.collapsed .cbtog svg{width:13px;height:13px}.compassbox.collapsed .cbtog{position:static;width:30px;height:30px;border-radius:3px;background:rgba(246,238,217,.96);box-shadow:0 4px 14px rgba(20,14,10,.3)}.steps5{display:flex;flex-direction:column;gap:3px}.steps5 .btn{min-height:0;height:28px;width:28px;padding:0;display:flex;align-items:center;justify-content:center}.compassbox .ws{font-family:var(--f-data);font-size:9.5px;text-align:center;line-height:1.35;letter-spacing:.03em}.compassbox .ws b{font-size:12px}
 .pane.small .compassbox{display:none}
 .mapicon{display:none;border:0;padding:0;cursor:pointer}
 #paneChart.small{width:30px;height:30px;overflow:hidden;cursor:pointer}#paneChart.small .mapicon svg{width:18px;height:18px}
@@ -453,7 +461,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-
         <div class="ptools" id="paneTools"><button type="button" class="tbicon" id="bView" title="Swap the 3D view and the chart (M)" aria-label="Swap the 3D view and the chart"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M3 8h4l1.5-2.5h7L17 8h4v11H3z"/><circle cx="12" cy="13.5" r="3.6"/></svg></button><button type="button" class="tbicon" id="bShip" aria-pressed="false" title="The ship: cutaway, crew quarters and watches" aria-label="The ship: cutaway, crew quarters and watches"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M2.5 16.5h19l-3 4.5h-13z"/><path d="M8 16V3.500M16 16V6"/><path d="M8 5h-4.500v8H8M8 5h3.500v8H8M16 8h-3.500v6H16M16 8h3.500v6H16" stroke-width="1.2"/></svg></button></div>
         <canvas id="view3d" aria-label="3D view from the ship"></canvas>
         <canvas id="hud"></canvas>
-        <div class="compassbox" id="compassBox"><button type="button" class="cbtog" id="cbBtn" aria-expanded="true" aria-label="Compass" title="Collapse or expand the compass"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"><circle cx="12" cy="12" r="9.500"/><path d="M12 5.500l2.600 6.500-2.600 6.500-2.600-6.500z"/></svg></button><div class="cbrow"><canvas id="baro" width="120" height="500" aria-label="The glass: a barometer showing the pressure, its trend and what it means" title="The glass (barometer)"></canvas><canvas id="dial" width="480" height="480" aria-label="Compass with the ship, the wind and the sails" title="Compass. Click the outer card to steer; click inside the inner ring to point the sails."></canvas><div class="steps5" id="sailSteps5" role="group" aria-label="Sail set for all sails"><button type="button" class="btn sm" data-n="4" title="Full: All plain sail and topgallants" aria-label="Full: All plain sail and topgallants"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" aria-hidden="true"><path d="M12 1.5V21M5 21.500h14"/><path d="M3 13.5h18l-0.8 6.0h-16.4z" fill="currentColor" fill-opacity=".35"/><path d="M5 7.5h14l-0.8 5.0h-12.4z" fill="currentColor" fill-opacity=".35"/><path d="M7 3h10l-0.5 3.5h-9z" fill="currentColor" fill-opacity=".35"/></svg></button><button type="button" class="btn sm" data-n="3" title="Plain: Plain sail" aria-label="Plain: Plain sail"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" aria-hidden="true"><path d="M12 1.5V21M5 21.500h14"/><path d="M3 13.5h18l-0.8 6.0h-16.4z" fill="currentColor" fill-opacity=".35"/><path d="M5 7.5h14l-0.8 5.0h-12.4z" fill="currentColor" fill-opacity=".35"/></svg></button><button type="button" class="btn sm" data-n="2" title="Courses: Reefed topsails and courses" aria-label="Courses: Reefed topsails and courses"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" aria-hidden="true"><path d="M12 1.5V21M5 21.500h14"/><path d="M3 13.5h18l-0.8 6.0h-16.4z" fill="currentColor" fill-opacity=".35"/><path d="M5 9.5h14l-0.8 3.0h-12.4z" fill="currentColor" fill-opacity=".35"/></svg></button><button type="button" class="btn sm" data-n="1" title="Reefed: Close-reefed topsails" aria-label="Reefed: Close-reefed topsails"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" aria-hidden="true"><path d="M12 1.5V21M5 21.500h14"/><path d="M5 9.5h14l-0.8 3.0h-12.4z" fill="currentColor" fill-opacity=".35"/></svg></button><button type="button" class="btn sm" data-n="0" title="Bare: Bare poles" aria-label="Bare: Bare poles"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" aria-hidden="true"><path d="M12 1.5V21M5 21.500h14"/></svg></button></div></div><div class="ws" id="windSpd">—</div></div>
+        <div class="compassbox" id="compassBox"><button type="button" class="cbtog" id="cbBtn" aria-expanded="true" aria-label="Compass" title="Collapse or expand the compass"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"><circle cx="12" cy="12" r="9.500"/><path d="M12 5.500l2.600 6.500-2.600 6.500-2.600-6.500z"/></svg></button><div class="cbrow"><canvas id="baro" width="120" height="500" aria-label="The glass: a barometer showing the pressure, its trend and what it means" title="The glass (barometer)"></canvas><canvas id="dial" width="480" height="480" aria-label="Compass with the ship, the wind and the sails" title="Compass. Click the outer card to steer; click inside the inner ring to point the sails."></canvas><div class="sailsl" id="sailSteps5" role="group" aria-label="Sail set for all sails"><i class="slfill"></i><i class="sltick" style="bottom:0%"></i><i class="sltick" style="bottom:25%"></i><i class="sltick" style="bottom:50%"></i><i class="sltick" style="bottom:75%"></i><i class="sltick" style="bottom:100%"></i><button type="button" class="slhit" data-n="0" title="Bare: Bare poles" aria-label="Bare: Bare poles" style="bottom:0%"></button><button type="button" class="slhit" data-n="1" title="Reefed: Close-reefed topsails" aria-label="Reefed: Close-reefed topsails" style="bottom:25%"></button><button type="button" class="slhit" data-n="2" title="Courses: Reefed topsails and courses" aria-label="Courses: Reefed topsails and courses" style="bottom:50%"></button><button type="button" class="slhit" data-n="3" title="Plain: Plain sail" aria-label="Plain: Plain sail" style="bottom:75%"></button><button type="button" class="slhit" data-n="4" title="Full: All plain sail and topgallants" aria-label="Full: All plain sail and topgallants" style="bottom:100%"></button></div></div></div>
         <button class="ctog ptog" data-pane="paneV3" aria-expanded="true" title="Collapse or expand">–</button><button class="swapbtn" id="swap1" title="Make this the main view (M)">⤢</button><span class="plabel">3D view</span>
       </div>
       <div class="pane small" id="paneChart">
@@ -523,10 +531,11 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-
         <div class="mtabs" style="display:none"><button type="button" data-tab="helm" aria-pressed="true">Helm</button><button type="button" data-tab="sails" aria-pressed="false">Sails</button></div>
         <div class="dockgrid">
         <div class="sub subl">
-        <div class="subhead">Helm</div>
-        <div class="dockbody">
+                <div class="dockbody">
           <div class="dockctl">
             <div class="mono cspd"><span>Course <b id="ordTxt">—</b></span><span>Speed <b id="spdTxt">—</b></span></div>
+            <div class="mono winf" id="windSpd" style="color:#b2452c">—</div>
+            <div class="mono winf" id="curTxt" style="color:#1b3f6b">—</div>
             <div class="muted" id="anchTxt"></div>
             <div class="setrows">
               <div><span class="k">Yards</span><span class="pips"><i class="yd" id="brOrdPip"></i></span><span id="brOrd">—</span></div>
@@ -1971,9 +1980,10 @@ function drawDial(){
     const BX=BMAX;for(const c of[0,180]){g.fillStyle="rgba(217,130,43,.14)";g.beginPath();g.arc(0,0,r1,(c-BX-90)*D2R,(c+BX-90)*D2R);g.arc(0,0,r0,(c+BX-90)*D2R,(c-BX-90)*D2R,true);g.closePath();g.fill();
       g.strokeStyle="#2e2519";g.lineWidth=1.4;const KX=Math.floor(BX/10);for(let k=-KX;k<=KX;k++){const m=pt(c+k*10,r1),n=pt(c+k*10,r1-(k%5===0?14:7));g.beginPath();g.moveTo(m[0],m[1]);g.lineTo(n[0],n[1]);g.stroke();}
       g.setLineDash([4,3]);g.strokeStyle="rgba(106,95,80,.9)";g.lineWidth=2.2;{const m=pt(c+optF,r0-3),n=pt(c+optF,r1+3);g.beginPath();g.moveTo(m[0],m[1]);g.lineTo(n[0],n[1]);g.stroke();}g.setLineDash([]);}
-    const OR="#d9822b";g.strokeStyle=OR;g.fillStyle=OR;g.lineWidth=6;g.lineCap="round";
-    if(Math.abs(sh.braceCmd-sh.brace)>.5){g.save();g.globalAlpha=.45;const m=pt(-sh.braceCmd,r0-3),n=pt(-sh.braceCmd,r1+3);g.beginPath();g.moveTo(m[0],m[1]);g.lineTo(n[0],n[1]);g.stroke();g.restore();}
-    {const m=pt(face,r0-16),n=pt(face,r1-8),l=pt(face-9,r1-24),rr=pt(face+9,r1-24),t=pt(face,r1+10);g.beginPath();g.moveTo(m[0],m[1]);g.lineTo(n[0],n[1]);g.stroke();g.beginPath();g.moveTo(t[0],t[1]);g.lineTo(pt(face-8,r1-8)[0],pt(face-8,r1-8)[1]);g.lineTo(pt(face+8,r1-8)[0],pt(face+8,r1-8)[1]);g.closePath();g.fill();}
+    const OR="#d9822b";g.fillStyle=OR;
+    const tri=(deg,al)=>{g.save();g.globalAlpha=al;g.beginPath();const t=pt(deg,r1+3),l=pt(deg-6,r1-14),rr=pt(deg+6,r1-14);g.moveTo(t[0],t[1]);g.lineTo(l[0],l[1]);g.lineTo(rr[0],rr[1]);g.closePath();g.fill();g.restore();};
+    if(Math.abs(sh.braceCmd-sh.brace)>.5)tri(-sh.braceCmd,.45);
+    tri(face,1);
     g.lineCap="butt";g.restore();
     // heading mark on the outer card
     g.save();g.rotate(sh.heading*D2R);g.strokeStyle="#2e2519";g.lineWidth=4;g.beginPath();g.moveTo(0,-R+16);g.lineTo(0,-R-8);g.stroke();g.restore(); }
@@ -2045,7 +2055,7 @@ function updateUI(force){
   const watches=[[0,"Middle watch"],[4,"Morning watch"],[8,"Forenoon watch"],[12,"Afternoon watch"],[16,"First dog watch"],[18,"Last dog watch"],[20,"First watch"]];
   let wn="";for(const[hh,n]of watches)if(lh>=hh)wn=n;let b=Math.floor(lh*2)%8;if(b===0)b=8;
   $("watch").textContent=`${wn} · ${b} bell${b>1?"s":""}`;
-  $("windSpd").style.color="#b2452c";$("spdTxt").textContent=S.mode==="trial"||$("peek").checked?`${sh.v.toFixed(1)} kn`:"unknown";$("windSpd").innerHTML=`<b>${S.mode==="trial"?w.kn.toFixed(0)+" kn":bf===0?"Calm":bf>=12?"64+ kn":"about "+BFT[bf-1]+"–"+(BFT[bf]-1)+" kn"}</b><br>Force ${bf} · from ${pointName(w.from)}`;
+  $("spdTxt").textContent=S.mode==="trial"||$("peek").checked?`${sh.v.toFixed(1)} kn`:"unknown";$("windSpd").innerHTML=`Wind <b>${S.mode==="trial"?w.kn.toFixed(0)+" kn":bf===0?"calm":bf>=12?"64+ kn":"about "+BFT[bf-1]+"–"+(BFT[bf]-1)+" kn"}</b> · Force ${bf} · from ${pointName(w.from)}`;{const cu=currentAt(sh.x,sh.y);$("curTxt").innerHTML=cu&&cu.drift>.02?`Current <b>${S.mode==="trial"?cu.drift.toFixed(1)+" kn":"about "+cu.drift.toFixed(1)+" kn"}</b> · setting ${pointName(cu.set)}`:"Current <b>slack</b>";}
   $("windTxt").innerHTML=`From <b>${pointName(w.from)}</b> · Force ${bf}, ${BNAME[bf].toLowerCase()}${S.mode==="trial"?` <span class="mono muted">(${w.kn.toFixed(0)} kn)</span>`:""}${S.squall?' · <span class="warn">squall</span>':""}`;
   const rel=angDiff(sh.heading,w.from),th=Math.abs(rel);
   const pos=th<NOGO?"In irons":th<80?"Close-hauled":th<100?"Beam reach":th<160?"Broad reach":"Running";
@@ -2058,10 +2068,9 @@ function updateUI(force){
   {
     const moving=SAILIDS.some(k=>Math.abs(sh.sl[k]-sh.sls[k])>.03);
     $("bookBtn").classList.toggle("attn",!!S.arrivedNear&&!$("bookBox").classList.contains("open"));
-    const top=Math.max(1,invEff(effOf(planOf(SAILS.length-1)))); // full canvas as this ship actually sets it
-    // the five buttons are one gauge: bare poles at the bottom, full canvas at the top, each box filling from its bottom edge as the sails go up
-    for(const b of document.querySelectorAll("#sailSteps5 button")){const n=+b.dataset.n,f=clamp(sh.sailSet/top*5-n,0,1);
-      b.setAttribute("aria-pressed",String(sh.sail===n));b.style.setProperty("--pg",(f*100).toFixed(0)+"%");b.classList.toggle("dk",f>.5);}
+    { const top=Math.max(1,invEff(effOf(planOf(SAILS.length-1)))); // full canvas as this ship actually sets it
+      const sl=$("sailSteps5");sl.style.setProperty("--lvl",(clamp(sh.sailSet/top,0,1)*100).toFixed(1)+"%");
+      for(const b of sl.querySelectorAll("button"))b.setAttribute("aria-pressed",String(sh.sail===+b.dataset.n)); }
     const bd=Math.abs(sh.braceCmd-sh.brace)>.5;const bs=a=>SHIP.fa?Math.round(90-Math.abs(a))+"° off":Math.abs(a)<2?"square":Math.abs(Math.round(a))+"°";
     $("brOrd").textContent=bd?`ordered ${bs(sh.braceCmd)} · now ${bs(sh.brace)}`:`${bs(sh.brace)} · trimmed`;
     $("brOrdPip").style.setProperty("--p",(50+sh.braceCmd*50/BMAX).toFixed(0)+"%"); }
@@ -5462,6 +5471,10 @@ $("bookBtn").onclick=()=>{const bx=$("bookBox"),o=!bx.classList.contains("open")
   setInterval(fit,400);new MutationObserver(fit).observe(dk,{attributes:true,attributeFilter:["class"]});new MutationObserver(fit).observe(bx,{attributes:true,attributeFilter:["class"]});addEventListener("resize",fit);fit();}
 {const h=document.querySelector(".dockhead b.dh");h.onclick=()=>document.querySelector('.ctog[data-dock="all"]').click();}
 for(const b of document.querySelectorAll("#sailSteps5 button"))b.onclick=()=>setSail(+b.dataset.n);
+{const sl=$("sailSteps5");let drag=false;const at=e=>{const r=sl.getBoundingClientRect(),f=1-(e.clientY-r.top)/r.height;return clamp(Math.round(f*4),0,4);};
+  sl.addEventListener("pointerdown",e=>{drag=true;try{sl.setPointerCapture(e.pointerId);}catch(x){}setSail(at(e));e.preventDefault();});
+  sl.addEventListener("pointermove",e=>{if(drag&&S&&S.ship.sail!==at(e))setSail(at(e));});
+  const up=()=>{drag=false;};sl.addEventListener("pointerup",up);sl.addEventListener("pointercancel",up);}
 $("bHeave").onclick=openHeave;$("bNip").onclick=nip;
 initAssists();
 $("bObserve").onclick=startObserve;$("bMark").onclick=markNoon;$("bFix").onclick=plotFix;
@@ -5498,7 +5511,7 @@ function fillHelpIcons(){
   row(svgOf("cbBtn")||"Dial","<b>Fold the compass</b> away or bring it back (desktop only).");
   const d=cv("dial","56px");if(d)row(d,"<b>The compass.</b> Your brig seen from above. The <b>red arrow</b> is your ordered course, the <b>red feathered arrow</b> (the colour of the ship's flag) the wind and the <b>dark blue arrow</b> the current (as on the chart), the <b>shaded wedge</b> the no-go zone where she stalls, and the <b>dashed line</b> across the yards the best angle. Tap the outer card to steer; tap inside to point the sails.");
   const g=cv("baro","auto");if(g)row(g,"<b>The glass.</b> A barometer left of the compass, in inches of mercury. The arrow shows if it is rising or falling; the words beside the scale say what to expect. A fast fall means foul weather.");
-  [...document.querySelectorAll("#sailSteps5 button")].forEach(b=>{const t=(b.title||"").split(": ");row(svgOf(b)||b.textContent,"<b>"+t[0]+".</b> "+(t[1]||"").replace(/\.?$/,".")+" Sets all sails to this level at once.");});
+  { const sl=cv("sailSteps5","30px");if(sl)row(sl,"<b>Sail set.</b> A slider beside the compass: empty at bare poles, filled when every sail is out, with a mark at each of the five stages. Tap or drag it to set all sails at once; it fills or empties as the sails go up or come in."); }
   row(svgOf("bDrop")||"⚓","<b>Anchor</b> (X). Let go the anchor to stop, or heave it up to sail. You must be at anchor near a town to trade.");
   row(svgOf("bHeave2")||"Log","<b>Heave the log</b> (L). Cast the log-chip astern, turn the sand-glass and nip the line when it runs out. The knots counted are your speed reading for dead reckoning.");
   row(svgOf("bFish")||"Fish","<b>Fish</b> (F). Put hand-lines over the side to add fresh fish to the stores.");
@@ -5516,10 +5529,10 @@ function fillHelpIcons(){
 $("bHelp").onclick=()=>{fillHelpIcons();$("ovHelp").hidden=false;modalOpen=true;};
 $("helpClose").onclick=()=>{$("ovHelp").hidden=true;modalOpen=!$("ovStart").hidden||!$("ovEnd").hidden;};
 $("bVoy").onclick=()=>{$("ovStart").hidden=false;modalOpen=true;};
-{const ft=document.createElement("div");ft.className="cbfoot";const ws=$("windSpd");ws.before(ft);const hb=document.createElement("button");hb.className="btn sm ico";hb.id="bHeave2";hb.title="Heave the log (L)";hb.setAttribute("aria-label","Heave the log");
+{const ft=document.createElement("div");ft.className="cbfoot";$("compassBox").append(ft);const hb=document.createElement("button");hb.className="btn sm ico";hb.id="bHeave2";hb.title="Heave the log (L)";hb.setAttribute("aria-label","Heave the log");
   hb.innerHTML='<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="7.5" r="4"/><path d="M7 3.5v8M3 7.5h8"/><path d="M10.2 10.8C12.6 13 14 13.8 15.2 15.2" stroke-dasharray="1.1 1.7"/><path d="M14 15.6h6.4a6.4 6.4 0 0 1-6.4 6.4z" fill="currentColor" fill-opacity=".35"/></svg>';
   hb.onclick=()=>{if(!$("bHeave").disabled)openHeave();};new MutationObserver(()=>{hb.disabled=$("bHeave").disabled;}).observe($("bHeave"),{attributes:true,attributeFilter:["disabled"]});
-  const lb=document.createElement("div");lb.className="cbfoot-l";lb.append($("bDrop"),hb);ft.append(lb,$("logbox"),ws,$("bFish"));
+  ft.append($("bDrop"),$("bFish"),hb,$("logbox"));
   {const tp=document.createElement("div");tp.className="cbtop";const L=$("cL5"),R=$("cR5");L.textContent="◄ 5°";R.textContent="5° ►";L.setAttribute("aria-label","Port 5 degrees");R.setAttribute("aria-label","Starboard 5 degrees");L.className=R.className="";L.removeAttribute("id");R.removeAttribute("id");L.id="cL5";R.id="cR5";tp.append(L,R);$("compassBox").querySelector(".cbrow").before(tp);}
   $("logbox").style.cssText+=";flex:1;min-width:0;padding:0 4px;gap:6px;border:0;justify-content:center;";} // the log-heaving panel opens under the compass // anchor and fishing sit at the bottom left and right of the compass
 $("paneV3").after($("paneTools")); // the icon row lives outside the pane so nothing in the pane can cover it
@@ -5681,7 +5694,7 @@ function oarsUI(sh,bf){const O=SHIP.oars;if(!O||!$("bOars"))return;const r=rowOf
   $("oarHands").innerHTML=`Hands at the ${O.sweeps||!SHIP.boat?"sweeps":"oars"} <b class="mono">${h}</b> <span class="muted">of ${(S.crew||[]).length} · ${O.men} ${O.men>1?"a sweep":"an oar"}</span>`;
   $("oarMinus").disabled=h<=Math.min(O.n,av);$("oarPlus").disabled=h>=Math.min(need,av);
   for(const id of["oarBP","oarBS"])$(id).disabled=!on&&(!calm||anch);$("oarRel").checked=r.relieve!==false;
-  if(on){$("windSpd").innerHTML=`<b style="color:var(--ink)">${r.pivot?"Turning":st.n}</b><br>${st.spm?st.spm+" strokes a minute":"blades still"}`;}}
+  if(on){$("windSpd").innerHTML=`<span style="color:var(--ink)"><b>${r.pivot?"Turning":st.n}</b> · ${st.spm?st.spm+" strokes a minute":"blades still"}</span>`;}}
 window.__DR={cam:()=>R3,footAt,PF,portGeom,openPortCard,openPortPlan,tideLvl,tideTable,tideStream,plotFix,LMS,currentAt,landInit,WINDK,CURK,dockAtPort,showCrisis,crisisKind,punish,loadState,packState,decS,toggleOars,setStroke,oarPivot,STROKES,pickShip,get SHIP(){return SHIP},SHIPDEFS,SPEC,useShip,applyShip,crewOf,rigOf,linesOf,get shipPick(){return shipPick},set shipPick(v){shipPick=v},svMove,svCtx,sx,sy,openPortCard,openPortPlan,get R3(){return R3},setMain,update3D,get S(){return S},VOYAGES,PORTS,islands,reefs,LMS,step,startVoyage,setCourse,tackOrWear,setSail,assistStep,noonAvailable,windAt:(x,y,t)=>windAt(S,x,y,t),inPoly,crossFix,plotFix,takeBearing,markNoon,startObserve,noonAvailable,endVoyage,toGeo,geo,atPort:()=>atPort(S),buyStore,sellFish,toggleFish,coastNm,fishStep};
 })();
 </script>
