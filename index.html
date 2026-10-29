@@ -5916,7 +5916,10 @@ function build(R){
   const cutP=[],cutC=[];                              // thick section edges of the decks
   const slab=(y,t,z0,z1,mat,margin)=>{const P=[],I=[],C=[];let n=0;
     for(let z=z0;z<=z1+1e-6;z+=.5){const w=wd(z,y-.05,margin);if(w<.4)continue;P.push(0,y,z,-w,y,z);C.push(0,y,z,0,y-t,z);if(n>0){const a=(n-1)*2;I.push(a,a+1,a+2,a+1,a+3,a+2);}n++;}
-    if(n<2)return;const g=new THREE.BufferGeometry();g.setAttribute("position",new THREE.Float32BufferAttribute(P,3));g.setIndex(I);g.computeVertexNormals();LG[LV].add(new THREE.Mesh(g,mat));cutFace(C,n);};
+    if(n<2)return;const g=new THREE.BufferGeometry();g.setAttribute("position",new THREE.Float32BufferAttribute(P,3));g.setIndex(I);g.computeVertexNormals();{const ng=g.toNonIndexed();ng.computeVertexNormals();const c=paint(ng,0xb5905f),p=ng.attributes.position.array;for(let i=0;i<p.length;i++){AP[LV].push(p[i]);AC[LV].push(c[i]);}}
+    for(let i=0;i<n;i+=2){const z=P[i*6+2],w=-P[i*6+3];LN([0,y+.01,z],[-w,y+.01,z]);}
+    for(let k=1;k<=5;k++){let prev=null;for(let i=0;i<n;i++){const z=P[i*6+2],w=-P[i*6+3],x=-k*1.15;if(w<-x){prev=null;continue;}const q=[x,y+.01,z];if(prev)LN(prev,q);prev=q;}}
+    cutFace(C,n);};
   const cutFace=(C,n)=>{const I=[];for(let i=0;i<n-1;i++){const a=i*2;I.push(a,a+1,a+2,a+1,a+3,a+2);}const g=new THREE.BufferGeometry();g.setAttribute("position",new THREE.Float32BufferAttribute(C,3));g.setIndex(I);g.computeVertexNormals();
     const ng=g.toNonIndexed();const c=paint(ng,0xc98b5c),p=ng.attributes.position.array;for(let i=0;i<p.length;i++){AP[LV].push(p[i]);AC[LV].push(c[i]);}
     const top=[],bot=[];for(let i=0;i<n;i++){top.push([C[i*6],C[i*6+1],C[i*6+2]]);bot.push([C[i*6+3],C[i*6+4],C[i*6+5]]);}
