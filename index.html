@@ -1886,9 +1886,10 @@ function drawRose(x,y,r){
 }
 // the ship on the chart: a thin outline that grows and shrinks with the zoom (her true length once you are close enough), with her yards and sails as set once she is big enough to read
 function drawShip(x,y,h){const z=cam.zoom,trueNm=((SHIP&&SHIP.spec&&SHIP.spec.hull.Lwl)||22)/1852,Lp=Math.max(10*Math.pow(z/3.2,.2),trueNm*z),Bp=Lp*(SHIP&&SHIP.spec?SHIP.spec.hull.B/SHIP.spec.hull.Lwl*1.1:.2);
-  ctx.save();ctx.translate(x,y);ctx.rotate(h*D2R);const lw=Math.max(.8,Math.min(1.4,Lp/40));ctx.lineJoin="round";ctx.lineCap="round";
+  ctx.save();ctx.translate(x,y);{const hr=Math.max(16,Lp*.9),gr=ctx.createRadialGradient(0,0,hr*.25,0,0,hr);gr.addColorStop(0,"rgba(255,244,190,.95)");gr.addColorStop(.55,"rgba(255,236,160,.45)");gr.addColorStop(1,"rgba(255,236,160,0)");ctx.fillStyle=gr;ctx.beginPath();ctx.arc(0,0,hr,0,2*PI);ctx.fill();}
+  ctx.rotate(h*D2R);const lw=Math.max(1.6,Math.min(2.2,Lp/30));ctx.lineJoin="round";ctx.lineCap="round";
   ctx.beginPath();ctx.moveTo(0,-Lp/2);ctx.quadraticCurveTo(Bp*.62,-Lp*.18,Bp/2,Lp*.12);ctx.lineTo(Bp*.4,Lp/2);ctx.lineTo(-Bp*.4,Lp/2);ctx.lineTo(-Bp/2,Lp*.12);ctx.quadraticCurveTo(-Bp*.62,-Lp*.18,0,-Lp/2);
-  ctx.fillStyle="rgba(246,238,217,.7)";ctx.fill();ctx.strokeStyle="#2e2519";ctx.lineWidth=lw;ctx.stroke();
+  ctx.fillStyle="#fff6c9";ctx.fill();ctx.strokeStyle="#fffbe6";ctx.lineWidth=lw+2.4;ctx.stroke();ctx.strokeStyle="#2e2519";ctx.lineWidth=lw;ctx.stroke();
   if(Lp>=36&&S){ // sails: yards braced round their masts, fore-and-aft sails swung to leeward, filled by the wind
     const sh=S.ship,w=windAt(S,sh.x,sh.y,S.t),rel=angDiff(sh.heading,w.from),sl=sh.sailSet,DM=dialShip(Lp/1.08),k=Lp/DM.L,
       trimCol=S.trim>.93?"#3f7a4a":S.trim>.75?"#b8862a":"#a8452c",sg=Math.sign(Math.cos((rel+sh.brace)*D2R)||1),belly=sl<.05?0:sg*(.1+.05*sl)*Lp*.12;
@@ -1901,19 +1902,19 @@ function drawShip(x,y,h){const z=cam.zoom,trueNm=((SHIP&&SHIP.spec&&SHIP.spec.hu
         ctx.strokeStyle="#2e2519";ctx.lineWidth=lw*1.2;ctx.beginPath();ctx.moveTo(0,-fw);ctx.lineTo(0,bm);ctx.stroke();ctx.restore();}
       ctx.fillStyle="#2e2519";ctx.beginPath();ctx.arc(0,my,Math.max(1,Lp*.012),0,2*PI);ctx.fill();}}
   ctx.restore();}
-function chartGrid(par){const nm=[5,10,20,40,80].find(n=>n*cam.zoom>=56)||80,spx=nm*cam.zoom,x0=cam.x-CW/2/cam.zoom,x1=cam.x+CW/2/cam.zoom,yT=cam.y+CYC/cam.zoom,yB=cam.y-(CH-CYC)/cam.zoom,pts=[];
+function chartGrid(par){const nm=[5,10,20,40,80].find(n=>n*cam.zoom>=88)||80,spx=nm*cam.zoom,x0=cam.x-CW/2/cam.zoom,x1=cam.x+CW/2/cam.zoom,yT=cam.y+CYC/cam.zoom,yB=cam.y-(CH-CYC)/cam.zoom,pts=[];
   for(let gx=Math.floor(x0/nm)*nm;gx<=x1+nm;gx+=nm)for(let gy=Math.floor(yB/nm)*nm;gy<=yT+nm;gy+=nm){const odd=(Math.round(gy/nm)+par)&1;pts.push([gx+(odd?nm/2:0),gy]);}
   return{nm,spx,pts};}
 function chartArrow(px,py,ux,uy,L,lw,col){const ax=px-ux*L/2,ay=py-uy*L/2,bx=px+ux*L/2,by=py+uy*L/2;
   ctx.strokeStyle=col;ctx.fillStyle=col;ctx.lineWidth=lw;ctx.beginPath();ctx.moveTo(ax,ay);ctx.lineTo(bx,by);ctx.stroke();
-  ctx.beginPath();ctx.moveTo(bx,by);ctx.lineTo(bx-ux*5-uy*2.8,by-uy*5+ux*2.8);ctx.lineTo(bx-ux*5+uy*2.8,by-uy*5-ux*2.8);ctx.closePath();ctx.fill();}
+  ctx.beginPath();ctx.moveTo(bx,by);ctx.lineTo(bx-ux*4-uy*2.2,by-uy*4+ux*2.2);ctx.lineTo(bx-ux*4+uy*2.2,by-uy*4-ux*2.2);ctx.closePath();ctx.fill();}
 function drawWindField(){if(!showWind||!S)return;
-  const G=chartGrid(1),th=Math.floor(S.t),L=Math.min(G.spx*.56,21);ctx.save();ctx.lineCap="round";ctx.lineJoin="round";ctx.font="10px 'IBM Plex Mono',monospace";ctx.textAlign="center";
+  const G=chartGrid(1),th=Math.floor(S.t),L=Math.min(G.spx*.4,18);ctx.save();ctx.lineCap="round";ctx.lineJoin="round";ctx.font="10px 'IBM Plex Mono',monospace";ctx.textAlign="center";
   for(const[X,Y]of G.pts){if(X<0||Y<0||X>W_NM||Y>H_NM)continue;
-    const w=windAt(S,X,Y,th),a=(w.from+180)*D2R,px=sx(X),py=sy(Y),ux=Math.sin(a),uy=-Math.cos(a);ctx.globalAlpha=.8;
-    chartArrow(px,py,ux,uy,L,w.kn>20?1.4:1,"#2e2519");
-    const f=beaufort(w.kn);ctx.lineWidth=.85;for(let k=0;k<Math.floor(f/2);k++){const bx=px-ux*(L/2-k*2.5),by=py-uy*(L/2-k*2.5);ctx.beginPath();ctx.moveTo(bx,by);ctx.lineTo(bx+uy*4.2,by-ux*4.2);ctx.stroke();}
-    if(G.spx>=56){ctx.globalAlpha=.95;ctx.fillText(Math.round(w.kn)+" kn",px+(Math.abs(uy)>.7?14:0),py+(Math.abs(uy)>.7?0:12)+3);}}
+    const w=windAt(S,X,Y,th),a=(w.from+180)*D2R,px=sx(X),py=sy(Y),ux=Math.sin(a),uy=-Math.cos(a);ctx.globalAlpha=.5;
+    chartArrow(px,py,ux,uy,L,w.kn>20?1:.75,"#2e2519");
+    const f=beaufort(w.kn);ctx.lineWidth=.7;for(let k=0;k<Math.floor(f/2);k++){const bx=px-ux*(L/2-k*2.5),by=py-uy*(L/2-k*2.5);ctx.beginPath();ctx.moveTo(bx,by);ctx.lineTo(bx+uy*4.2,by-ux*4.2);ctx.stroke();}
+    if(G.spx>=56){ctx.globalAlpha=.7;ctx.fillText(Math.round(w.kn)+" kn",px+(Math.abs(uy)>.7?14:0),py+(Math.abs(uy)>.7?0:12)+3);}}
   ctx.globalAlpha=1;ctx.restore();}
 // cloud cover on the chart: patches drift downwind and thicken or thin with the game's own cover (and darken with rain), refreshed each game hour
 function cldNoise(i,j,k){const h=Math.sin(i*127.1+j*311.7+k*74.7)*43758.5453;return h-Math.floor(h);}
@@ -4829,10 +4830,10 @@ function fishStep(s,dt,w){if(!s.fish)return;const sh=s.ship,P=s.mode==="trial"?s
 function drawCurrents(){if(!showCur||!S)return;
   const G=chartGrid(0),th=Math.floor(S.t);ctx.save();ctx.lineCap="round";ctx.lineJoin="round";ctx.font="10px 'IBM Plex Mono',monospace";ctx.textAlign="center";
   for(const[X,Y]of G.pts){if(coastNm(X,Y)<1.5)continue;
-    const c=currentAt(X,Y,th),px=sx(X),py=sy(Y),h=c.set*D2R,L=Math.min(G.spx*.56,21),ux=Math.sin(h),uy=-Math.cos(h),
+    const c=currentAt(X,Y,th),px=sx(X),py=sy(Y),h=c.set*D2R,L=Math.min(G.spx*.4,18),ux=Math.sin(h),uy=-Math.cos(h),
       col=c.drift>.7?"#1a5c78":c.drift>.45?"#2a7a8c":"#4c8e96";
-    ctx.globalAlpha=.85;chartArrow(px,py,ux,uy,L,c.drift>.7?1.4:1,col);
-    if(G.spx>=56){ctx.globalAlpha=.95;ctx.fillText(c.drift.toFixed(1)+" kn",px+(Math.abs(uy)>.7?14:0),py+(Math.abs(uy)>.7?0:12)+3);}}
+    ctx.globalAlpha=.55;chartArrow(px,py,ux,uy,L,c.drift>.7?1:.75,col);
+    if(G.spx>=56){ctx.globalAlpha=.7;ctx.fillText(c.drift.toFixed(1)+" kn",px+(Math.abs(uy)>.7?14:0),py+(Math.abs(uy)>.7?0:12)+3);}}
   ctx.globalAlpha=1;ctx.restore();}
 function drawFish(){const M=S.fmarks;if(!M)return;
   if(S.grounds&&S.grounds.length){const sh=S.ship,P=S.mode==="trial"?sh:S.est,lost=S.mode==="lost";ctx.save();
