@@ -370,6 +370,18 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-
   #tbChart{left:calc(10% - var(--ic)/2)}#tbView{left:calc(30% - var(--ic)/2)}#tbShip{left:calc(50% - var(--ic)/2)}#tbBook{left:calc(70% - var(--ic)/2)}
 }
 .sheet{display:contents}@media (min-width:861px){#tabbar{display:none}}
+@media (max-width:860px){
+  /* the book page's top padding stays see-through over the 3D view, whatever colour the Look sets */
+  :root:root:root .bookbody{background:transparent!important;background-image:none!important;box-shadow:none!important}
+  /* bottom bar: bigger outline icons in a thin box; the pressed one only gets a bolder box, no fill, fade or motion */
+  :root{--tbw:46px}
+  #tabbar{height:calc(var(--tbw) + 30px + env(safe-area-inset-bottom,0px))!important}.app{padding-bottom:calc(var(--tbw) + 40px)!important}
+  :root:root:root .tbtab,:root:root:root #ctlIcon{width:var(--tbw)!important;height:var(--tbw)!important;z-index:30!important;background:transparent!important;background-image:none!important;color:var(--ink)!important;border:1px solid var(--ink)!important;border-radius:6px!important;box-shadow:none!important;transition:none!important;animation:none!important;-webkit-tap-highlight-color:transparent}
+  :root:root:root .tbtab[aria-pressed="true"],:root:root:root #ctlIcon[aria-pressed="true"]{border-width:3px!important;background:transparent!important;color:var(--ink)!important}
+  :root:root:root .tbtab:hover,:root:root:root .tbtab:active,:root:root:root #ctlIcon:hover,:root:root:root #ctlIcon:active{background:transparent!important}
+  :root:root:root .tbtab svg,:root:root:root #ctlIcon svg{width:30px!important;height:30px!important;transition:none!important}
+  #tbChart{left:calc(10% - var(--tbw)/2)!important}#tbView{left:calc(30% - var(--tbw)/2)!important}#tbShip{left:calc(50% - var(--tbw)/2)!important}#tbBook{left:calc(70% - var(--tbw)/2)!important}:root:root #ctlIcon{left:calc(90% - var(--tbw)/2)!important}
+}
 #ctlIcon svg{width:20px;height:20px}
 .ptools .tbicon svg,.bookbtn svg,#paneChart.small .mapicon svg,#ctlIcon svg{stroke-width:1.7!important}
 #paneChart.small{border:1px solid var(--ink)!important;border-radius:3px;box-shadow:0 4px 14px rgba(20,14,10,.3)}
