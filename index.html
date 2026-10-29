@@ -438,7 +438,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-
         <label class="chk"><input type="checkbox" id="aSky" checked> <span>Sky chart<small>Draws the altitude and bearing grid, the constellation lines and their names over the sky.</small></span></label>
       </div></div>
     <div class="menuwrap"><button class="tb" id="bMenu" aria-expanded="false" aria-haspopup="true" title="Voyages, help and sound"><span class="mtxt">Menu </span>☰</button>
-      <div class="menupop" id="menuPop" hidden><button class="tb" id="bVoy">Voyages</button><button class="tb" id="bHelp">How to sail</button><button class="tb" id="bSave">Save game</button><button class="tb" id="bLoad">Load game</button><button class="tb" id="bDark" aria-pressed="false">Dark mode</button><button class="tb" id="bSound" aria-pressed="false">Sound off</button><button class="tb" id="bFull" title="Use the whole screen">Full screen</button></div></div>
+      <div class="menupop" id="menuPop" hidden><button class="tb" id="bVoy">New voyage</button><button class="tb" id="bPreview">Preview ◐</button><button class="tb" id="bHelp">How to sail</button><button class="tb" id="bSave">Save game</button><button class="tb" id="bLoad">Load game</button><button class="tb" id="bDark" aria-pressed="false">Dark mode</button><button class="tb" id="bSound" aria-pressed="false">Sound off</button><button class="tb" id="bFull" title="Use the whole screen">Full screen</button></div></div>
   </div>
   <div class="infobar" aria-label="Date, wind and weather">
     <span class="when"><b id="clock">—</b><small id="watch">—</small></span>
@@ -688,7 +688,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-
     <div class="voylist" id="voyList"></div>
     <div id="freePick" hidden></div>
     <div><button class="btn" id="bSavesStart">Saved games and sync</button></div>
-    <p class="muted">Free sailing has no end: anchor at any port to trade. Sea trials show your true position so you can learn the ship. On the Lost at sea voyages the chart shows only your own reckoning.</p>
+    <p class="muted">Free roam has no end: sail where you like, anchor at any port to trade, fish and explore the islands.</p>
   </div>
 </div>
 
@@ -742,6 +742,28 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-
   </div>
 </div>
 
+<style>
+#pvSheet{position:fixed;left:8px;right:8px;bottom:8px;z-index:70;max-width:460px;margin:0 auto;background:var(--paper);border:1px solid var(--ink);box-shadow:0 8px 24px rgba(20,14,10,.4);border-radius:3px;font-size:12.5px;color:var(--ink);display:flex;flex-direction:column;max-height:46vh}
+#pvSheet[hidden]{display:none}
+#pvSheet .pvh{display:flex;align-items:center;gap:6px;padding:5px 8px;border-bottom:1px dotted var(--rule)}
+#pvSheet .pvh b{font-family:var(--f-display);font-weight:400;font-variant:small-caps;font-size:15px;flex:1}
+#pvSheet button{font:inherit;color:var(--ink);background:var(--paper-2);border:1px solid var(--rule);border-radius:2px;padding:3px 8px;cursor:pointer;line-height:1.25}
+#pvSheet button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+#pvSheet .pvtabs{display:flex;gap:3px;padding:4px 8px 0;overflow-x:auto}
+#pvSheet .pvtabs button{flex:1;border-bottom:0;border-radius:2px 2px 0 0;white-space:nowrap}
+#pvSheet .pvbody{overflow-y:auto;padding:6px 10px 8px;display:flex;flex-direction:column;gap:7px;border-top:1px solid var(--rule)}
+#pvSheet .pvr{display:grid;grid-template-columns:78px 1fr 62px;align-items:center;gap:6px}
+#pvSheet .pvr label{color:var(--ink-soft)}#pvSheet .pvr output{text-align:right;font-family:'IBM Plex Mono',monospace;font-size:11.5px}
+#pvSheet input[type=range]{width:100%;min-width:0;accent-color:var(--brass,#8a6a2f)}
+#pvSheet .pvc{display:flex;flex-wrap:wrap;gap:4px;align-items:center}
+#pvSheet select{font:inherit;background:var(--paper-2);color:var(--ink);border:1px solid var(--rule);border-radius:2px;padding:2px 4px}
+#pvSheet .pvn{color:var(--ink-soft);font-size:11.5px;line-height:1.35}
+#pvSheet .pvauto{margin-left:auto}
+</style>
+<div id="pvSheet" hidden role="dialog" aria-label="Preview controls">
+  <div class="pvh"><b>Preview</b><button type="button" id="pvResetAll" title="Hand everything back to the game's own weather and clock">Reset all to auto</button><button type="button" id="pvClose" aria-label="Close">✕</button></div>
+  <div class="pvtabs" id="pvTabs" role="tablist"></div>
+  <div class="pvbody" id="pvBody"></div>
 <script src="three.min.js"></script>
 <script>
 (()=>{
@@ -822,11 +844,13 @@ const BFT=[1,4,7,11,17,22,28,34,41,48,56,64];
 const BNAME=["Calm","Light air","Light breeze","Gentle breeze","Moderate breeze","Fresh breeze","Strong breeze","Near gale","Gale","Strong gale","Storm","Violent storm","Hurricane"];
 const beaufort=kn=>{let i=0;while(i<BFT.length&&kn>=BFT[i])i++;return i;};
 const CURRENT={set:290,drift:.35};
+// Preview menu overrides (null = the game's own auto weather); see the Preview panel near the end of the script
+const PV={wind:null,sea:null,cur:null,wx:null,vis:null,fauna:1,tide:1,shadows:true};
 // tides: semi-diurnal (12.42 h) with a fortnightly spring and neap swing; range in metres, ph the hour of high water in the lunar cycle
 const TIDEX={bridgetown:{r:.9,ph:3.1},castries:{r:.7,ph:4.0},stjohns:{r:1.0,ph:5.2,bar:3},kingstown:{r:.8,ph:3.7},basseterre:{r:.9,ph:5.9}};
 const TPER=12.42,TSN=354.4;
-function tideLvl(k,t){const X=TIDEX[k],a=X.r/2*(1+.3*Math.cos(2*PI*(t-40)/TSN));return a*Math.cos(2*PI*(t-X.ph)/TPER);}
-function tideStream(k,t){const X=TIDEX[k],f=1+.3*Math.cos(2*PI*(t-40)/TSN);return PORTX[k].tide*f*-Math.sin(2*PI*(t-X.ph)/TPER);} // knots, flood (into the harbour) positive
+function tideLvl(k,t){const X=TIDEX[k],a=PV.tide*X.r/2*(1+.3*Math.cos(2*PI*(t-40)/TSN));return a*Math.cos(2*PI*(t-X.ph)/TPER);}
+function tideStream(k,t){const X=TIDEX[k],f=1+.3*Math.cos(2*PI*(t-40)/TSN);return PV.tide*PORTX[k].tide*f*-Math.sin(2*PI*(t-X.ph)/TPER);} // knots, flood (into the harbour) positive
 function tideSpring(t){const c=Math.cos(2*PI*(t-40)/TSN);return c>.5?"springs":c<-.5?"neaps":"between springs and neaps";}
 function tideTable(k,t0,hrs){const out=[];let pv=tideLvl(k,t0-.1),cu=tideLvl(k,t0);for(let t=t0;t<t0+hrs;t+=.05){const nx=tideLvl(k,t+.05);if(cu>pv&&cu>=nx)out.push({t,hw:true,l:cu});else if(cu<pv&&cu<=nx)out.push({t,hw:false,l:cu});pv=cu;cu=nx;}return out;}
 // land and thermal tuning: Grigor's Wind and Current Tuner settings (1 is the realistic default for each)
@@ -940,6 +964,7 @@ function windAt(s,x,y,t){
     else if(e.type==="lull"){kn-=e.a*b;from+=e.sh*b;}
     else if(e.type==="wave"){kn+=e.a*Math.pow(b,1.4);from+=-28*sn(2*PI*u);}
     else if(e.type==="front"){kn+=e.a*Math.pow(b,.8);from+=u<.45?-25*sn(PI*u/.45):30*sn(PI*(u-.45)/.55);}}
+  if(PV.wind){from=PV.wind.dir;kn=PV.wind.kn;} // Preview menu: the base wind is held, the land still bends it
   // the land: the trade piles up and splits on the windward coast, quickens round the points and through the passages, falls light and fickle in a long shadow
   // behind the high islands, and the sun drives a sea breeze onto every coast by day and a land breeze off it at night; afternoon heat over the hills adds gusts
   let lee=null,pass=null,gm=1+.15*WINDK.thermal*Math.max(0,Math.cos(2*PI*(lh-4)/24)); // open-sea showers and gusts are worst before dawn
@@ -964,7 +989,7 @@ function windAt(s,x,y,t){
   kn*=1+.07*gm*(sn(t*47+x/18)+sn(t*31+y/14+1))*Math.min(1,kn/15);from+=1.8*gm*sn(t*53+x/25);
   let breeze=null;
   if(bx||by){const t2=(from+180)*D2R,vx=kn*sn(t2)+bx,vy=kn*Math.cos(t2)+by;kn=Math.hypot(vx,vy);from=Math.atan2(vx,vy)/D2R+180;if(Math.hypot(bx,by)>2)breeze=H.sea>H.land?"sea breeze":"land breeze";}
-  if(kn>24)kn=24+(kn-24)*.3; // the worst of it is eased: strong gales are rare in this stretch of trades
+  if(kn>24&&!PV.wind)kn=24+(kn-24)*.3; // the worst of it is eased: strong gales are rare in this stretch of trades
   return{from:norm(from),kn:Math.max(1.5,kn),lee,pass,breeze};
 }
 
@@ -988,19 +1013,20 @@ function wxStep(s,dt,w){const X=s.wx,t=s.t;if(!X)return;
   let fx=.25*Math.sin(70*D2R),fy=.25*Math.cos(70*D2R);
   for(const e of X.ev){if(e.type!=="front")continue;const tc=e.t0+.3*e.dur,wd=e.dur*.7,h=e.swell*Math.exp(-Math.pow((t-tc)/wd,2))*.24;if(h>.003){fx+=h*Math.sin(335*D2R);fy+=h*Math.cos(335*D2R);}}
   X.sea.swA=Math.hypot(fx,fy);X.sea.swF=norm(Math.atan2(fx,fy)/D2R);
+  if(PV.sea){X.sea.amp=PV.sea.wind/3.75;X.sea.swA=PV.sea.swell/3.6;if(PV.sea.swDir!=null)X.sea.swF=PV.sea.swDir;}
   const Hw=3.75*X.sea.amp,Hs=3.6*X.sea.swA;X.H=Math.hypot(Hw,Hs);
   // rain from systems and squalls
   let rain=0;for(const e of X.ev){const u=(t-e.t0)/e.dur;if(u<0||u>1)continue;
     if(e.type==="wave")rain=Math.max(rain,.8*Math.pow(Math.sin(PI*u),2)*(.65+.35*Math.sin(t*9)));
     else if(e.type==="front"&&u>.25&&u<.75)rain=Math.max(rain,.6*Math.sin(PI*(u-.25)/.5));}
-  X.rain=rain;const sqv=s.squall&&t>=s.squall.t0&&t<=s.squall.t0+s.squall.dur?Math.sin(PI*(t-s.squall.t0)/s.squall.dur):0;
+  X.rain=PV.wx?PV.wx.rain:rain;rain=X.rain;const sqv=s.squall&&t>=s.squall.t0&&t<=s.squall.t0+s.squall.dur?Math.sin(PI*(t-s.squall.t0)/s.squall.dur):0;
   if(Math.max(rain,sqv)>.5&&rng()<dt*3600*.012*(Math.max(rain,sqv)-.4)){X.flash=1;X.bolt=.15+rng()*.7;}
   // cloud cover: clear skies on a fine day, trade cumulus, and a pall of dark cloud ahead of and during rain
   { const info=dayInfo(s,dayIndex(s));let c=info.overcast?.8:info.cl;
     for(const e of X.ev){if(e.type==="wave"||e.type==="front"){const v=(t-(e.t0-e.lead))/(e.lead+e.dur*1.15);if(v>0&&v<1)c+=.8*Math.pow(Math.sin(PI*v),.5);}
       else if(e.type==="lull"||e.type==="surge"){const u=(t-e.t0)/e.dur;if(u>0&&u<1)c+=(e.type==="lull"?.15:-.1)*Math.sin(PI*u);}}
     const q=s.squall;if(q){const v=(t-(q.t0-.7))/(.7+q.dur+.3);if(v>0&&v<1)c+=.85*Math.pow(Math.sin(PI*v),.6);}
-    c=clamp(Math.max(c,X.rain*1.05),0,1);if(X.cover==null)X.cover=c;X.cover+=(c-X.cover)*(1-Math.exp(-dt/.4));
+    if(PV.wx)c=PV.wx.cover;c=clamp(Math.max(c,X.rain*1.05),0,1);if(X.cover==null)X.cover=c;X.cover+=(c-X.cover)*(1-Math.exp(-dt/.4));
     X.dark=clamp((X.cover-.5)/.45*1.1+X.rain*.6,0,1); }
   // warnings: the glass first, then the weather itself
   for(const e of X.ev){const u=(t-e.t0)/e.dur;
@@ -3671,9 +3697,9 @@ function updateFauna(R,dt,gain,wdx,wdz,nightF){
   const count=k=>F.list.reduce((n,a)=>n+(a.kind===k&&a.mode!=="leave"),0);
   // ---- spawning: each kind by its own haunts ----
   if(rdt>0){
-    const P=r=>rnd()<r*rdt;
+    const P=r=>rnd()<r*rdt*PV.fauna;
     const want={frigate:dc<25?day*(dc<4?3:dc<12?2:1):0,booby:day*(dc<40?2:1),pelican:dc<2.5?day*4:0,gull:dc<1.5?day*5:dc<4?day*1:0,tern:dc<4?day*2:0,tropic:dc<30?day*.8:day*.4};
-    for(const k in want){const n=count(k),w=Math.round(want[k]+(F.wj?.[k]||0));if(n<w&&P(1/6)){faBird(R,k);}else if(n>w){const a=F.list.find(a=>a.kind===k&&a.mode!=="leave");if(a)faLeave(a);}}
+    for(const k in want){const n=count(k),w=PV.fauna<=0?0:Math.round((want[k]+(F.wj?.[k]||0))*Math.min(PV.fauna,3));if(n<w&&P(1/6)){faBird(R,k);}else if(n>w){const a=F.list.find(a=>a.kind===k&&a.mode!=="leave");if(a)faLeave(a);}}
     if(!F.wjT||S.t>F.wjT){F.wjT=S.t+1;F.wj={};for(const k in want)F.wj[k]=(rnd()-.5)*1.4;}
     if(live&&day>.3&&kn>2&&dc>.4&&P(1/11)){const n=3+Math.floor(rnd()*8),side=rnd()<.5?1:-1,a0=bow+4+rnd()*22,l0=side*(2+rnd()*8),ang=hdg+side*(.6+rnd()*1.0);
       for(let i=0;i<n;i++){const x=fx*(a0+rnd()*6)+sx*(l0+side*rnd()*4),z=fz*(a0+rnd()*6)+sz*(l0+side*rnd()*4),a=ang+(rnd()-.5)*.5;
@@ -4072,14 +4098,14 @@ function update3D(dt,now){
   R.U.uPaper.value.setRGB(pa[0],pa[1],pa[2]);R.U.uInk.value.setRGB(ia[0],ia[1],ia[2]);R.U.uSeaInk.value.setRGB(lerp(.24,ia[0],pf),lerp(.37,ia[1],pf),lerp(.5,ia[2],pf));
   R.lineMat.color.setRGB(lerp(.17,ia[0],pf),lerp(.12,ia[1],pf),lerp(.09,ia[2],pf));R.sailLine.color.copy(R.lineMat.color);R.solidInk.color.setRGB(ia[0],ia[1],ia[2]);R.horizon.material.color.setRGB(ia[0],ia[1],ia[2]);
   R.renderer.setClearColor(R.U.uPaper.value);
-  const haze=info.haze;let far=lerp(45000,110000,clamp((haze-.6)/.4,0,1));far=lerp(far,6000,sq);if(nightF>.5)far*=.8;
+  const haze=info.haze;let far=lerp(45000,110000,clamp((haze-.6)/.4,0,1));far=lerp(far,6000,sq);if(nightF>.5)far*=.8;if(PV.vis!=null)far=Math.min(far,Math.max(150,PV.vis*NM));
   R.U.uFogFar.value=far;R.U.uFogNear.value=Math.min(600,far*.1);
   R.scene.fog.color.setRGB(pa[0],pa[1],pa[2]);R.scene.fog.near=R.U.uFogNear.value;R.scene.fog.far=far;
   // light dir
   const L=alt>-3?sunDir:new THREE.Vector3(.35,.8,.45).normalize();
   R.U.uSunW.value.copy(L);
   { const ov=(1-.85*clamp((S.wx.cover-.45)/.45,0,1))*(1-.8*sq)*(1-pf); // cloud, rain and night take the sun's shadows away
-    R.U.u_ShadowOn.value=smooth(-.5,6,alt)*ov;R.U.u_LightK.value=smooth(-6,3,alt)*ov;R.shAlt=alt;R.shAz=az; }
+    R.U.u_ShadowOn.value=smooth(-.5,6,alt)*ov*(PV.shadows?1:0);R.U.u_LightK.value=smooth(-6,3,alt)*ov;R.shAlt=alt;R.shAz=az; }
   R.camera.updateMatrixWorld();R.U.uLight.value.copy(L).transformDirection(R.camera.matrixWorldInverse);
   // sun/clouds/stars
   R.sun.position.copy(R.camera.position).addScaledVector(sunDir,85000);R.sun.material.map=nightF>.5?R.tex.sunN:R.tex.sunD;R.sun.visible=alt>-4||nightF>.5;
@@ -4810,7 +4836,7 @@ function fishStep(s,dt,w){if(!s.fish)return;const sh=s.ship,P=s.mode==="trial"?s
     if(away||coastNm(f.x,f.y)<1){f.x=ox;f.y=oy;if(away&&g){const a=Math.atan2(g.x-f.x,g.y-f.y);f.vx=Math.sin(a)*.4;f.vy=Math.cos(a)*.4;}else{f.vx=-f.vx;f.vy=-f.vy;}}
     else if(rng()<dt*.15){const a=rng()*2*PI;f.vx=Math.sin(a)*.4;f.vy=Math.cos(a)*.4;}}
   // the lookout watches the water for birds and breaking fish
-  if(s.t>=(s.spotT||0)){s.spotT=s.t+1/30;const lh=((localHours(s,s.t)%24)+24)%24,dl=lh>=6.5&&lh<17.5?1:lh>=5.5&&lh<18.5?.5:0,range=4.5*dl*(1-.5*((s.wx&&s.wx.rain)||0));
+  if(s.t>=(s.spotT||0)){s.spotT=s.t+1/30;const lh=((localHours(s,s.t)%24)+24)%24,dl=lh>=6.5&&lh<17.5?1:lh>=5.5&&lh<18.5?.5:0,range=4.5*dl*(1-.5*((s.wx&&s.wx.rain)||0));if(PV.vis!=null)range=Math.min(range,PV.vis);
     for(const f of s.fish){const d=Math.hypot(f.x-sh.x,f.y-sh.y),m=s.fmarks[f.id];
       if(f.amt<=25){if(m&&d<range){delete s.fmarks[f.id];}continue;}
       if(d<range){const first=!m;s.fmarks[f.id]={x:P.x+(f.x-sh.x),y:P.y+(f.y-sh.y),t:s.t,kind:f.kind,bank:f.kind==="bank"};
@@ -5646,12 +5672,11 @@ pickShip(shipPick);requestAnimationFrame(()=>{const b=$("shipList").querySelecto
 $("voyList").innerHTML=VOYAGES.map((v,i)=>`<button class="voycard" data-v="${i}"><span class="tag">${v.tag}</span><b>${v.title}</b><span class="d">${v.desc}</span></button>`).join("");
 $("voyList").querySelectorAll("button").forEach(b=>b.onclick=()=>startVoyage(VOYAGES[+b.dataset.v]));
 {const fb=document.createElement("button");fb.className="voycard";fb.id="freeCard";fb.innerHTML='<span class="tag">No orders</span><b>Free sailing</b><span class="d">Start from any port and sail where you like. No mission, no end: trade, fish, explore the islands and come to anchor when you please.</span>';
-  $("voyList").append(fb);const fp=$("freePick");
-  fp.innerHTML='<b style="font-family:var(--f-display);font-weight:400;font-size:17px">Free sailing: where do you weigh from?</b><div class="voylist" id="freePorts" style="grid-template-columns:repeat(auto-fill,minmax(130px,1fr))"></div><label class="chk"><input type="checkbox" id="freeLost"> <span>Navigate by dead reckoning only<small style="display:block;color:var(--ink-soft)">Hides your true position, as on the lost-at-sea voyages.</small></span></label><div><button class="btn" id="freeBack">Back</button></div>';
+  const fp=$("freePick"); // free roam is the only way to start: the sea trial and lost-at-sea voyages stay in VOYAGES for old saves but are not offered
+  fp.innerHTML='<b style="font-family:var(--f-display);font-weight:400;font-size:17px">Free roam: where do you weigh from?</b><div class="voylist" id="freePorts" style="grid-template-columns:repeat(auto-fill,minmax(130px,1fr))"></div><label class="chk"><input type="checkbox" id="freeLost"> <span>Navigate by dead reckoning only<small style="display:block;color:var(--ink-soft)">Hides your true position, as on the lost-at-sea voyages.</small></span></label><div><button class="btn" id="freeBack">Back</button></div>';
   $("freePorts").innerHTML=Object.keys(PORTS).map(k=>`<button class="voycard" data-p="${k}" style="padding:8px 10px"><b style="font-size:16px">${PORTS[k].name}</b></button>`).join("");
-  fb.onclick=()=>{fp.hidden=false;$("voyList").hidden=true;fp.scrollIntoView({block:"nearest"});};
-  $("freeBack").onclick=()=>{fp.hidden=true;$("voyList").hidden=false;};
-  $("freePorts").querySelectorAll("button").forEach(b=>b.onclick=()=>{const k=b.dataset.p,lost=$("freeLost").checked;fp.hidden=true;$("voyList").hidden=false;
+  $("voyList").hidden=true;fp.hidden=false;$("freeBack").parentNode.hidden=true;
+  $("freePorts").querySelectorAll("button").forEach(b=>b.onclick=()=>{const k=b.dataset.p,lost=$("freeLost").checked;
     startVoyage({id:"free",tag:"Free sailing",title:"From "+PORTS[k].name,from:k,to:null,mode:lost?"lost":"trial",hdg:280,free:true,desc:""});});}
 { const mq=matchMedia("(max-width:860px)"),box=document.querySelector(".compassbox"),home=$("paneV3");
   const place=()=>{const tgt=mq.matches?document.querySelector(".dock-all .dockbody"):home;if(box.parentNode!==tgt)mq.matches?tgt.insertBefore(box,tgt.firstChild):tgt.appendChild(box);};
@@ -5707,13 +5732,114 @@ function oarsUI(sh,bf){const O=SHIP.oars;if(!O||!$("bOars"))return;const r=rowOf
   $("oarMinus").disabled=h<=Math.min(O.n,av);$("oarPlus").disabled=h>=Math.min(need,av);
   for(const id of["oarBP","oarBS"])$(id).disabled=!on&&(!calm||anch);$("oarRel").checked=r.relieve!==false;
   if(on){$("windSpd").innerHTML=`<span style="color:var(--ink)"><b>${r.pivot?"Turning":st.n}</b> · ${st.spm?st.spm+" strokes a minute":"blades still"}</span>`;}}
-window.__DR={cam:()=>R3,footAt,PF,portGeom,openPortCard,openPortPlan,tideLvl,tideTable,tideStream,plotFix,LMS,currentAt,landInit,WINDK,CURK,dockAtPort,showCrisis,crisisKind,punish,loadState,packState,decS,toggleOars,setStroke,oarPivot,STROKES,pickShip,get SHIP(){return SHIP},SHIPDEFS,SPEC,useShip,applyShip,crewOf,rigOf,linesOf,get shipPick(){return shipPick},set shipPick(v){shipPick=v},svMove,svCtx,sx,sy,openPortCard,openPortPlan,get R3(){return R3},setMain,update3D,get S(){return S},VOYAGES,PORTS,islands,reefs,LMS,step,startVoyage,setCourse,tackOrWear,setSail,assistStep,noonAvailable,windAt:(x,y,t)=>windAt(S,x,y,t),inPoly,crossFix,plotFix,takeBearing,markNoon,startObserve,noonAvailable,endVoyage,toGeo,geo,atPort:()=>atPort(S),buyStore,sellFish,toggleFish,coastNm,fishStep};
+(function(){
+const BFN=["Calm","Light air","Light breeze","Gentle breeze","Moderate breeze","Fresh breeze","Strong breeze","Near gale","Gale","Strong gale","Storm","Violent storm","Hurricane"];
+const MON=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const orig={set:CURRENT.set,drift:CURRENT.drift};
+const sheet=document.getElementById("pvSheet"),body=document.getElementById("pvBody"),tabs=document.getElementById("pvTabs");
+const $$=id=>document.getElementById(id);
+const hm=h=>{h=((h%24)+24)%24;const m=Math.round(h*60)%1440;return String(Math.floor(m/60)).padStart(2,"0")+":"+String(m%60).padStart(2,"0");};
+const live={
+  wind(){const w=windAt(S,S.ship.x,S.ship.y,S.t);return{dir:Math.round(w.from),kn:Math.round(w.kn)};},
+  sea(){const X=S.wx;return{wind:+(3.75*X.sea.amp).toFixed(1),swell:+(3.6*X.sea.swA).toFixed(1),swDir:Math.round(X.sea.swF)};}
+};
+function snapWx(){const X=S&&S.wx;if(!X||!PV.wx)return;X.rain=PV.wx.rain;X.cover=PV.wx.cover;X.dark=clamp((X.cover-.5)/.45*1.1+X.rain*.6,0,1);}
+const WXP={clear:{n:"Clear",c:.02,r:0},fair:{n:"Fair",c:.25,r:0},broken:{n:"Broken",c:.55,r:0},over:{n:"Overcast",c:.9,r:0},rain:{n:"Rain",c:.85,r:.5},storm:{n:"Storm",c:1,r:.95},fog:{n:"Fog",c:.6,r:0}};
+let tab="time",wxKey=null;
+const T={
+ time(){const lh=localHours(S,S.t),di=dayIndex(S),d=new Date(Date.UTC(2001,2,10+di));
+  return `<div class="pvr"><label>Time</label><input type="range" id="pvT" min="0" max="24" step="0.25" value="${(((lh%24)+24)%24).toFixed(2)}"><output id="pvTo"></output></div>
+  <div class="pvc"><span class="pvn">Date</span><select id="pvM">${MON.map((m,i)=>`<option value="${i}"${i===d.getUTCMonth()?" selected":""}>${m}</option>`).join("")}</select><select id="pvD"></select><button type="button" id="pvSet">Set date &amp; time</button></div>
+  <div class="pvc"><span class="pvn">Jump to</span>${[["Dawn",5.5],["Morning",8],["Noon",12],["Dusk",18],["Night",23]].map(([n,h])=>`<button type="button" data-h="${h}">${n}</button>`).join("")}</div>
+  <div class="pvc"><span class="pvn">Speed</span><button type="button" data-sp="0">Pause</button><button type="button" data-sp="1">1×</button><button type="button" data-sp="3">3×</button><button type="button" data-sp="60">60×</button></div>
+  <div class="pvn">Time only moves forward, so setting an earlier date carries on to that date next year. Seasons, the sun and whale season follow the date.</div>`;},
+ sky(){const w=PV.wx,v=PV.vis;
+  return `<div class="pvc">${Object.entries(WXP).map(([k,x])=>`<button type="button" data-w="${k}" aria-pressed="${wxKey===k}">${x.n}</button>`).join("")}<button type="button" class="pvauto" data-w="" aria-pressed="${!PV.wx}">Auto</button></div>
+  <div class="pvr"><label>Cloud</label><input type="range" id="pvC" min="0" max="100" value="${Math.round((w?w.cover:S.wx.cover)*100)}"><output id="pvCo"></output></div>
+  <div class="pvr"><label>Rain</label><input type="range" id="pvR" min="0" max="100" value="${Math.round((w?w.rain:S.wx.rain)*100)}"><output id="pvRo"></output></div>
+  <div class="pvr"><label>Visibility</label><input type="range" id="pvV" min="0.2" max="30" step="0.1" value="${v==null?30:v}"><output id="pvVo"></output></div>
+  <label class="chk"><input type="checkbox" id="pvSh" ${PV.shadows?"checked":""}> <span>Sun and cloud shadows</span></label>
+  <div class="pvn">Heavy rain brings thunder and lightning. Storm also sets a gale and a heavy sea. Cloud and rain hold until you press Auto.</div>`;},
+ wind(){const w=PV.wind||live.wind();
+  return `<div class="pvr"><label>From</label><input type="range" id="pvWd" min="0" max="359" value="${w.dir}"><output id="pvWdo"></output></div>
+  <div class="pvr"><label>Strength</label><input type="range" id="pvWk" min="0" max="45" value="${w.kn}"><output id="pvWko"></output></div>
+  <div class="pvc"><span class="pvn" id="pvWn"></span><button type="button" class="pvauto" id="pvWa" aria-pressed="${!PV.wind}">Auto</button></div>
+  <div class="pvn">Held as the open-sea wind. Islands still shadow, funnel and bend it, and the sea breeze still blows.</div>`;},
+ sea(){const s=PV.sea||live.sea();
+  return `<div class="pvr"><label>Wind sea</label><input type="range" id="pvSw" min="0" max="9" step="0.1" value="${s.wind}"><output id="pvSwo"></output></div>
+  <div class="pvr"><label>Swell</label><input type="range" id="pvSl" min="0" max="6" step="0.1" value="${s.swell}"><output id="pvSlo"></output></div>
+  <div class="pvr"><label>Swell from</label><input type="range" id="pvSd" min="0" max="359" value="${s.swDir}"><output id="pvSdo"></output></div>
+  <div class="pvr"><label>Tide range</label><input type="range" id="pvTd" min="0" max="2.5" step="0.1" value="${PV.tide}"><output id="pvTdo"></output></div>
+  <div class="pvc"><span class="pvn">Sea state</span>${[["Calm",.3,.2],["Slight",.9,.5],["Moderate",1.8,1.2],["Rough",3.5,2.2],["High",6,3.5]].map(([n,a,b])=>`<button type="button" data-ss="${a},${b}">${n}</button>`).join("")}<button type="button" class="pvauto" id="pvSa" aria-pressed="${!PV.sea}">Auto</button></div>`;},
+ cur(){const c=PV.cur||{set:Math.round(CURRENT.set),drift:CURRENT.drift};
+  return `<div class="pvr"><label>Flowing to</label><input type="range" id="pvCs" min="0" max="359" value="${c.set}"><output id="pvCso"></output></div>
+  <div class="pvr"><label>Strength</label><input type="range" id="pvCk" min="0" max="3" step="0.05" value="${c.drift}"><output id="pvCko"></output></div>
+  <div class="pvc"><button type="button" class="pvauto" id="pvCa" aria-pressed="${!PV.cur}">Auto</button></div>
+  <div class="pvn">This is the steady drift. Coasts, passages, eddies, wind drift and the tides are still added on top.</div>`;},
+ more(){return `<div class="pvc"><span class="pvn">Wildlife</span>${[["None",0],["Normal",1],["Plenty",2],["Teeming",3]].map(([n,v])=>`<button type="button" data-f="${v}" aria-pressed="${PV.fauna===v}">${n}</button>`).join("")}</div>
+  <div class="pvn">Birds, porpoises, flying fish, whales and turtles still follow their own haunts and seasons.</div>`;}
+};
+const TABS=[["time","Time"],["sky","Sky"],["wind","Wind"],["sea","Sea"],["cur","Current"],["more","More"]];
+tabs.innerHTML=TABS.map(([k,n])=>`<button type="button" role="tab" data-t="${k}">${n}</button>`).join("");
+function draw(){if(!S)return;body.innerHTML=T[tab]();[...tabs.children].forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.t===tab)));wire();}
+function fillDays(){const m=+$$("pvM").value,n=new Date(Date.UTC(2001,m+1,0)).getUTCDate(),sel=$$("pvD"),cur=new Date(Date.UTC(2001,2,10+dayIndex(S)));
+  sel.innerHTML=Array.from({length:n},(_,i)=>`<option${m===cur.getUTCMonth()&&i+1===cur.getUTCDate()?" selected":""}>${i+1}</option>`).join("");}
+function jump(hh,month,day){const lh=localHours(S,S.t),di=dayIndex(S);let d;
+  if(month==null)d=hh-(((lh%24)+24)%24);else{const tgt=Math.round((Date.UTC(2001,month,day)-Date.UTC(2001,2,10))/864e5);d=(tgt*24+hh)-lh;if(tgt!==di)while(d<0)d+=365*24;}
+  if(month==null&&d<0)d+=24; // a bare time of day carries on to the next day
+  if(Math.abs(d)<1e-6)return;
+  S.t+=d;
+  for(const k of["crNext","assistT","spotT","strikeUntil","lastFixT","leaveT","rumT","balT","breakersWarned"])if(S[k]>S.t)S[k]=S.t;
+  S.squall=null;S.squallWarned=false;S.nextSquall=S.t+3+Math.random()*5;S.lastHalfHour=Math.floor(localHours(S,S.t)*2);S.lastHour=Math.floor(S.t);
+  if(d>6){const X=S.wx,keep={rain:X.rain,cover:X.cover};genWx(S);S.wx.rain=keep.rain;S.wx.cover=keep.cover;}
+  snapWx();S.track.push({x:S.ship.x,y:S.ship.y});updateUI(true);}
+function wire(){
+  const on=(id,fn)=>{const e=$$(id);if(e)e.addEventListener("input",fn);};
+  if($$("pvT")){const upd=()=>{$$("pvTo").textContent=hm(+$$("pvT").value);};upd();$$("pvT").oninput=upd;fillDays();$$("pvM").onchange=fillDays;
+    $$("pvSet").onclick=()=>jump(+$$("pvT").value,+$$("pvM").value,+$$("pvD").value);
+    body.querySelectorAll("[data-h]").forEach(b=>b.onclick=()=>{jump(+b.dataset.h);draw();});
+    body.querySelectorAll("[data-sp]").forEach(b=>b.onclick=()=>{const v=+b.dataset.sp;if(!v){setPaused(true);}else{setPaused(false);setSpeed(v);}});}
+  if($$("pvC")){const sync=()=>{PV.wx={cover:+$$("pvC").value/100,rain:+$$("pvR").value/100};wxKey=null;snapWx();$$("pvCo").textContent=$$("pvC").value+"%";$$("pvRo").textContent=$$("pvR").value+"%";body.querySelectorAll("[data-w]").forEach(b=>b.setAttribute("aria-pressed","false"));};
+    $$("pvCo").textContent=$$("pvC").value+"%";$$("pvRo").textContent=$$("pvR").value+"%";
+    on("pvC",sync);on("pvR",sync);
+    const vs=()=>{PV.vis=+$$("pvV").value>=30?null:+$$("pvV").value;$$("pvVo").textContent=PV.vis==null?"auto":PV.vis.toFixed(1)+" nm";};vs();on("pvV",vs);
+    $$("pvSh").onchange=e=>{PV.shadows=e.target.checked;};
+    body.querySelectorAll("[data-w]").forEach(b=>b.onclick=()=>{const k=b.dataset.w;wxKey=k||null;
+      if(!k){PV.wx=null;PV.vis=null;draw();return;}
+      const p=WXP[k];PV.wx={cover:p.c,rain:p.r};PV.vis=k==="fog"?.4:null;
+      if(k==="storm"){PV.wind={dir:live.wind().dir,kn:36};PV.sea={wind:6,swell:3.5,swDir:live.sea().swDir};}
+      snapWx();draw();});}
+  if($$("pvWd")){const sync=()=>{PV.wind={dir:+$$("pvWd").value,kn:+$$("pvWk").value};const b=beaufort(PV.wind.kn);$$("pvWdo").textContent=PV.wind.dir+"° "+pointName(PV.wind.dir);$$("pvWko").textContent=PV.wind.kn+" kn";$$("pvWn").textContent="Force "+b+": "+BFN[b];$$("pvWa").setAttribute("aria-pressed","false");};
+    const w=PV.wind||live.wind(),b=beaufort(w.kn);$$("pvWdo").textContent=w.dir+"° "+pointName(w.dir);$$("pvWko").textContent=w.kn+" kn";$$("pvWn").textContent="Force "+b+": "+BFN[b];
+    on("pvWd",sync);on("pvWk",sync);$$("pvWa").onclick=()=>{PV.wind=null;draw();};}
+  if($$("pvSw")){const sync=()=>{PV.sea={wind:+$$("pvSw").value,swell:+$$("pvSl").value,swDir:+$$("pvSd").value};$$("pvSwo").textContent=PV.sea.wind.toFixed(1)+" m";$$("pvSlo").textContent=PV.sea.swell.toFixed(1)+" m";$$("pvSdo").textContent=PV.sea.swDir+"° "+pointName(PV.sea.swDir);$$("pvSa").setAttribute("aria-pressed","false");};
+    const s=PV.sea||live.sea();$$("pvSwo").textContent=s.wind.toFixed(1)+" m";$$("pvSlo").textContent=s.swell.toFixed(1)+" m";$$("pvSdo").textContent=s.swDir+"° "+pointName(s.swDir);
+    on("pvSw",sync);on("pvSl",sync);on("pvSd",sync);$$("pvSa").onclick=()=>{PV.sea=null;draw();};
+    const td=()=>{PV.tide=+$$("pvTd").value;$$("pvTdo").textContent=PV.tide.toFixed(1)+"×";};td();on("pvTd",td);
+    body.querySelectorAll("[data-ss]").forEach(b=>b.onclick=()=>{const[a,c]=b.dataset.ss.split(",").map(Number);PV.sea={wind:a,swell:c,swDir:(PV.sea||live.sea()).swDir};draw();});}
+  if($$("pvCs")){const apply=()=>{CURRENT.set=PV.cur.set;CURRENT.drift=PV.cur.drift;};
+    const sync=()=>{PV.cur={set:+$$("pvCs").value,drift:+$$("pvCk").value};apply();$$("pvCso").textContent=PV.cur.set+"° "+pointName(PV.cur.set);$$("pvCko").textContent=PV.cur.drift.toFixed(2)+" kn";$$("pvCa").setAttribute("aria-pressed","false");};
+    const c=PV.cur||CURRENT;$$("pvCso").textContent=Math.round(c.set)+"° "+pointName(c.set);$$("pvCko").textContent=c.drift.toFixed(2)+" kn";
+    on("pvCs",sync);on("pvCk",sync);$$("pvCa").onclick=()=>{PV.cur=null;CURRENT.set=orig.set;CURRENT.drift=orig.drift;draw();};}
+  body.querySelectorAll("[data-f]").forEach(b=>b.onclick=()=>{PV.fauna=+b.dataset.f;draw();});
+}
+function resetAll(){PV.wind=PV.sea=PV.wx=PV.vis=PV.cur=null;PV.fauna=1;PV.tide=1;PV.shadows=true;wxKey=null;CURRENT.set=orig.set;CURRENT.drift=orig.drift;draw();}
+tabs.addEventListener("click",e=>{const b=e.target.closest("button");if(b){tab=b.dataset.t;draw();}});
+$$("pvResetAll").onclick=resetAll;
+$$("pvClose").onclick=()=>{sheet.hidden=true;};
+$$("bPreview").onclick=()=>{if(!S){return;}sheet.hidden=!sheet.hidden;if(!sheet.hidden)draw();};
+window.addEventListener("keydown",e=>{if(e.key==="Escape")sheet.hidden=true;});
+// the readouts that follow the live game while a tab is open and nothing is held
+setInterval(()=>{if(sheet.hidden||!S)return;if(tab==="wind"&&!PV.wind){const w=live.wind();if($$("pvWd")&&document.activeElement!==$$("pvWd")){$$("pvWd").value=w.dir;$$("pvWk").value=w.kn;$$("pvWdo").textContent=w.dir+"° "+pointName(w.dir);$$("pvWko").textContent=w.kn+" kn";const b=beaufort(w.kn);$$("pvWn").textContent="Force "+b+": "+BFN[b];}}},1500);
+})();
+
+window.__DR={preview:PV,cam:()=>R3,footAt,PF,portGeom,openPortCard,openPortPlan,tideLvl,tideTable,tideStream,plotFix,LMS,currentAt,landInit,WINDK,CURK,dockAtPort,showCrisis,crisisKind,punish,loadState,packState,decS,toggleOars,setStroke,oarPivot,STROKES,pickShip,get SHIP(){return SHIP},SHIPDEFS,SPEC,useShip,applyShip,crewOf,rigOf,linesOf,get shipPick(){return shipPick},set shipPick(v){shipPick=v},svMove,svCtx,sx,sy,openPortCard,openPortPlan,get R3(){return R3},setMain,update3D,get S(){return S},VOYAGES,PORTS,islands,reefs,LMS,step,startVoyage,setCourse,tackOrWear,setSail,assistStep,noonAvailable,windAt:(x,y,t)=>windAt(S,x,y,t),inPoly,crossFix,plotFix,takeBearing,markNoon,startObserve,noonAvailable,endVoyage,toGeo,geo,atPort:()=>atPort(S),buyStore,sellFish,toggleFish,coastNm,fishStep};
 })();
 </script>
 <script>
 /* Layout editor: Menu > Edit layout. Moves/resizes the real controls with CSS translate/scale, saved on this device. */
 (()=>{
-const LAYOUT_EDITOR=true; // switched off in the live game; set true to bring Menu > Edit layout back (saved positions stay in localStorage drLayout.v1)
+const LAYOUT_EDITOR=false; // switched off in the live game; set true to bring Menu > Edit layout back (saved positions stay in localStorage drLayout.v1)
 if(!LAYOUT_EDITOR)return;
 const $=id=>document.getElementById(id),KEY="drLayout.v1";
 const cls=()=>matchMedia("(max-width:860px)").matches?"phone":"desk";
@@ -5879,5 +6005,6 @@ apply();
 window.__drEdit={enter,leave,E,L,go};
 })();
 </script>
+</div>
 <script>if("serviceWorker" in navigator&&location.protocol.startsWith("http"))window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </body></html>
