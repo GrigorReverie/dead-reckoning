@@ -123,8 +123,9 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-
 .mapctl{position:absolute;right:12px;top:12px;z-index:3;display:flex;flex-direction:column;gap:6px}
 .mapctl button{width:34px;height:34px;background:var(--paper);border:1px solid var(--ink);color:var(--ink);font-family:var(--f-data);font-size:15px;border-radius:2px}
 .mapctl button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
-.toast{position:absolute;z-index:8;left:50%;top:4px;transform:translateX(-50%);width:max-content;max-width:min(760px,94%);box-sizing:border-box;background:var(--ink);color:var(--paper);padding:2px 12px;font-family:var(--f-italic);font-size:13px;line-height:1.5;border-radius:2px;box-shadow:0 2px 8px rgba(0,0,0,.2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;transition:opacity .4s}
-.toast.open{white-space:normal;padding:5px 12px}
+/* notices stack 5px under the heading tape's bottom line (tape is 22px + 1px stroke), 3px apart */
+.toasts{position:absolute;z-index:8;left:50%;top:28px;transform:translateX(-50%);width:max-content;max-width:min(760px,94%);display:flex;flex-direction:column;align-items:center;gap:3px;pointer-events:none}
+.toast{max-width:100%;box-sizing:border-box;background:var(--ink);color:var(--paper);padding:2px 12px;font-family:var(--f-italic);font-size:13px;line-height:1.5;border-radius:2px;box-shadow:0 2px 8px rgba(0,0,0,.2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;pointer-events:auto;transition:opacity .25s}
 .toast.hide{opacity:0;pointer-events:none}
 .ptools{position:absolute;left:50px;top:34px;z-index:6;display:flex;gap:8px}.pane.small .ptools{display:none}#paneChart.small{top:34px!important;left:12px!important}
 .tbicon svg{width:17px;height:17px}.tbicon{width:30px;height:30px;display:flex;align-items:center;justify-content:center;padding:0;background:rgba(246,238,217,.96);color:var(--ink);border:1px solid var(--ink);border-radius:3px;box-shadow:0 4px 14px rgba(20,14,10,.3);cursor:pointer}.tbicon:hover{background:var(--paper-2)}.tbicon[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
@@ -263,7 +264,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-
   #braceTxt,.trim .lng,#braceTxt+br{display:none}.trim .pct{font-size:15px;font-weight:600}
   .pane.small.collapsed{width:100px;height:28px}
   .dock.collapsed{min-width:130px}
-  .toast{top:3px;font-size:12px}
+  .toast{font-size:12px}
   /* phone layout: slim one-row toolbar, small chart inset, full-width Ship controls sheet with Helm/Sails tabs, touch-size buttons */
   .bar{flex-wrap:wrap;gap:6px;padding:6px 10px}
   .bar>*{flex:none;white-space:nowrap}
@@ -487,7 +488,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-
         </div>
         <button class="ctog ptog" data-pane="paneChart" aria-expanded="true" title="Collapse or expand">–</button><button class="swapbtn" id="swap2" title="Make this the main view (M)">⤢</button><span class="plabel">Chart</span>
       </div>
-      <div class="toast hide" id="toast"></div>
+      <div class="toasts" id="toast" aria-live="polite"></div>
     <div class="docks">
       <div class="bookbox" id="bookBox">
         <div class="bookbody" id="bookBody">
@@ -1207,11 +1208,13 @@ function drawSailGauge(sh){const c=$("sailSteps5");if(!c||c.hidden)return;
 function seaText(s){const X=s.wx,H=X.H,d=H<.5?"Calm":H<1.25?"Slight sea":H<2.5?"Moderate sea":H<4?"Rough sea":H<6?"Very rough sea":"High sea";return `${d} (${H.toFixed(1)} m) · swell from ${pointName(X.sea.swF)}`;}
 
 /* ---------- events & log ---------- */
-let toastTimer=0;
-/* tap the slim notice line to read it in full; tap again to dismiss */
-{const el=$("toast");if(el)el.addEventListener("click",()=>{clearTimeout(toastTimer);if(el.classList.contains("open")){el.classList.remove("open");el.classList.add("hide")}else{el.classList.add("open");toastTimer=setTimeout(()=>{el.classList.add("hide");el.classList.remove("open")},9000)}})}
+const TOAST_MS=17500,TOAST_MAX=4;
+/* each notice stays 17.5 s then fades quickly; tap one to dismiss it now; newer ones stack below */
+function dropToast(el){if(el.dataset.gone)return;el.dataset.gone=1;clearTimeout(el._t);el.classList.add("hide");setTimeout(()=>el.remove(),260);}
 function say(msg,{pause=false,slow=false,log=true}={}){
-  const el=$("toast");el.textContent=msg;el.title=msg;el.classList.remove("hide","open");clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.add("hide"),3500);
+  const box=$("toast");if(box){const el=document.createElement("div");el.className="toast";el.textContent=msg;el.title=msg;el.setAttribute("role","status");
+    el.addEventListener("click",()=>dropToast(el));box.appendChild(el);el._t=setTimeout(()=>dropToast(el),TOAST_MS);
+    const live=[...box.children].filter(c=>!c.dataset.gone);for(let k=0;k<live.length-TOAST_MAX;k++)dropToast(live[k]);}
   if(log&&S){S.log.unshift({time:timeStr(S),remark:msg});renderLog();}
   if(slow&&speedMult>60)setSpeed(60);
   if(slow||pause)stopSkip();
@@ -6532,13 +6535,13 @@ function force(){
  if(sl&&!sailSel()&&Date.now()-(E.sailAt||0)>1500){E.sailAt=Date.now();fire(document.querySelector('#sailShapes [data-s="mc"]'));E.did.sail=true}
  const lg=$("logbox");if(lg&&lg.hidden){lg.hidden=false;lg.style.display="flex";E.did.log=true}
  const ib=$("ibTog");if(ib&&ib.getAttribute("aria-expanded")==="false"){click(ib);E.did.strip=true}
- const t=$("toast");if(t){if(t.classList.contains("hide")){E.did.toast=true;t.classList.remove("hide")}if(E.did.toast&&!t.textContent)t.textContent="Land ho! The lookout sights the Pitons."}
+ const t=$("toast");if(t&&!t.children.length){E.did.toast=true;say("Land ho! The lookout sights the Pitons.",{log:false})}
 }
 function relax(){const d=E.did;
  if(d.sail&&sailSel())fire(document.querySelector('#sailShapes [data-s="mc"]'));
  if(d.log&&$("bHeave")&&!$("bHeave").disabled){const lg=$("logbox");lg.hidden=true;lg.style.display="none"}
  if(d.strip&&$("ibTog").getAttribute("aria-expanded")==="true")click($("ibTog"));
- if(d.toast){$("toast").classList.add("hide");$("toast").textContent=""}}
+ if(d.toast){$("toast").textContent=""}}
 function go(n){const v=$("tbView");click(v);
  const m={Chart:"tbChart",Ship:"tbShip",Book:"tbBook",Helm:"ctlIcon"}[n];if(m)setTimeout(()=>click($(m)),250);setTimeout(force,500)}
 
