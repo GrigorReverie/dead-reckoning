@@ -835,6 +835,12 @@ function tick(){
 }
 setInterval(tick,1000);
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(L));}catch(e){}};
+const FD={fell:["'IM Fell English SC','IM Fell English',Georgia,serif",""],cinzel:["Cinzel,Georgia,serif","Cinzel:wght@400;600"],cormsc:["'Cormorant SC',Georgia,serif","Cormorant+SC:wght@400;600"],playsc:["'Playfair Display SC',Georgia,serif","Playfair+Display+SC:wght@400;700"],spsc:["'Spectral SC',Georgia,serif","Spectral+SC:wght@400;600"],dmserif:["'DM Serif Display',Georgia,serif","DM+Serif+Display"],barlow:["'Barlow Condensed','Arial Narrow',sans-serif","Barlow+Condensed:wght@500;600"],worksans:["'Work Sans',system-ui,sans-serif","Work+Sans:wght@500;600"]};
+const FB={spectral:["Spectral,Georgia,'Times New Roman',serif",""],cormorant:["'Cormorant Garamond',Georgia,serif","Cormorant+Garamond:ital,wght@0,500;0,600;1,500"],baskerville:["'Libre Baskerville',Georgia,serif","Libre+Baskerville:ital,wght@0,400;0,700;1,400"],lora:["Lora,Georgia,serif","Lora:ital,wght@0,400;0,600;1,400"],plexserif:["'IBM Plex Serif',Georgia,serif","IBM+Plex+Serif:ital,wght@0,400;0,600;1,400"],plexsans:["'IBM Plex Sans',system-ui,sans-serif","IBM+Plex+Sans:ital,wght@0,400;0,600;1,400"],worksans:["'Work Sans',system-ui,sans-serif","Work+Sans:ital,wght@0,400;0,600;1,400"]};
+const FM={plexmono:["'IBM Plex Mono',ui-monospace,Menlo,monospace",""],jetbrains:["'JetBrains Mono',ui-monospace,monospace","JetBrains+Mono:wght@400;500"],courier:["'Courier Prime','Courier New',monospace","Courier+Prime:wght@400;700"],spacemono:["'Space Mono',ui-monospace,monospace","Space+Mono:wght@400;700"],special:["'Special Elite','Courier New',monospace","Special+Elite"],plexcond:["'IBM Plex Sans Condensed','Arial Narrow',sans-serif","IBM+Plex+Sans+Condensed:wght@400;500"]};
+function fonts(){const q=[FD[L.fd],FB[L.fb],FM[L.fm]].filter(x=>x&&x[1]).map(x=>"family="+x[1]);let l=document.getElementById("lkFonts");
+  if(!q.length){if(l)l.remove();return;}
+  const h="https://fonts.googleapis.com/css2?"+q.join("&")+"&display=swap";if(!l){l=document.createElement("link");l.id="lkFonts";l.rel="stylesheet";document.head.appendChild(l);}if(l.getAttribute("href")!==h)l.href=h;}
 const st=document.createElement("style");st.id="lkStyle";
 function css(){
   const P=s=>s.split(",").map(x=>":root:root "+x.trim()).join(",");
@@ -852,6 +858,15 @@ function css(){
   if(L.sh!=null){const b="box-shadow:"+(L.sh?"0 8px 28px rgba(20,14,10,"+(L.sh/100*.7).toFixed(2)+")":"none")+"!important";o+=rule(FL,b);}
   if(L.tx&&L.tx!=="none"){const u=texUrl(L.tx,L.ta!=null?L.ta:40);if(u)o+=rule(FL+",.bar,.infobar,.side,.card","background-image:"+u+"!important")+"@media(min-width:861px){"+rule(".compassbox:not(.collapsed)","background-image:"+u+"!important")+"}\n";}
   if(L.fs!=null&&L.fs!==100)o+=rule(".infobar,.bookbody,.portcard,.menupop,.routebar,.dock:not(.dock-all)","zoom:"+L.fs/100);
+  const fv=[];if(FD[L.fd])fv.push("--f-display:"+FD[L.fd][0]);if(FB[L.fb])fv.push("--f-body:"+FB[L.fb][0],"--f-italic:"+FB[L.fb][0]);if(FM[L.fm])fv.push("--f-data:"+FM[L.fm][0]);
+  if(fv.length)o+=":root:root{"+fv.join(";")+"}\n";
+  fonts();
+  const LB=".tb,.seg button,.btn,.subhead,.infobar small,.dockhead b.dh";
+  if(L.uc==="upper")o+=rule(LB,"text-transform:uppercase");else if(L.uc==="small")o+=rule(LB,"text-transform:none;font-variant:small-caps");
+  if(L.ls)o+=rule(LB,"letter-spacing:"+(L.ls/100).toFixed(3)+"em");
+  if(L.is)o+=rule(".tb svg,.tbicon svg,.fsb svg,.btn svg,.cbtog svg,.mapctl svg,.bookbtn svg,.mapicon svg,.swapbtn svg","stroke-width:"+L.is+"!important");
+  if(L.bs==="soft")o+=rule(".tb:not([aria-pressed=true]),.btn:not(.primary):not([aria-pressed=true])","background:var(--paper-2)!important;border-color:transparent!important");
+  else if(L.bs==="solid")o+=rule(".tb:not([aria-pressed=true]),.btn:not(.primary):not([aria-pressed=true])","background:var(--ink)!important;color:var(--paper)!important");
   return o;}
 const TEX={none:"None",grain:"Paper grain",linen:"Linen",vellum:"Vellum",stained:"Stained",canvas:"Sailcloth"};
 function texUrl(k,a){
@@ -907,7 +922,7 @@ document.addEventListener("click",e=>{
 });
 new MutationObserver(()=>{apply();render();}).observe(R,{attributes:true,attributeFilter:["data-theme"]});
 document.addEventListener("click",e=>{const d=e.target.closest&&e.target.closest("#bDark");if(d&&e.isTrusted&&auto()){L.auto=false;save();tick();render();}},true);
-window.DRLook={mount(h){host=h;render();},unmount(){host=null;}};
+window.DRLook={mount(h){host=h;render();},unmount(){host=null;},set(o){load(o);},get(){return L;}};
 const ui=document.createElement("style");
 ui.textContent="#pvSheet.lk{max-height:72vh}#pvSheet .lkg{display:grid;grid-template-columns:1fr 1fr;gap:6px 10px}#pvSheet .lkc{display:flex;align-items:center;gap:6px;color:var(--ink-soft)}#pvSheet .lkc input[type=color]{width:30px;height:24px;padding:0;border:1px solid var(--rule);background:none;flex:none}#pvSheet .lkc button{padding:0 5px;margin-left:auto}#pvSheet .lkoc{margin-top:2px}";
 document.head.append(ui,st);apply();
