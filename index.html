@@ -4713,12 +4713,12 @@ function update3D(dt,now){
       v=new THREE.Vector3(-Math.sin(al),0,Math.cos(al)).applyQuaternion(vq),n=Math.hypot(wk.f,wk.s)||1;
       R.wx+=(v.x*wk.f-v.z*wk.s)/n*sp;R.wz+=(v.z*wk.f+v.x*wk.s)/n*sp;}
     R.wz=clamp(R.wz,(R.ZS||-12)+1.8,(R.Z0||12)-3);R.wx=clamp(R.wx,-Math.max(.35,(R.bAt?R.bAt(R.wz):1.5)*.8),Math.max(.35,(R.bAt?R.bAt(R.wz):1.5)*.8));
-    R.bob.updateWorldMatrix(true,false);R.camera.position.set(R.wx,gy(R.wz)+1.7,R.wz).applyMatrix4(R.bob.matrixWorld);
+    R.bob.updateWorldMatrix(true,false);R.camera.position.set(R.wx,gy(R.wz)+CC().eye,R.wz).applyMatrix4(R.bob.matrixWorld);
     if(R.crew)for(const c of R.crew)if(c.role==="cap")c.m.visible=false;
     const lp=(R.pitch-16)*-.5*D2R,cp=R.camera.position;R.camera.near=.4;R.camera.lookAt(cp.x-Math.sin(al)*Math.cos(lp)*100,cp.y+Math.sin(lp)*100,cp.z+Math.cos(al)*Math.cos(lp)*100);}
   else{R.camera.near=3;R.camera.position.set(Math.sin(al)*dh*ck,Math.max((R.shot?1.6:4)*Math.min(1,ck),(R.cb+R.dist*Math.sin(pt))*ck),-Math.cos(al)*dh*ck);
     R.camera.lookAt(0,R.cl*(R.camY||1),0);}
-  {const sz=R.shot==="deck"&&R.scope?R.scopeZ:1,k=55/sz;if(R.scope&&window.__scopeZoomEl){const t="×"+(R.scopeZ||4).toFixed(1);if(window.__scopeZoomEl.textContent!==t)window.__scopeZoomEl.textContent=t;}if(Math.abs(R.camera.fov-k)>.01){R.camera.fov=k;R.camera.updateProjectionMatrix();}}
+  {const sz=R.shot==="deck"&&R.scope?R.scopeZ:1,k=CC().fov/sz;if(R.scope&&window.__scopeZoomEl){const t="×"+(R.scopeZ||4).toFixed(1);if(window.__scopeZoomEl.textContent!==t)window.__scopeZoomEl.textContent=t;}if(Math.abs(R.camera.fov-k)>.01){R.camera.fov=k;R.camera.updateProjectionMatrix();}}
   {const wp=$("walkPad");if(wp){const on=R.shot==="deck";if(wp.hidden===on)wp.hidden=!on;if(!on&&R.scope)window.setScope(false);}}R.camBrg=norm((R.hs+R.yaw));if(window.CUTCAM)window.CUTCAM(R);
   if(R.cover>2)R.camera.setViewOffset(R.W,R.H,0,R.cover*.3,R.W,R.H);else R.camera.clearViewOffset();
   R.camera.updateMatrixWorld();R.camera.updateProjectionMatrix();
@@ -4785,6 +4785,8 @@ const end3=e=>{if(!ptr3.delete(e.pointerId))return;v3c.classList.toggle("drag",p
     else if(!R3.tapMoved){R3.tapT=now;R3.tapPt={x:e.clientX,y:e.clientY};}else R3.tapT=0;}};
 function resetCam3(){const R=R3;if(!R)return;camKeep();R.shot=null;const k=360*Math.round((R.yaw-CAM0.yaw)/360);R.yaw-=k;R.ty=CAM0.yaw;R.tp=CAM0.pitch;R.td=CAM0.dist;} // glide back by the short way round
 /* cinematic camera angles from the 3D icon: [shot, yaw, pitch, dist, camera base height, look-at height] */
+const CAMCFG={jolly:{"eye":1.7,"fov":55,"zoom":[1.5,12,4],"wheelStep":1.12,"deckDrag":[0.4,0.3],"glassDrag":[0.4,0.3]},cutter:{"eye":1.7,"fov":55,"zoom":[1.5,12,4],"wheelStep":1.12,"deckDrag":[0.4,0.3],"glassDrag":[0.4,0.3]},sultana:{"eye":1.7,"fov":55,"zoom":[1.5,12,4],"wheelStep":1.12,"deckDrag":[0.4,0.3],"glassDrag":[0.4,0.3]},brig:{"eye":1.7,"fov":55,"zoom":[1.5,12,4],"wheelStep":1.12,"deckDrag":[0.4,0.3],"glassDrag":[0.4,0.3]},caroline:{"eye":1.7,"fov":55,"zoom":[1.5,12,4],"wheelStep":1.12,"deckDrag":[0.4,0.3],"glassDrag":[0.4,0.3]},endeavour:{"eye":1.7,"fov":55,"zoom":[1.5,12,4],"wheelStep":1.12,"deckDrag":[0.4,0.3],"glassDrag":[0.4,0.3]},xebec:{"eye":1.7,"fov":55,"zoom":[1.5,12,4],"wheelStep":1.12,"deckDrag":[0.4,0.3],"glassDrag":[0.4,0.3]},gotheborg:{"eye":1.7,"fov":55,"zoom":[1.5,12,4],"wheelStep":1.12,"deckDrag":[0.4,0.3],"glassDrag":[0.4,0.3]},constitution:{"eye":1.7,"fov":55,"zoom":[1.5,12,4],"wheelStep":1.12,"deckDrag":[0.4,0.3],"glassDrag":[0.4,0.3]},trinidad:{"eye":1.7,"fov":55,"zoom":[1.5,12,4],"wheelStep":1.12,"deckDrag":[0.4,0.3],"glassDrag":[0.4,0.3]}}; // per ship: eye height above deck (m), deck field of view, glass zoom [lowest,highest,start], wheel step, drag in degrees per pixel [side,up/down]; tuned in the Spyglass and Camera Tuner
+const CC=()=>CAMCFG[SHIP.id]||CAMCFG.brig;
 const SHOTS={deck:[null,0,16,58,8,15],bow:[null,148,1.5,34,1.8,13],stern:[null,14,40,120,8,9],orbit:[null,60,11,105,6,12]};
 const camNow=()=>{const R=R3;return{shot:R.shot,ty:R.ty,tp:R.tp,td:R.td};};
 let camPrev=null;
@@ -4796,16 +4798,16 @@ function camBack(){if(!R3||!camPrev)return;const c=camPrev;camPrev=camNow();camS
 {const sv=$("scopeView"),sb=$("scopeBtn"),pts=new Map();let pd=null;
   const zl=document.createElement("div");zl.id="scopeZoom";sv.appendChild(zl);window.__scopeZoomEl=zl;
   const size=()=>{const r=sv.getBoundingClientRect();sv.style.setProperty("--sr",Math.max(60,Math.min(r.width,r.height)*.46)+"px");};
-  window.setScope=on=>{const R=R3;if(!R)return;R.scope=!!on;if(on&&!R.scopeZ)R.scopeZ=4;sv.hidden=!on;sb.setAttribute("aria-pressed",on?"true":"false");if(on)size();pts.clear();pd=null;};
+  window.setScope=on=>{const R=R3;if(!R)return;R.scope=!!on;if(on&&!R.scopeZ)R.scopeZ=CC().zoom[2];sv.hidden=!on;sb.setAttribute("aria-pressed",on?"true":"false");if(on)size();pts.clear();pd=null;};
   sb.addEventListener("click",()=>window.setScope(!(R3&&R3.scope)));
   sb.addEventListener("pointerdown",e=>e.stopPropagation());
   addEventListener("resize",()=>{if(!sv.hidden)size();});
-  const zoom=f=>{const R=R3;R.scopeZ=clamp((R.scopeZ||4)*f,1.5,12);};
-  sv.addEventListener("wheel",e=>{e.preventDefault();zoom(e.deltaY<0?1.12:1/1.12);},{passive:false});
+  const zoom=f=>{const R=R3;{const c=CC().zoom;R.scopeZ=clamp((R.scopeZ||c[2])*f,c[0],c[1]);}};
+  sv.addEventListener("wheel",e=>{e.preventDefault();zoom(e.deltaY<0?CC().wheelStep:1/CC().wheelStep);},{passive:false});
   sv.addEventListener("pointerdown",e=>{e.preventDefault();try{sv.setPointerCapture(e.pointerId);}catch(_){}pts.set(e.pointerId,{x:e.clientX,y:e.clientY});const p=[...pts.values()];pd=p.length>=2?{d:Math.max(8,Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y)),z:R3.scopeZ||4}:null;});
   sv.addEventListener("pointermove",e=>{const R=R3;if(!R||!pts.has(e.pointerId))return;const o=pts.get(e.pointerId),n={x:e.clientX,y:e.clientY};pts.set(e.pointerId,n);const p=[...pts.values()];
-    if(p.length>=2&&pd){R.scopeZ=clamp(pd.z*Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y)/pd.d,1.5,12);return;}
-    const k=.25/(R.scopeZ||4);R.ty-=(n.x-o.x)*k*1.6;R.tp=clamp(R.tp+(n.y-o.y)*k*1.2,3,75);});
+    if(p.length>=2&&pd){R.scopeZ=clamp(pd.z*Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y)/pd.d,CC().zoom[0],CC().zoom[1]);return;}
+    const gd=CC().glassDrag,k=1/(R.scopeZ||CC().zoom[2]);R.ty-=(n.x-o.x)*k*gd[0];R.tp=clamp(R.tp+(n.y-o.y)*k*gd[1],3,75);});
   for(const ev of["pointerup","pointercancel"])sv.addEventListener(ev,e=>{pts.delete(e.pointerId);pd=null;});
 }
 window.__CAM=()=>R3;
@@ -4820,7 +4822,7 @@ v3c.addEventListener("pointermove",e=>{const R=R3;if(!R||!ptr3.has(e.pointerId))
     R.tp=clamp(pinch3.tp+((p[0].y+p[1].y)/2-pinch3.my)*.3,3,75);R.ty=pinch3.ty-((p[0].x+p[1].x)/2-pinch3.mx)*.12;return;} // two fingers: spread to zoom, slide up or down for camera height, slide sideways to turn slowly
   if(drag3){const dx=p[0].x-drag3.x,dy=p[0].y-drag3.y;
     if(!drag3.live){if(Math.hypot(dx,dy)<5)return;drag3.live=true;R.tapMoved=true;drag3.x=p[0].x;drag3.y=p[0].y;drag3.ty=R.ty;drag3.tp=R.tp;return;} // a small slop so a tap never nudges the view
-    R.ty=drag3.ty-dx*.4;R.tp=clamp(drag3.tp+dy*.3,3,75);}});
+    {const dd=R.shot==="deck"?CC().deckDrag:[.4,.3];R.ty=drag3.ty-dx*dd[0];R.tp=clamp(drag3.tp+dy*dd[1],3,75);}}});
 v3c.addEventListener("pointerup",end3);v3c.addEventListener("pointercancel",end3);v3c.addEventListener("lostpointercapture",end3);
 v3c.addEventListener("contextmenu",e=>e.preventDefault());
 v3c.addEventListener("wheel",e=>{if(!R3)return;e.preventDefault();
