@@ -1938,6 +1938,7 @@ function makePaper(){const c=document.createElement("canvas");c.width=c.height=2
 const ROSE=geo(12.1,-59.3);
 function path(pts){ctx.beginPath();pts.forEach((p,i)=>i?ctx.lineTo(sx(p.x),sy(p.y)):ctx.moveTo(sx(p.x),sy(p.y)));ctx.closePath();}
 function drawChart(){
+  if(CW<2||CH<2)return; // the chart pane is folded away, so there is nothing to draw
   ctx.setTransform(DPR,0,0,DPR,0,0);
   ctx.fillStyle="#f6eed9";ctx.fillRect(0,0,CW,CH);
   ctx.fillStyle="rgba(143,176,184,.26)";ctx.fillRect(0,0,CW,CH);
@@ -4052,7 +4053,7 @@ function faBirdStep(R,a,rdt,surf,K){const b=BIRDS[a.kind];a.life-=rdt;if(a.life<
     else{w.sh.rotation.set(0,b.sw*.25*w.sd,(glideW+beat*b.amp)*w.sd);w.wr.rotation.set(0,b.sw*.5,-b.crank*.9+beat*b.amp*.55);}}}
 
 function resize3D(){
-  if(!R3)return;const r=v3c.getBoundingClientRect();if(r.width<2||r.height<2)return;
+  if(!R3)return;const r=v3c.getBoundingClientRect();R3.hid=r.width<2||r.height<2;if(R3.hid)return;
   R3.W=r.width;R3.H=r.height;R3.renderer.setSize(r.width,r.height,false);R3.camera.aspect=r.width/r.height;R3.camera.updateProjectionMatrix();
   R3.dpr=Math.min(2,window.devicePixelRatio||1);hudc.width=Math.round(r.width*R3.dpr);hudc.height=Math.round(r.height*R3.dpr);
 }
@@ -4672,7 +4673,7 @@ function update3D(dt,now){
   if(R.cover>2)R.camera.setViewOffset(R.W,R.H,0,R.cover*.3,R.W,R.H);else R.camera.clearViewOffset();
   R.camera.updateMatrixWorld();R.camera.updateProjectionMatrix();
   R.sea.position.set(0,0,0);
-  if(!(SV.open&&innerWidth>860&&!window.CUTON)){shadowPass(R);R.renderer.render(R.scene,R.camera);} // on a computer the ship page covers the 3D view, so skip drawing it
+  if(!R.hid&&!(SV.open&&innerWidth>860&&!window.CUTON)){shadowPass(R);R.renderer.render(R.scene,R.camera);} // on a computer the ship page covers the 3D view, so skip drawing it
   drawHud(now,sq,w);
 }
 
@@ -5658,7 +5659,7 @@ function svBill(){const wi=watchInfo(S),n=S.crew.filter(m=>m.mode==="duty").leng
 function svBalance(){const C=S.crew,OFF=["Lieutenant","Master","Mate","Midshipman","Coxswain"],MEN=["Seaman","Marine","Soldier"],keep=C.filter(m=>m.w<3||MEN.includes(m.r)||OFF.includes(m.r)||m.r==="Bosun");let i=0;
   for(const m of[...keep.filter(m=>OFF.includes(m.r)),...keep.filter(m=>m.r==="Bosun"),...keep.filter(m=>MEN.includes(m.r))]){m.w=i%3;i++;}if(SHIP.id!=="brig"&&S.crew.length>30)svBuild();
   const bos=C.find(m=>m.r==="Bosun");if(bos)bos.w=1;svRows();}
-function svFrame(dt,now){if(!S||!S.crew)return;if(SHIP.id==="brig"){const ctx=svCtx();S.crew.forEach((m,i)=>svMove(m,i,Math.min(dt,.1),ctx));}else for(const m of S.crew)if(!m.act||(SV.rowT===0))m.act=svAct(m);svDraw(now);
+function svFrame(dt,now){if(!S||!S.crew)return;if(SHIP.id==="brig"){const ctx=svCtx();S.crew.forEach((m,i)=>svMove(m,i,Math.min(dt,.1),ctx));}else for(const m of S.crew)if(!m.act||(SV.rowT===0))m.act=svAct(m);if(!window.CUTON)svDraw(now); // the painted page is hidden under the 3D cutaway
   if(now-SV.rowT>250){SV.rowT=now;svRows();svBill();}}
 function openShip(on){SV.open=on;$("shipView").hidden=!on;$("bShip").setAttribute("aria-pressed",String(on));$("bShip").title=on?"Back to the helm":"The ship: cutaway, crew quarters and watches";
   if(on){const b=document.querySelector(".bar");document.documentElement.style.setProperty("--bar-h",b.offsetHeight+"px");if(S){svBuildSel();svRows();}}}
@@ -6722,7 +6723,8 @@ function paint(){chips.querySelectorAll("button[data-s]").forEach(b=>b.classList
     card.querySelectorAll(".ra button").forEach(b=>b.onclick=()=>doAct(M.sel,M.hi,+b.dataset.a));crewBind();}
   card.classList.toggle("tall",M.sel>=0);}
 let labelEls=null;
-function labels(){const R=M.R;if(!R||!M.built||!M.on){if(!M.on&&labelEls)labelEls.forEach(e=>e.g.style.display="none");requestAnimationFrame(labels);return;}
+function labels(){const R=M.R;if(!M.on){if(labelEls)labelEls.forEach(e=>e.g.style.display="none");looping=false;return;} // stop until the cutaway opens again
+  if(!R||!M.built){requestAnimationFrame(labels);return;}
   const rc=R.renderer.domElement.getBoundingClientRect(),W=innerWidth,H2=innerHeight;svg.setAttribute("viewBox",`0 0 ${W} ${H2}`);
   if(!labelEls){labelEls=M.labels.map(l=>{const g=document.createElementNS(NSV,"g");g.setAttribute("class","cl");const pl=document.createElementNS(NSV,"polyline"),dot=document.createElementNS(NSV,"circle"),rc2=document.createElementNS(NSV,"rect"),tx=document.createElementNS(NSV,"text");dot.setAttribute("r","2.6");
       tx.textContent=l[1].join(" ").replace(/ · /g," ");const base=tx.textContent;rc2.setAttribute("height","16");rc2.setAttribute("rx","2");g.append(pl,dot,rc2,tx);g.dataset.lv=l[0];
