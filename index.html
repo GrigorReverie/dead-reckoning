@@ -123,8 +123,10 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-
 .mapctl{position:absolute;right:12px;top:12px;z-index:3;display:flex;flex-direction:column;gap:6px}
 .mapctl button{width:34px;height:34px;background:var(--paper);border:1px solid var(--ink);color:var(--ink);font-family:var(--f-data);font-size:15px;border-radius:2px}
 .mapctl button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
-.toast{position:absolute;z-index:8;left:50%;top:78px;transform:translateX(-50%);max-width:min(520px,90%);background:var(--ink);color:var(--paper);padding:8px 14px;font-family:var(--f-italic);font-size:16px;border-radius:2px;box-shadow:0 4px 18px rgba(0,0,0,.25);pointer-events:none;transition:opacity .4s}
-.toast.hide{opacity:0}
+/* notices stack 5px under the heading tape's bottom line (tape is 22px + 1px stroke), 3px apart */
+.toasts{position:absolute;z-index:8;left:50%;top:28px;transform:translateX(-50%);width:max-content;max-width:min(760px,94%);display:flex;flex-direction:column;align-items:center;gap:3px;pointer-events:none}
+.toast{max-width:100%;box-sizing:border-box;background:var(--ink);color:var(--paper);padding:2px 12px;font-family:var(--f-italic);font-size:13px;line-height:1.5;border-radius:2px;box-shadow:0 2px 8px rgba(0,0,0,.2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;pointer-events:auto;transition:opacity .25s}
+.toast.hide{opacity:0;pointer-events:none}
 .ptools{position:absolute;left:50px;top:34px;z-index:6;display:flex;gap:8px}.pane.small .ptools{display:none}#paneChart.small{top:34px!important;left:12px!important}
 .tbicon svg{width:17px;height:17px}.tbicon{width:30px;height:30px;display:flex;align-items:center;justify-content:center;padding:0;background:rgba(246,238,217,.96);color:var(--ink);border:1px solid var(--ink);border-radius:3px;box-shadow:0 4px 14px rgba(20,14,10,.3);cursor:pointer}.tbicon:hover{background:var(--paper-2)}.tbicon[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
 .shipchart{position:absolute;left:12px;top:170px;z-index:5}#paneChart.small .shipchart{display:none!important}
@@ -262,7 +264,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-
   #braceTxt,.trim .lng,#braceTxt+br{display:none}.trim .pct{font-size:15px;font-weight:600}
   .pane.small.collapsed{width:100px;height:28px}
   .dock.collapsed{min-width:130px}
-  .toast{top:74px}
+  .toast{font-size:12px}
   /* phone layout: slim one-row toolbar, small chart inset, full-width Ship controls sheet with Helm/Sails tabs, touch-size buttons */
   .bar{flex-wrap:wrap;gap:6px;padding:6px 10px}
   .bar>*{flex:none;white-space:nowrap}
@@ -486,7 +488,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-
         </div>
         <button class="ctog ptog" data-pane="paneChart" aria-expanded="true" title="Collapse or expand">–</button><button class="swapbtn" id="swap2" title="Make this the main view (M)">⤢</button><span class="plabel">Chart</span>
       </div>
-      <div class="toast hide" id="toast"></div>
+      <div class="toasts" id="toast" aria-live="polite"></div>
     <div class="docks">
       <div class="bookbox" id="bookBox">
         <div class="bookbody" id="bookBody">
@@ -1206,9 +1208,13 @@ function drawSailGauge(sh){const c=$("sailSteps5");if(!c||c.hidden)return;
 function seaText(s){const X=s.wx,H=X.H,d=H<.5?"Calm":H<1.25?"Slight sea":H<2.5?"Moderate sea":H<4?"Rough sea":H<6?"Very rough sea":"High sea";return `${d} (${H.toFixed(1)} m) · swell from ${pointName(X.sea.swF)}`;}
 
 /* ---------- events & log ---------- */
-let toastTimer=0;
+const TOAST_MS=17500,TOAST_MAX=4;
+/* each notice stays 17.5 s then fades quickly; tap one to dismiss it now; newer ones stack below */
+function dropToast(el){if(el.dataset.gone)return;el.dataset.gone=1;clearTimeout(el._t);el.classList.add("hide");setTimeout(()=>el.remove(),260);}
 function say(msg,{pause=false,slow=false,log=true}={}){
-  const el=$("toast");el.textContent=msg;el.classList.remove("hide");clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.add("hide"),4200);
+  const box=$("toast");if(box){const el=document.createElement("div");el.className="toast";el.textContent=msg;el.title=msg;el.setAttribute("role","status");
+    el.addEventListener("click",()=>dropToast(el));box.appendChild(el);el._t=setTimeout(()=>dropToast(el),TOAST_MS);
+    const live=[...box.children].filter(c=>!c.dataset.gone);for(let k=0;k<live.length-TOAST_MAX;k++)dropToast(live[k]);}
   if(log&&S){S.log.unshift({time:timeStr(S),remark:msg});renderLog();}
   if(slow&&speedMult>60)setSpeed(60);
   if(slow||pause)stopSkip();
@@ -6105,6 +6111,20 @@ function doAct(lv,rm,i){
   else{if(Math.random()<.55){mo(.1);if(tag==="stores"){T.meat+=C.length*.5;end="A sound find in the stores. Spirits lift.";}else if(tag==="rig"){S.ship.rig=clamp1(S.ship.rig+.03);end="It goes better than hoped. Rigging +3%.";}else end="It goes better than expected. The hands cheer.";}
     else{msg+="";if(tag==="hull"||tag==="powder")S.hull=clamp1(S.hull-(tag==="hull"?.03:.04));else if(tag==="rig")S.ship.rig=clamp1(S.ship.rig-.03);else if(tag==="stores"){T.bis*=.93;T.meat*=.96;}else one(-.3);mo(-.04);end=BADT[tag];}}
   const hrs=[2,1,1,2][i];S.t+=hrs;msg+=end+` (${hrs} h)`;say(msg,{});try{updateUI(true);}catch(e){}M.res=msg;paint();}
+/* ---------- emergencies: which room needs attention, and which action helps ---------- */
+window.__CUTS=()=>S;
+function emergencies(){const E={};if(typeof S==="undefined"||!S||!S.crew)return E;const C=S.crew,n=C.length||1,T=S.stores;
+  const CO=SPc.id==="constitution",K=(M.L&&M.L.kx)||{},at=(lv,rm,ks)=>{if(CO)return[lv,rm];for(const q of ks)if(K[q])return K[q][0];return null;};   // her room for each trouble
+  const add=(lv,rm,act,why,ks)=>{const h=at(lv,rm,ks||[]);if(!h)return;const k=h[0]*10+h[1];if(!E[k])E[k]={act,why};};
+  const sick=C.filter(m=>m.sick).length;if(sick)add(2,4,0,sick+" laid up"+(medTeam(S).q>0?"":", no surgeon to tend them"),["sick","bunks","hammocks","chests","thwarts"]);
+  const av=C.reduce((a,m)=>a+m.mo,0)/n;if(av<.45)add(1,2,2,"Spirits are low ("+pcx(av)+")",["mess","hammocks","chests","thwarts"]);
+  if((S.water||0)>.15||(S.leak||0)>.02)add(4,3,0,"Water in the well; the pump needs work",["pump","ballast","water","thwarts"]);
+  if(S.hull<.7)add(0,4,0,"Hull at "+pcx(S.hull),["hatch","store","thwarts"]);
+  if(S.ship&&S.ship.rig<.6)add(0,3,0,"Rigging at "+pcx(S.ship.rig),["capstan","windlass","store","bow"]);
+  if((S.noFresh||0)>=120)add(2,3,2,"No fresh food for "+Math.floor(S.noFresh/24)+" days",["galley","bow"]);
+  if((T.bis+T.meat)/n<4)add(3,0,0,"Provisions are running short",["bread","cargo","water","bow"]);
+  if(S.strikeUntil>S.t)add(1,0,3,"The hands are refusing duty",["cabin","state","nat","saloon","tiller"]);
+  return E;}
 /* ---------- decks, rooms, labels ---------- */
 const DECKS=[
  {name:"Upper deck",sub:"helm · boats · carronades · capstan",look:5.4,
@@ -6617,8 +6637,8 @@ function mkChips(){chips.innerHTML=`<button data-s="-1" title="All decks" aria-l
   chips.querySelectorAll("button[data-s]").forEach(b=>b.onclick=()=>sel(+b.dataset.s));chips.classList.toggle("many",M.L.decks.length>5);chips.querySelector("#cutRe").onclick=()=>{M.cur=null;M.sel=-1;M.man=-1;M.dirty=true;M.pan=0;M.uaz=M.upt=M.uly=0;M.uz=1;paint();};chips.querySelector("#cutFlip").onclick=()=>{M.flip=!M.flip;M.cur=null;};chips.querySelector("#cutLed").onclick=()=>{M.ledger=true;};}
 function sel(i){M.sel=(M.sel===i&&i>=0)?-1:i;M.hi=-1;M.man=-1;M.dirty=true;M.res="";M.pan=0;paint();}
 function paint(){chips.querySelectorAll("button[data-s]").forEach(b=>b.classList.toggle("on",+b.dataset.s===M.sel));
-  if(M.sel<0)card.innerHTML=`<h3>${SPc.name}</h3>${crewCard()}<p>Tap a deck, a label or a man.</p>`;
-  else{const d=M.L.decks[M.sel];card.innerHTML=`<h3>${d.name}</h3>${M.hi>=0?`<div class="rd">${d.rooms[M.hi][1]}</div>${crewCard()}<div class="ra">${M.L.act[M.sel][M.hi].map((t,i)=>`<button type="button" data-a="${i}"${i===3?' class="risk"':""}><b>${["Chore","Drill","Morale","Risk"][i]}</b> ${t}</button>`).join("")}</div>${M.res?`<div class="rr">${M.res}</div>`:""}`:""}`;
+  if(M.sel<0)card.innerHTML=`<h3>${SPc.name}</h3>${crewCard()}${(()=>{const E=emergencies(),k=Object.keys(E);return k.length?`<div class="warn">Needs attention: ${k.map(x=>M.L.decks[Math.floor(x/10)].rooms[x%10][0]).join(", ")}</div>`:""})()}<p>Tap a deck, a label or a man.</p>`;
+  else{const d=M.L.decks[M.sel];card.innerHTML=`<h3>${d.name}</h3>${M.hi>=0?`<div class="rd">${d.rooms[M.hi][1]}</div>${crewCard()}${(()=>{const e=emergencies()[M.sel*10+M.hi];return e?`<div class="warn">Needs attention: ${e.why}</div>`:""})()}<div class="ra">${M.L.act[M.sel][M.hi].map((t,i)=>`<button type="button" data-a="${i}" class="${i===3?"risk ":""}${(emergencies()[M.sel*10+M.hi]||{}).act===i?"hot":""}"><b>${["Chore","Drill","Morale","Risk"][i]}</b> ${t}</button>`).join("")}</div>${M.res?`<div class="rr">${M.res}</div>`:""}`:""}`;
     card.querySelectorAll(".ra button").forEach(b=>b.onclick=()=>doAct(M.sel,M.hi,+b.dataset.a));crewBind();}
   card.classList.toggle("tall",M.sel>=0);}
 let labelEls=null;
@@ -6628,8 +6648,8 @@ function labels(){const R=M.R;if(!R||!M.built||!M.on){if(!M.on&&labelEls)labelEl
       tx.textContent=l[1].join(" ").replace(/ · /g," ");const base=tx.textContent;rc2.setAttribute("height","16");rc2.setAttribute("rx","2");g.append(pl,dot,rc2,tx);g.dataset.lv=l[0];
       g.onclick=()=>{if(M.sel===l[0]&&M.hi===l[4]){M.hi=-1;}else{M.sel=l[0];M.hi=l[4];}M.man=-1;M.dirty=true;paint();};svg.append(g);return{g,pl,dot,rc:rc2,tx,l,base,w:tx.textContent.length*5.3+10};});}
   R.bob.updateMatrixWorld(true);R.camera.updateMatrixWorld();
-  const cardTop=card.getBoundingClientRect().top;
-  const act=labelEls.filter(e=>{const l=e.l;const show=M.sel<0?l[3]===1:l[0]===M.sel;e.g.style.display=show?"":"none";return show;});
+  const cardTop=card.getBoundingClientRect().top;const EM=emergencies();
+  const act=labelEls.filter(e=>{const l=e.l;const em=EM[l[0]*10+l[4]],show=M.sel<0?(l[3]===1||!!em):l[0]===M.sel;e.g.style.display=show?"":"none";e.g.classList.toggle("em",!!em);return show;});
   const top=Math.max(rc.top,88)+6,bot=Math.min(rc.bottom,cardTop)-6,half=Math.ceil(act.length/2),cnt=[half,act.length-half];
   act.forEach((e,n)=>{const l=e.l,side=n<half?0:1,k=side?n-half:n,c=cnt[side],slot=(bot-top)/c;
     _v.set(M.flip?-l[2][0]:l[2][0],l[2][1],l[2][2]).applyMatrix4(R.bob.matrixWorld).project(R.camera);
@@ -6764,13 +6784,13 @@ function force(){
  if(sl&&!sailSel()&&Date.now()-(E.sailAt||0)>1500){E.sailAt=Date.now();fire(document.querySelector('#sailShapes [data-s="mc"]'));E.did.sail=true}
  const lg=$("logbox");if(lg&&lg.hidden){lg.hidden=false;lg.style.display="flex";E.did.log=true}
  const ib=$("ibTog");if(ib&&ib.getAttribute("aria-expanded")==="false"){click(ib);E.did.strip=true}
- const t=$("toast");if(t){if(t.classList.contains("hide")){E.did.toast=true;t.classList.remove("hide")}if(E.did.toast&&!t.textContent)t.textContent="Land ho! The lookout sights the Pitons."}
+ const t=$("toast");if(t&&!t.children.length){E.did.toast=true;say("Land ho! The lookout sights the Pitons.",{log:false})}
 }
 function relax(){const d=E.did;
  if(d.sail&&sailSel())fire(document.querySelector('#sailShapes [data-s="mc"]'));
  if(d.log&&$("bHeave")&&!$("bHeave").disabled){const lg=$("logbox");lg.hidden=true;lg.style.display="none"}
  if(d.strip&&$("ibTog").getAttribute("aria-expanded")==="true")click($("ibTog"));
- if(d.toast){$("toast").classList.add("hide");$("toast").textContent=""}}
+ if(d.toast){$("toast").textContent=""}}
 function go(n){const v=$("tbView");click(v);
  const m={Chart:"tbChart",Ship:"tbShip",Book:"tbBook",Helm:"ctlIcon"}[n];if(m)setTimeout(()=>click($(m)),250);setTimeout(force,500)}
 
@@ -6930,6 +6950,8 @@ body.cutmode #view3d{touch-action:none}
 #cutCard .ra{display:flex;flex-direction:column;gap:3px;margin-top:5px}#cutCard .ra button{text-align:left;font:12px Georgia,serif;line-height:1.3;padding:4px 6px;border:1px solid #2e2519;border-radius:3px;background:#fff;color:#000}#cutCard .ra button.risk{border-color:#a83b2f}#cutCard .ra button b{font:10px "IBM Plex Mono",monospace;text-transform:uppercase;letter-spacing:.06em;color:#7b6a55;margin-right:5px}#cutCard .ra button.risk b{color:#a83b2f}#cutCard .rr{margin-top:5px;font:italic 12.5px Georgia,serif;color:#2e2519}
 #cutCard{max-height:46vh;overflow:auto}#cutCard .mc{margin-top:6px;border-top:1px dotted #cbbd98;padding-top:5px;font:12.5px Georgia,serif}#cutCard .mc .svhint{font:11.5px Georgia,serif;color:#4a3f30;margin-top:2px}#cutCard .mb{display:flex;gap:5px;margin-top:5px}#cutCard .mb button{font:12px Georgia,serif;padding:4px 8px;border:1px solid #000;border-radius:3px;background:#fff;color:#000}
 #cutChips{justify-content:space-between;gap:2px}#cutChips button{flex:1 1 0;max-width:var(--ic,44px);min-width:0;height:var(--ic,44px);padding:0;display:flex;align-items:center;justify-content:center;border:0;border-radius:6px;background:transparent;color:var(--ink,#2e2519)}#cutChips button svg{width:20px;height:20px}#cutChips button.on,#cutChips button:active{background:var(--ink,#2e2519);color:var(--paper,#f6eed9)}#cutChips #cutRe{margin-left:0}#cutChips #cutLed{border-style:solid}
-#cutSvg g[data-lv="0"] rect{fill:#ffc23d}#cutSvg g[data-lv="1"] rect{fill:#ff6b4a}#cutSvg g[data-lv="2"] rect{fill:#3fd6c4}#cutSvg g[data-lv="3"] rect{fill:#a78bfa}#cutSvg g[data-lv="4"] rect{fill:#4aa3ff}
+
 #cutSvg .sel rect{fill:#000!important}#cutSvg rect{stroke-width:1.4px}#cutSvg text{font-weight:600}
+#cutSvg g.em rect{fill:#ffd400}#cutSvg g.em.sel rect{fill:#000!important}
+#cutCard .warn{margin-top:5px;padding:4px 6px;border:1px solid #000;border-radius:3px;background:#ffd400;color:#000;font:600 12px Georgia,serif}#cutCard .ra button.hot{background:#ffd400;border-color:#000}
 </style></body></html>
