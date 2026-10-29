@@ -74,7 +74,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-
 .cbfoot-l{display:flex;gap:4px;flex:none}.cbfoot .ws{flex:1;min-width:0;text-align:center}.cbfoot .btn.ico{flex:none;width:var(--stW);height:var(--stW);min-height:0;padding:0;display:flex;align-items:center;justify-content:center}
 .compassbox .cbtog{position:absolute;left:4px;top:4px;z-index:2;width:26px;height:26px;padding:0;display:flex;align-items:center;justify-content:center;background:var(--paper);color:var(--ink);border:1px solid var(--ink);border-radius:50%;cursor:pointer}
 .compassbox.collapsed{padding:0;border:0;background:none;box-shadow:none}.compassbox.collapsed .cbrow,.compassbox.collapsed .ws{display:none}
-.compassbox.collapsed .cbtog svg{width:13px;height:13px}.compassbox.collapsed .cbtog{position:static;width:30px;height:30px;border-radius:3px;background:rgba(246,238,217,.96);box-shadow:0 4px 14px rgba(20,14,10,.3)}.steps5{display:flex;flex-direction:column;gap:3px}.steps5 .btn{min-height:0;height:28px;width:28px;padding:0;display:flex;align-items:center;justify-content:center}.steps5 .btn[aria-pressed="true"]{background:var(--ink);color:var(--paper)}.steps5 .btn{position:relative;overflow:hidden}.steps5 .btn::after{content:"";position:absolute;left:0;bottom:0;height:3px;width:var(--pg,0%);background:var(--brass)}.steps5 .btn.mv{outline:2px dashed var(--brass);outline-offset:-2px}.compassbox .ws{font-family:var(--f-data);font-size:9.5px;text-align:center;line-height:1.35;letter-spacing:.03em}.compassbox .ws b{font-size:12px}
+.compassbox.collapsed .cbtog svg{width:13px;height:13px}.compassbox.collapsed .cbtog{position:static;width:30px;height:30px;border-radius:3px;background:rgba(246,238,217,.96);box-shadow:0 4px 14px rgba(20,14,10,.3)}.steps5{display:flex;flex-direction:column;gap:3px}.steps5 .btn{min-height:0;height:28px;width:28px;padding:0;display:flex;align-items:center;justify-content:center}.steps5 .btn{background:linear-gradient(0deg,var(--ink) var(--pg,0%),var(--paper) var(--pg,0%))}.steps5 .btn[aria-pressed="true"]{color:var(--ink)}.steps5 .btn.dk{color:var(--paper)!important}.compassbox .ws{position:absolute;right:calc(var(--stW) + var(--gp) + 12px);bottom:46px;text-align:right!important;flex:none!important;z-index:1;pointer-events:none}.compassbox .ws{font-family:var(--f-data);font-size:9.5px;text-align:center;line-height:1.35;letter-spacing:.03em}.compassbox .ws b{font-size:12px}
 .pane.small .compassbox{display:none}
 .mapicon{display:none;border:0;padding:0;cursor:pointer}
 #paneChart.small{width:30px;height:30px;overflow:hidden;cursor:pointer}#paneChart.small .mapicon svg{width:18px;height:18px}
@@ -180,7 +180,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-
 .pane.small.collapsed .plabel{display:block;left:8px;top:8px;bottom:auto}
 .dockbody{display:flex;gap:12px;align-items:center;min-width:0}
 .dockbody.col{flex-direction:column;align-items:stretch;gap:7px}
-.dockctl{display:flex;flex-direction:column;gap:6px;min-width:0;flex:1}
+.cspd{display:flex;flex-wrap:nowrap;justify-content:space-between;gap:8px;font-size:12px;white-space:nowrap}.dockctl{display:flex;flex-direction:column;gap:6px;min-width:0;flex:1}
 #dial{flex:none;width:190px;height:190px;cursor:crosshair}
 .helmbtns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px}
 .helmbtns .btn{padding:3px 2px;white-space:nowrap}
@@ -526,9 +526,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-
         <div class="subhead">Helm</div>
         <div class="dockbody">
           <div class="dockctl">
-            <div class="mono" style="font-size:13px">Course <b id="ordTxt">—</b></div>
-            <div class="muted" id="hdgTxt">—</div>
-            <div class="mono" style="font-size:13px">Speed <b id="spdTxt">—</b></div>
+            <div class="mono cspd"><span>Course <b id="ordTxt">—</b></span><span>Speed <b id="spdTxt">—</b></span></div>
             <div class="muted" id="anchTxt"></div>
             <div class="setrows">
               <div><span class="k">Yards</span><span class="pips"><i class="yd" id="brOrdPip"></i></span><span id="brOrd">—</span></div>
@@ -2016,11 +2014,11 @@ function drawDial(){
       g.strokeStyle=col;g.fillStyle=col;g.lineWidth=lw;g.lineCap="round";g.beginPath();g.moveTo(ax,ay);g.lineTo(bx,by);g.stroke();
       g.beginPath();g.moveTo(bx,by);g.lineTo(bx-ux*14-uy*7,by-uy*14+ux*7);g.lineTo(bx-ux*14+uy*7,by-uy*14-ux*7);g.closePath();g.fill();
       g.lineWidth=lw*.8;for(let k=0;k<barbs;k++){const q=L/2-k*7,fx=px-ux*q,fy=py-uy*q;g.beginPath();g.moveTo(fx,fy);g.lineTo(fx+uy*12,fy-ux*12);g.stroke();}};
-    g.save();arrow((w.from+180)*D2R,R*.84,60,3.5,"#2e2519",Math.floor(beaufort(w.kn)/2));
-    const cu=currentAt(sh.x,sh.y);if(cu&&cu.drift>.02)arrow(cu.set*D2R,-R*.8,56,3,cu.drift>.7?"#1a5c78":cu.drift>.45?"#2a7a8c":"#4c8e96",0);g.restore(); }
+    g.save();arrow((w.from+180)*D2R,R*.84,60,3.5,"#b2452c",Math.floor(beaufort(w.kn)/2));
+    const cu=currentAt(sh.x,sh.y);if(cu&&cu.drift>.02)arrow(cu.set*D2R,-R*.8,56,3,"#1b3f6b",0);g.restore(); }
   // a tiny key
   g.font="bold 15px 'IBM Plex Mono',monospace";g.textAlign="left";g.textBaseline="middle";
-  g.fillStyle="#2e2519";g.fillText("→ wind",-W/2+8,W/2-26);g.fillStyle="#2a7a8c";g.fillText("→ current",-W/2+8,W/2-8);
+  g.fillStyle="#b2452c";g.fillText("→ wind",-W/2+8,W/2-26);g.fillStyle="#1b3f6b";g.fillText("→ current",-W/2+8,W/2-8);
 }
 
 /* ---------- noon sparkline ---------- */
@@ -2047,21 +2045,23 @@ function updateUI(force){
   const watches=[[0,"Middle watch"],[4,"Morning watch"],[8,"Forenoon watch"],[12,"Afternoon watch"],[16,"First dog watch"],[18,"Last dog watch"],[20,"First watch"]];
   let wn="";for(const[hh,n]of watches)if(lh>=hh)wn=n;let b=Math.floor(lh*2)%8;if(b===0)b=8;
   $("watch").textContent=`${wn} · ${b} bell${b>1?"s":""}`;
-  $("windSpd").style.color="#2d6bd6";$("spdTxt").textContent=S.mode==="trial"||$("peek").checked?`${sh.v.toFixed(1)} kn`:"unknown";$("windSpd").innerHTML=`<b>${S.mode==="trial"?w.kn.toFixed(0)+" kn":bf===0?"Calm":bf>=12?"64+ kn":"about "+BFT[bf-1]+"–"+(BFT[bf]-1)+" kn"}</b><br>Force ${bf} · from ${pointName(w.from)}`;
+  $("windSpd").style.color="#b2452c";$("spdTxt").textContent=S.mode==="trial"||$("peek").checked?`${sh.v.toFixed(1)} kn`:"unknown";$("windSpd").innerHTML=`<b>${S.mode==="trial"?w.kn.toFixed(0)+" kn":bf===0?"Calm":bf>=12?"64+ kn":"about "+BFT[bf-1]+"–"+(BFT[bf]-1)+" kn"}</b><br>Force ${bf} · from ${pointName(w.from)}`;
   $("windTxt").innerHTML=`From <b>${pointName(w.from)}</b> · Force ${bf}, ${BNAME[bf].toLowerCase()}${S.mode==="trial"?` <span class="mono muted">(${w.kn.toFixed(0)} kn)</span>`:""}${S.squall?' · <span class="warn">squall</span>':""}`;
   const rel=angDiff(sh.heading,w.from),th=Math.abs(rel);
   const pos=th<NOGO?"In irons":th<80?"Close-hauled":th<100?"Beam reach":th<160?"Broad reach":"Running";
   $("posail").textContent=`${pos} · wind ${rel>0?"starboard":"port"}`;$("posail").className=th<NOGO?"warn":"";
   $("wxTxt").textContent=wxText(S,w);{const g=glassText(S);$("glassTxt").innerHTML=g.fall?`<span class="warn">${g.txt}</span>`:g.txt;}$("seaTxt").textContent=seaText(S);drawBaro();
   $("ordTxt").textContent=`${Math.round(sh.ordered)}° ${pointName(sh.ordered)}`;
-  $("hdgTxt").textContent=`Ship's head ${Math.round(sh.heading)}°`;
   { const fb=$("bFish");{const t=S.fishing?`Stop fishing · ${Math.round(S.catchTotal)} lb (F)`:"Put hand-lines over the side (F)";fb.title=t;fb.setAttribute("aria-label",t);}fb.setAttribute("aria-pressed",String(!!S.fishing)); }
   { const A=sh.anch,b=$("bDrop");{const t=A.mode==="up"?"Drop anchor (X)":A.mode==="weighing"?"Weighing anchor…":"Weigh anchor (X)";b.title=t;b.setAttribute("aria-label",t);b.setAttribute("aria-pressed",String(A.mode!=="up"));}b.disabled=A.mode==="weighing";
     $("anchTxt").textContent=S.docked&&A.mode==="holding"?`Docked at ${PORTS[S.docked].name}`:A.mode==="holding"?`At anchor in ${A.depth} fathoms${A.drag>0?" · dragging":""}`:A.mode==="trailing"?`Anchor trailing: no bottom (${A.depth} fathoms)`:A.mode==="weighing"?"Heaving up the anchor…":sh.row&&sh.row.on?`Under ${SHIP.oars&&SHIP.oars.sweeps?"sweeps":"oars"}`:sh.sailSet<.5&&sh.v>.3?"Bare poles: drifting before the wind":""; }
   {
     const moving=SAILIDS.some(k=>Math.abs(sh.sl[k]-sh.sls[k])>.03);
     $("bookBtn").classList.toggle("attn",!!S.arrivedNear&&!$("bookBox").classList.contains("open"));
-    for(const b of document.querySelectorAll("#sailSteps5 button")){const n=+b.dataset.n;b.setAttribute("aria-pressed",String(sh.sail===n));b.classList.toggle("mv",sh.sail===n&&moving);b.style.setProperty("--pg",sh.sail===n&&moving?(clamp(1-Math.abs(sh.sailSet-n)/4,0,1)*100).toFixed(0)+"%":"0%");}
+    if(S._sTgt!==sh.sail){S._sPrev=S._sTgt;S._sFrom=sh.sailSet;S._sTgt=sh.sail;}
+    for(const b of document.querySelectorAll("#sailSteps5 button")){const n=+b.dataset.n;b.setAttribute("aria-pressed",String(sh.sail===n));
+      const pr=moving?clamp(1-Math.abs(sh.sailSet-sh.sail)/Math.max(Math.abs(S._sFrom-sh.sail),.01),0,1):1,f=n===sh.sail?pr:n===S._sPrev&&moving?1-pr:0;
+      b.style.setProperty("--pg",(f*100).toFixed(0)+"%");b.classList.toggle("dk",f>.5);}
     const bd=Math.abs(sh.braceCmd-sh.brace)>.5;const bs=a=>SHIP.fa?Math.round(90-Math.abs(a))+"° off":Math.abs(a)<2?"square":Math.abs(Math.round(a))+"°";
     $("brOrd").textContent=bd?`ordered ${bs(sh.braceCmd)} · now ${bs(sh.brace)}`:`${bs(sh.brace)} · trimmed`;
     $("brOrdPip").style.setProperty("--p",(50+sh.braceCmd*50/BMAX).toFixed(0)+"%"); }
@@ -5496,7 +5496,7 @@ function fillHelpIcons(){
   row(svgOf("ctlIcon")||"Helm","<b>Ship controls.</b> Opens or folds the helm, sails and log panel (the wheel on the right of the bottom row on a phone).");
   hh("The compass");
   row(svgOf("cbBtn")||"Dial","<b>Fold the compass</b> away or bring it back (desktop only).");
-  const d=cv("dial","56px");if(d)row(d,"<b>The compass.</b> Your brig seen from above. The <b>red arrow</b> is your ordered course, the <b>dark feathered arrow</b> the wind and the <b>teal arrow</b> the current (as on the chart), the <b>shaded wedge</b> the no-go zone where she stalls, and the <b>dashed line</b> across the yards the best angle. Tap the outer card to steer; tap inside to point the sails.");
+  const d=cv("dial","56px");if(d)row(d,"<b>The compass.</b> Your brig seen from above. The <b>red arrow</b> is your ordered course, the <b>red feathered arrow</b> (the colour of the ship's flag) the wind and the <b>dark blue arrow</b> the current (as on the chart), the <b>shaded wedge</b> the no-go zone where she stalls, and the <b>dashed line</b> across the yards the best angle. Tap the outer card to steer; tap inside to point the sails.");
   const g=cv("baro","auto");if(g)row(g,"<b>The glass.</b> A barometer left of the compass, in inches of mercury. The arrow shows if it is rising or falling; the words beside the scale say what to expect. A fast fall means foul weather.");
   [...document.querySelectorAll("#sailSteps5 button")].forEach(b=>{const t=(b.title||"").split(": ");row(svgOf(b)||b.textContent,"<b>"+t[0]+".</b> "+(t[1]||"").replace(/\.?$/,".")+" Sets all sails to this level at once.");});
   row(svgOf("bDrop")||"⚓","<b>Anchor</b> (X). Let go the anchor to stop, or heave it up to sail. You must be at anchor near a town to trade.");
