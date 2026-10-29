@@ -2012,14 +2012,16 @@ function drawDial(){
     g.fillStyle="#2e2519";g.beginPath();g.arc(0,my,8,0,2*PI);g.fill(); // mast
   }
   g.restore();
-  // wind: a thin blue line from windward across the card; current: a thin green line the way the water sets
-  g.save();g.lineCap="round";
-  g.save();g.rotate(w.from*D2R);g.strokeStyle="#2d6bd6";g.lineWidth=1.5;g.beginPath();g.moveTo(0,-R-4);g.lineTo(0,R+4);g.stroke();g.restore();
-  { const cu=currentAt(sh.x,sh.y);if(cu&&cu.drift>.02){g.save();g.rotate(cu.set*D2R);g.strokeStyle="#2f8a4a";g.lineWidth=1.5;g.beginPath();g.moveTo(0,-R-4);g.lineTo(0,R+4);g.stroke();g.restore();} }
-  g.restore();
+  // wind and current as the chart draws them: an arrow downwind with a feather per two Beaufort, and a teal arrow the way the water sets
+  { const arrow=(ang,r,L,lw,col,barbs)=>{const ux=Math.sin(ang),uy=-Math.cos(ang),px=ux*r,py=uy*r,ax=px-ux*L/2,ay=py-uy*L/2,bx=px+ux*L/2,by=py+uy*L/2;
+      g.strokeStyle=col;g.fillStyle=col;g.lineWidth=lw;g.lineCap="round";g.beginPath();g.moveTo(ax,ay);g.lineTo(bx,by);g.stroke();
+      g.beginPath();g.moveTo(bx,by);g.lineTo(bx-ux*14-uy*7,by-uy*14+ux*7);g.lineTo(bx-ux*14+uy*7,by-uy*14-ux*7);g.closePath();g.fill();
+      g.lineWidth=lw*.8;for(let k=0;k<barbs;k++){const q=L/2-k*7,fx=px-ux*q,fy=py-uy*q;g.beginPath();g.moveTo(fx,fy);g.lineTo(fx+uy*12,fy-ux*12);g.stroke();}};
+    g.save();arrow((w.from+180)*D2R,R*.84,60,3.5,"#2e2519",Math.floor(beaufort(w.kn)/2));
+    const cu=currentAt(sh.x,sh.y);if(cu&&cu.drift>.02)arrow(cu.set*D2R,-R*.8,56,3,cu.drift>.7?"#1a5c78":cu.drift>.45?"#2a7a8c":"#4c8e96",0);g.restore(); }
   // a tiny key
   g.font="bold 15px 'IBM Plex Mono',monospace";g.textAlign="left";g.textBaseline="middle";
-  g.fillStyle="#2d6bd6";g.fillText("— wind",-W/2+8,W/2-26);g.fillStyle="#2f8a4a";g.fillText("— current",-W/2+8,W/2-8);
+  g.fillStyle="#2e2519";g.fillText("→ wind",-W/2+8,W/2-26);g.fillStyle="#2a7a8c";g.fillText("→ current",-W/2+8,W/2-8);
 }
 
 /* ---------- noon sparkline ---------- */
@@ -5497,7 +5499,7 @@ function fillHelpIcons(){
   row(svgOf("ctlIcon")||"Helm","<b>Ship controls.</b> Opens or folds the helm, sails and log panel (the wheel on the right of the bottom row on a phone).");
   hh("The compass");
   row(svgOf("cbBtn")||"Dial","<b>Fold the compass</b> away or bring it back (desktop only).");
-  const d=cv("dial","56px");if(d)row(d,"<b>The compass.</b> Your brig seen from above. The <b>red arrow</b> is your ordered course, the <b>thin blue line</b> the wind, the <b>thin green line</b> the current, the <b>shaded wedge</b> the no-go zone where she stalls, and the <b>dashed line</b> across the yards the best angle. Tap the outer card to steer; tap inside to point the sails.");
+  const d=cv("dial","56px");if(d)row(d,"<b>The compass.</b> Your brig seen from above. The <b>red arrow</b> is your ordered course, the <b>dark feathered arrow</b> the wind and the <b>teal arrow</b> the current (as on the chart), the <b>shaded wedge</b> the no-go zone where she stalls, and the <b>dashed line</b> across the yards the best angle. Tap the outer card to steer; tap inside to point the sails.");
   const g=cv("baro","auto");if(g)row(g,"<b>The glass.</b> A barometer left of the compass, in inches of mercury. The arrow shows if it is rising or falling; the words beside the scale say what to expect. A fast fall means foul weather.");
   [...document.querySelectorAll("#sailSteps5 button")].forEach(b=>{const t=(b.title||"").split(": ");row(svgOf(b)||b.textContent,"<b>"+t[0]+".</b> "+(t[1]||"").replace(/\.?$/,".")+" Sets all sails to this level at once.");});
   row(svgOf("bDrop")||"⚓","<b>Anchor</b> (X). Let go the anchor to stop, or heave it up to sail. You must be at anchor near a town to trade.");
