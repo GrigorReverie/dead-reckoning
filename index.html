@@ -2516,7 +2516,7 @@ void main(){
 const FS_SEA=`
 precision highp float;
 uniform vec3 uPaper,uInk,uSeaInk,uSunW; uniform float uFogNear,uFogFar,uAmpTotal,uSeaStyle; uniform vec2 uOff; uniform vec4 uWave[4];
-varying vec3 vPos; varying vec3 vN; varying float vH; uniform vec3 uCutC,uCutN,uCutB,uCutBox; uniform float uCutOn;
+varying vec3 vPos; varying vec3 vN; varying float vH; uniform vec3 uCutC,uCutN,uCutB,uCutBox,uCutE; uniform float uCutOn;
 ${GLSL_LINES}
 ${SH_UH}
 ${GLSL_SUN}
@@ -2654,7 +2654,7 @@ void main(){
     float hh2=hatchP(hc2,tt2,u_cHAng,u_cHSp,u_cHW,u_cHGain,u_cHStart,u_cHCrossAng,u_cHCrossStart,csG)*u_cHOpac;
     col=mix(col,u_cHCol,clamp(hh2,0.0,1.0)); }
   col=mix(col,uPaper,smoothstep(uFogNear,uFogFar,dist));
-  vec3 cp=vPos-uCutC;float cx=dot(cp,uCutN),cz=dot(cp,uCutB);float cutM=uCutOn*smoothstep(uCutBox.x-1.5,uCutBox.x,cx)*(1.0-smoothstep(uCutBox.y,uCutBox.y+2.0,cx))*(1.0-smoothstep(uCutBox.z,uCutBox.z+2.0,abs(cz)));gl_FragColor=vec4(col,1.0-0.78*cutM);
+  vec3 cp=vPos-uCutC;float cx=dot(cp,uCutN),cz=dot(cp,uCutB);float ce=(cx*cx)/(uCutE.x*uCutE.x)+(cz*cz)/(uCutE.y*uCutE.y);float cutM=max(uCutOn*uCutE.z*(1.0-smoothstep(.72,1.0,ce)),uCutOn*smoothstep(uCutBox.x-1.5,uCutBox.x,cx)*(1.0-smoothstep(uCutBox.y,uCutBox.y+2.0,cx))*(1.0-smoothstep(uCutBox.z,uCutBox.z+2.0,abs(cz))));gl_FragColor=vec4(col,1.0-0.78*cutM);
 }`;
 
 function cloudTexture(paper,ink,dark){
@@ -2704,7 +2704,7 @@ function init3D(){
     const scene=new THREE.Scene();scene.fog=new THREE.Fog(0xf2e4b9,500,60000);
     const camera=new THREE.PerspectiveCamera(55,1,3,130000);
     const U={uPaper:{value:new THREE.Color()},uInk:{value:new THREE.Color()},uSeaInk:{value:new THREE.Color()},uSeaStyle:{value:1},uFogNear:{value:500},uFogFar:{value:60000},
-      uDpr:{value:renderer.getPixelRatio()},uLight:{value:new THREE.Vector3(0,1,0)},uSunW:{value:new THREE.Vector3(0,1,0)},uCutC:{value:new THREE.Vector3()},uCutN:{value:new THREE.Vector3(1,0,0)},uCutR:{value:0},uCutOn:{value:0},uCutTop:{value:99},uCutB:{value:new THREE.Vector3(0,0,1)},uCutBox:{value:new THREE.Vector3(-6.5,8,13)},uCutSl:{value:1},uGhost:{value:1}};
+      uDpr:{value:renderer.getPixelRatio()},uLight:{value:new THREE.Vector3(0,1,0)},uSunW:{value:new THREE.Vector3(0,1,0)},uCutC:{value:new THREE.Vector3()},uCutN:{value:new THREE.Vector3(1,0,0)},uCutR:{value:0},uCutOn:{value:0},uCutTop:{value:99},uCutB:{value:new THREE.Vector3(0,0,1)},uCutBox:{value:new THREE.Vector3(-6.5,8,13)},uCutSl:{value:1},uGhost:{value:1},uCutE:{value:new THREE.Vector3(5,26,0)}};
     // sun's-eye depth map of the ship, drawn once a frame; the ship and the sea both read it for shadows
     const SMS=(window.matchMedia&&matchMedia("(pointer:coarse)").matches)?1024:2048;
     const smRT=new THREE.WebGLRenderTarget(SMS,SMS,{minFilter:THREE.NearestFilter,magFilter:THREE.NearestFilter,format:THREE.RGBAFormat,type:THREE.UnsignedByteType});
@@ -6056,7 +6056,7 @@ window.CUTCAM=function(R){
   _v.set(c.lx,c.ly,c.lz).applyMatrix4(m);
   const cp=R.camera.position;cp.copy(_v).addScaledVector(_s,Math.cos(az)*Math.cos(pt)*c.dist).addScaledVector(_b,Math.sin(az)*Math.cos(pt)*c.dist);cp.y+=Math.sin(pt)*c.dist;
   R.camera.lookAt(_v);
-  const U=R.U;if(U.u_ShadowOn)U.u_ShadowOn.value=0;U.uCutOn.value=1;U.uCutSl.value=M.sel<0?1:0;U.uGhost.value=M.sel<0?1:0;U.uCutC.value.copy(_c);U.uCutN.value.copy(_s);U.uCutB.value.copy(_b);U.uCutR.value=90;U.uCutTop.value=TOP;const wet=M.sel<0||M.sel>=3;if(wet)U.uCutBox.value.set(-(H.B+3),24,LS.Lh+6);else U.uCutBox.value.set(1000,1001,1);if(M.seabed)M.seabed.visible=wet;
+  const U=R.U;U.uCutOn.value=1;U.uCutSl.value=M.sel<0?1:0;U.uGhost.value=M.sel<0?1:0;U.uCutC.value.copy(_c);U.uCutN.value.copy(_s);U.uCutB.value.copy(_b);U.uCutR.value=90;U.uCutTop.value=TOP;const deckWet=M.sel>=3,wet=M.sel<0||deckWet;if(M.sel<0)U.uCutBox.value.set(-(H.B+3),24,LS.Lh+6);else U.uCutBox.value.set(1000,1001,1);U.uCutE.value.set(H.B+1.4,LS.Lh+1.6,deckWet?1:0);if(M.seabed)M.seabed.visible=wet;
   if(R.seaU){R.seaU.uCutB.value.copy(_b);}
   if(R.sea&&!R.sea.material.transparent){R.sea.material.transparent=true;R.sea.material.needsUpdate=true;}
   _pl.setFromNormalAndCoplanarPoint(_s.clone().negate(),_c);_pt.set(new THREE.Vector3(0,-1,0),_c.y+TOP);
