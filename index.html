@@ -62,22 +62,16 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-
 .infobar small{font-family:var(--f-data);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft)}
 .infobar .it{display:inline-flex;align-items:baseline;gap:6px;min-width:0}.infobar .it i{font-style:normal;color:var(--ink-soft);font-family:var(--f-data);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase}
 .compassbox{position:absolute;right:12px;top:46px;z-index:3;background:rgba(246,238,217,.92);border:1px solid var(--ink);padding:6px 8px 7px;display:flex;flex-direction:column;align-items:center;gap:4px;box-shadow:0 4px 14px rgba(20,14,10,.25)}
-.pane .compassbox #dial{position:static;width:250px;height:250px}.cbrow{display:flex;gap:8px;align-items:center}.compassbox{--baroW:53px;--stW:32px;--gp:8px}
-#baro{position:static!important;flex:none;align-self:flex-end;height:222px;width:var(--baroW)}
-.cbfoot{align-self:stretch;display:flex;align-items:center;justify-content:space-between;gap:6px;padding:0 calc(var(--stW) + var(--gp)) 0 calc(var(--baroW) + var(--gp))}
+.pane .compassbox #dial{position:static;width:250px;height:250px}.cbrow{display:flex;gap:8px;align-items:center}.sailg{cursor:pointer;touch-action:none}.compassbox{--baroW:53px;--stW:32px;--gp:8px}
+#baro,#sailSteps5{position:static!important;flex:none;align-self:flex-end;height:222px;width:var(--baroW)}
+.cbfoot{align-self:stretch;display:flex;align-items:center;justify-content:space-between;gap:6px;padding:0 calc(var(--baroW) + var(--gp))}
 #bHeave,#bNip{width:38px;height:38px;padding:0;display:flex;align-items:center;justify-content:center;flex:none}
 .cbfoot:has(#logbox:not([hidden])) .ws,.cbfoot #glassMsg{display:none}.cbfoot #logbox #glass{position:static!important;flex:none;width:22px!important;height:34px!important}.cbfoot #logbox .mono{font-size:12px!important}.cbfoot #bNip{width:var(--stW);height:var(--stW)}.cbfoot .btn.ico svg{width:24px;height:24px}
-.cbtop{align-self:stretch;display:flex;justify-content:space-between;padding:0 calc(var(--stW) + var(--gp)) 0 calc(var(--baroW) + var(--gp));margin-bottom:-14px;position:relative;z-index:1;pointer-events:none}.cbtop button{pointer-events:auto;position:relative;top:0}
+.cbtop{align-self:stretch;display:flex;justify-content:space-between;padding:0 calc(var(--baroW) + var(--gp));margin-bottom:-14px;position:relative;z-index:1;pointer-events:none}.cbtop button{pointer-events:auto;position:relative;top:0}
 .cbtop button{border:0;background:none;color:var(--ink);padding:0 4px;font-size:13px;line-height:1;cursor:pointer;touch-action:manipulation;min-width:28px;height:26px}.cbtop button:hover{color:var(--red,#a8452c)}
 .compassbox.collapsed .cbtop{display:none}
 @media (max-width:860px){.cbtog{display:none!important}.cbtop{margin-bottom:-26px}}
 .winf{font-size:12px;white-space:nowrap}.winf b{font-weight:600}
-.sailsl{position:relative;width:30px;height:176px;margin:8px 0;border:1.5px solid var(--ink);background:var(--paper);touch-action:none;flex:none;align-self:center;cursor:pointer}
-.sailsl .slfill{position:absolute;left:0;right:0;bottom:0;height:var(--lvl,0%);background:var(--ink);transition:none}
-.sailsl .sltick{position:absolute;left:-5px;right:-5px;height:0;border-top:1.5px solid var(--ink);mix-blend-mode:normal;pointer-events:none}
-.sailsl .sltick:nth-of-type(n){margin-bottom:-1px}
-.sailsl .slhit{position:absolute;left:-6px;right:-6px;height:34px;margin-bottom:-17px;padding:0;border:0;background:none;cursor:pointer;opacity:1}
-.sailsl .slhit[aria-pressed="true"]::after{content:"";position:absolute;left:-1px;top:50%;margin-top:-5px;border:5px solid transparent;border-right-color:var(--brass);border-left:0;transform:translateX(-6px)}
 .cbfoot{flex-wrap:wrap;justify-content:center!important;gap:8px 10px}.cbfoot #logbox{order:9;flex:1 1 100%!important}
 .cbfoot-l{display:flex;gap:4px;flex:none}.cbfoot .ws{flex:1;min-width:0;text-align:center}.cbfoot .btn.ico{flex:none;width:var(--stW);height:var(--stW);min-height:0;padding:0;display:flex;align-items:center;justify-content:center}
 .compassbox .cbtog{position:absolute;left:4px;top:4px;z-index:2;width:26px;height:26px;padding:0;display:flex;align-items:center;justify-content:center;background:var(--paper);color:var(--ink);border:1px solid var(--ink);border-radius:50%;cursor:pointer}
@@ -221,7 +215,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-
 .logbook{font-family:var(--f-data);font-size:11px;width:100%;border-collapse:collapse}
 .logbook th{text-align:left;font-weight:500;color:var(--ink-soft);border-bottom:1px solid var(--rule);padding:2px 4px 2px 0}
 .logbook td{padding:2px 4px 2px 0;border-bottom:1px dotted var(--rule);vertical-align:top}
-.logbook td.rem{font-family:var(--f-italic);font-size:12.5px}
+.logbook td.rem{font-family:var(--f-italic);font-size:13px;font-weight:700;background:rgba(46,37,25,.16);border-bottom:1px solid var(--rule)}.logbook tr:has(td.rem) td:first-child{font-weight:700;background:rgba(46,37,25,.16)}
 .chk{display:flex;gap:6px;align-items:center;font-size:12.5px}
 /* overlays */
 #ovCrisis[hidden]{display:none}
@@ -310,7 +304,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-
 /* keep the top bar clear of the iPhone status bar and notch when installed */
 .bar{padding-top:calc(env(safe-area-inset-top,0px) + 4px)}
 /* the glass sits left of the compass; on a phone it shrinks with the dial */
-@media (max-width:860px){.compassbox{--baroW:calc((min(230px,64vw) - 28px)*.24);--stW:32px;--gp:6px}#baro{height:calc(min(230px,64vw) - 28px)}.cbrow{gap:6px}}
+@media (max-width:860px){.compassbox{--baroW:calc((min(230px,64vw) - 28px)*.24);--stW:32px;--gp:6px}#baro,#sailSteps5{height:calc(min(230px,64vw) - 28px)}.cbrow{gap:6px}}
 /* the four view icons (chart, camera, ship, book) share one centred row along the bottom */
 :root{--ic:38px;--icg:22px}
 #paneV3.small ~ #paneTools{display:none!important}
@@ -461,7 +455,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-
         <div class="ptools" id="paneTools"><button type="button" class="tbicon" id="bView" title="Swap the 3D view and the chart (M)" aria-label="Swap the 3D view and the chart"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M3 8h4l1.5-2.5h7L17 8h4v11H3z"/><circle cx="12" cy="13.5" r="3.6"/></svg></button><button type="button" class="tbicon" id="bShip" aria-pressed="false" title="The ship: cutaway, crew quarters and watches" aria-label="The ship: cutaway, crew quarters and watches"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M2.5 16.5h19l-3 4.5h-13z"/><path d="M8 16V3.500M16 16V6"/><path d="M8 5h-4.500v8H8M8 5h3.500v8H8M16 8h-3.500v6H16M16 8h3.500v6H16" stroke-width="1.2"/></svg></button></div>
         <canvas id="view3d" aria-label="3D view from the ship"></canvas>
         <canvas id="hud"></canvas>
-        <div class="compassbox" id="compassBox"><button type="button" class="cbtog" id="cbBtn" aria-expanded="true" aria-label="Compass" title="Collapse or expand the compass"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"><circle cx="12" cy="12" r="9.500"/><path d="M12 5.500l2.600 6.500-2.600 6.500-2.600-6.500z"/></svg></button><div class="cbrow"><canvas id="baro" width="120" height="500" aria-label="The glass: a barometer showing the pressure, its trend and what it means" title="The glass (barometer)"></canvas><canvas id="dial" width="480" height="480" aria-label="Compass with the ship, the wind and the sails" title="Compass. Click the outer card to steer; click inside the inner ring to point the sails."></canvas><div class="sailsl" id="sailSteps5" role="group" aria-label="Sail set for all sails"><i class="slfill"></i><i class="sltick" style="bottom:0%"></i><i class="sltick" style="bottom:25%"></i><i class="sltick" style="bottom:50%"></i><i class="sltick" style="bottom:75%"></i><i class="sltick" style="bottom:100%"></i><button type="button" class="slhit" data-n="0" title="Bare: Bare poles" aria-label="Bare: Bare poles" style="bottom:0%"></button><button type="button" class="slhit" data-n="1" title="Reefed: Close-reefed topsails" aria-label="Reefed: Close-reefed topsails" style="bottom:25%"></button><button type="button" class="slhit" data-n="2" title="Courses: Reefed topsails and courses" aria-label="Courses: Reefed topsails and courses" style="bottom:50%"></button><button type="button" class="slhit" data-n="3" title="Plain: Plain sail" aria-label="Plain: Plain sail" style="bottom:75%"></button><button type="button" class="slhit" data-n="4" title="Full: All plain sail and topgallants" aria-label="Full: All plain sail and topgallants" style="bottom:100%"></button></div></div></div>
+        <div class="compassbox" id="compassBox"><button type="button" class="cbtog" id="cbBtn" aria-expanded="true" aria-label="Compass" title="Collapse or expand the compass"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"><circle cx="12" cy="12" r="9.500"/><path d="M12 5.500l2.600 6.500-2.600 6.500-2.600-6.500z"/></svg></button><div class="cbrow"><canvas id="baro" width="120" height="500" aria-label="The glass: a barometer showing the pressure, its trend and what it means" title="The glass (barometer)"></canvas><canvas id="dial" width="480" height="480" aria-label="Compass with the ship, the wind and the sails" title="Compass. Click the outer card to steer; click inside the inner ring to point the sails."></canvas><canvas class="sailg" id="sailSteps5" width="120" height="500" role="slider" aria-label="Sail set for all sails: tap or drag to set" title="Sail set: tap or drag"></canvas></div></div>
         <button class="ctog ptog" data-pane="paneV3" aria-expanded="true" title="Collapse or expand">–</button><button class="swapbtn" id="swap1" title="Make this the main view (M)">⤢</button><span class="plabel">3D view</span>
       </div>
       <div class="pane small" id="paneChart">
@@ -496,6 +490,10 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-
     <div class="docks">
       <div class="bookbox" id="bookBox">
         <div class="bookbody" id="bookBody">
+      <div class="panel" style="flex:1">
+        <h2>Log book</h2>
+        <table class="logbook"><thead><tr><th>Time</th><th>Course</th><th>Kn</th><th>Wind</th></tr></thead><tbody id="logBody"></tbody></table>
+      </div>
       <div class="panel">
         <h2>Reckoning <small id="modeTag">—</small></h2>
         <div class="pos" id="posTxt">—</div>
@@ -515,10 +513,6 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-
         <h2>Landmarks <small id="lmState">none in sight</small></h2>
         <div id="lmList" style="display:flex;flex-direction:column;gap:6px"><span class="muted">Nothing but sea. The lookout will call when land is sighted.</span></div>
         <button class="btn primary sm" id="bFix" hidden>Plot fix from cross-bearings</button>
-      </div>
-      <div class="panel" style="flex:1">
-        <h2>Log book</h2>
-        <table class="logbook"><thead><tr><th>Time</th><th>Course</th><th>Kn</th><th>Wind</th></tr></thead><tbody id="logBody"></tbody></table>
       </div>
         </div>
         <button type="button" class="bookbtn" id="bookBtn" aria-expanded="false" aria-label="Navigator's book: reckoning, noon sight, landmarks and log" title="Navigator's book: reckoning, noon sight, landmarks and log"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.5C10 5 7 4.5 3.5 5v13c3.5-.5 6.5 0 8.5 1.5 2-1.5 5-2 8.5-1.5V5C17 4.5 14 5 12 6.5zM12 6.5v13"/><path d="M6 8.5c1.5 0 3 .2 4.2.8M6 11.5c1.5 0 3 .2 4.2.8M14 9.3c1.2-.6 2.700-.8 4-.8M14 12.3c1.2-.6 2.700-.8 4-.8"/></svg></button>
@@ -555,7 +549,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-
         <div class="sub subr">
         <div class="subhead">Sails <small id="rigTxt">Rigging 100%</small></div>
         <div class="dockbody col">
-          <div class="row" style="justify-content:space-between;flex-wrap:nowrap">
+          <div class="row" hidden style="justify-content:space-between;flex-wrap:nowrap">
             <button class="btn sm" id="sDn" title="Shorten sail (S)">Shorten</button>
             <span id="sailTxt" style="flex:1;text-align:center;font-size:13px">—</span>
             <button class="btn sm" id="sUp" title="Make sail (W)">Make sail</button>
@@ -642,7 +636,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-
         <div class="sub subt"><div class="dockbody col">
           <div class="meter" title="Rigging condition"><i id="rigBar" style="width:100%"></i></div>
           <div class="muted" id="strainTxt"></div><div class="muted" id="hullTxt"></div>
-          <div class="row" style="justify-content:space-between;flex-wrap:nowrap;border-top:1px dotted var(--rule);padding-top:8px">
+          <div class="row" hidden style="justify-content:space-between;flex-wrap:nowrap;border-top:1px dotted var(--rule);padding-top:8px">
             <button class="btn sm" id="brL" title="Swing the yards 5° (Q)">◄ Brace</button>
             <span style="flex:1;text-align:center;font-size:12.5px"><span class="mono lng" id="braceTxt">—</span><br><span class="trim" id="trimTxt">—</span></span>
             <button class="btn sm" id="brR" title="Swing the yards 5° (E)">Brace ►</button>
@@ -1050,6 +1044,27 @@ function drawBaro(){const c=$("baro");if(!c||!S)return;const g=glassInfo(S),key=
   // scale: a tick every 0.1, a figure every half inch
   x.strokeStyle=ink;x.fillStyle=soft;x.font="12px 'IBM Plex Mono',monospace";x.textAlign="left";
   for(let v=Math.ceil(GL_LO*10)/10;v<=GL_HI+.001;v+=.1){const big=Math.abs(v*2-Math.round(v*2))<.01,yy=Y(v);x.lineWidth=big?1.2:.7;x.beginPath();x.moveTo(TX+TW+2,yy);x.lineTo(TX+TW+(big?10:6),yy);x.stroke();if(big)x.fillText(v.toFixed(1),TX+TW+13,yy+4);}
+}
+let sailgKey="";
+function drawSailGauge(sh){const c=$("sailSteps5");if(!c||c.hidden)return;
+  const top=Math.max(1,invEff(effOf(planOf(SAILS.length-1)))),lv=clamp(sh.sailSet/top,0,1),tg=clamp(invEff(effOf(planOf(sh.sail)))/top,0,1),mv=Math.abs(lv-tg)>.015,up=tg>lv,
+    key=lv.toFixed(3)+"|"+tg.toFixed(2)+"|"+DARK+"|"+SHIP.id+(c.clientWidth|0);if(key===sailgKey)return;sailgKey=key;
+  const x=c.getContext("2d"),cs=getComputedStyle(document.documentElement),ink=cs.getPropertyValue("--ink").trim()||"#2e2519",soft=cs.getPropertyValue("--ink-soft").trim()||"#7b6a55",br=cs.getPropertyValue("--brass").trim()||"#b8862a";
+  const W=120,H=500,T=62,B=462,Y=v=>B-v*(B-T),TX=58,TW=14,NM=["Bare","Reefed",SHIP.fa?"Reefed":"Courses","Plain","Full"];x.clearRect(0,0,W,H);x.lineCap="round";
+  x.fillStyle=soft;x.font="600 12px 'IBM Plex Mono',monospace";x.textAlign="center";x.fillText("SAILS",60,14);
+  x.fillStyle=ink;x.font="600 20px 'IBM Plex Mono',monospace";x.fillText(Math.round(lv*100)+"%",48,40);
+  if(mv){const ax=100,ay=32;x.fillStyle=ink;for(let k=0;k<1;k++){x.beginPath();if(up){x.moveTo(ax-8,ay+4);x.lineTo(ax+8,ay+4);x.lineTo(ax,ay-6);}else{x.moveTo(ax-8,ay-4);x.lineTo(ax+8,ay-4);x.lineTo(ax,ay+6);}x.closePath();x.fill();}}
+  const cur=Math.min(4,Math.floor(lv*5));
+  for(let k=0;k<5;k++){const y0=Y(k/5),y1=Y((k+1)/5),yc=(y0+y1)/2,on=k===cur;x.font=(on?"600 ":"")+"italic 15px 'IM Fell English',Georgia,serif";x.textAlign="right";x.fillStyle=on?ink:soft;x.globalAlpha=on?1:.75;x.fillText(NM[k],TX-8,yc+5);x.globalAlpha=1;
+    if(k<4){x.strokeStyle=soft;x.lineWidth=.8;x.globalAlpha=.6;x.beginPath();x.moveTo(6,y1);x.lineTo(TX-2,y1);x.stroke();x.globalAlpha=1;}}
+  x.strokeStyle=ink;x.lineWidth=1.6;x.beginPath();x.moveTo(TX,T);x.lineTo(TX,B);x.moveTo(TX+TW,T);x.lineTo(TX+TW,B);x.stroke();x.beginPath();x.arc(TX+TW/2,T,TW/2,Math.PI,2*Math.PI);x.stroke();
+  x.beginPath();x.arc(TX+TW/2,B+14,13,0,2*Math.PI);x.stroke();
+  if(lv>.005){x.fillStyle=ink;x.globalAlpha=.82;x.beginPath();x.arc(TX+TW/2,B+14,13,0,2*Math.PI);x.fill();x.fillRect(TX+3,Y(lv),TW-6,B+14-Y(lv));x.globalAlpha=1;x.fillStyle="rgba(255,255,255,.35)";x.fillRect(TX+4,Y(lv)+2,2,B-Y(lv));}
+  x.fillStyle=ink;x.beginPath();x.moveTo(TX-3,Y(lv));x.lineTo(TX-12,Y(lv)-5);x.lineTo(TX-12,Y(lv)+5);x.closePath();x.fill();
+  // the stage ordered: a brass marker on the scale side
+  x.fillStyle=br;x.beginPath();x.moveTo(TX+TW+3,Y(tg));x.lineTo(TX+TW+13,Y(tg)-5);x.lineTo(TX+TW+13,Y(tg)+5);x.closePath();x.fill();
+  x.strokeStyle=ink;x.fillStyle=soft;x.font="12px 'IBM Plex Mono',monospace";x.textAlign="left";
+  for(let k=0;k<=4;k++){const yy=Y(k/4);x.lineWidth=1.2;x.beginPath();x.moveTo(TX+TW+2,yy);x.lineTo(TX+TW+8,yy);x.stroke();x.fillText(k*25+"",TX+TW+16,yy+4);}
 }
 function seaText(s){const X=s.wx,H=X.H,d=H<.5?"Calm":H<1.25?"Slight sea":H<2.5?"Moderate sea":H<4?"Rough sea":H<6?"Very rough sea":"High sea";return `${d} (${H.toFixed(1)} m) · swell from ${pointName(X.sea.swF)}`;}
 
@@ -1950,7 +1965,6 @@ function sailPlanSVG(){const sp=SHIP.spec,Ls=linesOf(sp),rig=rigOf(sp,Ls),H=sp.h
   return o+'</g>';}
 function sailPlanUI(){const sd=$("sailDiag");if(!sd)return;if(BRIG_PLAN==null)BRIG_PLAN=sd.innerHTML;
   if(sd.dataset.ship!==SHIP.id){sd.innerHTML=SHIP.id==="brig"?BRIG_PLAN:sailPlanSVG();sd.dataset.ship=SHIP.id;sd.setAttribute("aria-label",`Sail plan of the ${SHIP.id==="brig"?"brig":SHIP.spec.name}: click a sail to set, reef or furl it`);}
-  const T=["Bare","Reefed","Courses","Plain","Full"];for(const b of document.querySelectorAll("#sailSteps5 button")){const n=+b.dataset.n,t=(SHIP.fa&&n===2?"Reefed":T[n])+": "+SAILS[n].name;b.title=t;b.setAttribute("aria-label",t);}
   const fa=SHIP.fa;$("brL").textContent=fa?"◄ Sheets":"◄ Brace";$("brR").textContent=fa?"Sheets ►":"Brace ►";$("brL").title=$("brR").title=fa?"Trim the sheets 5° (Q/E)":"Swing the yards 5° (Q/E)";
   { const k=$("brOrd").parentElement.querySelector(".k");if(k)k.textContent=fa?"Sheets":"Yards"; }
   { const bl=$("bosun").closest("label"),sp=bl&&bl.querySelector("span");if(sp)sp.innerHTML=fa?"Bosun trims the sheets<small>Hauls in or eases the sheets to the best angle for the wind, always.</small>":"Bosun trims the yards<small>Braces the yards to the best angle for the wind, always.</small>"; }
@@ -2068,9 +2082,7 @@ function updateUI(force){
   {
     const moving=SAILIDS.some(k=>Math.abs(sh.sl[k]-sh.sls[k])>.03);
     $("bookBtn").classList.toggle("attn",!!S.arrivedNear&&!$("bookBox").classList.contains("open"));
-    { const top=Math.max(1,invEff(effOf(planOf(SAILS.length-1)))); // full canvas as this ship actually sets it
-      const sl=$("sailSteps5");sl.style.setProperty("--lvl",(clamp(sh.sailSet/top,0,1)*100).toFixed(1)+"%");
-      for(const b of sl.querySelectorAll("button"))b.setAttribute("aria-pressed",String(sh.sail===+b.dataset.n)); }
+    drawSailGauge(sh);
     const bd=Math.abs(sh.braceCmd-sh.brace)>.5;const bs=a=>SHIP.fa?Math.round(90-Math.abs(a))+"° off":Math.abs(a)<2?"square":Math.abs(Math.round(a))+"°";
     $("brOrd").textContent=bd?`ordered ${bs(sh.braceCmd)} · now ${bs(sh.brace)}`:`${bs(sh.brace)} · trimmed`;
     $("brOrdPip").style.setProperty("--p",(50+sh.braceCmd*50/BMAX).toFixed(0)+"%"); }
@@ -5470,8 +5482,7 @@ $("bookBtn").onclick=()=>{const bx=$("bookBox"),o=!bx.classList.contains("open")
   ['bShip','bShip2'].forEach(id=>$(id).addEventListener("click",()=>{if(!SV.open){if(phone())dk.classList.add("collapsed");bx.classList.remove("open");$("bookBtn").setAttribute("aria-expanded","false");}setTimeout(fit,0);},true));
   setInterval(fit,400);new MutationObserver(fit).observe(dk,{attributes:true,attributeFilter:["class"]});new MutationObserver(fit).observe(bx,{attributes:true,attributeFilter:["class"]});addEventListener("resize",fit);fit();}
 {const h=document.querySelector(".dockhead b.dh");h.onclick=()=>document.querySelector('.ctog[data-dock="all"]').click();}
-for(const b of document.querySelectorAll("#sailSteps5 button"))b.onclick=()=>setSail(+b.dataset.n);
-{const sl=$("sailSteps5");let drag=false;const at=e=>{const r=sl.getBoundingClientRect(),f=1-(e.clientY-r.top)/r.height;return clamp(Math.round(f*4),0,4);};
+{const sl=$("sailSteps5");let drag=false;const at=e=>{const r=sl.getBoundingClientRect(),f=(462-(e.clientY-r.top)/r.height*500)/400;return clamp(Math.round(f*4),0,4);};
   sl.addEventListener("pointerdown",e=>{drag=true;try{sl.setPointerCapture(e.pointerId);}catch(x){}setSail(at(e));e.preventDefault();});
   sl.addEventListener("pointermove",e=>{if(drag&&S&&S.ship.sail!==at(e))setSail(at(e));});
   const up=()=>{drag=false;};sl.addEventListener("pointerup",up);sl.addEventListener("pointercancel",up);}
@@ -5532,8 +5543,8 @@ $("bVoy").onclick=()=>{$("ovStart").hidden=false;modalOpen=true;};
 {const ft=document.createElement("div");ft.className="cbfoot";$("compassBox").append(ft);const hb=document.createElement("button");hb.className="btn sm ico";hb.id="bHeave2";hb.title="Heave the log (L)";hb.setAttribute("aria-label","Heave the log");
   hb.innerHTML='<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="7.5" r="4"/><path d="M7 3.5v8M3 7.5h8"/><path d="M10.2 10.8C12.6 13 14 13.8 15.2 15.2" stroke-dasharray="1.1 1.7"/><path d="M14 15.6h6.4a6.4 6.4 0 0 1-6.4 6.4z" fill="currentColor" fill-opacity=".35"/></svg>';
   hb.onclick=()=>{if(!$("bHeave").disabled)openHeave();};new MutationObserver(()=>{hb.disabled=$("bHeave").disabled;}).observe($("bHeave"),{attributes:true,attributeFilter:["disabled"]});
-  ft.append($("bDrop"),$("bFish"),hb,$("logbox"));
-  {const tp=document.createElement("div");tp.className="cbtop";const L=$("cL5"),R=$("cR5");L.textContent="◄ 5°";R.textContent="5° ►";L.setAttribute("aria-label","Port 5 degrees");R.setAttribute("aria-label","Starboard 5 degrees");L.className=R.className="";L.removeAttribute("id");R.removeAttribute("id");L.id="cL5";R.id="cR5";tp.append(L,R);$("compassBox").querySelector(".cbrow").before(tp);}
+  ft.append($("bDrop"),$("bFish"),$("logbox"));
+  $("cL5").hidden=$("cR5").hidden=true; // the 5° buttons are gone; A and D still turn her
   $("logbox").style.cssText+=";flex:1;min-width:0;padding:0 4px;gap:6px;border:0;justify-content:center;";} // the log-heaving panel opens under the compass // anchor and fishing sit at the bottom left and right of the compass
 $("paneV3").after($("paneTools")); // the icon row lives outside the pane so nothing in the pane can cover it
 const applyDark=()=>{document.documentElement.dataset.theme=DARK?"dark":"light";$("bDark").textContent=DARK?"Light mode":"Dark mode";$("bDark").setAttribute("aria-pressed",String(DARK));try{localStorage.setItem('drDark',DARK?'1':'0');}catch(e){}if(S){try{updateUI(true);}catch(e){}if(SV&&SV.open)try{svDraw();}catch(e){}}};
