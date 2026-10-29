@@ -74,7 +74,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-
 .cbfoot-l{display:flex;gap:4px;flex:none}.cbfoot .ws{flex:1;min-width:0;text-align:center}.cbfoot .btn.ico{flex:none;width:var(--stW);height:var(--stW);min-height:0;padding:0;display:flex;align-items:center;justify-content:center}
 .compassbox .cbtog{position:absolute;left:4px;top:4px;z-index:2;width:26px;height:26px;padding:0;display:flex;align-items:center;justify-content:center;background:var(--paper);color:var(--ink);border:1px solid var(--ink);border-radius:50%;cursor:pointer}
 .compassbox.collapsed{padding:0;border:0;background:none;box-shadow:none}.compassbox.collapsed .cbrow,.compassbox.collapsed .ws{display:none}
-.compassbox.collapsed .cbtog svg{width:13px;height:13px}.compassbox.collapsed .cbtog{position:static;width:30px;height:30px;border-radius:3px;background:rgba(246,238,217,.96);box-shadow:0 4px 14px rgba(20,14,10,.3)}.steps5{display:flex;flex-direction:column;gap:3px}.steps5 .btn{min-height:0;height:28px;width:28px;padding:0;display:flex;align-items:center;justify-content:center}.steps5 .btn{background:linear-gradient(0deg,var(--ink) var(--pg,0%),var(--paper) var(--pg,0%))}.steps5 .btn[aria-pressed="true"]{color:var(--ink)}.steps5 .btn.dk{color:var(--paper)!important}.compassbox .ws{position:absolute;right:calc(var(--stW) + var(--gp) + 12px);bottom:46px;text-align:right!important;flex:none!important;z-index:1;pointer-events:none}.compassbox .ws{font-family:var(--f-data);font-size:9.5px;text-align:center;line-height:1.35;letter-spacing:.03em}.compassbox .ws b{font-size:12px}
+.compassbox.collapsed .cbtog svg{width:13px;height:13px}.compassbox.collapsed .cbtog{position:static;width:30px;height:30px;border-radius:3px;background:rgba(246,238,217,.96);box-shadow:0 4px 14px rgba(20,14,10,.3)}.steps5{display:flex;flex-direction:column;gap:3px}.steps5 .btn{min-height:0;height:28px;width:28px;padding:0;display:flex;align-items:center;justify-content:center}.steps5 .btn{background:linear-gradient(0deg,var(--ink) var(--pg,0%),var(--paper) var(--pg,0%))}.steps5 .btn[aria-pressed="true"]{box-shadow:inset 0 0 0 2px var(--brass)}.steps5 .btn.dk{color:var(--paper)!important}.compassbox .ws{position:absolute;right:calc(var(--stW) + var(--gp) + 12px);bottom:46px;text-align:right!important;flex:none!important;z-index:1;pointer-events:none}.compassbox .ws{font-family:var(--f-data);font-size:9.5px;text-align:center;line-height:1.35;letter-spacing:.03em}.compassbox .ws b{font-size:12px}
 .pane.small .compassbox{display:none}
 .mapicon{display:none;border:0;padding:0;cursor:pointer}
 #paneChart.small{width:30px;height:30px;overflow:hidden;cursor:pointer}#paneChart.small .mapicon svg{width:18px;height:18px}
@@ -2058,10 +2058,10 @@ function updateUI(force){
   {
     const moving=SAILIDS.some(k=>Math.abs(sh.sl[k]-sh.sls[k])>.03);
     $("bookBtn").classList.toggle("attn",!!S.arrivedNear&&!$("bookBox").classList.contains("open"));
-    if(S._sTgt!==sh.sail){S._sPrev=S._sTgt;S._sFrom=sh.sailSet;S._sTgt=sh.sail;}
-    for(const b of document.querySelectorAll("#sailSteps5 button")){const n=+b.dataset.n;b.setAttribute("aria-pressed",String(sh.sail===n));
-      const pr=moving?clamp(1-Math.abs(sh.sailSet-sh.sail)/Math.max(Math.abs(S._sFrom-sh.sail),.01),0,1):1,f=n===sh.sail?pr:n===S._sPrev&&moving?1-pr:0;
-      b.style.setProperty("--pg",(f*100).toFixed(0)+"%");b.classList.toggle("dk",f>.5);}
+    const top=Math.max(1,invEff(effOf(planOf(SAILS.length-1)))); // full canvas as this ship actually sets it
+    // the five buttons are one gauge: bare poles at the bottom, full canvas at the top, each box filling from its bottom edge as the sails go up
+    for(const b of document.querySelectorAll("#sailSteps5 button")){const n=+b.dataset.n,f=clamp(sh.sailSet/top*5-n,0,1);
+      b.setAttribute("aria-pressed",String(sh.sail===n));b.style.setProperty("--pg",(f*100).toFixed(0)+"%");b.classList.toggle("dk",f>.5);}
     const bd=Math.abs(sh.braceCmd-sh.brace)>.5;const bs=a=>SHIP.fa?Math.round(90-Math.abs(a))+"° off":Math.abs(a)<2?"square":Math.abs(Math.round(a))+"°";
     $("brOrd").textContent=bd?`ordered ${bs(sh.braceCmd)} · now ${bs(sh.brace)}`:`${bs(sh.brace)} · trimmed`;
     $("brOrdPip").style.setProperty("--p",(50+sh.braceCmd*50/BMAX).toFixed(0)+"%"); }
