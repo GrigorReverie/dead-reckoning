@@ -123,8 +123,9 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-
 .mapctl{position:absolute;right:12px;top:12px;z-index:3;display:flex;flex-direction:column;gap:6px}
 .mapctl button{width:34px;height:34px;background:var(--paper);border:1px solid var(--ink);color:var(--ink);font-family:var(--f-data);font-size:15px;border-radius:2px}
 .mapctl button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
-.toast{position:absolute;z-index:8;left:50%;top:78px;transform:translateX(-50%);max-width:min(520px,90%);background:var(--ink);color:var(--paper);padding:8px 14px;font-family:var(--f-italic);font-size:16px;border-radius:2px;box-shadow:0 4px 18px rgba(0,0,0,.25);pointer-events:none;transition:opacity .4s}
-.toast.hide{opacity:0}
+.toast{position:absolute;z-index:8;left:50%;top:4px;transform:translateX(-50%);width:max-content;max-width:min(760px,94%);box-sizing:border-box;background:var(--ink);color:var(--paper);padding:2px 12px;font-family:var(--f-italic);font-size:13px;line-height:1.5;border-radius:2px;box-shadow:0 2px 8px rgba(0,0,0,.2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;transition:opacity .4s}
+.toast.open{white-space:normal;padding:5px 12px}
+.toast.hide{opacity:0;pointer-events:none}
 .ptools{position:absolute;left:50px;top:34px;z-index:6;display:flex;gap:8px}.pane.small .ptools{display:none}#paneChart.small{top:34px!important;left:12px!important}
 .tbicon svg{width:17px;height:17px}.tbicon{width:30px;height:30px;display:flex;align-items:center;justify-content:center;padding:0;background:rgba(246,238,217,.96);color:var(--ink);border:1px solid var(--ink);border-radius:3px;box-shadow:0 4px 14px rgba(20,14,10,.3);cursor:pointer}.tbicon:hover{background:var(--paper-2)}.tbicon[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
 .shipchart{position:absolute;left:12px;top:170px;z-index:5}#paneChart.small .shipchart{display:none!important}
@@ -262,7 +263,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-
   #braceTxt,.trim .lng,#braceTxt+br{display:none}.trim .pct{font-size:15px;font-weight:600}
   .pane.small.collapsed{width:100px;height:28px}
   .dock.collapsed{min-width:130px}
-  .toast{top:74px}
+  .toast{top:3px;font-size:12px}
   /* phone layout: slim one-row toolbar, small chart inset, full-width Ship controls sheet with Helm/Sails tabs, touch-size buttons */
   .bar{flex-wrap:wrap;gap:6px;padding:6px 10px}
   .bar>*{flex:none;white-space:nowrap}
@@ -1207,8 +1208,10 @@ function seaText(s){const X=s.wx,H=X.H,d=H<.5?"Calm":H<1.25?"Slight sea":H<2.5?"
 
 /* ---------- events & log ---------- */
 let toastTimer=0;
+/* tap the slim notice line to read it in full; tap again to dismiss */
+{const el=$("toast");if(el)el.addEventListener("click",()=>{clearTimeout(toastTimer);if(el.classList.contains("open")){el.classList.remove("open");el.classList.add("hide")}else{el.classList.add("open");toastTimer=setTimeout(()=>{el.classList.add("hide");el.classList.remove("open")},9000)}})}
 function say(msg,{pause=false,slow=false,log=true}={}){
-  const el=$("toast");el.textContent=msg;el.classList.remove("hide");clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.add("hide"),4200);
+  const el=$("toast");el.textContent=msg;el.title=msg;el.classList.remove("hide","open");clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.add("hide"),3500);
   if(log&&S){S.log.unshift({time:timeStr(S),remark:msg});renderLog();}
   if(slow&&speedMult>60)setSpeed(60);
   if(slow||pause)stopSkip();
