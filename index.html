@@ -764,6 +764,96 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-
   <div class="pvh"><b>Preview</b><button type="button" id="pvResetAll" title="Hand everything back to the game's own weather and clock">Reset all to auto</button><button type="button" id="pvClose" aria-label="Close">✕</button></div>
   <div class="pvtabs" id="pvTabs" role="tablist"></div>
   <div class="pvbody" id="pvBody"></div>
+<script>
+/* Look: live UI look-and-feel settings (Preview > Look). Overrides CSS variables and a few panel rules; saved on this device. */
+(()=>{
+"use strict";
+const KEY="drLook.v1",MINE="drLook.mine",R=document.documentElement;
+const COL=[["desk","Bars"],["desk-2","Bar edge"],["paper","Panels"],["paper-2","Panel shade"],["ink","Text and lines"],["ink-soft","Soft text"],["rule","Dividers"],["brass","Brass accent"],["ochre","Red accent"],["sea","Sea blue"]];
+const NUM0=[["ow","Outline width","px",0,4,.5,1],["rad","Corner radius","px",0,18,1,3],["op","Panel opacity","%",30,100,1,93],["sh","Shadow","%",0,100,5,50],["fs","Panel text size","%",85,125,5,100]];
+const PRESETS={
+ parchment:{n:"Parchment",theme:"light",d:{}},
+ night:{n:"Night chart",theme:"dark",d:{dark:{desk:"#06102b","desk-2":"#0a1a44",paper:"#0c1d4a","paper-2":"#09163a",ink:"#f0e6bd","ink-soft":"#b3ab8a",rule:"#274080",brass:"#e8b648",ochre:"#f09a68",sea:"#93b3e6"},op:95,sh:70}},
+ contrast:{n:"High contrast",d:{light:{desk:"#fffaf0",paper:"#fffdf5","paper-2":"#f1e8cf",ink:"#000000","ink-soft":"#3a3326",rule:"#6b5f45",brass:"#7a4e00",ochre:"#a31d00"},dark:{desk:"#000814",paper:"#001233","paper-2":"#00091f",ink:"#ffffff","ink-soft":"#d9d4bd",rule:"#7a8fd1",brass:"#ffd24d",ochre:"#ff9a6b"},ow:2,op:100,sh:30}},
+ vellum:{n:"Old vellum",theme:"light",d:{light:{paper:"#efe0b8","paper-2":"#e2cf9d",desk:"#dcc796",rule:"#b9a06a",ink:"#3a2a14"},tx:"stained",ta:45,rad:1}}
+};
+let L={};try{L=JSON.parse(localStorage.getItem(KEY)||"{}")||{};}catch(e){L={};}
+const th=()=>R.dataset.theme==="dark"?"dark":"light";
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(L));}catch(e){}};
+const st=document.createElement("style");st.id="lkStyle";
+function css(){
+  const P=s=>s.split(",").map(x=>":root:root "+x.trim()).join(",");
+  let o="";
+  for(const t of["light","dark"]){const c=L[t]||{},k=Object.keys(c);if(!k.length)continue;
+    o+=(t==="dark"?":root[data-theme=dark]":":root:not([data-theme=dark])")+"{"+k.map(v=>"--"+v+":"+c[v]).join(";")+"}\n";}
+  const FL=".routebar,.tbicon,.dock:not(.dock-all),.bookbtn,.bookbody,.portcard,.skipbar,.menupop,.cbtog,.mapctl button,.swapbtn,#pvSheet";
+  const BD=FL+",.tb,.btn,.ctog,.bartog,.seg,.card,.shipcard,.voycard,.pane.small";
+  const rule=(sel,body)=>P(sel)+"{"+body+"}\n";
+  if(L.ow!=null)o+=rule(BD,"border-width:"+L.ow+"px!important;border-style:"+(L.ow?"solid":"none")+"!important")+"@media(min-width:861px){"+rule(".compassbox:not(.collapsed)","border-width:"+L.ow+"px!important;border-style:"+(L.ow?"solid":"none")+"!important")+"}\n";
+  if(L.oc)o+=rule(BD,"border-color:"+L.oc+"!important")+"@media(min-width:861px){"+rule(".compassbox:not(.collapsed)","border-color:"+L.oc+"!important")+"}\n";
+  if(L.rad!=null)o+=rule(BD,"border-radius:"+L.rad+"px!important");
+  if(L.op!=null){const b="background:color-mix(in srgb,var(--paper) "+L.op+"%,transparent)!important";o+=rule(FL,b)+"@media(min-width:861px){"+rule(".compassbox:not(.collapsed)",b)+"}\n";}
+  if(L.sh!=null){const b="box-shadow:"+(L.sh?"0 8px 28px rgba(20,14,10,"+(L.sh/100*.7).toFixed(2)+")":"none")+"!important";o+=rule(FL,b);}
+  if(L.tx&&L.tx!=="none"){const u=texUrl(L.tx,L.ta!=null?L.ta:40);if(u)o+=rule(FL+",.bar,.infobar,.side,.card","background-image:"+u+"!important")+"@media(min-width:861px){"+rule(".compassbox:not(.collapsed)","background-image:"+u+"!important")+"}\n";}
+  if(L.fs!=null&&L.fs!==100)o+=rule(".infobar,.bookbody,.portcard,.menupop,.routebar,.dock:not(.dock-all)","zoom:"+L.fs/100);
+  return o;}
+const TEX={none:"None",grain:"Paper grain",linen:"Linen",vellum:"Vellum",stained:"Stained",canvas:"Sailcloth"};
+function texUrl(k,a){
+  const f={grain:'<feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="3"/>',vellum:'<feTurbulence type="fractalNoise" baseFrequency=".035 .05" numOctaves="4" seed="8"/>',stained:'<feTurbulence type="fractalNoise" baseFrequency=".012" numOctaves="5" seed="5"/>',linen:'<feTurbulence type="fractalNoise" baseFrequency=".9 .06" numOctaves="2" seed="2"/>',canvas:'<feTurbulence type="turbulence" baseFrequency=".55" numOctaves="1" seed="4"/>'}[k];
+  if(!f)return"";
+  const m=k==="canvas"?'<feColorMatrix type="matrix" values="0 0 0 0 .25 0 0 0 0 .2 0 0 0 0 .12 0 0 0 1.4 -.35"/>':'<feColorMatrix type="matrix" values="0 0 0 0 .25 0 0 0 0 .18 0 0 0 0 .1 0 0 0 1.6 -.45"/>';
+  const svg='<svg xmlns="http://www.w3.org/2000/svg" width="'+(k==="stained"?400:200)+'" height="'+(k==="stained"?400:200)+'"><filter id="f" x="0" y="0" width="100%" height="100%">'+f+m+'<feComponentTransfer><feFuncA type="linear" slope="'+(a/100*2).toFixed(2)+'"/></feComponentTransfer></filter><rect width="100%" height="100%" filter="url(#f)"/></svg>';
+  return"url(\"data:image/svg+xml,"+encodeURIComponent(svg)+"\")";}
+function apply(){st.textContent=css();}
+function cur(v){return getComputedStyle(R).getPropertyValue("--"+v).trim();}
+function hex(s){s=(s||"").trim();if(/^#[0-9a-f]{6}$/i.test(s))return s.toLowerCase();if(/^#[0-9a-f]{3}$/i.test(s))return"#"+s.slice(1).split("").map(c=>c+c).join("").toLowerCase();return"#000000";}
+const NUM=NUM0;const NUMDEF={};for(const[k,,,,,,d]of NUM)NUMDEF[k]=d;
+let host=null;
+function render(){
+  if(!host)return;const t=th(),c=L[t]||{};
+  const row=(k,n)=>`<label class="lkc"><input type="color" data-c="${k}" value="${hex(c[k]||cur(k))}"><span>${n}</span>${c[k]?`<button type="button" data-cr="${k}" title="Back to default">↺</button>`:""}</label>`;
+  const num=([k,n,u,a,b,s,d])=>`<div class="pvr"><label>${n}</label><input type="range" data-n="${k}" min="${a}" max="${b}" step="${s}" value="${L[k]!=null?L[k]:d}"><output>${L[k]!=null?L[k]:d}${u}</output></div>`;
+  host.innerHTML=`<div class="pvc"><span class="pvn">Preset</span>${Object.entries(PRESETS).map(([k,p])=>`<button type="button" data-p="${k}">${p.n}</button>`).join("")}</div>
+  <div class="pvn">Colours below are for <b>${t==="dark"?"dark":"light"} mode</b> (switch in Menu). Changes show on the real game straight away and stay on this device.</div>
+  <div class="lkg">${COL.map(([k,n])=>row(k,n)).join("")}</div>
+  <label class="lkc lkoc"><input type="color" data-oc value="${hex(L.oc||cur("ink"))}"><span>Outline colour (all panels)</span>${L.oc?`<button type="button" data-ocr title="Back to default">↺</button>`:""}</label>
+  ${NUM.map(num).join("")}
+  <div class="pvc"><span class="pvn">Texture</span>${Object.entries(TEX).map(([k,n])=>`<button type="button" data-tx="${k}" aria-pressed="${(L.tx||"none")===k}">${n}</button>`).join("")}</div>
+  <div class="pvr"><label>Texture strength</label><input type="range" data-n="ta" min="5" max="100" step="5" value="${L.ta!=null?L.ta:40}"><output>${L.ta!=null?L.ta:40}%</output></div>
+  <div class="pvc"><button type="button" data-a="mine-save">Save as my look</button><button type="button" data-a="mine-load">Load my look</button><button type="button" data-a="copy">Copy settings</button><button type="button" data-a="paste">Paste settings</button><button type="button" class="pvauto" data-a="reset">Reset look</button></div>
+  <div class="pvn" id="lkMsg">The chart, compass and glass drawings keep their own inks. Text size scales the side panels, info strip and menus.</div>`;
+}
+function msg(t){const m=host&&host.querySelector("#lkMsg");if(m)m.textContent=t;}
+function setC(k,v){const t=th();(L[t]=L[t]||{})[k]=v;apply();save();}
+function load(o){L=o&&typeof o==="object"?o:{};apply();save();render();}
+function clip(s){return(navigator.clipboard&&navigator.clipboard.writeText?navigator.clipboard.writeText(s):Promise.reject()).catch(()=>{const a=document.createElement("textarea");a.value=s;document.body.appendChild(a);a.select();try{document.execCommand("copy");}catch(e){}a.remove();});}
+document.addEventListener("input",e=>{
+  if(!host||!host.contains(e.target))return;const el=e.target;
+  if(el.dataset.c)setC(el.dataset.c,el.value);
+  else if(el.hasAttribute("data-oc")){L.oc=el.value;apply();save();}
+  else if(el.dataset.n){const v=+el.value;L[el.dataset.n]=v;const u=el.dataset.n==="ta"?"%":NUM.find(x=>x[0]===el.dataset.n)[2];el.nextElementSibling.textContent=v+u;apply();save();}
+});
+document.addEventListener("click",e=>{
+  if(!host)return;const b=e.target.closest("button");if(!b||!host.contains(b))return;
+  if(b.dataset.cr){const c=L[th()];if(c){delete c[b.dataset.cr];apply();save();render();}}
+  else if(b.hasAttribute("data-ocr")){delete L.oc;apply();save();render();}
+  else if(b.dataset.tx){L.tx=b.dataset.tx;apply();save();render();}
+  else if(b.dataset.p){const p=PRESETS[b.dataset.p];const keep={};load(JSON.parse(JSON.stringify(p.d)));
+    if(p.theme&&th()!==p.theme){const d=document.getElementById("bDark");if(d)d.click();}
+    msg(p.n+" applied.");}
+  else if(b.dataset.a==="reset"){load({});msg("Back to the game's own look.");}
+  else if(b.dataset.a==="mine-save"){try{localStorage.setItem(MINE,JSON.stringify(L));msg("Saved as your look.");}catch(x){msg("Could not save on this device.");}}
+  else if(b.dataset.a==="mine-load"){let o=null;try{o=JSON.parse(localStorage.getItem(MINE));}catch(x){}if(o){load(o);msg("Your saved look is back.");}else msg("No saved look yet. Press Save as my look first.");}
+  else if(b.dataset.a==="copy"){clip("DR LOOK "+JSON.stringify(L)).then(()=>msg("Copied. Paste it in the chat to keep this look."));}
+  else if(b.dataset.a==="paste"){const s=prompt("Paste DR LOOK settings");if(s){try{load(JSON.parse(s.replace(/^\s*DR LOOK\s*/,"")));msg("Settings loaded.");}catch(x){msg("That did not look like saved settings.");}}}
+});
+new MutationObserver(()=>{apply();render();}).observe(R,{attributes:true,attributeFilter:["data-theme"]});
+window.DRLook={mount(h){host=h;render();},unmount(){host=null;}};
+const ui=document.createElement("style");
+ui.textContent="#pvSheet.lk{max-height:72vh}#pvSheet .lkg{display:grid;grid-template-columns:1fr 1fr;gap:6px 10px}#pvSheet .lkc{display:flex;align-items:center;gap:6px;color:var(--ink-soft)}#pvSheet .lkc input[type=color]{width:30px;height:24px;padding:0;border:1px solid var(--rule);background:none;flex:none}#pvSheet .lkc button{padding:0 5px;margin-left:auto}#pvSheet .lkoc{margin-top:2px}";
+document.head.append(ui,st);apply();
+})();
+</script>
 <script src="three.min.js"></script>
 <script>
 (()=>{
@@ -5871,12 +5961,13 @@ const T={
   <div class="pvr"><label>Strength</label><input type="range" id="pvCk" min="0" max="3" step="0.05" value="${c.drift}"><output id="pvCko"></output></div>
   <div class="pvc"><button type="button" class="pvauto" id="pvCa" aria-pressed="${!PV.cur}">Auto</button></div>
   <div class="pvn">This is the steady drift. Coasts, passages, eddies, wind drift and the tides are still added on top.</div>`;},
+ look(){return"";},
  more(){return `<div class="pvc"><span class="pvn">Wildlife</span>${[["None",0],["Normal",1],["Plenty",2],["Teeming",3]].map(([n,v])=>`<button type="button" data-f="${v}" aria-pressed="${PV.fauna===v}">${n}</button>`).join("")}</div>
   <div class="pvn">Birds, porpoises, flying fish, whales and turtles still follow their own haunts and seasons.</div>`;}
 };
-const TABS=[["time","Time"],["sky","Sky"],["wind","Wind"],["sea","Sea"],["cur","Current"],["more","More"]];
+const TABS=[["time","Time"],["sky","Sky"],["wind","Wind"],["sea","Sea"],["cur","Current"],["more","More"],["look","Look"]];
 tabs.innerHTML=TABS.map(([k,n])=>`<button type="button" role="tab" data-t="${k}">${n}</button>`).join("");
-function draw(){if(!S)return;body.innerHTML=T[tab]();[...tabs.children].forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.t===tab)));wire();}
+function draw(){if(!S)return;body.innerHTML=T[tab]();[...tabs.children].forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.t===tab)));sheet.classList.toggle("lk",tab==="look");if(tab==="look")DRLook.mount(body);else DRLook.unmount();wire();}
 function fillDays(){const m=+$$("pvM").value,n=new Date(Date.UTC(2001,m+1,0)).getUTCDate(),sel=$$("pvD"),cur=new Date(Date.UTC(2001,2,10+dayIndex(S)));
   sel.innerHTML=Array.from({length:n},(_,i)=>`<option${m===cur.getUTCMonth()&&i+1===cur.getUTCDate()?" selected":""}>${i+1}</option>`).join("");}
 function jump(hh,month,day){const lh=localHours(S,S.t),di=dayIndex(S);let d;
@@ -5921,7 +6012,7 @@ function wire(){
 function resetAll(){PV.wind=PV.sea=PV.wx=PV.vis=PV.cur=null;PV.fauna=1;PV.tide=1;PV.shadows=true;wxKey=null;CURRENT.set=orig.set;CURRENT.drift=orig.drift;draw();}
 tabs.addEventListener("click",e=>{const b=e.target.closest("button");if(b){tab=b.dataset.t;draw();}});
 $$("pvResetAll").onclick=resetAll;
-$$("pvClose").onclick=()=>{sheet.hidden=true;};
+$$("pvClose").onclick=()=>{sheet.hidden=true;DRLook.unmount();};
 $$("bPreview").onclick=()=>{if(!S){return;}sheet.hidden=!sheet.hidden;if(!sheet.hidden)draw();};
 window.addEventListener("keydown",e=>{if(e.key==="Escape")sheet.hidden=true;});
 // the readouts that follow the live game while a tab is open and nothing is held
