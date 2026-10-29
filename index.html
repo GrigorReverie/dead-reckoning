@@ -2264,7 +2264,7 @@ function renderLog(){
 
 /* ---------- 3D view: blueprint style ---------- */
 const NM=1852, VEX=2.2;
-const PAL={day:{paper:[.965,.933,.851],ink:[.2,.15,.1]},night:{paper:[.052,.075,.125],ink:[.60,.67,.80]}};
+const PAL={day:{paper:[.965,.933,.851],ink:[.2,.15,.1]},night:{paper:[.10,.14,.22],ink:[.74,.80,.92]}};
 const WAVES=[{off:0,len:46,a:1,ph:.3},{off:24,len:25,a:.55,ph:1.7},{off:-33,len:13.5,a:.32,ph:4.1},{off:62,len:7.5,a:.18,ph:2.4}];
 WAVES[0].len=84;
 for(const w of WAVES){w.k=2*PI/w.len;w.om=Math.sqrt(9.81*w.k);w.dx=0;w.dz=1;}
@@ -2404,7 +2404,7 @@ vec3 sunShade(vec3 col,vec3 nw,vec3 wp,vec2 hc){
   if(uNightK>0.5){ // by night: cool moonlight on the faces it reaches, the shaded sides left dark, and a warm lantern glow on the wood nearby
     float lit=clamp(lam,0.0,1.0)*(1.0-csh)*uMoon.w;
     col=mix(col,vec3(dot(col,vec3(0.33)))*vec3(0.82,0.92,1.18),0.62); // moonlight drains the colour
-    col=col*(0.85+1.7*lit)+vec3(0.50,0.60,0.85)*lit*0.14;
+    col=col*(1.15+1.7*lit)+vec3(0.50,0.60,0.85)*lit*0.14;
     float ld=length(wp-uLant);
     col+=vec3(1.0,0.60,0.26)*exp(-ld*ld/(2.0*4.5*4.5))*0.30;
   }
@@ -2457,14 +2457,19 @@ void main(){
     float ink=hatchAmt(shade,HATCH_SCALE)*0.6;
   #endif
   #ifdef CONTOUR
-    ink=max(ink,0.34+0.3*(1.0-shade));
-    ink=max(ink,aaLine(vY/45.0,1.0)*0.75);
-    ink=max(ink,(1.0-smoothstep(0.4,2.2,vY))*0.95);
+    float nt=step(dot(uPaper,vec3(0.33)),0.5);
+    // day: hatched, toned land; night: solid black land drawn only by hairline white contours and a hairline shore
+    float inkD=max(ink,0.34+0.3*(1.0-shade));
+    inkD=max(inkD,aaLine(vY/45.0,1.0)*0.75);
+    inkD=max(inkD,(1.0-smoothstep(0.4,2.2,vY))*0.95);
+    float inkN=aaLine(vY/45.0,0.3*uDpr)*0.85;
+    inkN=max(inkN,(1.0-smoothstep(0.08,0.35,abs(vY-0.9)))*0.8);
+    ink=mix(inkD,inkN,nt);
   #endif
   vec3 base=uPaper;
   #ifdef CONTOUR
-    float nt=step(dot(uPaper,vec3(0.33)),0.5);
     base=mix(uPaper,mix(vec3(0.86,0.78,0.55),vec3(0.62,0.68,0.42),smoothstep(4.0,70.0,vY)),0.75*(1.0-nt));
+    base=mix(base,vec3(0.0),nt);
   #endif
   vec3 col=mix(base,uInk,clamp(ink,0.0,1.0));
   float f=smoothstep(uFogNear,uFogFar,length(vVP));
@@ -2596,7 +2601,7 @@ void main(){
     float cpt=1.0-smoothstep(1.15,1.3,min(min(length(vObj.xy-vec2(0.0,0.0)),length(vObj.xy-vec2(13.0,0.0))),min(length(vObj.xy-vec2(0.0,5.5)),length(vObj.xy-vec2(13.0,5.5)))));
     wash=mix(wash,vec3(0.86,0.70,0.40),max(tab*0.75,cpt*0.6));
   #endif
-  wash=mix(wash,wash*vec3(0.34,0.37,0.46),night); wa*=1.0-0.3*night;
+  wash=mix(wash,wash*vec3(0.52,0.56,0.68),night); wa*=1.0-0.3*night;
   vec3 base=mix(uPaper,wash,wa);
   float lum=dot(base,vec3(0.33));
   vec3 colr=lum<0.3?mix(base,vec3(0.62,0.52,0.38),clamp(ink,0.0,1.0)*0.32):mix(base,pen,clamp(ink,0.0,1.0)*0.62);
@@ -2677,10 +2682,10 @@ void main(){
     vec3 R_=reflect(-V,nn); float rm=clamp(dot(R_,Lm),0.0,1.0);
     float path=pow(rm,38.0), core=pow(rm,420.0);
     float stroke=smoothstep(0.40,0.46,pow(rm,110.0)*(0.5+1.0*vn(q*vec2(0.8,5.0)+3.0))*1.3)*(1.0-smoothstep(300.0,2500.0,dist)); // moon glitter drawn as flat pale pen dashes, not shimmer
-    vec3 deepN=vec3(0.020,0.032,0.058), skyN=vec3(0.060,0.085,0.135);
+    vec3 deepN=vec3(0.042,0.066,0.115), skyN=vec3(0.115,0.155,0.245);
     float fres=pow(1.0-clamp(dot(V,n),0.0,1.0),3.0);
     vec3 nw=mix(deepN,skyN,0.25+0.5*fres)*(0.9+0.25*crest)*(0.92+0.16*fbm(q*0.02));
-    nw+=vec3(0.07,0.10,0.17)*diff*mk*(0.4+0.6*crest);
+    nw+=vec3(0.12,0.17,0.28)*diff*mk*(0.4+0.6*crest);
     vec2 sd2=shadowAt(vPos,0.03,u_wSoft); float shd=clamp(sd2.x*u_ShadowOn,0.0,1.0);
     vec3 glit=vec3(0.74,0.82,0.95)*(path*0.07+stroke*0.30)*mk*(1.0-0.85*shd);
     nw+=glit;
@@ -2907,7 +2912,7 @@ function init3D(){
     const sun=new THREE.Sprite(new THREE.SpriteMaterial({map:R.tex.sunD,fog:false,depthWrite:false,transparent:true}));sun.scale.set(5200,5200,1);scene.add(sun);R.sun=sun;
     { const mo=new THREE.Sprite(new THREE.SpriteMaterial({map:moonTexture(.5,true),fog:false,depthWrite:false,transparent:true}));mo.scale.set(20000,20000,1);mo.visible=false;scene.add(mo);R.moonSp=mo; }
     // clouds
-    R.tex.cloudD=cloudTexture("#f2e4b9","#2e2519");R.tex.cloudN=cloudTexture("#1c2538","#8795b2");R.tex.cloudDD=cloudTexture("#a9a79a","#3a2f22",true);R.tex.cloudDN=cloudTexture("#0d121d","#76829c",true);
+    R.tex.cloudD=cloudTexture("#f2e4b9","#2e2519");R.tex.cloudN=cloudTexture("#2c3752","#a0acc6");R.tex.cloudDD=cloudTexture("#a9a79a","#3a2f22",true);R.tex.cloudDN=cloudTexture("#182034","#8995b0",true);
     for(let i=0;i<130;i++){const m=new THREE.Sprite(new THREE.SpriteMaterial({map:R.tex.cloudD,fog:false,depthWrite:false,transparent:true}));
       m.userData.v=[m,...[R.tex.cloudN,R.tex.cloudDD,R.tex.cloudDN].map(t=>{const q=new THREE.Sprite(new THREE.SpriteMaterial({map:t,fog:false,depthWrite:false,transparent:true}));scene.add(q);return q;})];
       const sz=800+Math.random()*1300;m.scale.set(sz,sz*.55,1);const ra=Math.random()*2*PI,rr=3000+Math.random()*14000;Object.assign(m.userData,{x:Math.cos(ra)*rr,z:Math.sin(ra)*rr,y:1100+Math.random()*1500,th:Math.random()*.96,dk:Math.random(),sz:sz,dkv:0,ph:Math.random()*6.283,op:0});scene.add(m);R.clouds.push(m);}
@@ -3494,7 +3499,7 @@ void main(){
   
   float night=step(dot(uPaper,vec3(0.33)),0.5);
   vec3 pen=mix(vec3(0.16,0.115,0.085),uInk,night);
-  wash=mix(wash,wash*vec3(0.34,0.37,0.46),night);
+  wash=mix(wash,wash*vec3(0.52,0.56,0.68),night);
   vec3 base=mix(uPaper,wash,0.94*(1.0-0.3*night));
   float lum=dot(base,vec3(0.33));
   vec3 colr=lum<0.3?mix(base,vec3(0.62,0.52,0.38),clamp(ink,0.0,1.0)*0.3):mix(base,pen,clamp(ink,0.0,1.0)*0.55);
@@ -4037,7 +4042,7 @@ function shadowPass(R){
   sc.overrideMaterial=null;for(const o of away)o.visible=true;for(const o of hide)o.visible=true;
 }
 /* ---- the sky: a shaded dome, real stars joined into constellations, and an altitude and bearing grid. Values come from Grigor's Sky Tuner settings of 2026-10-28. ---- */
-const SKY={year:1745,nightMid:-4,nightWid:12,dayZen:"#7fa3c4",dayHor:"#e9dfc2",nightZen:"#04070e",nightHor:"#16213a",grad:0.48,hazeAmt:0.75,hazeH:16,hazeCol:"#f3ead0",hazeGrid:0.35,hazeStars:0.62,glowAmt:0.5,glowSize:32,glowCol:"#fff0c0",duskCol:"#e8a070",duskAmt:0.8,duskWid:9,hColD:"#3a4a63",hColN:"#4a5a7e",hOpac:0.09,hSp:1,hTight:0.8,hW:1.05,hLow:0.5,hFull:5,hCross:1,altStep:10,azStep:15,altBold:3,azBold:3,gridCol:"#9fb4e8",gridOp:0.18,gridBoldOp:0.33,gridLab:true,gridLabSize:8,starBase:0.5,starK:1.11,starBright:1.5,starCol:"#fff4dc",starTint:0.7,starHalo:0.6,starDark:0,lineCol:"#b8c9f0",lineOp:0.33,lineGap:3,conSize:10,conCol:"#d8e2ff",conOp:0.5,stSize:7,stCol:"#c9d3ea",navCol:"#ffd98a",stOp:0.8,sphR:90000};
+const SKY={year:1745,nightMid:-4,nightWid:12,dayZen:"#7fa3c4",dayHor:"#e9dfc2",nightZen:"#0a1226",nightHor:"#233556",grad:0.48,hazeAmt:0.75,hazeH:16,hazeCol:"#f3ead0",hazeGrid:0.35,hazeStars:0.62,glowAmt:0.5,glowSize:32,glowCol:"#fff0c0",duskCol:"#e8a070",duskAmt:0.8,duskWid:9,hColD:"#3a4a63",hColN:"#4a5a7e",hOpac:0.09,hSp:1,hTight:0.8,hW:1.05,hLow:0.5,hFull:5,hCross:1,altStep:10,azStep:15,altBold:3,azBold:3,gridCol:"#9fb4e8",gridOp:0.18,gridBoldOp:0.33,gridLab:true,gridLabSize:8,starBase:0.5,starK:1.11,starBright:1.5,starCol:"#fff4dc",starTint:0.7,starHalo:0.6,starDark:0,lineCol:"#b8c9f0",lineOp:0.33,lineGap:3,conSize:10,conCol:"#d8e2ff",conOp:0.5,stSize:7,stCol:"#c9d3ea",navCol:"#ffd98a",stOp:0.8,sphR:90000};
 const SKY_ST={
 "Polaris":[2.530,89.264,2.0,0.6],"Kochab":[14.845,74.156,2.1,1.47],"Pherkad":[15.345,71.834,3.0,0.05],"Yildun":[17.537,86.586,4.4,0.1],"Epsilon Ursae Minoris":[16.766,82.037,4.2,0.9],"Zeta Ursae Minoris":[15.734,77.795,4.3,0.04],"Eta Ursae Minoris":[16.292,75.755,5.0,0.4],
 "Dubhe":[11.062,61.751,1.8,1.06],"Merak":[11.031,56.382,2.3,0.0],"Phecda":[11.897,53.695,2.4,0.0],"Megrez":[12.257,57.033,3.3,0.08],"Alioth":[12.900,55.960,1.8,-0.02],"Mizar":[13.399,54.925,2.2,0.02],"Alkaid":[13.792,49.313,1.9,-0.1],
