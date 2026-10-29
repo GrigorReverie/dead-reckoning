@@ -2484,6 +2484,9 @@ precision highp float;
 #define SH_NB 6
 #define SH_NP 8
 uniform vec3 uPaper,uInk; uniform float uFogNear,uFogFar;
+#ifdef TEX_FIG
+uniform vec3 uFig;
+#endif
 varying float vCutD,vCutH,vCutG;
 varying vec3 vN; varying vec3 vVP; varying float vTone; varying float vY; varying vec3 vObj; varying vec3 vNo; varying vec3 vWN; varying vec3 vWP; uniform vec3 uSunW;
 ${SH_UH}
@@ -2587,6 +2590,9 @@ void main(){
     #ifdef TEX_GILT
       wash=vec3(0.84,0.66,0.30); wa=0.92;
     #endif
+  #endif
+  #ifdef TEX_FIG
+    wash=uFig*(0.82+0.3*(1.0-dark)); wa=0.96; ink=dark*0.3;
   #endif
   #ifdef TEX_FLAT
     wash=FLATCOL*(0.93+0.14*vn(vec2(p.x*0.4+p.z*0.3,p.y*0.5))); wa=0.9;
@@ -3129,7 +3135,7 @@ function brigLines(){
   return{sstep,QB,FB,QDY,FCY,YW,rise,deckW,deckAt,railY,keelY,zF,zS,zA,shape,hx};
 }
 // the ship in hand: the brig's own model, or one of the fleet built from her spec
-function buildShip3D(R){R.shipId=SHIP.id;R.sweepers=null;R.oarsOn=null;R.crew=null;R.sails=null;R.jib=null;R.gaff=null;R.yardInfo={};R.lamps=[];R.oars=[];R.tiller=null;R.gen=null;R.faA=null;R.handS=null;
+function buildShip3D(R){R.shipId=SHIP.id;R.sweepers=null;R.oarsOn=null;R.crew=null;R.dsig=null;R.sails=null;R.jib=null;R.gaff=null;R.yardInfo={};R.lamps=[];R.oars=[];R.tiller=null;R.gen=null;R.faA=null;R.handS=null;
   if(SHIP.id==="brig")buildShip(R);else buildVessel3D(R,SPEC[SHIP.id]);if(R.wake){R.wake.sl.length=0;R.wake.last=null;}R.foam=null;R.heel=0;}
 function setShip3D(){const R=R3;if(!R||R.shipId===SHIP.id)return;R.scene.remove(R.ship);
   R.ship.traverse(o=>{if(o.geometry&&!(o.parent&&o.parent.isGroup&&R.figKit&&0))o.geometry.dispose();});if(R.hullMatG){R.hullMatG.dispose();R.hullMatG=null;}
@@ -3397,6 +3403,29 @@ function fishLn(R,c,t,on){
     wx=xo,wy=-.05+Math.sin(ph*1.3)*.07,wz=P.z+.2*Math.sin(ph*.5+1); // straight down to the water
   fishSeg(c.fl,hx,hy,hz,rx,ry,hz,.03);fishSeg(c.fl2,rx,ry,hz,wx,wy,wz,.03);
   c.fk.position.set(wx,wy+.03,wz);c.fk.scale.setScalar(.13);c.fl.visible=c.fl2.visible=c.fk.visible=true;}
+/* one wardrobe for the whole crew, by rank: the 3D deck, the cutaway and the painted Ship page all dress a man from here.
+   [coat or shirt, breeches or trousers, hat, long coat]; seamen take their shirt, trousers and hat from their name */
+const LOOK_SKIN='#dcae86',LOOK_HAIR='#2a231d',LOOK_SHOE='#2a231d',LOOK_HAT={tri:'#1f1a16',round:'#2a231d',knit:'#8a2f20',cap:'#e9e1c8'};
+const LOOK_SHIRT=['#e6d9b0','#b2452c','#4b7592','#a18a58'],LOOK_TROUS=['#ece3c6','#3a3128','#d8cfae'],LOOK_SEAHAT=['round','knit','none'];
+const LOOK_RANK={Captain:['#2f4a7d','#e8dfc4','tri',1],Lieutenant:['#2f4a7d','#e8dfc4','tri',1],Master:['#3d4f66','#d8cfae','round',1],Mate:['#6a3a2a','#3a3128','round',0],
+  Midshipman:['#2f4a7d','#ece3c6','round',0],Surgeon:['#4a3a5a','#3a3128','round',1],"Surgeon's mate":['#6a5a68','#3a3128','round',0],Bosun:['#4a3a26','#3a3128','round',0],
+  Gunner:['#55574a','#3a3128','knit',0],Carpenter:['#8a6a3e','#3a3128','knit',0],Cook:['#9a9a86','#3a3128','cap',0],"Cabin boy":['#7a8a5a','#d8cfae','knit',0],
+  Marine:['#a83b2f','#ece3c6','tri',0],Soldier:['#3f5a4a','#d8cfae','tri',0],Gentleman:['#5a4a3a','#e8dfc4','tri',1]};
+const lookSeed=(m,i)=>{const n=m&&m.n;if(!n)return i|0;let h=7;for(let k=0;k<n.length;k++)h=(h*31+n.charCodeAt(k))|0;return Math.abs(h);};
+function crewLook(m,i){const r=m&&LOOK_RANK[m.r];
+  if(r)return{coat:r[0],trs:r[1],hat:r[2],long:!!r[3],hatCol:LOOK_HAT[r[2]]};
+  const h=lookSeed(m,i),hat=LOOK_SEAHAT[(h>>3)%3];return{coat:LOOK_SHIRT[h%4],trs:LOOK_TROUS[(h>>2)%3],hat,long:false,hatCol:LOOK_HAT[hat]||LOOK_HAIR};}
+// put a 3D deck figure into a man's clothes
+function dressFig(c,m,i){const d=c.dr;if(!d)return;const L=crewLook(m,i);
+  d.topM.uniforms.uFig.value.set(L.coat);d.legM.uniforms.uFig.value.set(L.trs);d.hatM.uniforms.uFig.value.set(L.hatCol);d.coatT.visible=L.long;
+  for(const k in d.hats)for(const o of d.hats[k])o.visible=k===L.hat;}
+// the figures on deck stand for real men: the captain is the Captain, the rest are hands of the watch on deck
+function dressDeck(R){if(typeof S==="undefined"||!S||!S.crew)return;const C=S.crew,F=(R.crew||[]).concat(R.sweepers||[]);
+  const sig=C.length+":"+F.length+":"+C.map(m=>m.mode==="duty"?1:0).join("");if(sig===R.dsig)return;R.dsig=sig;
+  const cap=C.findIndex(m=>m.r==="Captain"),hands=[];
+  for(const on of[1,0])C.forEach((m,i)=>{if((m.mode==="duty")==!!on&&!m.sick&&!LOOK_RANK[m.r])hands.push(i);});
+  let q=3;C.forEach((m,i)=>{if((m.r==="Marine"||m.r==="Soldier")&&m.mode==="duty"){hands.splice(Math.min(hands.length,q),0,i);q+=5;}});
+  let k=0;for(const c of F){const i=c.role==="cap"&&cap>=0?cap:hands.length?hands[k++%hands.length]:k++;c.man=i;dressFig(c,C[i],i);}}
 function figKit(R){if(R.figKit)return R.figKit;
   const {boxMat,solidInk}=R;
   const mkG=(pts)=>{const g=new THREE.BufferGeometry();g.setAttribute("position",new THREE.Float32BufferAttribute(pts,3));return g;};
@@ -3416,24 +3445,28 @@ function figKit(R){if(R.figKit)return R.figKit;
       gUp=CY(.058,.048,.23,6),gFore=CY(.046,.036,.23,6),gHand=SP(.04),gHip=CY(.17,.2,.2,10),gCoat=CY(.2,.31,.78,10),gQue=CY(.02,.02,.26,5),
       gBrimR=CY(.2,.2,.025,10),gCrownR=CY(.1,.115,.11,10),gCap=new THREE.ConeGeometry(.115,.2,8),gBrimT=CY(.25,.25,.03,3),gCrownT=CY(.095,.105,.07,8),gScope=CY(.028,.036,.6,6),gBelt=CY(.172,.172,.04,10);
     const mkMesh=(g,m,x,y,z,pr)=>{const o=new THREE.Mesh(g,m);o.position.set(x,y,z);if(pr)pr(o);return o;};
+    // every figure wears the shared wardrobe (crewLook): his own coat, breeches and hat colours, washed and shaded like the ship's plate
+    const fm=(hex)=>new THREE.ShaderMaterial({uniforms:Object.assign({},R.U,{uFig:{value:new THREE.Color(hex)}}),vertexShader:VS_INK,fragmentShader:FS_TEX,side:THREE.DoubleSide,defines:{TEX_FIG:1},extensions:{derivatives:true}});
+    const skinM=fm(LOOK_SKIN),hairM=fm(LOOK_HAIR);
     const mk=(par,x,y,z,role)=>{const g=new THREE.Group();g.position.set(x,y,z);const bld=role==="cap"?1.06:.94+Math.random()*.14;g.scale.set(.96*(.95+Math.random()*.1),.96*bld,.96);par.add(g);
-      const jacket=role==="cap"||Math.random()<.35,slops=role!=="cap"&&Math.random()<.45,shirtM=jacket?solidInk:boxMat,legM=slops?boxMat:solidInk,hk=role==="cap"?9:role==="helm"?0:Math.floor(Math.random()*4);
-      g.add(mkMesh(gTorso,shirtM,0,1.19,0,o=>o.scale.set(1.15,1,.68)));
+      const L0=crewLook(null,Math.floor(Math.random()*12)),topM=fm(L0.coat),legM=fm(L0.trs),hatM=fm(LOOK_HAT.round),shoeM=fm(LOOK_SHOE);
+      g.add(mkMesh(gTorso,topM,0,1.19,0,o=>o.scale.set(1.15,1,.68)));
       g.add(mkMesh(gHip,legM,0,.94,0,o=>o.scale.set(1,1,.72)));
-      g.add(mkMesh(gBelt,solidInk,0,1.0,0,o=>o.scale.set(1.0,1,.74)));
-      g.add(mkMesh(gNeck,boxMat,0,1.5,0));
-      g.add(mkMesh(gHead,boxMat,0,1.6,.005,o=>o.scale.set(.92,1.12,1)));
-      g.add(mkMesh(gHair,solidInk,0,1.625,-.025,o=>o.scale.set(.92,1.04,1)));
-      g.add(mkMesh(gQue,solidInk,0,1.45,-.12,o=>o.rotation.x=-.25));
-      if(role==="cap"){g.add(mkMesh(gCoat,solidInk,0,.98,0,o=>o.scale.set(1.15,1,.7)));g.add(mkMesh(gBrimT,solidInk,0,1.7,0,o=>o.rotation.y=PI));g.add(mkMesh(gCrownT,solidInk,0,1.745,0));}
-      else if(hk===0||hk===3){g.add(mkMesh(gBrimR,solidInk,0,1.69,0));g.add(mkMesh(gCrownR,solidInk,0,1.75,0));}
-      else if(hk===1)g.add(mkMesh(gCap,solidInk,0,1.74,-.015));
+      g.add(mkMesh(gBelt,shoeM,0,1.0,0,o=>o.scale.set(1.0,1,.74)));
+      g.add(mkMesh(gNeck,skinM,0,1.5,0));
+      g.add(mkMesh(gHead,skinM,0,1.6,.005,o=>o.scale.set(.92,1.12,1)));
+      g.add(mkMesh(gHair,hairM,0,1.625,-.025,o=>o.scale.set(.92,1.04,1)));
+      g.add(mkMesh(gQue,hairM,0,1.45,-.12,o=>o.rotation.x=-.25));
+      const coatT=mkMesh(gCoat,topM,0,.98,0,o=>o.scale.set(1.15,1,.7));g.add(coatT);
+      const hats={tri:[mkMesh(gBrimT,hatM,0,1.7,0,o=>o.rotation.y=PI),mkMesh(gCrownT,hatM,0,1.745,0)],round:[mkMesh(gBrimR,hatM,0,1.69,0),mkMesh(gCrownR,hatM,0,1.75,0)],knit:[mkMesh(gCap,hatM,0,1.74,-.015)],cap:[mkMesh(gCrownR,hatM,0,1.72,0,o=>o.scale.set(1.05,1.6,1.05))]};
+      for(const k in hats)for(const o of hats[k])g.add(o);
       const lL=new THREE.Group(),lR=new THREE.Group(),aL=new THREE.Group(),aR=new THREE.Group();
       lL.position.set(.1,.92,0);lR.position.set(-.1,.92,0);aL.position.set(.23,1.38,0);aR.position.set(-.23,1.38,0);
-      for(const lg of[lL,lR]){lg.add(mkMesh(gThigh,legM,0,-.235,0));lg.add(mkMesh(gShin,legM,0,-.705,0));lg.add(mkMesh(gFoot,solidInk,0,-.96,.045));g.add(lg);}
-      for(const ag of[aL,aR]){ag.add(mkMesh(gUp,shirtM,0,-.115,0));ag.add(mkMesh(gFore,jacket?boxMat:boxMat,0,-.345,0));ag.add(mkMesh(gHand,boxMat,0,-.49,0));g.add(ag);}
+      for(const lg of[lL,lR]){lg.add(mkMesh(gThigh,legM,0,-.235,0));lg.add(mkMesh(gShin,legM,0,-.705,0));lg.add(mkMesh(gFoot,shoeM,0,-.96,.045));g.add(lg);}
+      for(const ag of[aL,aR]){ag.add(mkMesh(gUp,topM,0,-.115,0));ag.add(mkMesh(gFore,topM,0,-.345,0));ag.add(mkMesh(gHand,skinM,0,-.49,0));g.add(ag);}
       const sc=mkMesh(gScope,solidInk,0,-.78,0);sc.visible=false;aR.add(sc);
-      return{m:g,sc,lL,lR,aL,aR,x,y,z,role,wp:null,wait:Math.random()*3,ph:Math.random()*6,yaw:0,state:"idle",q:[],route:null,task:null};};
+      const c={m:g,sc,lL,lR,aL,aR,x,y,z,role,wp:null,wait:Math.random()*3,ph:Math.random()*6,yaw:0,state:"idle",q:[],route:null,task:null,dr:{topM,legM,hatM,coatT,hats}};
+      dressFig(c,role==="cap"?{r:"Captain"}:null,Math.floor(Math.random()*12));return c;};
   return R.figKit={mk};}
 // lamps drawn as the plates draw light: hairline rays and broken rings that thin out and fade with distance from the flame
 function lampSprites(R,bob,list){
@@ -4479,7 +4512,7 @@ function update3D(dt,now){
         for(let i=0;i<=14;i++){const t=i/14,hy=R.hawse[1],p=[0,hy-(hy+(A.mode==="trailing"?7:2.5)*hk)*t+Math.sin(t*PI)*-.6*hk,R.hawse[0]+L*t*1.6*hk];if(prev){pa.set(prev,n*3);pa.set(p,n*3+3);n+=2;}prev=p;}
         cl.geometry.setDrawRange(0,n);cl.geometry.attributes.position.needsUpdate=true;} } }
   // crew
-  { const C=R.crew;if(C){const sp=clamp(speedMult,1,8),cdt=Math.min(dt,.1)*sp,t=R.wt,working={};
+  { const C=R.crew;if(C){if((R.dsf=(R.dsf||0)+1)%30===1)dressDeck(R);const sp=clamp(speedMult,1,8),cdt=Math.min(dt,.1)*sp,t=R.wt,working={};
       for(const j of sh.q)working[j.id]=1;for(const k of SAILIDS)if(Math.abs(sh.sls[k]-sh.sa[k])>.02)working[k]=1;
       const D=R.dk,ground=D.ground;
       const hip=(c,a)=>{c.lL.rotation.x=a;c.lR.rotation.x=-a;};
@@ -5377,15 +5410,14 @@ function svDrawGen(now){const c=$("shipCv"),par=c.parentElement,dpr=Math.min(2,d
   SVG.figs=figs;}
 function svHitGen(e){const c=$("shipCv"),r=c.getBoundingClientRect(),k=SVW/r.width,x=(e.clientX-r.left)*k,y=(e.clientY-r.top)*k;let best=-1,bd=24;for(const f of SVG.figs){const d=Math.hypot(f.x-x,f.y-(f.lying?6:20)-y);if(d<bd){bd=d;best=f.i;}}return best;}
 /* a little painted figure in the clothes of his rank, with a hat, his face turned the way he walks: one drawing for every ship's Ship tab */
-const SV_SHIRT=['#e6d9b0','#b2452c','#4b7592','#a18a58'],SV_SKIN='#dcae86',SV_TROUS=['#ece3c6','#3a3128','#d8cfae'];
+const SV_SHIRT=LOOK_SHIRT,SV_SKIN=LOOK_SKIN,SV_TROUS=LOOK_TROUS;
 function svPerson(g,K,m,i,f,x,y,tm,day,sel,lyY,sc){const SHIRT=SV_SHIRT,SKIN=SV_SKIN,TROUS=SV_TROUS,col=m.mode==="sleep"?K.soft:K.ink,fd=f.face||1,rk=m.r;
   const L=(w,c)=>{g.lineWidth=w>=10?w:w*.58;g.strokeStyle=c||K.ink;},line=(x1,y1,x2,y2)=>{g.beginPath();g.moveTo(x1,y1);g.lineTo(x2,y2);g.stroke();};
   g.lineJoin="round";g.lineCap="round";
     g.save();g.translate(x,y);g.scale(sc||1.55,sc||1.55);g.translate(-x,-y);
     if(i===sel){g.beginPath();g.arc(x,y-17,19,0,2*PI);L(1.4,K.och);g.stroke();}
     const fc=m.f>.65?K.och:m.f>.4?K.brass:null;
-    const coat=rk==="Surgeon"?'#4a3a5a':rk==="Surgeon's mate"?'#6a5a68':rk==="Captain"?'#2f4a7d':rk==="Mate"?'#6a3a2a':rk==="Bosun"?'#4a3a26':rk==="Carpenter"?'#8a6a3e':rk==="Cook"?'#9a9a86':rk==="Cabin boy"?'#7a8a5a':SHIRT[i%4],
-      trs=rk==="Captain"?'#e8dfc4':rk==="Cook"?'#3a3128':TROUS[i%3],hat=rk==="Captain"?'tri':rk==="Cook"?'cap':(i%3===0?'round':i%3===1?'knit':'none');
+    const LK=crewLook(m,i),coat=LK.coat,trs=LK.trs,hat=LK.hat;
     const dk=day?1:.8;g.globalAlpha=dk;
     const head=(hx,hy,rot)=>{g.save();g.translate(hx,hy);g.rotate(rot||0);g.fillStyle=SKIN;g.beginPath();g.arc(0,0,4.1,0,2*PI);g.fill();L(.9,col);g.stroke();
       g.fillStyle='#2a231d';g.beginPath();g.arc(-fd*.8,-.8,4.2,PI*.95,PI*2.05);g.fill(); // hair
@@ -5407,7 +5439,7 @@ function svPerson(g,K,m,i,f,x,y,tm,day,sel,lyY,sc){const SHIRT=SV_SHIRT,SKIN=SV_
       if(cl)legs(x-3+sw*3,x+3-sw*3);else legs(x-sw*6,x+sw*6);
       // torso (a coat with tails for the captain), then arms over it
       g.beginPath();g.moveTo(x-5,y-26);g.quadraticCurveTo(x,y-28,x+5,y-26);g.lineTo(x+3.8,y-12);g.lineTo(x-3.8,y-12);g.closePath();g.fillStyle=coat;g.fill();L(.9,col);g.stroke();
-      if(rk==="Captain"){g.beginPath();g.moveTo(x-3.8,y-12);g.lineTo(x-5.8,y-6);g.lineTo(x+5.8,y-6);g.lineTo(x+3.8,y-12);g.closePath();g.fillStyle=coat;g.fill();g.stroke();g.fillStyle='#d7b25a';for(let b=0;b<3;b++)g.fillRect(x-.5,y-24+b*4,1,1);}
+      if(LK.long){g.beginPath();g.moveTo(x-3.8,y-12);g.lineTo(x-5.8,y-6);g.lineTo(x+5.8,y-6);g.lineTo(x+3.8,y-12);g.closePath();g.fillStyle=coat;g.fill();g.stroke();g.fillStyle='#d7b25a';for(let b=0;b<3;b++)g.fillRect(x-.5,y-24+b*4,1,1);}
       else{g.fillStyle='#2a231d';g.fillRect(x-3.8,y-13.6,7.6,1.4);}
       if(cl){lim(x-4,y-24,x-6,y-31+sw*3,2.6,coat);lim(x+4,y-24,x+6,y-31-sw*3,2.6,coat);g.fillStyle=SKIN;g.beginPath();g.arc(x-6,y-32+sw*3,1.7,0,2*PI);g.arc(x+6,y-32-sw*3,1.7,0,2*PI);g.fill();}
       else{lim(x-4.2,y-24,x+sw*5-4,y-15,2.6,coat);lim(x+4.2,y-24,x-sw*5+4,y-15,2.6,coat);g.fillStyle=SKIN;g.beginPath();g.arc(x+sw*5-4,y-14.5,1.7,0,2*PI);g.arc(x-sw*5+4,y-14.5,1.7,0,2*PI);g.fill();}
@@ -6329,28 +6361,75 @@ function homeOf(m,i){const du=m.mode==="duty",sl=m.mode==="sleep",r=m.r||"Seaman
   return du?[[0,2],[0,3],[0,4],[0,1]][i%4]:sl?[2,2]:[1,2];}
 const stateOf=m=>m.sick?(m.why||"Laid up"):m.mode==="duty"?"On watch":m.mode==="sleep"?"Asleep":"Off watch";
 const SKY={0:0,1:YG,2:YB,3:YO,4:YH};
+/* the same men as on deck, in the same clothes (crewLook): built from instanced parts so a whole frigate's company can walk, haul, work, sit at mess and sleep */
+const FIGK=.8;
 function makeFig(R){
-  const parts=[];const body=new THREE.CylinderGeometry(.17,.24,.9,7);body.translate(0,.45,0);const head=new THREE.SphereGeometry(.17,8,6);head.translate(0,1.1,0);
-  const pos=[],nor=[],col=[];for(const g of[body,head]){const ng=g.toNonIndexed(),p=ng.attributes.position.array,n=ng.attributes.normal.array;for(let i=0;i<p.length;i++){pos.push(p[i]);nor.push(n[i]);}
-    for(let i=0;i<n.length;i+=3){const s=.62+.38*Math.max(0,n[i]*.5+n[i+1]*.6+n[i+2]*.4);col.push(s,s,s);}}
-  const geo=new THREE.BufferGeometry();geo.setAttribute("position",new THREE.Float32BufferAttribute(pos,3));geo.setAttribute("color",new THREE.Float32BufferAttribute(col,3));
-  const mat=new THREE.MeshBasicMaterial({vertexColors:true});
-  const im=new THREE.InstancedMesh(geo,mat,800);im.count=0;im.frustumCulled=false;im.name="crewfig";M.G.add(im);M.fig=im;M.dirty=true;M.csig="";M.home=[];}
-const _m4=new THREE.Matrix4(),_q=new THREE.Quaternion(),_p=new THREE.Vector3(),_sc=new THREE.Vector3(),_cl=new THREE.Color();
+  const CY=(rt,rb,h,n)=>new THREE.CylinderGeometry(rt,rb,h,n||8),SP=r=>new THREE.SphereGeometry(r,8,6);
+  // parts baked from pieces [geometry,x,y,z,sx,sy,sz,rotY,tone], with a soft form shade in the vertex colours
+  const bake=list=>{const pos=[],col=[];for(const[g0,x,y,z,sx,sy,sz,ry,tn]of list){const g=g0.toNonIndexed();if(ry)g.rotateY(ry);g.scale(sx||1,sy||1,sz||1);g.translate(x,y,z);
+      const p=g.attributes.position.array,n=g.attributes.normal.array;for(let i=0;i<p.length;i++)pos.push(p[i]);
+      for(let i=0;i<n.length;i+=3){const s=(.62+.38*Math.max(0,n[i]*.5+n[i+1]*.6+n[i+2]*.4))*(tn||1);col.push(s,s,s);}}
+    const geo=new THREE.BufferGeometry();geo.setAttribute("position",new THREE.Float32BufferAttribute(pos,3));geo.setAttribute("color",new THREE.Float32BufferAttribute(col,3));geo.computeVertexNormals();return geo;};
+  const leg=bake([[CY(.095,.07,.47,7),0,-.235,0],[CY(.065,.05,.47,7),0,-.705,0],[new THREE.BoxGeometry(.09,.07,.2),0,-.96,.045,1,1,1,0,.32]]),
+    arm=bake([[CY(.058,.048,.23,6),0,-.115,0],[CY(.046,.036,.23,6),0,-.345,0],[SP(.04),0,-.49,0,1,1,1,0,1.08]]);
+  const G={body:bake([[CY(.2,.155,.56,10),0,1.19,0,1.15,1,.68]]),tail:bake([[CY(.2,.31,.78,10),0,.98,0,1.15,1,.7]]),
+    hip:bake([[CY(.17,.2,.2,10),0,.94,0,1,1,.72],[CY(.172,.172,.04,10),0,1.0,0,1,1,.74,0,.3]]),legL:leg,legR:leg,armL:arm,armR:arm,
+    head:bake([[CY(.045,.05,.08,6),0,1.5,0],[SP(.105),0,1.6,.005,.92,1.12,1]]),hair:bake([[SP(.112),0,1.625,-.025,.92,1.04,1],[CY(.02,.02,.26,5),0,1.43,-.12]]),
+    tri:bake([[CY(.25,.25,.03,3),0,1.7,0,1,1,1,PI],[CY(.095,.105,.07,8),0,1.745,0]]),round:bake([[CY(.2,.2,.025,10),0,1.69,0],[CY(.1,.115,.11,10),0,1.75,0]]),
+    knit:bake([[new THREE.ConeGeometry(.115,.2,8),0,1.74,-.015]]),cap:bake([[CY(.1,.115,.11,10),0,1.72,0,1.05,1.6,1.05]])};
+  M.P={};for(const k in G){const mat=new THREE.MeshBasicMaterial({vertexColors:true});if(k==="head")mat.color.set(LOOK_SKIN);if(k==="hair")mat.color.set(LOOK_HAIR);
+    const im=new THREE.InstancedMesh(G[k],mat,800);im.count=0;im.frustumCulled=false;im.name="crewfig";M.G.add(im);M.P[k]=im;}
+  M.fig=M.P.body;M.pick=[M.P.body,M.P.hip,M.P.head,M.P.legL,M.P.legR,M.P.tail];M.dirty=true;M.csig="";M.home=[];M.an=[];M.lt=0;}
+const _m4=new THREE.Matrix4(),_q=new THREE.Quaternion(),_p=new THREE.Vector3(),_sc=new THREE.Vector3(),_cl=new THREE.Color(),_gold=new THREE.Color(0xe0a82a),
+  _F=new THREE.Matrix4(),_T=new THREE.Matrix4(),_Z=new THREE.Matrix4().makeScale(0,0,0),_e=new THREE.Euler(),_ax=new THREE.Vector3(0,0,1),_q2=new THREE.Quaternion();
+// what each man is doing: by his state (watch, below, asleep, laid up), his rank, and a little by his name
+function actOf(m,i){const h=lookSeed(m,i)>>1,r=m.r||"Seaman",off=NOFF.includes(r);
+  if(m.sick||m.mode==="sleep")return"lie";
+  if(m.mode==="duty"){if(off)return h%2?"walk":"stand";if(r==="Cook"||r==="Carpenter"||r==="Gunner"||r==="Surgeon"||r==="Surgeon's mate"||r==="Bosun")return h%3?"work":"walk";
+    if(r==="Marine"||r==="Soldier")return h%3?"stand":"walk";return["haul","walk","haul","stand","work"][h%5];}
+  return off?(h%2?"sit":"stand"):["sit","sit","stand","walk","sit"][h%5];}
 function crewLayout(){const im=M.fig;if(!im||typeof S==="undefined"||!S||!S.crew)return;const C=S.crew;crewX(S);
   const g={};M.home=C.map((m,i)=>{const h=homeOf(m,i);(g[h[0]*10+h[1]]=g[h[0]*10+h[1]]||[]).push(i);return h;});M.grp=g;
-  im.count=Math.min(800,C.length);const place=new Array(C.length);
+  const n=Math.min(800,C.length);for(const k in M.P)M.P[k].count=n;const place=new Array(C.length);M.zb=new Array(C.length);
   for(const key in g){const lv=Math.floor(key/10),rm=key%10,list=g[key],b=M.bands[lv][rm];const z0=b[0]+.3,z1=b[1]-.3,zm=(z0+z1)/2,y0=lv===0?deck(zm):SKY[lv];
     const w0=Math.max(1,hx(zm,y0+1)-.7),cols=Math.max(1,Math.min(Math.floor(w0/.5),list.length)),rows=Math.ceil(list.length/cols),dz=Math.max(.3,Math.min(.75,(z1-z0)/Math.max(1,rows)));
-    list.forEach((i,k)=>{const r=Math.floor(k/cols),c=k%cols,z=Math.min(z1,z0+r*dz+(c%2)*.15),y=(lv===0?deck(z):SKY[lv])+.03,w=Math.max(.8,hx(z,y+1)-.7),dx=cols>1?Math.min(.55,(w-.4)/(cols-1)):0;place[i]=[-(.45+c*dx),y,z];});}
-  const sel=M.sel;
-  C.forEach((m,i)=>{if(i>=800)return;const pl=place[i],h=M.home[i],on=M.sel<0||h[0]===M.sel,s=(i===M.man)?1.7:1;
-    _p.set(pl[0],pl[1],pl[2]);_sc.set(on?s:0,on?s:0,on?s:0);_m4.compose(_p,_q,_sc);im.setMatrixAt(i,_m4);
-    const off=NOFF.includes(m.r);_cl.setHex(i===M.man?0xe0a82a:m.sick?0x7a9a6a:m.mode==="sleep"?0x9a8f78:m.r==="Marine"?0xa83b2f:off?0x2d4a73:0xe6dcc0);im.setColorAt(i,_cl);});
-  im.instanceMatrix.needsUpdate=true;if(im.instanceColor)im.instanceColor.needsUpdate=true;}
-function crewTick(){if(!M.fig||typeof S==="undefined"||!S||!S.crew)return;M.fc=(M.fc||0)+1;
+    list.forEach((i,k)=>{const r=Math.floor(k/cols),c=k%cols,z=Math.min(z1,z0+r*dz+(c%2)*.15),y=(lv===0?deck(z):SKY[lv])+.03,w=Math.max(.8,hx(z,y+1)-.7),dx=cols>1?Math.min(.55,(w-.4)/(cols-1)):0;place[i]=[-(.45+c*dx),y,z];M.zb[i]=[lv,z0,z1];});}
+  M.place=place;M.fon=[];
+  C.forEach((m,i)=>{if(i>=800)return;const h=M.home[i],act=actOf(m,i),key=h[0]*10+h[1]+act,a=M.an[i];M.fon[i]=M.sel<0||h[0]===M.sel;
+    if(!a||a.key!==key)M.an[i]={key,act,z:place[i][2],tz:place[i][2],wait:Math.random()*3,ph:Math.random()*6.3,h:lookSeed(m,i)};
+    const L=crewLook(m,i),dim=m.mode==="sleep"?.8:1,pick=i===M.man;
+    _cl.set(L.coat);if(pick)_cl.lerp(_gold,.6);_cl.multiplyScalar(dim);for(const k of["body","tail","armL","armR"])M.P[k].setColorAt(i,_cl);
+    _cl.set(L.trs).multiplyScalar(dim);for(const k of["hip","legL","legR"])M.P[k].setColorAt(i,_cl);
+    _cl.set(L.hatCol);for(const k of["tri","round","knit","cap"])M.P[k].setColorAt(i,_cl);M.an[i].look=L;});
+  for(const k in M.P)if(M.P[k].instanceColor)M.P[k].instanceColor.needsUpdate=true;}
+// one frame of the crew's lives: legs and arms swing on the parts' own pivots
+function crewAnim(){const C=S.crew,P=M.P,n=Math.min(800,C.length),now=performance.now()/1000,dt=Math.min(.1,now-(M.lt||now));M.lt=now;
+  for(let i=0;i<n;i++){const a=M.an[i],pl=M.place&&M.place[i],zb=M.zb&&M.zb[i];
+    if(!a||!pl||!M.fon[i]){for(const k in P)P[k].setMatrixAt(i,_Z);continue;}
+    const act=a.act,t=now+a.ph,s=(i===M.man?1.5:1)*FIGK;let y=pl[1],z=pl[2],yaw=PI/2,la=0,ra=0,al=0,ar=0,lie=false,sit=false;
+    if(act==="walk"){if(a.wait>0){a.wait-=dt;yaw=a.yaw??PI/2;al=.06*Math.sin(t);ar=-al;}
+      else{const d=a.tz-a.z,st=dt*(NOFF.includes(C[i].r)?.55:.9);if(Math.abs(d)<=st){a.z=a.tz;a.wait=1+Math.random()*3.5;a.tz=zb[2]>zb[1]?zb[1]+Math.random()*(zb[2]-zb[1]):pl[2];}
+        else{a.z+=Math.sign(d)*st;a.yaw=d>0?0:PI;a.wk=(a.wk||0)+st*6.5;}yaw=a.yaw;const sw=Math.sin(a.wk||0);la=.5*sw;ra=-la;al=-.38*sw;ar=-al;}
+      z=a.z;y=(zb&&zb[0]===0?deck(z):pl[1]-.03)+.03;}
+    else if(act==="haul"){yaw=a.h%2?0:PI;const k=Math.sin(t*2.2);la=.32;ra=-.28;al=ar=-1.25-.45*k;}
+    else if(act==="work"){const k=Math.max(0,Math.sin(t*4.2));ar=-.9-.9*k;al=-.55;yaw=PI/2+.5*Math.sin(a.h);}
+    else if(act==="stand"){yaw=PI/2+.45*Math.sin(t*.23)+.3*Math.sin(a.h);al=.05*Math.sin(t*.9);ar=-al;}
+    else if(act==="sit"){sit=true;y-=.85*s;la=ra=-PI/2;const k=Math.sin(t*1.6);al=-.5-.35*Math.max(0,k);ar=-.4;yaw=PI/2+.6*Math.sin(a.h);}
+    else{lie=true;}
+    if(lie){const sw=C[i].sick?0:.12*Math.sin(t*.8);_e.set(-PI/2,0,0);_q.setFromEuler(_e);_q2.setFromAxisAngle(_ax,sw);_q.premultiply(_q2);y+=.32+(C[i].sick?0:.4);}
+    else{_e.set(0,yaw,0);_q.setFromEuler(_e);}
+    _p.set(pl[0],y,z);_sc.set(s,s,s);_F.compose(_p,_q,_sc);
+    for(const k of["body","hip","head","hair"])P[k].setMatrixAt(i,_F);
+    P.tail.setMatrixAt(i,a.look&&a.look.long?_F:_Z);
+    for(const k of["tri","round","knit","cap"])P[k].setMatrixAt(i,!lie&&a.look&&a.look.hat===k?_F:_Z);
+    const limb=(im,x,yy,rx)=>{_T.makeRotationX(rx);_T.setPosition(x,yy,0);_m4.multiplyMatrices(_F,_T);im.setMatrixAt(i,_m4);};
+    limb(P.legL,.1,.92,la);limb(P.legR,-.1,.92,ra);limb(P.armL,.23,1.38,al);limb(P.armR,-.23,1.38,ar);
+    M.pos[i]=[pl[0],y,z];}
+  for(const k in P)P[k].instanceMatrix.needsUpdate=true;}
+function crewTick(){if(!M.fig||typeof S==="undefined"||!S||!S.crew)return;M.fc=(M.fc||0)+1;M.pos=M.pos||[];
   if(M.fc%20===0){const sg=S.crew.length+":"+S.crew.map(m=>(m.mode||"r")[0]+(m.sick?1:0)).join("");if(sg!==M.csig){M.csig=sg;M.dirty=true;}}
-  if(M.dirty){M.dirty=false;crewLayout();}}
+  if(M.dirty){M.dirty=false;crewLayout();}
+  crewAnim();}
 function crewSummary(list){const C=list.map(i=>S.crew[i]),n=C.length||1,on=C.filter(m=>m.mode==="duty").length,sl=C.filter(m=>m.mode==="sleep").length,sk=C.filter(m=>m.sick).length,av=C.reduce((a,m)=>a+m.mo,0)/n;
   return`${C.length} here · ${on} on watch · ${sl} asleep · ${sk} sick · spirits ${pcx(av)}`;}
 function crewCard(){let h="";const C=S.crew;
@@ -6439,8 +6518,8 @@ function boot(){
  const rcast=new THREE.Raycaster();
  const tapAt=(cx,cy)=>{if(!M.R||!M.fig)return -2;const r=M.R.renderer.domElement.getBoundingClientRect();
    rcast.setFromCamera({x:((cx-r.left)/r.width)*2-1,y:-((cy-r.top)/r.height)*2+1},M.R.camera);M.fig.updateMatrixWorld(true);
-   const h=rcast.intersectObject(M.fig)[0];if(h&&h.instanceId!=null){pickMan(h.instanceId);return h.instanceId;}
-   let best=-1,bd=18;const mm=new THREE.Matrix4(),v=new THREE.Vector3();for(let i=0;i<M.fig.count;i++){M.fig.getMatrixAt(i,mm);if(mm.elements[0]===0)continue;v.setFromMatrixPosition(mm);v.y+=.7;v.applyMatrix4(M.fig.matrixWorld).project(M.R.camera);if(v.z>1)continue;
+   const h=rcast.intersectObjects(M.pick||[M.fig])[0];if(h&&h.instanceId!=null){pickMan(h.instanceId);return h.instanceId;}
+   let best=-1,bd=18;const v=new THREE.Vector3();for(let i=0;i<M.fig.count;i++){if(!M.fon||!M.fon[i]||!M.pos||!M.pos[i])continue;v.set(M.pos[i][0],M.pos[i][1]+.7,M.pos[i][2]);v.applyMatrix4(M.fig.matrixWorld).project(M.R.camera);if(v.z>1)continue;
     const d=Math.hypot(r.left+(v.x*.5+.5)*r.width-cx,r.top+(1-(v.y*.5+.5))*r.height-cy);if(d<bd){bd=d;best=i;}}
    if(best>=0){pickMan(best);return best;}return -1;};window.__CUTtap=tapAt;
  const up=e=>{const p=ptr.get(e.pointerId);ptr.delete(e.pointerId);
