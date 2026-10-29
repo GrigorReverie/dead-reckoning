@@ -2900,7 +2900,7 @@ function init3D(){
   try{
     if(typeof THREE==="undefined")throw new Error("three.js did not load");
     const renderer=new THREE.WebGLRenderer({canvas:v3c,antialias:true});
-    renderer.setPixelRatio(Math.min(1.75,window.devicePixelRatio||1));
+    renderer.setPixelRatio(Math.min(matchMedia("(max-width:860px)").matches?1.5:1.75,window.devicePixelRatio||1)); // phones draw the 3D view a little less sharp to save work
     const scene=new THREE.Scene();scene.fog=new THREE.Fog(0xf2e4b9,500,60000);
     const camera=new THREE.PerspectiveCamera(55,1,3,130000);
     const U={uPaper:{value:new THREE.Color()},uInk:{value:new THREE.Color()},uSeaInk:{value:new THREE.Color()},uSeaStyle:{value:1},uFogNear:{value:500},uFogFar:{value:60000},
