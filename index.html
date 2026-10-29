@@ -5688,7 +5688,7 @@ window.__DR={cam:()=>R3,footAt,PF,portGeom,openPortCard,openPortPlan,tideLvl,tid
 <script>
 /* Layout editor: Menu > Edit layout. Moves/resizes the real controls with CSS translate/scale, saved on this device. */
 (()=>{
-const LAYOUT_EDITOR=false; // switched off in the live game; set true to bring Menu > Edit layout back (saved positions stay in localStorage drLayout.v1)
+const LAYOUT_EDITOR=true; // switched off in the live game; set true to bring Menu > Edit layout back (saved positions stay in localStorage drLayout.v1)
 if(!LAYOUT_EDITOR)return;
 const $=id=>document.getElementById(id),KEY="drLayout.v1";
 const cls=()=>matchMedia("(max-width:860px)").matches?"phone":"desk";
