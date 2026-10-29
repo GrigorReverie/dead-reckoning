@@ -111,6 +111,13 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-
 .pane.small{left:12px;top:12px;width:min(210px,32%);height:150px;z-index:4;border:2px solid var(--ink);box-shadow:0 6px 20px rgba(18,36,90,.3)}
 .pane canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 #hud{pointer-events:none}
+.fsbar{position:absolute;left:12px;bottom:12px;z-index:7;display:flex;gap:8px;padding:4px;transition:opacity .6s}.pane.small .fsbar{display:none}
+.fsb{width:38px;height:38px;padding:0;display:flex;align-items:center;justify-content:center;background:transparent;color:var(--ink);border:1px solid var(--ink);border-radius:6px;box-shadow:none;cursor:pointer;-webkit-tap-highlight-color:transparent}.fsb svg{stroke-width:1.6}.fsb[aria-pressed="true"]{border-width:3px}.fsb[aria-pressed="true"] svg{stroke-width:2.4}
+.fsopt,.fsb .fsout{display:none}body.fs3d .fsopt{display:flex}body.fs3d .fsb .fsout{display:inline}body.fs3d .fsb .fsin{display:none}#fsBtn[aria-pressed="true"]{border-width:1px}#fsBtn[aria-pressed="true"] svg{stroke-width:1.6}
+.fsbar.dim{opacity:.06}
+body.fs3d #paneV3{position:fixed!important;left:0!important;top:0!important;right:0!important;bottom:0!important;width:auto!important;height:auto!important;z-index:9000!important;margin:0!important;border:0!important;transform:none!important}
+body.fs3d #paneV3>*:not(#view3d):not(#hud):not(#fsBar){display:none!important}
+body.fs3d #fsBar{left:max(12px,env(safe-area-inset-left,0px));bottom:max(12px,env(safe-area-inset-bottom,0px))}
 #view3d{touch-action:none;cursor:grab;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}#view3d.drag{cursor:grabbing}
 .swapbtn{position:absolute;left:4px;bottom:4px;width:28px;height:28px;background:var(--paper);border:1px solid var(--ink);color:var(--ink);font-size:15px;line-height:1;border-radius:2px;z-index:3}
 .pane.big .swapbtn{display:none}
@@ -469,6 +476,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-
         <div class="ptools" id="paneTools"><button type="button" class="tbicon" id="bView" title="Swap the 3D view and the chart (M)" aria-label="Swap the 3D view and the chart"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M3 8h4l1.5-2.5h7L17 8h4v11H3z"/><circle cx="12" cy="13.5" r="3.6"/></svg></button><button type="button" class="tbicon" id="bShip" aria-pressed="false" title="The ship: cutaway, crew quarters and watches" aria-label="The ship: cutaway, crew quarters and watches"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M2.5 16.5h19l-3 4.5h-13z"/><path d="M8 16V3.500M16 16V6"/><path d="M8 5h-4.500v8H8M8 5h3.500v8H8M16 8h-3.500v6H16M16 8h3.500v6H16" stroke-width="1.2"/></svg></button></div>
         <canvas id="view3d" aria-label="3D view from the ship"></canvas>
         <canvas id="hud"></canvas>
+        <div class="fsbar" id="fsBar"><button type="button" class="fsb" id="fsBtn" aria-pressed="false" title="Full screen 3D view" aria-label="Full screen 3D view"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path class="fsin" d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/><path class="fsout" d="M9 4v5H4M20 9h-5V4M15 20v-5h5M4 15h5v5"/></svg></button><button type="button" class="fsb fsopt" id="fsWater" aria-pressed="true" title="Water grid on or off" aria-label="Water grid"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17c2-1.500 4-1.500 6 0s4 1.500 6 0 4-1.500 6 0"/><path d="M3 12.500l18 0M8 7l-1.500 10M16 7l1.500 10M5 7h14"/></svg></button><button type="button" class="fsb fsopt" id="fsSky" aria-pressed="true" title="Sky grid on or off" aria-label="Sky grid"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 19a9 9 0 0 1 18 0z"/><path d="M6.500 13.500h11M12 10v9M8 11l-1.500 8M16 11l1.500 8"/></svg></button></div>
         <div class="compassbox" id="compassBox"><button type="button" class="cbtog" id="cbBtn" aria-expanded="true" aria-label="Compass" title="Collapse or expand the compass"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"><circle cx="12" cy="12" r="9.500"/><path d="M12 5.500l2.600 6.500-2.600 6.500-2.600-6.500z"/></svg></button><div class="cbrow"><canvas id="baro" width="120" height="500" aria-label="The glass: a barometer showing the pressure, its trend and what it means" title="The glass (barometer)"></canvas><canvas id="dial" width="480" height="480" aria-label="Compass with the ship, the wind and the sails" title="Compass. Click the outer card to steer; click inside the inner ring to point the sails."></canvas><canvas class="sailg" id="sailSteps5" width="120" height="500" role="slider" aria-label="Sail set for all sails: tap or drag to set" title="Sail set: tap or drag"></canvas></div></div>
         <button class="ctog ptog" data-pane="paneV3" aria-expanded="true" title="Collapse or expand">–</button><button class="swapbtn" id="swap1" title="Make this the main view (M)">⤢</button><span class="plabel">3D view</span>
       </div>
@@ -1374,6 +1382,9 @@ function assistStep(s,dt,w){
     if(crossFix())plotFix();
   }
 }
+// full-screen 3D view: only the view itself, with its own water grid and sky grid switches (remembered; the grids always show outside this mode)
+const FS3=(()=>{let g={water:true,sky:true};try{Object.assign(g,JSON.parse(localStorage.getItem("dr.fs3grids")||"{}"));}catch(e){}
+  return{on:false,g,save(){try{localStorage.setItem("dr.fs3grids",JSON.stringify(g));}catch(e){}},waterOn(){return!this.on||g.water;},skyOn(){return!this.on||g.sky;}};})();
 const ASSIST_IDS=["aSail","aCrew","aNoon","aFix","bosun","mateLog","aSky"];
 function initAssists(){
   $("aBosunSlot").append($("bosun").closest("label"));$("aLogSlot").append($("mateRow"));$("aPeekSlot").append($("peekWrap"));
@@ -2665,7 +2676,7 @@ void main(){
 }`;
 const FS_SEA=`
 precision highp float;
-uniform vec3 uPaper,uInk,uSeaInk,uSunW; uniform float uFogNear,uFogFar,uAmpTotal,uSeaStyle; uniform vec2 uOff; uniform vec4 uWave[4];
+uniform vec3 uPaper,uInk,uSeaInk,uSunW; uniform float uFogNear,uFogFar,uAmpTotal,uSeaStyle,uGridOn; uniform vec2 uOff; uniform vec4 uWave[4];
 varying vec3 vPos; varying vec3 vN; varying float vH; uniform vec3 uCutC,uCutN,uCutB,uCutBox,uCutE; uniform float uCutOn;
 ${GLSL_LINES}
 ${SH_UH}
@@ -2748,7 +2759,7 @@ void main(){
       float gF=max(aaLine(q.x/10.0,gw),aaLine(q.y/10.0,gw))*(1.0-smoothstep(90.0,330.0,dist));
       float gM=max(aaLine(q.x/100.0,gw*0.62),aaLine(q.y/100.0,gw*0.62))*(1.0-smoothstep(500.0,1800.0,dist));
       float gX=max(aaLine(q.x/500.0,gw*0.62),aaLine(q.y/500.0,gw*0.62))*(1.0-smoothstep(2500.0,7000.0,dist));
-      float gridv=max(gF*0.15,max(gM*0.2,gX*0.2));
+      float gridv=max(gF*0.15,max(gM*0.2,gX*0.2))*uGridOn;
       // darker flat wash filling the moving contour outlines of the swell: one tone inside the first outline, a deeper one inside the next, and the second hatching direction only in the deepest
       float cf=vH*2.4+fbm(q*0.05)*0.8, cfade=1.0-smoothstep(900.0,5000.0,dist);
       float in1=(1.0-smoothstep(0.0,0.04,cf-1.0))*cfade, in2=(1.0-smoothstep(0.0,0.04,cf))*cfade;
@@ -2903,7 +2914,7 @@ function init3D(){
     renderer.setPixelRatio(Math.min(matchMedia("(max-width:860px)").matches?1.5:1.75,window.devicePixelRatio||1)); // phones draw the 3D view a little less sharp to save work
     const scene=new THREE.Scene();scene.fog=new THREE.Fog(0xf2e4b9,500,60000);
     const camera=new THREE.PerspectiveCamera(55,1,3,130000);
-    const U={uPaper:{value:new THREE.Color()},uInk:{value:new THREE.Color()},uSeaInk:{value:new THREE.Color()},uSeaStyle:{value:1},uFogNear:{value:500},uFogFar:{value:60000},
+    const U={uGridOn:{value:1},uPaper:{value:new THREE.Color()},uInk:{value:new THREE.Color()},uSeaInk:{value:new THREE.Color()},uSeaStyle:{value:1},uFogNear:{value:500},uFogFar:{value:60000},
       uDpr:{value:renderer.getPixelRatio()},uLight:{value:new THREE.Vector3(0,1,0)},uSunW:{value:new THREE.Vector3(0,1,0)},uCutC:{value:new THREE.Vector3()},uCutN:{value:new THREE.Vector3(1,0,0)},uCutR:{value:0},uCutOn:{value:0},uCutTop:{value:99},uCutB:{value:new THREE.Vector3(0,0,1)},uCutBox:{value:new THREE.Vector3(-6.5,8,13)},uCutSl:{value:1},uGhost:{value:1},uCutE:{value:new THREE.Vector3(5,26,0)}};
     // sun's-eye depth map of the ship, drawn once a frame; the ship and the sea both read it for shadows
     const SMS=(window.matchMedia&&matchMedia("(pointer:coarse)").matches)?1024:2048;
@@ -4264,7 +4275,7 @@ function updateSky(R,alt,lh,di,pa,pf,cover,sq,sunDir,lat){
   const dk=x=>skyMix(x,x.map(v=>v*0.28),D);
   {const ng=1-.45*(1-D);S_.gu.uCol.value.set(...dk(skyHex(K.gridCol)).map(v=>v*ng));S_.lu.uCol.value.set(...dk(skyHex(K.lineCol)).map(v=>v*ng));}
   const chart=$("aSky").checked;
-  S_.on=chart;S_.grid.visible=chart;S_.lines.visible=chart;R.horizon.visible=false; // the tuned look has no horizon line
+  S_.on=chart;S_.grid.visible=chart&&FS3.skyOn();R.U.uGridOn.value=FS3.waterOn()?1:0;S_.lines.visible=chart;R.horizon.visible=false; // the tuned look has no horizon line
   /* stars */
   const lam=0.9856*(69+di-80)*D2R,sra=((Math.atan2(Math.cos(SKY_EPS)*Math.sin(lam),Math.cos(lam))*R2D/15)+24)%24;
   const LST=((sra+lh-12)%24+24)%24;
@@ -4314,7 +4325,7 @@ function skyLabels(c,R,W,H){
   // grid numbers
   const gc=day(K.gridCol),gf=`${K.gridLabSize}px 'IBM Plex Mono',monospace`,la=Math.min(1,K.gridBoldOp+0.4);
   const laz=Math.round(R.camBrg/K.azStep)*K.azStep+K.azStep*0.5;
-  if(K.gridLab){
+  if(K.gridLab&&FS3.skyOn()){
   for(let alt=K.altStep;alt<90;alt+=K.altStep){const p=scr(laz,alt);if(on(p))put(alt+"°",p[0],p[1],gf,gc,la,"center");}
   for(let i=0;i<Math.round(360/K.azStep);i+=K.azBold){const az=i*K.azStep,p=scr(az,3.5);if(on(p))put(az+"°",p[0],p[1],gf,gc,la,"center");}
   }
@@ -6000,6 +6011,24 @@ dl.addEventListener("click",e=>{if(!S)return;const r=dl.getBoundingClientRect();
     const hint=()=>say("This browser will not go full screen from here. On an iPhone, open the page's Share menu and choose Add to Home Screen, or open the game in its own tab.",{log:false});
     try{if(isFs()){ext.call(document);}else if(req){const pr=req.call(de);if(pr&&pr.catch)pr.catch(hint);}else hint();}catch(e){hint();}};
   document.addEventListener("fullscreenchange",lab);document.addEventListener("webkitfullscreenchange",lab); }
+{ const bar=$("fsBar"),btn=$("fsBtn"),de=document.documentElement,isFs=()=>!!(document.fullscreenElement||document.webkitFullscreenElement);let tmr=0,skip=false;
+  const wake=()=>{bar.classList.remove("dim");clearTimeout(tmr);if(FS3.on)tmr=setTimeout(()=>bar.classList.add("dim"),3500);};
+  const sync=()=>{$("fsWater").setAttribute("aria-pressed",String(FS3.g.water));$("fsSky").setAttribute("aria-pressed",String(FS3.g.sky));btn.setAttribute("aria-pressed",String(FS3.on));
+    btn.title=FS3.on?"Leave the full-screen view (Esc)":"Full screen 3D view";btn.setAttribute("aria-label",FS3.on?"Leave the full-screen view":"Full screen 3D view");};
+  const set=on=>{if(FS3.on===on)return;FS3.on=on;document.body.classList.toggle("fs3d",on);sync();wake();
+    try{if(on){const rq=de.requestFullscreen||de.webkitRequestFullscreen;if(rq&&!isFs()){const pr=rq.call(de);if(pr&&pr.catch)pr.catch(()=>{});}}
+      else if(isFs()){const ex=document.exitFullscreen||document.webkitExitFullscreen;if(ex){const pr=ex.call(document);if(pr&&pr.catch)pr.catch(()=>{});}}}catch(e){} // no browser full screen (an iPhone): the game's own panels still go away
+    setTimeout(()=>{try{resize3D();}catch(e){}},60);setTimeout(()=>{try{resize3D();}catch(e){}},400);};
+  // once faded, the first tap on the corner only brings the switches back
+  bar.addEventListener("pointerdown",()=>{skip=bar.classList.contains("dim");wake();},true);
+  bar.addEventListener("click",e=>{if(skip){skip=false;e.stopPropagation();e.preventDefault();}},true);
+  btn.onclick=()=>set(!FS3.on);
+  $("fsWater").onclick=()=>{FS3.g.water=!FS3.g.water;FS3.save();sync();};
+  $("fsSky").onclick=()=>{FS3.g.sky=!FS3.g.sky;FS3.save();sync();};
+  const fsc=()=>{if(!isFs()&&FS3.on&&FS3.fsWas)set(false);FS3.fsWas=isFs();};
+  document.addEventListener("fullscreenchange",fsc);document.addEventListener("webkitfullscreenchange",fsc);
+  addEventListener("keydown",e=>{if(e.key==="Escape"&&FS3.on)set(false);},true);
+  sync(); }
 function fillHelpIcons(){
   const box=$("helpIcons");box.textContent="";
   const hh=t=>{const d=document.createElement("div");d.className="hh";d.textContent=t;box.append(d);};
