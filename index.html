@@ -336,7 +336,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-
   .shipv .sheet{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto;align-content:start}
   /* the five icons sit in a bottom menu bar, evenly spaced, each with its name */
   #tabbar{display:block;position:fixed;left:0;right:0;bottom:0;height:calc(var(--ic) + 30px + env(safe-area-inset-bottom,0px));background:var(--paper);border-top:1px solid var(--ink);z-index:14}
-  html,body{background:var(--paper)}.app{height:100dvh}#tabbar::after{content:"";position:absolute;left:0;right:0;top:100%;height:200px;background:var(--paper)} /* no darker band under the menu bar, whatever the browser leaves below the page */
+  html,body{background:var(--paper)}.app{height:var(--app-h,100dvh)}#tabbar::after{content:"";position:absolute;left:0;right:0;top:100%;height:200px;background:var(--paper)} /* no darker band under the menu bar, whatever the browser leaves below the page */
   #tabbar span{position:absolute;bottom:calc(env(safe-area-inset-bottom,0px) + 6px);transform:translateX(-50%);font:10px/1 var(--f-data);letter-spacing:.06em;text-transform:uppercase;color:var(--ink-soft)}
   .ptools .tbicon,.bookbtn,.shipchart,#paneChart.small,#ctlIcon{bottom:calc(env(safe-area-inset-bottom,0px) + 22px)!important;border-color:transparent!important;background:transparent!important;box-shadow:none!important;border-radius:6px}
   .ptools .tbicon[aria-pressed="true"],.bookbox.open .bookbtn,#ctlIcon[aria-pressed="true"]{background:var(--ink)!important;color:var(--paper)!important}
@@ -6270,7 +6270,7 @@ function makeLabels(){const f=(y,a,b)=>M.fr(y,a,b),m=(y,a,b)=>(f(y,a,b)[0]+f(y,a
   return[
    [0,["Wheel","& binnacles"],[0,deck(-21.5)+1.6,-21.5],1,0],[0,["Launch","& cutter"],[-.2,deck(7)+1.9,7],0,1],[0,["Carronades"],[-hx(-8,6)+.7,deck(-8)+.9,-8],0,2],[0,["Capstan"],[0,deck(-9)+1.3,-9],0,3],[0,["Hatches"],[-.6,deck(-4)+.3,-4],0,4],[0,["Galley","funnel"],[-1.4,deck(14)+2.1,14],0,5],
    [1,["Captain's","cabin"],[-1.8,YG+1.1,m(YG,0,.14)],1,0],[1,["24-pounders"],[-hx(0,YG+.9)+1.6,YG+1.0,0],1,1],[1,["Mess","tables"],[-.4,YG+.6,m(YG,.28,.42)],0,2],[1,["Manger"],[-1.2,YG+1.0,m(YG,.92,1)],0,3],
-   [2,["Wardroom"],[-2.2,YB+.9,m(YB,0,.17)],0,0],[2,["Steerage"],[-2.5,YB+.7,m(YB,.17,.25)],0,1],[2,["Hammocks","· 450 men"],[-1.5,YB+1.6,m(YB,.4,.5)],1,2],[2,["Galley","stove"],[-1.5,YB+1.2,m(YB,.75,.75)+1.5],0,3],[2,["Sick bay"],[-1.6,YB+.8,m(YB,.88,1)],0,4],
+   [2,["Wardroom"],[-2.2,YB+.9,m(YB,0,.17)],0,0],[2,["Steerage"],[-2.5,YB+.7,m(YB,.17,.25)],0,1],[2,["Hammocks"],[-1.5,YB+1.6,m(YB,.4,.5)],1,2],[2,["Galley","stove"],[-1.5,YB+1.2,m(YB,.75,.75)+1.5],0,3],[2,["Sick bay"],[-1.6,YB+.8,m(YB,.88,1)],0,4],
    [3,["Bread","room"],[-1.2,YO+1.0,m(YO,0,.15)],0,0],[3,["Magazine"],[-1.8,YO+1.0,m(YO,.15,.25)],1,1],[3,["Cable tier","& stores"],[-1.6,YO+1.2,m(YO,.25,.75)],0,2],[3,["Fore","magazine"],[-1.6,YO+.8,m(YO,.75,.88)],0,3],[3,["Boatswain's","store"],[-1.0,YO+1.0,m(YO,.88,1)],0,4],
    [4,["Water casks"],[-2.0,YH+1.1,-8],1,0],[4,["Shot","locker"],[-3.2,YH+1.3,-8],0,1],[4,["Ballast"],[-1.4,YH+.8,-14],0,2],[4,["Chain","pump"],[-.4,YH+2.0,-4],0,3]];}
 /* ---------- camera ---------- */
@@ -6365,20 +6365,22 @@ const root=document.createElement("div");root.id="cutUI";root.style.display="non
 root.innerHTML=`<svg id="cutSvg"></svg><div id="cutChips"></div><div id="cutCard"></div>`;document.body.append(root);
 const svg=root.querySelector("#cutSvg"),chips=root.querySelector("#cutChips"),card=root.querySelector("#cutCard");
 const NSV="http://www.w3.org/2000/svg";
-function mkChips(){chips.innerHTML=`<button data-s="-1">All</button>`+DECKS.map((d,i)=>`<button data-s="${i}">${["Upper","Gun","Berth","Orlop","Hold"][i]}</button>`).join("")+`<button id="cutRe" title="Fly the camera in again">⟲</button><button id="cutFlip" title="Show the other side of her">Side</button><button id="cutLed" title="Stores, jobs and the watch bill">Ledger</button>`;
+const IC=p=>`<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">${p}</svg>`;
+const CI={a:IC('<path d="M3 8l9-4 9 4-9 4z"/><path d="M3 12l9 4 9-4"/><path d="M3 16l9 4 9-4"/>'),0:IC('<path d="M3 15h18"/><path d="M8 15V5M16 15V8"/><path d="M8 6h6" stroke-width="1.2"/>'),1:IC('<path d="M3 11h18"/><path d="M3 18h18"/><circle cx="7" cy="14.5" r="1.4"/><circle cx="12" cy="14.5" r="1.4"/><circle cx="17" cy="14.5" r="1.4"/>'),2:IC('<path d="M3 8h18"/><path d="M5 8q7 10 14 0"/><path d="M3 20h18"/>'),3:IC('<path d="M3 9h18"/><path d="M3 19h18"/><rect x="6" y="11" width="4" height="6" rx="1"/><rect x="13" y="11" width="5" height="6" rx="1"/>'),4:IC('<path d="M3 20h18"/><path d="M5 20q7-8 14 0"/><path d="M12 12v4"/>'),r:IC('<path d="M5 12a7 7 0 1 0 2.5-5.4"/><path d="M5 4v4h4"/>'),f:IC('<path d="M4 9h13l-3-3M20 15H7l3 3"/>'),l:IC('<path d="M4 5h6a3 3 0 0 1 2 1 3 3 0 0 1 2-1h6v13h-6a3 3 0 0 0-2 1 3 3 0 0 0-2-1H4z"/><path d="M12 6v13"/>')};
+function mkChips(){chips.innerHTML=`<button data-s="-1" title="All decks" aria-label="All decks">${CI.a}</button>`+DECKS.map((d,i)=>`<button data-s="${i}" title="${d.name}" aria-label="${d.name}">${CI[i]}</button>`).join("")+`<button id="cutRe" title="Reset the view" aria-label="Reset the view">${CI.r}</button><button id="cutFlip" title="Show the other side of her" aria-label="Other side">${CI.f}</button><button id="cutLed" title="Stores, jobs and the watch bill" aria-label="Ledger">${CI.l}</button>`;
   chips.querySelectorAll("button[data-s]").forEach(b=>b.onclick=()=>sel(+b.dataset.s));chips.querySelector("#cutRe").onclick=()=>{M.cur=null;M.sel=-1;M.man=-1;M.dirty=true;M.pan=0;M.uaz=M.upt=M.uly=0;M.uz=1;paint();};chips.querySelector("#cutFlip").onclick=()=>{M.flip=!M.flip;M.cur=null;};chips.querySelector("#cutLed").onclick=()=>{M.ledger=true;};}
 function sel(i){M.sel=(M.sel===i&&i>=0)?-1:i;M.hi=-1;M.man=-1;M.dirty=true;M.res="";M.pan=0;paint();}
 function paint(){chips.querySelectorAll("button[data-s]").forEach(b=>b.classList.toggle("on",+b.dataset.s===M.sel));
   if(M.sel<0)card.innerHTML=`<h3>USS Constitution</h3>${crewCard()}<p>Tap a deck, a label or a man.</p>`;
-  else{const d=DECKS[M.sel];card.innerHTML=`<h3>${d.name}</h3><div class="crm">${d.rooms.map((r,k)=>`<button class="rb${k===M.hi?" hi":""}" data-r="${k}">${r[0]}${M.grp&&M.grp[M.sel*10+k]?" ("+M.grp[M.sel*10+k].length+")":""}</button>`).join("")}</div>${M.hi>=0?`<div class="rd">${d.rooms[M.hi][1]}</div>${crewCard()}<div class="ra">${ACT[M.sel][M.hi].map((t,i)=>`<button type="button" data-a="${i}"${i===3?' class="risk"':""}><b>${["Chore","Drill","Morale","Risk"][i]}</b> ${t}</button>`).join("")}</div>${M.res?`<div class="rr">${M.res}</div>`:""}`:""}`;
-    card.querySelectorAll(".rb").forEach(r=>r.onclick=()=>{M.hi=(M.hi===+r.dataset.r)?-1:+r.dataset.r;M.res="";M.man=-1;M.dirty=true;paint();});card.querySelectorAll(".ra button").forEach(b=>b.onclick=()=>doAct(M.sel,M.hi,+b.dataset.a));crewBind();}
+  else{const d=DECKS[M.sel];card.innerHTML=`<h3>${d.name}</h3>${M.hi>=0?`<div class="rd">${d.rooms[M.hi][1]}</div>${crewCard()}<div class="ra">${ACT[M.sel][M.hi].map((t,i)=>`<button type="button" data-a="${i}"${i===3?' class="risk"':""}><b>${["Chore","Drill","Morale","Risk"][i]}</b> ${t}</button>`).join("")}</div>${M.res?`<div class="rr">${M.res}</div>`:""}`:""}`;
+    card.querySelectorAll(".ra button").forEach(b=>b.onclick=()=>doAct(M.sel,M.hi,+b.dataset.a));crewBind();}
   card.classList.toggle("tall",M.sel>=0);}
 let labelEls=null;
 function labels(){const R=M.R;if(!R||!M.built||!M.on){if(!M.on&&labelEls)labelEls.forEach(e=>e.g.style.display="none");requestAnimationFrame(labels);return;}
   const rc=R.renderer.domElement.getBoundingClientRect(),W=innerWidth,H2=innerHeight;svg.setAttribute("viewBox",`0 0 ${W} ${H2}`);
   if(!labelEls){labelEls=M.labels.map(l=>{const g=document.createElementNS(NSV,"g");g.setAttribute("class","cl");const pl=document.createElementNS(NSV,"polyline"),dot=document.createElementNS(NSV,"circle"),rc2=document.createElementNS(NSV,"rect"),tx=document.createElementNS(NSV,"text");dot.setAttribute("r","2.6");
-      tx.textContent=l[1].join(" ").replace(/ · /g," ");rc2.setAttribute("height","16");rc2.setAttribute("rx","2");g.append(pl,dot,rc2,tx);
-      g.onclick=()=>{if(M.sel===l[0]&&M.hi===l[4]){M.hi=-1;}else{M.sel=l[0];M.hi=l[4];}M.man=-1;M.dirty=true;paint();};svg.append(g);return{g,pl,dot,rc:rc2,tx,l,w:tx.textContent.length*5.3+10};});}
+      tx.textContent=l[1].join(" ").replace(/ · /g," ");const base=tx.textContent;rc2.setAttribute("height","16");rc2.setAttribute("rx","2");g.append(pl,dot,rc2,tx);g.dataset.lv=l[0];
+      g.onclick=()=>{if(M.sel===l[0]&&M.hi===l[4]){M.hi=-1;}else{M.sel=l[0];M.hi=l[4];}M.man=-1;M.dirty=true;paint();};svg.append(g);return{g,pl,dot,rc:rc2,tx,l,base,w:tx.textContent.length*5.3+10};});}
   R.bob.updateMatrixWorld(true);R.camera.updateMatrixWorld();
   const cardTop=card.getBoundingClientRect().top;
   const act=labelEls.filter(e=>{const l=e.l;const show=M.sel<0?l[3]===1:l[0]===M.sel;e.g.style.display=show?"":"none";return show;});
@@ -6386,6 +6388,7 @@ function labels(){const R=M.R;if(!R||!M.built||!M.on){if(!M.on&&labelEls)labelEl
   act.forEach((e,n)=>{const l=e.l,side=n<half?0:1,k=side?n-half:n,c=cnt[side],slot=(bot-top)/c;
     _v.set(M.flip?-l[2][0]:l[2][0],l[2][1],l[2][2]).applyMatrix4(R.bob.matrixWorld).project(R.camera);
     const ax=rc.left+(_v.x*.5+.5)*rc.width,ay=rc.top+(1-(_v.y*.5+.5))*rc.height;
+    { const n=M.grp&&M.grp[l[0]*10+l[4]]?M.grp[l[0]*10+l[4]].length:0,t=e.base+(n?" "+n:"");if(e.tx.textContent!==t){e.tx.textContent=t;e.w=t.length*5.3+10;} }
     e.g.classList.toggle("sel",M.sel===l[0]&&M.hi===l[4]);
     const ty=top+(k+.5)*slot-8,bx=side?W-6-e.w:6;
     e.rc.setAttribute("x",bx);e.rc.setAttribute("y",ty);e.rc.setAttribute("width",e.w);
@@ -6619,6 +6622,18 @@ window.__drEdit={enter,leave,E,L,go};
 </script>
 </div>
 <script>if("serviceWorker" in navigator&&location.protocol.startsWith("http"))window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
+<script>
+/* phones: size the app to the true screen height, so the bottom bar sits flush without a drag */
+(function(){const de=document.documentElement,mq=matchMedia("(max-width:860px)");
+ const st=()=>navigator.standalone===true||matchMedia("(display-mode: standalone)").matches;
+ function fixH(){if(!mq.matches){de.style.removeProperty("--app-h");return;}
+  let h=Math.max(innerHeight,de.clientHeight,(window.visualViewport?visualViewport.height:0));
+  if(st()){const p=Math.max(screen.width,screen.height),q=Math.min(screen.width,screen.height),sh=innerWidth<innerHeight?p:q;if(sh>h&&sh-h<140)h=sh;}
+  de.style.setProperty("--app-h",h+"px");}
+ fixH();["resize","orientationchange","pageshow","focus","load"].forEach(e=>addEventListener(e,()=>{fixH();setTimeout(fixH,120);setTimeout(fixH,600);}));
+ if(window.visualViewport)visualViewport.addEventListener("resize",fixH);
+ addEventListener("touchstart",fixH,{once:true,passive:true});[150,500,1200,2500].forEach(t=>setTimeout(fixH,t));})();
+</script>
 <style>#cutUI{position:fixed;inset:0;pointer-events:none;z-index:30;font-family:"IM Fell English",Georgia,serif}
 #cutSvg{position:absolute;inset:0;width:100%;height:100%}
 #cutSvg .cl{pointer-events:auto;cursor:pointer}
@@ -6668,4 +6683,7 @@ body.cutmode #view3d{touch-action:none}
 #cutCard .ra{list-style:none;margin:4px 0 0;padding:0}#cutCard .ra li{font:12px Georgia,serif;line-height:1.3;padding:2px 0;border-top:1px dotted #cbbd98}#cutCard .ra b{font:10px "IBM Plex Mono",monospace;text-transform:uppercase;letter-spacing:.06em;color:#7b6a55;margin-right:5px}#cutCard .ra .risk b{color:#a83b2f}
 #cutCard .ra{display:flex;flex-direction:column;gap:3px;margin-top:5px}#cutCard .ra button{text-align:left;font:12px Georgia,serif;line-height:1.3;padding:4px 6px;border:1px solid #2e2519;border-radius:3px;background:#fff;color:#000}#cutCard .ra button.risk{border-color:#a83b2f}#cutCard .ra button b{font:10px "IBM Plex Mono",monospace;text-transform:uppercase;letter-spacing:.06em;color:#7b6a55;margin-right:5px}#cutCard .ra button.risk b{color:#a83b2f}#cutCard .rr{margin-top:5px;font:italic 12.5px Georgia,serif;color:#2e2519}
 #cutCard{max-height:46vh;overflow:auto}#cutCard .mc{margin-top:6px;border-top:1px dotted #cbbd98;padding-top:5px;font:12.5px Georgia,serif}#cutCard .mc .svhint{font:11.5px Georgia,serif;color:#4a3f30;margin-top:2px}#cutCard .mb{display:flex;gap:5px;margin-top:5px}#cutCard .mb button{font:12px Georgia,serif;padding:4px 8px;border:1px solid #000;border-radius:3px;background:#fff;color:#000}
+#cutChips{justify-content:space-between;gap:2px}#cutChips button{flex:1 1 0;max-width:var(--ic,44px);min-width:0;height:var(--ic,44px);padding:0;display:flex;align-items:center;justify-content:center;border:0;border-radius:6px;background:transparent;color:var(--ink,#2e2519)}#cutChips button svg{width:20px;height:20px}#cutChips button.on,#cutChips button:active{background:var(--ink,#2e2519);color:var(--paper,#f6eed9)}#cutChips #cutRe{margin-left:0}#cutChips #cutLed{border-style:solid}
+#cutSvg g[data-lv="0"] rect{fill:#ffc23d}#cutSvg g[data-lv="1"] rect{fill:#ff6b4a}#cutSvg g[data-lv="2"] rect{fill:#3fd6c4}#cutSvg g[data-lv="3"] rect{fill:#a78bfa}#cutSvg g[data-lv="4"] rect{fill:#4aa3ff}
+#cutSvg .sel rect{fill:#000!important}#cutSvg rect{stroke-width:1.4px}#cutSvg text{font-weight:600}
 </style></body></html>
