@@ -2160,7 +2160,7 @@ const SH_UH=Object.keys(SH).map(k=>{const v=SH[k];if(typeof v==="string"){const 
 uniform sampler2D u_SMap; uniform mat4 u_SMat; uniform float u_SSize,u_SRange,u_STex,u_ShadowOn,u_LightK;
 `;
 // Cloud shadows on the sea and the ship, from Grigor's Cloud Shadow Tuner settings of 2026-10-28. Each visible cloud sprite throws a soft ragged shadow along the sun's ray; the sun dims inside it.
-const CL={cRag:0.45,cCol:"#46617a",cStr:0.13,cSoft:77,cThick:0.57,cHType:1,cHCol:"#2a4150",cHOpac:0.8,cHSp:2.06,cHW:0.35,cHAng:50,cHGain:2.15,cHStart:0.19,cHCrossAng:90,cHCrossStart:0.18,cShipStr:0.45,cShipHatch:0.5,cDim:0.8,cLevel:0.54};
+const CL={cRag:0.2,cCol:"#46617a",cStr:0.2,cSoft:420,cThick:0.8,cHType:1,cHCol:"#2a4150",cHOpac:0.25,cHSp:2.06,cHW:0.35,cHAng:50,cHGain:2.15,cHStart:0.19,cHCrossAng:90,cHCrossStart:0.18,cShipStr:0.45,cShipHatch:0.5,cDim:0.8,cLevel:0.54};
 const CL_N=24;
 const CL_UH=Object.keys(CL).map(k=>{const v=CL[k];if(typeof v==="string"){const c=[1,3,5].map(i=>(parseInt(v.slice(i,i+2),16)/255).toFixed(4));return `const vec3 u_${k}=vec3(${c});`;}return `const float u_${k}=${(+v).toFixed(4)};`;}).join("\n")+`
 const vec2 u_cDir=vec2(${Math.cos(CL.cHAng*Math.PI/180).toFixed(5)},${Math.sin(CL.cHAng*Math.PI/180).toFixed(5)});
@@ -2248,13 +2248,10 @@ vec3 sunShade(vec3 col,vec3 nw,vec3 wp,vec2 hc){
     csh=shadowAt(wp+nw*u_sBias*0.6,u_sBias*(1.0+2.0*(1.0-clamp(lam,0.0,1.0))),u_selfSoft).x*u_castAmt*(1.0-form);
   }
   float shade=max(form*u_formAmt,csh)*u_LightK;
-  shade=mix(shade,u_cLevel*u_LightK,u_cDim*cs);
   col*=mix(vec3(1.0),u_shadeTint,clamp(shade*u_washAmt,0.0,1.0));
   float h=hatchP(hc,u_hType,u_hAng,u_hSp,u_hW,u_hGain,u_hStart,u_hCrossAng,u_hCrossStart,shade)*u_hOpac;
   col=mix(col,u_hCol,clamp(h,0.0,1.0));
-  col=mix(col,col*mix(vec3(1.0),u_cCol*1.55,0.8),cs*u_cShipStr);
-  float ch2=hatchP(cloudFld(wp)-u_cDir*u_cHSh,u_cHType>3.5?1.0:u_cHType,u_cHAng,u_cHSp,u_cHW,u_cHGain,u_cHStart,u_cHCrossAng,u_cHCrossStart,cs)*u_cHOpac*u_cShipHatch;
-  return mix(col,u_cHCol,clamp(ch2,0.0,1.0));
+  return col*(1.0-0.38*cs); // under cloud the whole ship simply darkens, no cast shape
 }`;
 const VS_INK=`
 attribute float aTone;
