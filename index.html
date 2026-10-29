@@ -6077,6 +6077,25 @@ const ACT=[
   ["Shift the ballast to trim her fore and aft","Hold a mock fire and flood drill in the dark","Add a round of shingle to steady her in the swell","Throw pigs overboard to lighten her over a bar"],
   ["Grease the chain pump and clear the well","Pump out for an hour to test the leak","Cheer the men at the pump with a shanty","Open a seam to find a hidden leak"]]
 ];
+
+const TAGS=[["rig","hull","guns","rig","hull","clean"],["clean","guns","clean","stores"],["clean","clean","clean","clean","clean"],["stores","powder","rig","powder","rig"],["stores","guns","hull","hull"]];
+const BADT={hull:"It goes wrong and a plank is sprung (hull -3%).",rig:"A line parts and the work must be done again (rigging -3%).",clean:"A hand takes a fever from the foul air.",stores:"Weevils and damp spoil some of the stores.",guns:"A gun carriage jumps and crushes a hand.",powder:"A spark in the dark scorches the hull (hull -4%)."};
+function doAct(lv,rm,i){
+  if(typeof S==="undefined"||!S||!S.crew)return;crewX(S);const T=S.stores,C=S.crew,tag=TAGS[lv][rm],name=ACT[lv][rm][i],key=lv+"."+rm+"."+i;
+  S.actT=S.actT||{};if(S.t-(S.actT[key]??-99)<8){say("The hands need a rest before that again.",{log:false});return;}
+  S.actT[key]=S.t;const all=f=>{for(const m of C)f(m);},mo=d=>all(m=>m.mo=Math.max(0,Math.min(1,m.mo+d))),one=d=>{const m=rnd(C.filter(x=>x.r!=="Captain"&&x.hp>.4));if(m){m.hp=Math.max(.1,m.hp+d);return m;}};
+  const clamp1=v=>Math.max(0,Math.min(1,v));let msg=name+". ",end="";
+  if(i===0){mo(-.01);
+    if(tag==="hull"){S.hull=clamp1(S.hull+.015);end="Hull +1.5%.";}
+    else if(tag==="rig"){S.ship.rig=clamp1(S.ship.rig+.02);end="Rigging +2%.";}
+    else if(tag==="clean"){mo(.03);const k=C.filter(m=>m.sick);for(const m of k)m.hp=clamp1(m.hp+.05);end="The air is sweeter; the sick mend a little.";}
+    else if(tag==="stores"){T.bis+=C.length*.4;end="Some sound biscuit is saved.";}
+    else{mo(.02);end="The work steadies the men.";}}
+  else if(i===1){all(m=>{if(m.r!=="Captain")m.sk=clamp1(m.sk+.012);});mo(-.02);end="The hands grow handier. Skill up a little, spirits down a little.";}
+  else if(i===2){const need=C.length*.03;if(T.rum>=need){T.rum-=need;mo(.07);end="A tot is served. Spirits lift.";}else{mo(.02);end="There is no rum to spare, but the hands are glad of the pause.";}}
+  else{if(Math.random()<.55){mo(.1);if(tag==="stores"){T.meat+=C.length*.5;end="A sound find in the stores. Spirits lift.";}else if(tag==="rig"){S.ship.rig=clamp1(S.ship.rig+.03);end="It goes better than hoped. Rigging +3%.";}else end="It goes better than expected. The hands cheer.";}
+    else{msg+="";if(tag==="hull"||tag==="powder")S.hull=clamp1(S.hull-(tag==="hull"?.03:.04));else if(tag==="rig")S.ship.rig=clamp1(S.ship.rig-.03);else if(tag==="stores"){T.bis*=.93;T.meat*=.96;}else one(-.3);mo(-.04);end=BADT[tag];}}
+  const hrs=[2,1,1,2][i];S.t+=hrs;msg+=end+` (${hrs} h)`;say(msg,{});try{updateUI(true);}catch(e){}M.res=msg;paint();}
 /* ---------- decks, rooms, labels ---------- */
 const DECKS=[
  {name:"Upper deck",sub:"helm · boats · carronades · capstan",look:5.4,
@@ -6291,11 +6310,11 @@ const svg=root.querySelector("#cutSvg"),chips=root.querySelector("#cutChips"),ca
 const NSV="http://www.w3.org/2000/svg";
 function mkChips(){chips.innerHTML=`<button data-s="-1">All</button>`+DECKS.map((d,i)=>`<button data-s="${i}">${["Upper","Gun","Berth","Orlop","Hold"][i]}</button>`).join("")+`<button id="cutRe" title="Fly the camera in again">⟲</button><button id="cutFlip" title="Show the other side of her">Side</button><button id="cutLed" title="Crew, watches and stores">Crew</button>`;
   chips.querySelectorAll("button[data-s]").forEach(b=>b.onclick=()=>sel(+b.dataset.s));chips.querySelector("#cutRe").onclick=()=>{M.cur=null;M.sel=-1;M.pan=0;M.uaz=M.upt=M.uly=0;M.uz=1;paint();};chips.querySelector("#cutFlip").onclick=()=>{M.flip=!M.flip;M.cur=null;};chips.querySelector("#cutLed").onclick=()=>{M.ledger=true;};}
-function sel(i){M.sel=(M.sel===i&&i>=0)?-1:i;M.hi=-1;M.pan=0;paint();}
+function sel(i){M.sel=(M.sel===i&&i>=0)?-1:i;M.hi=-1;M.res="";M.pan=0;paint();}
 function paint(){chips.querySelectorAll("button[data-s]").forEach(b=>b.classList.toggle("on",+b.dataset.s===M.sel));
   if(M.sel<0)card.innerHTML=`<h3>USS Constitution</h3><p>Tap a deck, or a label.</p>`;
-  else{const d=DECKS[M.sel];card.innerHTML=`<h3>${d.name}</h3><div class="crm">${d.rooms.map((r,k)=>`<button class="rb${k===M.hi?" hi":""}" data-r="${k}">${r[0]}</button>`).join("")}</div>${M.hi>=0?`<div class="rd">${d.rooms[M.hi][1]}</div><ul class="ra">${ACT[M.sel][M.hi].map((t,i)=>`<li${i===3?' class="risk"':""}><b>${["Chore","Drill","Morale","Risk"][i]}</b> ${t}</li>`).join("")}</ul>`:""}`;
-    card.querySelectorAll(".rb").forEach(r=>r.onclick=()=>{M.hi=(M.hi===+r.dataset.r)?-1:+r.dataset.r;paint();});}
+  else{const d=DECKS[M.sel];card.innerHTML=`<h3>${d.name}</h3><div class="crm">${d.rooms.map((r,k)=>`<button class="rb${k===M.hi?" hi":""}" data-r="${k}">${r[0]}</button>`).join("")}</div>${M.hi>=0?`<div class="rd">${d.rooms[M.hi][1]}</div><div class="ra">${ACT[M.sel][M.hi].map((t,i)=>`<button type="button" data-a="${i}"${i===3?' class="risk"':""}><b>${["Chore","Drill","Morale","Risk"][i]}</b> ${t}</button>`).join("")}</div>${M.res?`<div class="rr">${M.res}</div>`:""}`:""}`;
+    card.querySelectorAll(".rb").forEach(r=>r.onclick=()=>{M.hi=(M.hi===+r.dataset.r)?-1:+r.dataset.r;M.res="";paint();});card.querySelectorAll(".ra button").forEach(b=>b.onclick=()=>doAct(M.sel,M.hi,+b.dataset.a));}
   card.classList.toggle("tall",M.sel>=0);}
 let labelEls=null;
 function labels(){const R=M.R;if(!R||!M.built||!M.on){if(!M.on&&labelEls)labelEls.forEach(e=>e.g.style.display="none");requestAnimationFrame(labels);return;}
@@ -6581,4 +6600,5 @@ body.cutmode #view3d{touch-action:none}
 #cutSvg text{font-size:10.5px}
 #cutSvg polyline{stroke-width:.5px}#cutSvg circle{stroke-width:.8px}
 #cutCard .ra{list-style:none;margin:4px 0 0;padding:0}#cutCard .ra li{font:12px Georgia,serif;line-height:1.3;padding:2px 0;border-top:1px dotted #cbbd98}#cutCard .ra b{font:10px "IBM Plex Mono",monospace;text-transform:uppercase;letter-spacing:.06em;color:#7b6a55;margin-right:5px}#cutCard .ra .risk b{color:#a83b2f}
+#cutCard .ra{display:flex;flex-direction:column;gap:3px;margin-top:5px}#cutCard .ra button{text-align:left;font:12px Georgia,serif;line-height:1.3;padding:4px 6px;border:1px solid #2e2519;border-radius:3px;background:#fff;color:#000}#cutCard .ra button.risk{border-color:#a83b2f}#cutCard .ra button b{font:10px "IBM Plex Mono",monospace;text-transform:uppercase;letter-spacing:.06em;color:#7b6a55;margin-right:5px}#cutCard .ra button.risk b{color:#a83b2f}#cutCard .rr{margin-top:5px;font:italic 12.5px Georgia,serif;color:#2e2519}
 </style></body></html>
