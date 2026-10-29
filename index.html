@@ -3408,7 +3408,7 @@ function buildShip(R){
     ];R.lamps=lampSprites(R,bob,R.lamps); }
   R.ship=group;R.bob=bob;R.st=st;bowFx(R,group);
   // the brig's own measures for the sea, the crew, the lamps and the camera (the fleet builder sets the same from each ship's lines)
-  R.gen=null;R.hk=1;R.Z0=12.15;R.ZS=-12.1;R.bAt=z=>st[clamp(Math.round((z+12)/24*18),0,18)].b;R.taff=[-11.6,3.3];R.hawse=[12.3,2.2];R.camK=1;R.camY=1;R.notesG=null;R.faFoot={drv:[1.0,4.27,-8.4]};
+  R.gen=null;R.hk=1;R.Z0=12.15;R.ZS=-12.1;R.bAt=z=>st[clamp(Math.round((z+12)/24*18),0,18)].b;R.taff=[-11.6,3.3];R.eyeUp=1.7;R.hawse=[12.3,2.2];R.camK=1;R.camY=1;R.notesG=null;R.faFoot={drv:[1.0,4.27,-8.4]};
   { // the brig's sweeps: four a side through the small oar ports in the waist, stowed on the booms until a calm
     const Lb=brigLines(),geo=new THREE.CylinderGeometry(.06,.07,1,6);geo.rotateZ(PI/2);R.oars=[];
     for(let i=0;i<4;i++){const z=-3.6+i*2.3;for(const sd of[1,-1]){const y=Lb.railY(z)-.55,x=Lb.hx(z,y)+.05,g=new THREE.Group();g.position.set(sd*x,y,z);
@@ -4701,7 +4701,7 @@ function update3D(dt,now){
   const al=(R.hs+180+R.yaw)*D2R,pt=R.pitch*D2R,dh=R.dist*Math.cos(pt);
   const ck=R.camK||1;
   if(R.shot==="deck"){ // the captain's eye on the quarterdeck: rides the deck and looks where the view was turned
-    R.bob.updateWorldMatrix(true,false);const t=R.taff||[-11.6,3.3];R.camera.position.set(0,t[1]+1.1,t[0]+2.6).applyMatrix4(R.bob.matrixWorld);
+    R.bob.updateWorldMatrix(true,false);const t=R.taff||[-11.6,3.3];R.camera.position.set(0,t[1]+(R.eyeUp||1.7),t[0]+2.6).applyMatrix4(R.bob.matrixWorld);
     const lp=(R.pitch-16)*-.5*D2R,cp=R.camera.position;R.camera.near=.4;R.camera.lookAt(cp.x-Math.sin(al)*Math.cos(lp)*100,cp.y+Math.sin(lp)*100,cp.z+Math.cos(al)*Math.cos(lp)*100);}
   else{R.camera.near=3;R.camera.position.set(Math.sin(al)*dh*ck,Math.max((R.shot?1.6:4)*Math.min(1,ck),(R.cb+R.dist*Math.sin(pt))*ck),-Math.cos(al)*dh*ck);
     R.camera.lookAt(0,R.cl*(R.camY||1),0);}
