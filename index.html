@@ -348,8 +348,8 @@ body.fs3d #fsBar{left:max(12px,env(safe-area-inset-left,0px));bottom:max(12px,en
   /* the five icons sit in a bottom menu bar, evenly spaced, each with its name */
   #tabbar{display:block;position:fixed;left:0;right:0;bottom:0;height:calc(var(--ic) + 30px + env(safe-area-inset-bottom,0px));background:var(--paper);border-top:1px solid var(--ink);z-index:14}
   html,body{background:var(--paper)}.app{height:var(--app-h,100dvh)}#tabbar::after{content:"";position:absolute;left:0;right:0;top:100%;height:200px;background:var(--paper)} /* no darker band under the menu bar, whatever the browser leaves below the page */
-  #tabbar span{position:absolute;bottom:3px;transform:translateX(-50%);font:8px/1 var(--f-data);letter-spacing:.05em;text-transform:uppercase;color:var(--ink)}
-  .ptools .tbicon,.bookbtn,.shipchart,#paneChart.small,#ctlIcon{bottom:15px!important;border-color:transparent!important;background:transparent!important;box-shadow:none!important;border-radius:6px}
+  #tabbar span{position:absolute;bottom:8px;transform:translateX(-50%);font:8px/1 var(--f-data);letter-spacing:.05em;text-transform:uppercase;color:var(--ink)}
+  .ptools .tbicon,.bookbtn,.shipchart,#paneChart.small,#ctlIcon{bottom:24px!important;border-color:transparent!important;background:transparent!important;box-shadow:none!important;border-radius:6px}
   .ptools .tbicon[aria-pressed="true"],.bookbox.open .bookbtn,#ctlIcon[aria-pressed="true"]{background:var(--ink)!important;color:var(--paper)!important}
   #paneChart.small .mapicon{background:transparent!important}
   .tbtab{display:flex!important;position:fixed;z-index:16;width:var(--ic);height:var(--ic);bottom:calc(env(safe-area-inset-bottom,0px) + 22px);border:0!important;background:transparent!important;box-shadow:none!important;border-radius:6px;padding:0;align-items:center;justify-content:center;color:var(--ink);cursor:pointer}
@@ -374,7 +374,7 @@ body.fs3d #fsBar{left:max(12px,env(safe-area-inset-left,0px));bottom:max(12px,en
 .menupop .tb:hover,.bar .menupop .tb:hover{background:var(--paper-2)}
 .btn.primary:disabled{background:transparent;color:var(--ink);border-color:var(--ink)}
 @media (max-width:860px){
-  .tbtab{position:fixed;bottom:15px;z-index:16;border:0!important;background:transparent!important;box-shadow:none!important;border-radius:3px}
+  .tbtab{position:fixed;bottom:24px;z-index:16;border:0!important;background:transparent!important;box-shadow:none!important;border-radius:3px}
   .tbtab[aria-pressed="true"]{background:var(--ink)!important;color:var(--paper)!important}
   #tbChart{left:calc(10% - var(--ic)/2)}#tbView{left:calc(30% - var(--ic)/2)}#tbShip{left:calc(50% - var(--ic)/2)}#tbBook{left:calc(70% - var(--ic)/2)}
 }
@@ -384,7 +384,7 @@ body.fs3d #fsBar{left:max(12px,env(safe-area-inset-left,0px));bottom:max(12px,en
   :root:root:root .bookbody{background:transparent!important;background-image:none!important;box-shadow:none!important}
   /* bottom bar: outline icons in a thin box at the original size; the pressed one only gets a bolder box, no fill, fade or motion; menus and overlays cover the bar */
   :root{--tbw:var(--ic)}
-  #tabbar{height:calc(var(--tbw) + 25px)!important;background:color-mix(in srgb,var(--paper) 70%,transparent)}.app{padding-bottom:calc(var(--tbw) + 35px)!important}
+  #tabbar{height:calc(var(--tbw) + 34px)!important;background:color-mix(in srgb,var(--paper) 70%,transparent)}.app{padding-bottom:calc(var(--tbw) + 44px)!important}
   :root:root:root .tbtab,:root:root:root #ctlIcon{width:var(--tbw)!important;height:var(--tbw)!important;z-index:16!important;background:transparent!important;background-image:none!important;color:var(--ink)!important;border:1px solid var(--ink)!important;border-radius:3px!important;box-shadow:none!important;transition:none!important;animation:none!important;-webkit-tap-highlight-color:transparent}
   :root:root:root .tbtab[aria-pressed="true"],:root:root:root #ctlIcon[aria-pressed="true"]{border-width:3px!important;background:transparent!important;color:var(--ink)!important}
   :root:root:root .tbtab:hover,:root:root:root .tbtab:active,:root:root:root #ctlIcon:hover,:root:root:root #ctlIcon:active{background:transparent!important}
