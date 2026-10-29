@@ -779,6 +779,22 @@ const PRESETS={
 };
 let L={};try{L=JSON.parse(localStorage.getItem(KEY)||"{}")||{};}catch(e){L={};}
 const th=()=>R.dataset.theme==="dark"?"dark":"light";
+const DEF={light:{desk:"#ebdfc2","desk-2":"#d9c9a2",paper:"#f6eed9","paper-2":"#ece2c8",ink:"#2e2519","ink-soft":"#7b6a55",rule:"#cbbd98",sea:"#4a6a8a",ochre:"#b2452c",brass:"#b8862a"},dark:{desk:"#0b1a40","desk-2":"#10245a",paper:"#132a63","paper-2":"#0f2252",ink:"#eadfb4","ink-soft":"#a9a283",rule:"#2d4688",sea:"#8aa8d6",ochre:"#e4905f",brass:"#d9a940"}};
+const auto=()=>L.auto!==false;
+const sm=x=>x*x*(3-2*x),ramp=(h,a,b)=>sm(Math.min(1,Math.max(0,(h-a)/(b-a))));
+const nightAt=h=>h>=12?ramp(h,17.5,19.5):1-ramp(h,5,6.5);
+const mixHex=(a,b,t)=>{const p=x=>[1,3,5].map(i=>parseInt(hex(x).slice(i,i+2),16));const A=p(a),B=p(b);return"#"+A.map((v,i)=>Math.round(v+(B[i]-v)*t).toString(16).padStart(2,"0")).join("");};
+let lastN=-1,lastT="";
+function tick(){
+  if(!auto()){lastN=-1;COL.forEach(([k])=>R.style.removeProperty("--"+k));return;}
+  const g=window.__DR&&window.__DR.hour&&window.__DR.hour();if(g==null)return;
+  const n=nightAt(((g%24)+24)%24),want=n>=.5?"dark":"light";
+  if(Math.abs(n-lastN)<.004&&want===th())return;lastN=n;
+  const lo=Object.assign({},DEF.light,L.light),dk=Object.assign({},DEF.dark,L.dark);
+  COL.forEach(([k])=>R.style.setProperty("--"+k,mixHex(lo[k],dk[k],n)));
+  if(want!==th()){const d=document.getElementById("bDark");if(d)d.click();}
+}
+setInterval(tick,1000);
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(L));}catch(e){}};
 const st=document.createElement("style");st.id="lkStyle";
 function css(){
@@ -792,7 +808,8 @@ function css(){
   if(L.ow!=null)o+=rule(BD,"border-width:"+L.ow+"px!important;border-style:"+(L.ow?"solid":"none")+"!important")+"@media(min-width:861px){"+rule(".compassbox:not(.collapsed)","border-width:"+L.ow+"px!important;border-style:"+(L.ow?"solid":"none")+"!important")+"}\n";
   if(L.oc)o+=rule(BD,"border-color:"+L.oc+"!important")+"@media(min-width:861px){"+rule(".compassbox:not(.collapsed)","border-color:"+L.oc+"!important")+"}\n";
   if(L.rad!=null)o+=rule(BD,"border-radius:"+L.rad+"px!important");
-  if(L.op!=null){const b="background:color-mix(in srgb,var(--paper) "+L.op+"%,transparent)!important";o+=rule(FL,b)+"@media(min-width:861px){"+rule(".compassbox:not(.collapsed)",b)+"}\n";}
+  if(auto())o+=rule(".bar,.infobar,.side,.card,"+FL+",.tb,.btn,.mapicon","transition:background-color 1.5s,color 1.5s,border-color 1.5s")+rule("#chart,#ppCv,#dial,#glass","transition:filter 2.5s");
+  if(L.op!=null||auto()){const op=L.op!=null?L.op:94,b="background:color-mix(in srgb,var(--paper) "+op+"%,transparent)!important";o+=rule(FL+",.mapicon",b)+"@media(min-width:861px){"+rule(".compassbox:not(.collapsed)",b)+"}\n";}
   if(L.sh!=null){const b="box-shadow:"+(L.sh?"0 8px 28px rgba(20,14,10,"+(L.sh/100*.7).toFixed(2)+")":"none")+"!important";o+=rule(FL,b);}
   if(L.tx&&L.tx!=="none"){const u=texUrl(L.tx,L.ta!=null?L.ta:40);if(u)o+=rule(FL+",.bar,.infobar,.side,.card","background-image:"+u+"!important")+"@media(min-width:861px){"+rule(".compassbox:not(.collapsed)","background-image:"+u+"!important")+"}\n";}
   if(L.fs!=null&&L.fs!==100)o+=rule(".infobar,.bookbody,.portcard,.menupop,.routebar,.dock:not(.dock-all)","zoom:"+L.fs/100);
@@ -814,6 +831,7 @@ function render(){
   const row=(k,n)=>`<label class="lkc"><input type="color" data-c="${k}" value="${hex(c[k]||cur(k))}"><span>${n}</span>${c[k]?`<button type="button" data-cr="${k}" title="Back to default">↺</button>`:""}</label>`;
   const num=([k,n,u,a,b,s,d])=>`<div class="pvr"><label>${n}</label><input type="range" data-n="${k}" min="${a}" max="${b}" step="${s}" value="${L[k]!=null?L[k]:d}"><output>${L[k]!=null?L[k]:d}${u}</output></div>`;
   host.innerHTML=`<div class="pvc"><span class="pvn">Preset</span>${Object.entries(PRESETS).map(([k,p])=>`<button type="button" data-p="${k}">${p.n}</button>`).join("")}</div>
+  <label class="lkc"><input type="checkbox" data-auto ${auto()?"checked":""}><span>Auto day and night: the UI follows the game clock, fading to the dark style at dusk and back at dawn</span></label>
   <div class="pvn">Colours below are for <b>${t==="dark"?"dark":"light"} mode</b> (switch in Menu). Changes show on the real game straight away and stay on this device.</div>
   <div class="lkg">${COL.map(([k,n])=>row(k,n)).join("")}</div>
   <label class="lkc lkoc"><input type="color" data-oc value="${hex(L.oc||cur("ink"))}"><span>Outline colour (all panels)</span>${L.oc?`<button type="button" data-ocr title="Back to default">↺</button>`:""}</label>
@@ -830,6 +848,7 @@ function clip(s){return(navigator.clipboard&&navigator.clipboard.writeText?navig
 document.addEventListener("input",e=>{
   if(!host||!host.contains(e.target))return;const el=e.target;
   if(el.dataset.c)setC(el.dataset.c,el.value);
+  else if(el.hasAttribute("data-auto")){L.auto=el.checked;apply();save();lastN=-1;tick();render();}
   else if(el.hasAttribute("data-oc")){L.oc=el.value;apply();save();}
   else if(el.dataset.n){const v=+el.value;L[el.dataset.n]=v;const u=el.dataset.n==="ta"?"%":NUM.find(x=>x[0]===el.dataset.n)[2];el.nextElementSibling.textContent=v+u;apply();save();}
 });
@@ -848,6 +867,7 @@ document.addEventListener("click",e=>{
   else if(b.dataset.a==="paste"){const s=prompt("Paste DR LOOK settings");if(s){try{load(JSON.parse(s.replace(/^\s*DR LOOK\s*/,"")));msg("Settings loaded.");}catch(x){msg("That did not look like saved settings.");}}}
 });
 new MutationObserver(()=>{apply();render();}).observe(R,{attributes:true,attributeFilter:["data-theme"]});
+document.addEventListener("click",e=>{const d=e.target.closest&&e.target.closest("#bDark");if(d&&e.isTrusted&&auto()){L.auto=false;save();tick();render();}},true);
 window.DRLook={mount(h){host=h;render();},unmount(){host=null;}};
 const ui=document.createElement("style");
 ui.textContent="#pvSheet.lk{max-height:72vh}#pvSheet .lkg{display:grid;grid-template-columns:1fr 1fr;gap:6px 10px}#pvSheet .lkc{display:flex;align-items:center;gap:6px;color:var(--ink-soft)}#pvSheet .lkc input[type=color]{width:30px;height:24px;padding:0;border:1px solid var(--rule);background:none;flex:none}#pvSheet .lkc button{padding:0 5px;margin-left:auto}#pvSheet .lkoc{margin-top:2px}";
@@ -6307,7 +6327,7 @@ window.addEventListener("load",()=>setTimeout(boot,400));
 window.__CUT=M;window.__CUTfast=()=>{M.fast=1;};
 })();
 
-window.__DR={preview:PV,cam:()=>R3,footAt,PF,portGeom,openPortCard,openPortPlan,tideLvl,tideTable,tideStream,plotFix,LMS,currentAt,landInit,WINDK,CURK,dockAtPort,showCrisis,crisisKind,punish,loadState,packState,decS,toggleOars,setStroke,oarPivot,STROKES,pickShip,get SHIP(){return SHIP},SHIPDEFS,SPEC,useShip,applyShip,crewOf,rigOf,linesOf,get shipPick(){return shipPick},set shipPick(v){shipPick=v},svMove,svCtx,sx,sy,openPortCard,openPortPlan,get R3(){return R3},setMain,update3D,get S(){return S},VOYAGES,PORTS,islands,reefs,LMS,step,startVoyage,setCourse,tackOrWear,setSail,assistStep,noonAvailable,windAt:(x,y,t)=>windAt(S,x,y,t),inPoly,crossFix,plotFix,takeBearing,markNoon,startObserve,noonAvailable,endVoyage,toGeo,geo,atPort:()=>atPort(S),buyStore,sellFish,toggleFish,coastNm,fishStep};
+window.__DR={hour:()=>S&&!S.done?localHours(S,S.t):null,preview:PV,cam:()=>R3,footAt,PF,portGeom,openPortCard,openPortPlan,tideLvl,tideTable,tideStream,plotFix,LMS,currentAt,landInit,WINDK,CURK,dockAtPort,showCrisis,crisisKind,punish,loadState,packState,decS,toggleOars,setStroke,oarPivot,STROKES,pickShip,get SHIP(){return SHIP},SHIPDEFS,SPEC,useShip,applyShip,crewOf,rigOf,linesOf,get shipPick(){return shipPick},set shipPick(v){shipPick=v},svMove,svCtx,sx,sy,openPortCard,openPortPlan,get R3(){return R3},setMain,update3D,get S(){return S},VOYAGES,PORTS,islands,reefs,LMS,step,startVoyage,setCourse,tackOrWear,setSail,assistStep,noonAvailable,windAt:(x,y,t)=>windAt(S,x,y,t),inPoly,crossFix,plotFix,takeBearing,markNoon,startObserve,noonAvailable,endVoyage,toGeo,geo,atPort:()=>atPort(S),buyStore,sellFish,toggleFish,coastNm,fishStep};
 })();
 </script>
 <script>
