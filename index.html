@@ -114,9 +114,9 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-
 .fsbar{position:absolute;left:12px;bottom:12px;z-index:7;display:flex;gap:8px;padding:4px;transition:opacity .6s}.pane.small .fsbar{display:none}
 .fsb{width:38px;height:38px;padding:0;display:flex;align-items:center;justify-content:center;background:transparent;color:var(--ink);border:1px solid var(--ink);border-radius:6px;box-shadow:none;cursor:pointer;-webkit-tap-highlight-color:transparent}.fsb svg{stroke-width:1.6}.fsb[aria-pressed="true"]{border-width:3px}.fsb[aria-pressed="true"] svg{stroke-width:2.4}
 .fsopt,.fsb .fsout{display:none}body.fs3d .fsopt{display:flex}body.fs3d .fsb .fsout{display:inline}body.fs3d .fsb .fsin{display:none}#fsBtn[aria-pressed="true"]{border-width:1px}#fsBtn[aria-pressed="true"] svg{stroke-width:1.6}
-.fsbar.dim{opacity:.06}
+.fsbar.dim{opacity:.06}.walkpad{position:absolute;left:64px;bottom:12px;z-index:7;display:flex;gap:6px;padding:4px}.walkpad[hidden]{display:none}.pane.small .walkpad{display:none}.walkpad button{width:34px;height:34px;padding:0;font-size:14px;line-height:1;background:rgba(246,238,217,.9);color:var(--ink);border:1px solid var(--ink);border-radius:6px;box-shadow:none;cursor:pointer;touch-action:none;-webkit-tap-highlight-color:transparent}.walkpad button:active{background:var(--ink);color:#f6eed9}
 body.fs3d #paneV3{position:fixed!important;left:0!important;top:0!important;right:0!important;bottom:0!important;width:auto!important;height:auto!important;z-index:9000!important;margin:0!important;border:0!important;transform:none!important}
-body.fs3d #paneV3>*:not(#view3d):not(#hud):not(#fsBar){display:none!important}
+body.fs3d #paneV3>*:not(#view3d):not(#hud):not(#fsBar):not(#walkPad){display:none!important}
 body.fs3d #fsBar{left:max(12px,env(safe-area-inset-left,0px));bottom:max(12px,env(safe-area-inset-bottom,0px))}
 #tbView{touch-action:manipulation}#camPop{position:fixed;z-index:60;display:flex;gap:4px;padding:4px;background:rgba(246,238,217,.94);border:1px solid var(--ink);border-radius:6px}#camPop[hidden]{display:none}#camPop button{display:flex;flex-direction:column;align-items:center;gap:1px;width:46px;padding:4px 0 3px;background:transparent;border:0;color:var(--ink);cursor:pointer;font:10px/1.1 "IBM Plex Mono",monospace;letter-spacing:.04em;-webkit-tap-highlight-color:transparent}#camPop button[aria-pressed="true"] svg,#camPop button:active svg{stroke-width:2.6}#camPop button[aria-pressed="true"] span{font-weight:700}
 #view3d{touch-action:none;cursor:grab;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}#view3d.drag{cursor:grabbing}
@@ -477,7 +477,7 @@ body.fs3d #fsBar{left:max(12px,env(safe-area-inset-left,0px));bottom:max(12px,en
         <div class="ptools" id="paneTools"><button type="button" class="tbicon" id="bView" title="Swap the 3D view and the chart (M)" aria-label="Swap the 3D view and the chart"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M3 8h4l1.5-2.5h7L17 8h4v11H3z"/><circle cx="12" cy="13.5" r="3.6"/></svg></button><button type="button" class="tbicon" id="bShip" aria-pressed="false" title="The ship: cutaway, crew quarters and watches" aria-label="The ship: cutaway, crew quarters and watches"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M2.5 16.5h19l-3 4.5h-13z"/><path d="M8 16V3.500M16 16V6"/><path d="M8 5h-4.500v8H8M8 5h3.500v8H8M16 8h-3.500v6H16M16 8h3.500v6H16" stroke-width="1.2"/></svg></button></div>
         <canvas id="view3d" aria-label="3D view from the ship"></canvas>
         <canvas id="hud"></canvas>
-        <div class="fsbar" id="fsBar"><button type="button" class="fsb" id="fsBtn" aria-pressed="false" title="Full screen 3D view" aria-label="Full screen 3D view"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path class="fsin" d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/><path class="fsout" d="M9 4v5H4M20 9h-5V4M15 20v-5h5M4 15h5v5"/></svg></button><button type="button" class="fsb fsopt" id="fsWater" aria-pressed="true" title="Water grid on or off" aria-label="Water grid"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17c2-1.500 4-1.500 6 0s4 1.500 6 0 4-1.500 6 0"/><path d="M3 12.500l18 0M8 7l-1.500 10M16 7l1.500 10M5 7h14"/></svg></button><button type="button" class="fsb fsopt" id="fsSky" aria-pressed="true" title="Sky grid on or off" aria-label="Sky grid"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 19a9 9 0 0 1 18 0z"/><path d="M6.500 13.500h11M12 10v9M8 11l-1.500 8M16 11l1.500 8"/></svg></button></div>
+        <div class="walkpad" id="walkPad" hidden><button type="button" data-w="-1,1" aria-label="Step left" title="Step left">◀</button><button type="button" data-w="0,1" aria-label="Walk forward" title="Walk forward">▲</button><button type="button" data-w="1,1" aria-label="Step right" title="Step right">▶</button></div><div class="fsbar" id="fsBar"><button type="button" class="fsb" id="fsBtn" aria-pressed="false" title="Full screen 3D view" aria-label="Full screen 3D view"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path class="fsin" d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/><path class="fsout" d="M9 4v5H4M20 9h-5V4M15 20v-5h5M4 15h5v5"/></svg></button><button type="button" class="fsb fsopt" id="fsWater" aria-pressed="true" title="Water grid on or off" aria-label="Water grid"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17c2-1.500 4-1.500 6 0s4 1.500 6 0 4-1.500 6 0"/><path d="M3 12.500l18 0M8 7l-1.500 10M16 7l1.500 10M5 7h14"/></svg></button><button type="button" class="fsb fsopt" id="fsSky" aria-pressed="true" title="Sky grid on or off" aria-label="Sky grid"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 19a9 9 0 0 1 18 0z"/><path d="M6.500 13.500h11M12 10v9M8 11l-1.500 8M16 11l1.500 8"/></svg></button></div>
         <div class="compassbox" id="compassBox"><button type="button" class="cbtog" id="cbBtn" aria-expanded="true" aria-label="Compass" title="Collapse or expand the compass"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"><circle cx="12" cy="12" r="9.500"/><path d="M12 5.500l2.600 6.500-2.600 6.500-2.600-6.500z"/></svg></button><div class="cbrow"><canvas id="baro" width="120" height="500" aria-label="The glass: a barometer showing the pressure, its trend and what it means" title="The glass (barometer)"></canvas><canvas id="dial" width="480" height="480" aria-label="Compass with the ship, the wind and the sails" title="Compass. Click the outer card to steer; click inside the inner ring to point the sails."></canvas><canvas class="sailg" id="sailSteps5" width="120" height="500" role="slider" aria-label="Sail set for all sails: tap or drag to set" title="Sail set: tap or drag"></canvas></div></div>
         <button class="ctog ptog" data-pane="paneV3" aria-expanded="true" title="Collapse or expand">–</button><button class="swapbtn" id="swap1" title="Make this the main view (M)">⤢</button><span class="plabel">3D view</span>
       </div>
@@ -3167,7 +3167,7 @@ function brigLines(){
   return{sstep,QB,FB,QDY,FCY,YW,rise,deckW,deckAt,railY,keelY,zF,zS,zA,shape,hx};
 }
 // the ship in hand: the brig's own model, or one of the fleet built from her spec
-function buildShip3D(R){R.shipId=SHIP.id;R.sweepers=null;R.oarsOn=null;R.crew=null;R.dsig=null;R.sails=null;R.jib=null;R.gaff=null;R.yardInfo={};R.lamps=[];R.oars=[];R.tiller=null;R.gen=null;R.faA=null;R.handS=null;
+function buildShip3D(R){R.shipId=SHIP.id;R.wz=null;R.sweepers=null;R.oarsOn=null;R.crew=null;R.dsig=null;R.sails=null;R.jib=null;R.gaff=null;R.yardInfo={};R.lamps=[];R.oars=[];R.tiller=null;R.gen=null;R.faA=null;R.handS=null;
   if(SHIP.id==="brig")buildShip(R);else buildVessel3D(R,SPEC[SHIP.id]);if(R.wake){R.wake.sl.length=0;R.wake.last=null;}R.foam=null;R.heel=0;}
 function setShip3D(){const R=R3;if(!R||R.shipId===SHIP.id)return;R.scene.remove(R.ship);
   R.ship.traverse(o=>{if(o.geometry&&!(o.parent&&o.parent.isGroup&&R.figKit&&0))o.geometry.dispose();});if(R.hullMatG){R.hullMatG.dispose();R.hullMatG=null;}
@@ -3408,7 +3408,7 @@ function buildShip(R){
     ];R.lamps=lampSprites(R,bob,R.lamps); }
   R.ship=group;R.bob=bob;R.st=st;bowFx(R,group);
   // the brig's own measures for the sea, the crew, the lamps and the camera (the fleet builder sets the same from each ship's lines)
-  R.gen=null;R.hk=1;R.Z0=12.15;R.ZS=-12.1;R.bAt=z=>st[clamp(Math.round((z+12)/24*18),0,18)].b;R.taff=[-11.6,3.3];R.eyeUp=1.7;R.hawse=[12.3,2.2];R.camK=1;R.camY=1;R.notesG=null;R.faFoot={drv:[1.0,4.27,-8.4]};
+  R.gen=null;R.hk=1;R.Z0=12.15;R.ZS=-12.1;R.bAt=z=>st[clamp(Math.round((z+12)/24*18),0,18)].b;R.taff=[-11.6,3.3];R.hawse=[12.3,2.2];R.camK=1;R.camY=1;R.notesG=null;R.faFoot={drv:[1.0,4.27,-8.4]};
   { // the brig's sweeps: four a side through the small oar ports in the waist, stowed on the booms until a calm
     const Lb=brigLines(),geo=new THREE.CylinderGeometry(.06,.07,1,6);geo.rotateZ(PI/2);R.oars=[];
     for(let i=0;i<4;i++){const z=-3.6+i*2.3;for(const sd of[1,-1]){const y=Lb.railY(z)-.55,x=Lb.hx(z,y)+.05,g=new THREE.Group();g.position.set(sd*x,y,z);
@@ -4700,12 +4700,19 @@ function update3D(dt,now){
   {const k=1-Math.exp(-Math.min(dt,.25)*3);R.cb+=((R.shot?R.tcb:8)-R.cb)*k;R.cl+=((R.shot?R.tcl:15)-R.cl)*k;}
   const al=(R.hs+180+R.yaw)*D2R,pt=R.pitch*D2R,dh=R.dist*Math.cos(pt);
   const ck=R.camK||1;
-  if(R.shot==="deck"){ // the captain's eye on the quarterdeck: rides the deck and looks where the view was turned
-    R.bob.updateWorldMatrix(true,false);const t=R.taff||[-11.6,3.3];R.camera.position.set(0,t[1]+(R.eyeUp||1.7),t[0]+2.6).applyMatrix4(R.bob.matrixWorld);
+  if(R.shot==="deck"){ // the captain's head height, walking the deck: the three arrows move the eye about the planking
+    const D=R.dk||{},gy=z=>D.footAt?D.footAt(z):D.ground?D.ground(0,z):2.15;
+    if(R.wz==null){R.wz=D.cap?D.cap.gz:-6;R.wx=0;}
+    const wk=R.wk;if(wk&&(wk.f||wk.s)){const sp=2.4*Math.min(dt,.1)*clamp(speedMult,1,3),vq=R.ship.quaternion.clone().invert(),
+      v=new THREE.Vector3(-Math.sin(al),0,Math.cos(al)).applyQuaternion(vq),n=Math.hypot(wk.f,wk.s)||1;
+      R.wx+=(v.x*wk.f-v.z*wk.s)/n*sp;R.wz+=(v.z*wk.f+v.x*wk.s)/n*sp;}
+    R.wz=clamp(R.wz,(R.ZS||-12)+1.8,(R.Z0||12)-3);R.wx=clamp(R.wx,-Math.max(.35,(R.bAt?R.bAt(R.wz):1.5)*.8),Math.max(.35,(R.bAt?R.bAt(R.wz):1.5)*.8));
+    R.bob.updateWorldMatrix(true,false);R.camera.position.set(R.wx,gy(R.wz)+1.7,R.wz).applyMatrix4(R.bob.matrixWorld);
+    if(R.crew)for(const c of R.crew)if(c.role==="cap")c.m.visible=false;
     const lp=(R.pitch-16)*-.5*D2R,cp=R.camera.position;R.camera.near=.4;R.camera.lookAt(cp.x-Math.sin(al)*Math.cos(lp)*100,cp.y+Math.sin(lp)*100,cp.z+Math.cos(al)*Math.cos(lp)*100);}
   else{R.camera.near=3;R.camera.position.set(Math.sin(al)*dh*ck,Math.max((R.shot?1.6:4)*Math.min(1,ck),(R.cb+R.dist*Math.sin(pt))*ck),-Math.cos(al)*dh*ck);
     R.camera.lookAt(0,R.cl*(R.camY||1),0);}
-  R.camBrg=norm((R.hs+R.yaw));if(window.CUTCAM)window.CUTCAM(R);
+  {const wp=$("walkPad");if(wp){const on=R.shot==="deck";if(wp.hidden===on)wp.hidden=!on;}}R.camBrg=norm((R.hs+R.yaw));if(window.CUTCAM)window.CUTCAM(R);
   if(R.cover>2)R.camera.setViewOffset(R.W,R.H,0,R.cover*.3,R.W,R.H);else R.camera.clearViewOffset();
   R.camera.updateMatrixWorld();R.camera.updateProjectionMatrix();
   R.sea.position.set(0,0,0);
@@ -4779,6 +4786,7 @@ function camSet(c){const R=R3;if(!R||!c)return;R.shot=c.shot;const k=360*Math.ro
 function camShot(n){const R=R3,v=SHOTS[n];if(!R||!v)return;camKeep();camSet({shot:n,ty:v[1],tp:v[2],td:v[3]});}
 function camBack(){if(!R3||!camPrev)return;const c=camPrev;camPrev=camNow();camSet(c);}
 window.__CAM=()=>R3;
+{const wp=document.getElementById("walkPad");if(wp){const stop=()=>{if(R3)R3.wk=null;};for(const b of wp.querySelectorAll("button")){b.addEventListener("pointerdown",e=>{e.preventDefault();e.stopPropagation();const[x,y]=b.dataset.w.split(",").map(Number);if(R3)R3.wk={s:x,f:y};try{b.setPointerCapture(e.pointerId);}catch(_){}});for(const ev of["pointerup","pointercancel","lostpointercapture"])b.addEventListener(ev,stop);}}}
 v3c.addEventListener("pointerdown",e=>{if(!R3)return;if(e.pointerType==="mouse"&&e.button!==0){if(e.button===1)e.preventDefault();return;}
   if(ptr3.size>=2)return;try{v3c.setPointerCapture(e.pointerId);}catch(_){}
   ptr3.set(e.pointerId,{x:e.clientX,y:e.clientY});if(ptr3.size===1)R3.tapMoved=false;anchor3();v3c.classList.add("drag");});
