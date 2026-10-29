@@ -2561,16 +2561,17 @@ void main(){
   if(night>0.5){ // moonlit sea: near-black water, pale where the swell faces the moon, a glitter path under it, warm lantern light round the ship
     vec3 Lm=normalize(uMoon.xyz); float mk=uMoon.w;
     vec3 V=normalize(cameraPosition-vPos);
-    vec3 nn=normalize(n+vec3(vn(q*0.9)-0.5,0.0,vn(q*0.9+5.0)-0.5)*0.30*near+vec3(vn(q*0.17+2.0)-0.5,0.0,vn(q*0.17+8.0)-0.5)*0.10);
+    vec3 nn=normalize(n+vec3(vn(q*0.9)-0.5,0.0,vn(q*0.9+5.0)-0.5)*0.12*near);
     float diff=clamp(dot(n,Lm),0.0,1.0);
     vec3 R_=reflect(-V,nn); float rm=clamp(dot(R_,Lm),0.0,1.0);
     float path=pow(rm,38.0), core=pow(rm,420.0);
+    float stroke=smoothstep(0.40,0.46,pow(rm,110.0)*(0.5+1.0*vn(q*vec2(0.8,5.0)+3.0))*1.3)*(1.0-smoothstep(300.0,2500.0,dist)); // moon glitter drawn as flat pale pen dashes, not shimmer
     vec3 deepN=vec3(0.020,0.032,0.058), skyN=vec3(0.060,0.085,0.135);
     float fres=pow(1.0-clamp(dot(V,n),0.0,1.0),3.0);
-    vec3 nw=mix(deepN,skyN,0.25+0.75*fres)*(0.8+0.5*crest)*(0.85+0.3*fbm(q*0.02));
+    vec3 nw=mix(deepN,skyN,0.25+0.5*fres)*(0.9+0.25*crest)*(0.92+0.16*fbm(q*0.02));
     nw+=vec3(0.07,0.10,0.17)*diff*mk*(0.4+0.6*crest);
     vec2 sd2=shadowAt(vPos,0.03,u_wSoft); float shd=clamp(sd2.x*u_ShadowOn,0.0,1.0);
-    vec3 glit=vec3(0.78,0.86,1.0)*(path*0.30+core*1.6)*mk*(1.0-0.85*shd);
+    vec3 glit=vec3(0.74,0.82,0.95)*(path*0.07+stroke*0.30)*mk*(1.0-0.85*shd);
     nw+=glit;
     vec2 lp=vPos.xz-uLant.xz; float lw=exp(-dot(lp,lp)/(2.0*9.0*9.0));
     nw+=vec3(1.0,0.58,0.24)*lw*0.12*(0.6+0.8*crest)*(1.0-smoothstep(300.0,1500.0,dist));
@@ -2726,16 +2727,20 @@ function sunTexture(ink){
 }
 // the moon: a soft glow round a softly shaded disc with the terminator of the real phase (illum 0..1, waxing = lit on the right)
 function moonTexture(illum,waxing){
+  // an illustrator's moon: a flat cream disc in a pen outline, hatching on the shaded limb, a few drawn craters and two thin halo rings
   const c=document.createElement("canvas");c.width=c.height=256;const g=c.getContext("2d");g.translate(128,128);
-  const hg=g.createRadialGradient(0,0,10,0,0,128);hg.addColorStop(0,"rgba(190,205,235,.55)");hg.addColorStop(.16,"rgba(150,170,215,.22)");hg.addColorStop(.5,"rgba(110,130,185,.06)");hg.addColorStop(1,"rgba(90,110,170,0)");
-  g.fillStyle=hg;g.fillRect(-128,-128,256,256);
-  const R0=17;g.save();g.beginPath();g.arc(0,0,R0,0,2*PI);g.clip();
-  g.fillStyle="#1a2235";g.fillRect(-R0,-R0,2*R0,2*R0); // the dark limb, faintly seen
-  g.fillStyle="#e9edf6";g.beginPath();g.moveTo(0,-R0);g.arc(0,0,R0,-PI/2,PI/2,!waxing);g.closePath();g.fill(); // the lit half
-  const k=1-2*illum; // the terminator: an ellipse that eats into the lit half (crescent) or spills over onto the dark half (gibbous)
-  g.fillStyle=k>0?"#1a2235":"#e9edf6";g.beginPath();g.ellipse(0,0,R0*Math.abs(k)+.01,R0,0,0,2*PI);g.fill();
-  g.globalAlpha=.16;g.fillStyle="#6c7a96";for(const[x,y,r]of[[-5,-4,4],[4,2,5],[-2,8,3],[7,-7,2.5],[-9,3,3]]){g.beginPath();g.arc(x,y,r,0,2*PI);g.fill();}
+  const R0=24,ink="#aab6d2";
+  g.lineWidth=1.2;for(const[r,a]of[[46,.22],[64,.12]]){g.strokeStyle="rgba(170,184,220,"+a+")";g.beginPath();g.arc(0,0,r,0,2*PI);g.stroke();}
+  g.fillStyle="rgba(120,138,190,.10)";g.beginPath();g.arc(0,0,R0+10,0,2*PI);g.fill();
+  g.save();g.beginPath();g.arc(0,0,R0,0,2*PI);g.clip();
+  g.fillStyle="#232c43";g.fillRect(-R0,-R0,2*R0,2*R0);
+  g.strokeStyle="rgba(150,166,205,.45)";g.lineWidth=.8;for(let x=-R0*2;x<R0*2;x+=3){g.beginPath();g.moveTo(x,-R0);g.lineTo(x+R0,R0);g.stroke();} // hatching on the dark limb
+  g.fillStyle="#efe9d2";g.beginPath();g.moveTo(0,-R0);g.arc(0,0,R0,-PI/2,PI/2,!waxing);g.closePath();g.fill();
+  const k=1-2*illum;g.fillStyle=k>0?"#232c43":"#efe9d2";g.beginPath();g.ellipse(0,0,R0*Math.abs(k)+.01,R0,0,0,2*PI);g.fill();
+  if(k>0){g.strokeStyle="rgba(150,166,205,.45)";g.lineWidth=.8;g.save();g.beginPath();g.ellipse(0,0,R0*k+.01,R0,0,0,2*PI);g.clip();for(let x=-R0*2;x<R0*2;x+=3){g.beginPath();g.moveTo(x,-R0);g.lineTo(x+R0,R0);g.stroke();}g.restore();}
+  g.strokeStyle="rgba(120,108,84,.55)";g.lineWidth=.9;for(const[x,y,r]of[[-7,-6,5],[6,3,6.5],[-3,11,3.5],[10,-11,3],[-13,5,3.2]]){g.beginPath();g.arc(x,y,r,0,2*PI);g.stroke();}
   g.restore();
+  g.strokeStyle=ink;g.lineWidth=1.6;g.beginPath();g.arc(0,0,R0,0,2*PI);g.stroke();
   return new THREE.CanvasTexture(c);
 }
 function moonState(S,lh,di,lat,H,dcl,phi){
@@ -2789,7 +2794,7 @@ function init3D(){
     // sun
     R.tex.sunD=sunTexture("#2e2519");R.tex.sunN=sunTexture("#eadfb4");
     const sun=new THREE.Sprite(new THREE.SpriteMaterial({map:R.tex.sunD,fog:false,depthWrite:false,transparent:true}));sun.scale.set(5200,5200,1);scene.add(sun);R.sun=sun;
-    { const mo=new THREE.Sprite(new THREE.SpriteMaterial({map:moonTexture(.5,true),fog:false,depthWrite:false,transparent:true}));mo.scale.set(22000,22000,1);mo.visible=false;scene.add(mo);R.moonSp=mo; }
+    { const mo=new THREE.Sprite(new THREE.SpriteMaterial({map:moonTexture(.5,true),fog:false,depthWrite:false,transparent:true}));mo.scale.set(20000,20000,1);mo.visible=false;scene.add(mo);R.moonSp=mo; }
     // clouds
     R.tex.cloudD=cloudTexture("#f2e4b9","#2e2519");R.tex.cloudN=cloudTexture("#1c2538","#8795b2");R.tex.cloudDD=cloudTexture("#a9a79a","#3a2f22",true);R.tex.cloudDN=cloudTexture("#0d121d","#76829c",true);
     for(let i=0;i<130;i++){const m=new THREE.Sprite(new THREE.SpriteMaterial({map:R.tex.cloudD,fog:false,depthWrite:false,transparent:true}));
