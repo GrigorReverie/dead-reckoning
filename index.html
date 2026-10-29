@@ -6273,18 +6273,19 @@ function labels(){const R=M.R;if(!R||!M.built||!M.on){if(!M.on&&labelEls)labelEl
       tx.textContent=l[1].join(" ").replace(/ · /g," ");rc2.setAttribute("height","16");rc2.setAttribute("rx","2");g.append(pl,dot,rc2,tx);
       g.onclick=()=>{if(M.sel===l[0]&&M.hi===l[4]){M.hi=-1;}else{M.sel=l[0];M.hi=l[4];}paint();};svg.append(g);return{g,pl,dot,rc:rc2,tx,l,w:tx.textContent.length*5.3+10};});}
   R.bob.updateMatrixWorld(true);R.camera.updateMatrixWorld();
-  const cardTop=card.getBoundingClientRect().top;let n=0;
-  for(const e of labelEls){const l=e.l;const show=M.sel<0?l[3]===1:l[0]===M.sel;e.g.style.display=show?"":"none";if(!show)continue;
+  const cardTop=card.getBoundingClientRect().top;
+  const act=labelEls.filter(e=>{const l=e.l;const show=M.sel<0?l[3]===1:l[0]===M.sel;e.g.style.display=show?"":"none";return show;});
+  const top=Math.max(rc.top,88)+6,bot=Math.min(rc.bottom,cardTop)-6,half=Math.ceil(act.length/2),cnt=[half,act.length-half];
+  act.forEach((e,n)=>{const l=e.l,side=n<half?0:1,k=side?n-half:n,c=cnt[side],slot=(bot-top)/c;
     _v.set(M.flip?-l[2][0]:l[2][0],l[2][1],l[2][2]).applyMatrix4(R.bob.matrixWorld).project(R.camera);
     const ax=rc.left+(_v.x*.5+.5)*rc.width,ay=rc.top+(1-(_v.y*.5+.5))*rc.height;
     e.g.classList.toggle("sel",M.sel===l[0]&&M.hi===l[4]);
-    const side=n%2,ty=92+Math.floor(n/2)*20;n++;
-    const bx=side?W-6-e.w:6;
+    const ty=top+(k+.5)*slot-8,bx=side?W-6-e.w:6;
     e.rc.setAttribute("x",bx);e.rc.setAttribute("y",ty);e.rc.setAttribute("width",e.w);
     e.tx.setAttribute("x",bx+5);e.tx.setAttribute("y",ty+11.5);
     const ok=!(_v.z>1||ax<8||ax>W-8||ay<70||ay>cardTop-6);
     e.pl.style.display=e.dot.style.display=ok?"":"none";
-    if(ok){const ex=side?bx:bx+e.w,ly=ty+8;e.pl.setAttribute("points",`${ex},${ly} ${ax},${ay}`);e.dot.setAttribute("cx",ax);e.dot.setAttribute("cy",ay);}}
+    if(ok){const ex=side?bx:bx+e.w,ly=ty+8;e.pl.setAttribute("points",`${ex},${ly} ${ax},${ay}`);e.dot.setAttribute("cx",ax);e.dot.setAttribute("cy",ay);}});
   requestAnimationFrame(labels);}
 /* ---------- boot: a star on her in the ship picker; picking her opens the cutaway ---------- */
 function star(){const b=[...document.querySelectorAll("button")].find(b=>b.textContent.startsWith("USS Constitution"));if(!b||b.querySelector(".cstar"))return!!b;
@@ -6546,4 +6547,5 @@ body.cutmode #shipView{display:none!important}
 #cutCard{max-height:none}#cutCard p{-webkit-line-clamp:2;font-size:13px}
 body.cutmode #view3d{touch-action:none}
 #cutSvg text{font-size:10.5px}
+#cutSvg polyline{stroke-width:.5px}#cutSvg circle{stroke-width:.8px}
 </style></body></html>
