@@ -6527,22 +6527,31 @@ const ACT=[
 
 const TAGS=[["rig","hull","guns","rig","hull","clean"],["clean","guns","clean","stores"],["clean","clean","clean","clean","clean"],["stores","powder","rig","powder","rig"],["stores","guns","hull","hull"]];
 const BADT={oars:"An oar loom kicks back and cracks a man's ribs.",hull:"It goes wrong and a plank is sprung (hull -3%).",rig:"A line parts and the work must be done again (rigging -3%).",clean:"A hand takes a fever from the foul air.",stores:"Weevils and damp spoil some of the stores.",guns:"A gun carriage jumps and crushes a hand.",powder:"A spark in the dark scorches the hull (hull -4%)."};
+const ACTH=[2,1,1,2],ACTK=["Chore","Drill","Morale","Risk"];
 function doAct(lv,rm,i){
-  if(typeof S==="undefined"||!S||!S.crew)return;crewX(S);const T=S.stores,C=S.crew,tag=M.L.tags[lv][rm],name=M.L.act[lv][rm][i],key=SPc.id+"."+lv+"."+rm+"."+i;
+  if(typeof S==="undefined"||!S||!S.crew||M.job)return;crewX(S);const key=SPc.id+"."+lv+"."+rm+"."+i;
   S.actT=S.actT||{};if(S.t-(S.actT[key]??-99)<8){say("The hands need a rest before that again.",{log:false});return;}
-  S.actT[key]=S.t;const all=f=>{for(const m of C)f(m);},mo=d=>all(m=>m.mo=Math.max(0,Math.min(1,m.mo+d))),one=d=>{const m=rnd(C.filter(x=>x.r!=="Captain"&&x.hp>.4));if(m){m.hp=Math.max(.1,m.hp+d);return m;}};
-  const clamp1=v=>Math.max(0,Math.min(1,v));let msg=name+". ",end="";
+  S.actT[key]=S.t;M.job={lv,rm,i,hrs:ACTH[i],p:0,paused:false,tag:M.L.tags[lv][rm],name:M.L.act[lv][rm][i]};M.res="";M.dirty=true;paint();}
+// the work plays out in game time: 3 real seconds per hour, pausable, and a stopped job gives a share of its result
+function actTick(){const J=M.job,now=performance.now(),dt=Math.min(.1,(now-(M.jt||now))/1000);M.jt=now;if(!J||J.paused||typeof S==="undefined"||!S||!S.crew)return;
+  const dp=Math.min(1-J.p,dt/(J.hrs*3));J.p+=dp;S.t+=dp*J.hrs;actShow();if(J.p>=.9999)endJob(false);}
+function actShow(){const J=M.job;if(!J)return;const f=card.querySelector("#jbFill"),t=card.querySelector("#jbTxt");if(f)f.style.width=Math.round(J.p*100)+"%";if(t)t.textContent=Math.round(J.p*100)+"% · "+(J.hrs*(1-J.p)).toFixed(1)+" h left"+(J.paused?" · paused":"");}
+function endJob(stopped){const J=M.job;if(!J)return;M.job=null;M.jt=0;finishAct(J,Math.max(0,Math.min(1,J.p)),stopped);}
+function finishAct(J,f,stopped){
+  const {i,tag,name}=J,T=S.stores,C=S.crew;
+  const all=g=>{for(const m of C)g(m);},mo=d=>all(m=>m.mo=Math.max(0,Math.min(1,m.mo+d*f))),one=d=>{const m=rnd(C.filter(x=>x.r!=="Captain"&&x.hp>.4));if(m){m.hp=Math.max(.1,m.hp+d*f);return m;}};
+  const clamp1=v=>Math.max(0,Math.min(1,v)),pc=x=>(x*f*100).toFixed(1).replace(/\.0$/,"");let msg=name+". ",end="";
   if(i===0){mo(-.01);
-    if(tag==="hull"){S.hull=clamp1(S.hull+.015);end="Hull +1.5%.";}
-    else if(tag==="rig"){S.ship.rig=clamp1(S.ship.rig+.02);end="Rigging +2%.";}
-    else if(tag==="clean"){mo(.03);const k=C.filter(m=>m.sick);for(const m of k)m.hp=clamp1(m.hp+.05);end="The air is sweeter; the sick mend a little.";}
-    else if(tag==="stores"){T.bis+=C.length*.4;end="Some sound biscuit is saved.";}
+    if(tag==="hull"){S.hull=clamp1(S.hull+.015*f);end="Hull +"+pc(.015)+"%.";}
+    else if(tag==="rig"){S.ship.rig=clamp1(S.ship.rig+.02*f);end="Rigging +"+pc(.02)+"%.";}
+    else if(tag==="clean"){mo(.03);const k=C.filter(m=>m.sick);for(const m of k)m.hp=clamp1(m.hp+.05*f);end="The air is sweeter; the sick mend a little.";}
+    else if(tag==="stores"){T.bis+=C.length*.4*f;end="Some sound biscuit is saved.";}
     else{mo(.02);end="The work steadies the men.";}}
-  else if(i===1){all(m=>{if(m.r!=="Captain")m.sk=clamp1(m.sk+.012);});mo(-.02);end="The hands grow handier. Skill up a little, spirits down a little.";}
-  else if(i===2){const need=C.length*.03;if(T.rum>=need){T.rum-=need;mo(.07);end="A tot is served. Spirits lift.";}else{mo(.02);end="There is no rum to spare, but the hands are glad of the pause.";}}
-  else{if(Math.random()<.55){mo(.1);if(tag==="stores"){T.meat+=C.length*.5;end="A sound find in the stores. Spirits lift.";}else if(tag==="rig"){S.ship.rig=clamp1(S.ship.rig+.03);end="It goes better than hoped. Rigging +3%.";}else end="It goes better than expected. The hands cheer.";}
-    else{msg+="";if(tag==="hull"||tag==="powder")S.hull=clamp1(S.hull-(tag==="hull"?.03:.04));else if(tag==="rig")S.ship.rig=clamp1(S.ship.rig-.03);else if(tag==="stores"){T.bis*=.93;T.meat*=.96;}else one(-.3);mo(-.04);end=BADT[tag];}}
-  const hrs=[2,1,1,2][i];S.t+=hrs;msg+=end+` (${hrs} h)`;say(msg,{});try{updateUI(true);}catch(e){}M.res=msg;paint();}
+  else if(i===1){all(m=>{if(m.r!=="Captain")m.sk=clamp1(m.sk+.012*f);});mo(-.02);end="The hands grow handier. Skill up a little, spirits down a little.";}
+  else if(i===2){const need=C.length*.03*f;if(T.rum>=need){T.rum-=need;mo(.07);end="A tot is served. Spirits lift.";}else{mo(.02);end="There is no rum to spare, but the hands are glad of the pause.";}}
+  else{if(Math.random()<.55){mo(.1);if(tag==="stores"){T.meat+=C.length*.5*f;end="A sound find in the stores. Spirits lift.";}else if(tag==="rig"){S.ship.rig=clamp1(S.ship.rig+.03*f);end="It goes better than hoped. Rigging +"+pc(.03)+"%.";}else end="It goes better than expected. The hands cheer.";}
+    else{msg+="";if(tag==="hull"||tag==="powder")S.hull=clamp1(S.hull-(tag==="hull"?.03:.04)*f);else if(tag==="rig")S.ship.rig=clamp1(S.ship.rig-.03*f);else if(tag==="stores"){T.bis*=1-.07*f;T.meat*=1-.04*f;}else one(-.3);mo(-.04);end=BADT[tag];}}
+  msg=(stopped?"Stopped at "+Math.round(f*100)+"%. ":"")+msg+end+` (${(J.hrs*f).toFixed(1).replace(/\.0$/,"")} h)`;say(msg,{});try{updateUI(true);}catch(e){}M.res=msg;M.dirty=true;paint();}
 /* ---------- emergencies: which room needs attention, and which action helps ---------- */
 window.__CUTS=()=>S;
 function emergencies(){const E={};if(typeof S==="undefined"||!S||!S.crew)return E;const C=S.crew,n=C.length||1,T=S.stores;
@@ -7120,12 +7129,13 @@ function mkChips(){chips.innerHTML=`<button data-s="-1" title="All decks" aria-l
 function sel(i){M.sel=(M.sel===i&&i>=0)?-1:i;M.hi=-1;M.man=-1;M.dirty=true;M.res="";M.pan=0;paint();}
 function paint(){chips.querySelectorAll("button[data-s]").forEach(b=>b.classList.toggle("on",+b.dataset.s===M.sel));
   if(M.sel<0)card.innerHTML=`<h3>${SPc.name}</h3>${crewCard()}${(()=>{const E=emergencies(),k=Object.keys(E);return k.length?`<div class="warn">Needs attention: ${k.map(x=>M.L.decks[Math.floor(x/10)].rooms[x%10][0]).join(", ")}</div>`:""})()}<p>Tap a deck, a label or a man.</p>`;
-  else{const d=M.L.decks[M.sel];card.innerHTML=`<h3>${d.name}</h3>${M.hi>=0?`<div class="rd">${d.rooms[M.hi][1]}</div>${crewCard()}${(()=>{const e=emergencies()[M.sel*10+M.hi];return e?`<div class="warn">Needs attention: ${e.why}</div>`:""})()}<div class="ra">${M.L.act[M.sel][M.hi].map((t,i)=>`<button type="button" data-a="${i}" class="${i===3?"risk ":""}${(emergencies()[M.sel*10+M.hi]||{}).act===i?"hot":""}"><b>${["Chore","Drill","Morale","Risk"][i]}</b> ${t}</button>`).join("")}</div>${M.res?`<div class="rr">${M.res}</div>`:""}`:""}`;
-    card.querySelectorAll(".ra button").forEach(b=>b.onclick=()=>doAct(M.sel,M.hi,+b.dataset.a));crewBind();}
+  else{const d=M.L.decks[M.sel];card.innerHTML=`<h3>${d.name}</h3>${M.hi>=0?`<div class="rd">${d.rooms[M.hi][1]}</div>${crewCard()}${(()=>{const e=emergencies()[M.sel*10+M.hi];return e?`<div class="warn">Needs attention: ${e.why}</div>`:""})()}${M.job&&M.job.lv===M.sel&&M.job.rm===M.hi?`<div class="jb"><div class="jn"><b>${ACTK[M.job.i]}</b><span class="an">${M.job.name}</span></div><div class="jbar"><i id="jbFill" style="width:${Math.round(M.job.p*100)}%"></i></div><div class="jm"><span id="jbTxt"></span><button type="button" data-j="pause">${M.job.paused?"Resume":"Pause"}</button><button type="button" data-j="stop">Stop</button></div></div>`:`<div class="ra">${M.L.act[M.sel][M.hi].map((t,i)=>`<button type="button" data-a="${i}"${M.job?" disabled":""} class="${i===3?"risk ":""}${(emergencies()[M.sel*10+M.hi]||{}).act===i?"hot":""}"><b>${ACTK[i]}</b><span class="an">${t}</span><em>${ACTH[i]} h</em></button>`).join("")}</div>`}${M.res?`<div class="rr">${M.res}</div>`:""}`:""}`;
+    card.querySelectorAll(".ra button").forEach(b=>b.onclick=()=>doAct(M.sel,M.hi,+b.dataset.a));card.querySelectorAll(".jb [data-j]").forEach(b=>b.onclick=()=>{if(!M.job)return;if(b.dataset.j==="stop")endJob(true);else{M.job.paused=!M.job.paused;b.textContent=M.job.paused?"Resume":"Pause";actShow();}});actShow();crewBind();}
   card.classList.toggle("tall",M.sel>=0);}
 let labelEls=null;
 function labels(){const R=M.R;if(!M.on){if(labelEls)labelEls.forEach(e=>e.g.style.display="none");looping=false;return;} // stop until the cutaway opens again
   if(!R||!M.built){requestAnimationFrame(labels);return;}
+  actTick();
   const rc=R.renderer.domElement.getBoundingClientRect(),W=innerWidth,H2=innerHeight;svg.setAttribute("viewBox",`0 0 ${W} ${H2}`);
   if(!labelEls){labelEls=M.labels.map(l=>{const g=document.createElementNS(NSV,"g");g.setAttribute("class","cl");const pl=document.createElementNS(NSV,"polyline"),dot=document.createElementNS(NSV,"circle"),rc2=document.createElementNS(NSV,"rect"),tx=document.createElementNS(NSV,"text");dot.setAttribute("r","2.6");
       tx.textContent=l[1].join(" ").replace(/ · /g," ");const base=tx.textContent;rc2.setAttribute("height","16");rc2.setAttribute("rx","2");g.append(pl,dot,rc2,tx);g.dataset.lv=l[0];
@@ -7153,7 +7163,7 @@ function labels(){const R=M.R;if(!M.on){if(labelEls)labelEls.forEach(e=>e.g.styl
 function teardown(){if(M.on)leave();for(const o of[M.G,M.G2,M.seabed])if(o&&o.parent)o.parent.remove(o);
   if(M.G)M.G.traverse(o=>{if(o.geometry)o.geometry.dispose();});if(M.seabed)M.seabed.geometry.dispose();
   if(labelEls){labelEls.forEach(e=>e.g.remove());labelEls=null;}
-  Object.assign(M,{built:false,bob:null,G:null,G2:null,seabed:null,fig:null,VM:[],PN:[],dim:[],grp:null,home:[],bands:null,labels:null,sel:-1,hi:-1,man:-1,cur:null,res:"",flip:false});M.vis.clear();}
+  Object.assign(M,{job:null,built:false,bob:null,G:null,G2:null,seabed:null,fig:null,VM:[],PN:[],dim:[],grp:null,home:[],bands:null,labels:null,sel:-1,hi:-1,man:-1,cur:null,res:"",flip:false});M.vis.clear();}
 let looping=false;
 function enter(){const R=R3;M.on=true;window.CUTON=true;M.cur=null;M.sel=-1;M.pan=0;M.uaz=M.upt=M.uly=0;M.uz=1;M.hi=-1;M.wasPaused=paused;M.wasMain=main3d;M.cam=R&&R.ty!=null?{shot:R.shot,ty:R.ty,tp:R.tp,td:R.td}:null;
   try{if(!main3d)setMain(true);}catch(e){}
@@ -7434,7 +7444,7 @@ body.cutmode #view3d{touch-action:none}
 #cutSvg text{font-size:10.5px}
 #cutSvg polyline{stroke-width:.5px}#cutSvg circle{stroke-width:.8px}
 #cutCard .ra{list-style:none;margin:4px 0 0;padding:0}#cutCard .ra li{font:12px Georgia,serif;line-height:1.3;padding:2px 0;border-top:1px dotted #cbbd98}#cutCard .ra b{font:10px "IBM Plex Mono",monospace;text-transform:uppercase;letter-spacing:.06em;color:#7b6a55;margin-right:5px}#cutCard .ra .risk b{color:#a83b2f}
-#cutCard .ra{display:flex;flex-direction:column;gap:3px;margin-top:5px}#cutCard .ra button{text-align:left;font:12px Georgia,serif;line-height:1.3;padding:4px 6px;border:1px solid #2e2519;border-radius:3px;background:#fff;color:#000}#cutCard .ra button.risk{border-color:#a83b2f}#cutCard .ra button b{font:10px "IBM Plex Mono",monospace;text-transform:uppercase;letter-spacing:.06em;color:#7b6a55;margin-right:5px}#cutCard .ra button.risk b{color:#a83b2f}#cutCard .rr{margin-top:5px;font:italic 12.5px Georgia,serif;color:#2e2519}
+#cutCard .ra{display:flex;flex-direction:column;gap:4px;margin-top:5px}#cutCard .ra button{display:grid;grid-template-columns:54px 1fr 30px;align-items:center;gap:6px;width:100%;text-align:left;font:12px Georgia,serif;line-height:1.3;padding:6px 8px;min-height:34px;border:1px solid #2e2519;border-radius:3px;background:#fff;color:#000}#cutCard .ra button.risk{border-color:#a83b2f}#cutCard .ra button b{font:10px "IBM Plex Mono",monospace;text-transform:uppercase;letter-spacing:.06em;color:#7b6a55;margin-right:0}#cutCard .ra button em{font:normal 10.5px "IBM Plex Mono",monospace;color:#7b6a55;text-align:right}#cutCard .ra button:disabled{opacity:.45}#cutCard .jb{margin-top:6px;border:1px solid #2e2519;border-radius:3px;background:#fff;color:#000;padding:6px 8px}#cutCard .jn{display:grid;grid-template-columns:54px 1fr;gap:6px;font:12px Georgia,serif;align-items:center}#cutCard .jn b{font:10px "IBM Plex Mono",monospace;text-transform:uppercase;letter-spacing:.06em;color:#7b6a55}#cutCard .jbar{height:10px;border:1px solid #2e2519;border-radius:2px;margin:6px 0;overflow:hidden;background:#f6eed9}#cutCard .jbar i{display:block;height:100%;background:#2e2519}#cutCard .jm{display:flex;align-items:center;gap:6px}#cutCard .jm span{flex:1;font:11px "IBM Plex Mono",monospace;color:#4a3f30}#cutCard .jm button{font:12px Georgia,serif;padding:5px 12px;border:1px solid #000;border-radius:3px;background:#fff;color:#000}#cutCard .ra button.risk b{color:#a83b2f}#cutCard .rr{margin-top:5px;font:italic 12.5px Georgia,serif;color:#2e2519}
 #cutCard{max-height:46vh;overflow:auto}#cutCard .mc{margin-top:6px;border-top:1px dotted #cbbd98;padding-top:5px;font:12.5px Georgia,serif}#cutCard .mc .svhint{font:11.5px Georgia,serif;color:#4a3f30;margin-top:2px}#cutCard .mb{display:flex;gap:5px;margin-top:5px}#cutCard .mb button{font:12px Georgia,serif;padding:4px 8px;border:1px solid #000;border-radius:3px;background:#fff;color:#000}
 #cutChips{justify-content:space-between;gap:6px}#cutChips button{flex:1 1 0;max-width:38px;min-width:0;height:42px;padding:0;display:flex;flex-direction:column;align-items:center;justify-content:center;border:0;border-radius:3px;background:var(--paper,#f6eed9);color:var(--ink,#2e2519)}#cutChips button svg{width:21px;height:21px}#cutChips button span{display:block;font:6.5px/1 "IBM Plex Mono",monospace;letter-spacing:0;text-transform:uppercase;margin-top:3px;max-width:100%;overflow:hidden;white-space:nowrap}#cutChips button.on,#cutChips button:active{background:var(--ink,#2e2519);color:var(--paper,#f6eed9)}#cutChips #cutRe{margin-left:0}#cutChips #cutLed{border-style:solid}@media (max-width:860px){#cutChips{left:12px;right:12px;bottom:calc(var(--pbot,72px) + 3px)}}
 
