@@ -3645,7 +3645,7 @@ function updateFauna(R,dt,gain,wdx,wdz,nightF){
   const hdg=sh.heading*D2R,fx=Math.sin(hdg),fz=-Math.cos(hdg),sx=Math.cos(hdg),sz=Math.sin(hdg),bow=(R.hawse?R.hawse[0]:12)+2;
   const live=speedMult<=3,rnd=Math.random;
   for(const m of F.ghost)m.color.setRGB(.165*lerp(1,.6,nightF),.26*lerp(1,.7,nightF),.31*lerp(1,.9,nightF));
-  F.outU.uPx.value=1.15*2*Math.tan(R.camera.fov*D2R/2)/Math.max(200,R.H);
+  F.outU.uPx.value=.3*2*Math.tan(R.camera.fov*D2R/2)/Math.max(200,R.H);
   const tint=[lerp(1,.28,nightF),lerp(1,.34,nightF),lerp(1,.5,nightF)];F.fill.color.setRGB(...tint);F.fillFlat.color.setRGB(...tint);
   if((F.dcT-=dt)<=0){F.dcT=2;F.dc=coastNm(sh.x,sh.y);}
   const dc=F.dc,doy=69+dayIndex(S),humpSeason=doy<150||doy>335;
