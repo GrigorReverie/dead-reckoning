@@ -6046,6 +6046,37 @@ const M={pan:0,on:false,sel:-1,built:false,cur:null,hi:-1,gA:{value:1},fast:1,ua
 const SPc=SPEC.constitution,LS=linesOf(SPc),{H,deck,railY,keelY,zF,zA,hx}=LS;
 const YG=2.6,YB=0.3,YO=-1.8,YH=-4.9;                 // gun deck, berth deck, orlop and hold floors (from her spec's room bands)
 const FIT=2.4; window.__HX=hx;                                      // her size against the brig, for the camera
+const ACT=[
+ [ // Upper deck
+  ["Holystone the quarterdeck","Heave to and reef on the wheel watch","Let the helmsman name the course for a tot","Take the wheel in a squall, no relief"],
+  ["Scrub and tar the boat covers","Hoist out the launch and race the cutter","Row the hands ashore for fresh water and fruit","Land a boarding party in the dark"],
+  ["Grease the carronade slides","Fire a blank salute at a passing ship","Chalk the barrels with each gun crew's name","Charge them with grape and shoot at a flotsam raft"],
+  ["Grease the pawls and whip the cable","Heave the anchor against the clock","Strike up the fiddle and walk the capstan round","Weigh in a rising gale"],
+  ["Mend the gratings and caulk the coamings","Drill the fire party at the hatches","Open the hatches for a sing-song on a warm night","Send a man down a smoking hatch"],
+  ["Scour the funnel and the grease trap","Douse the fire and re-light in a count of ten","Serve a hot supper to the morning watch","Cook with salt beef a month past its date"]],
+ [ // Gun deck
+  ["Scrape and white-wash the cabin bulkheads","Practise a swift change of cabin for quarters","Dine the officers on the captain's best","Open a sealed letter from the Admiralty"],
+  ["Scale and blacken the barrels","Run the guns out and in against the glass","Hold a shooting match, rum for the best crew","Double-shot a gun and see what holds"],
+  ["Scrub the tables and mess kids","Clear for action in four minutes","Dole out an extra half-pint for a good week","Settle a dispute over the pork shares"],
+  ["Rake out the manger and mend the scuppers","Check the hawse plugs in a seaway","Pen the goat and the hens for fresh milk and eggs","Take in livestock from a trader, no questions"]],
+ [ // Berth deck
+  ["Swab the wardroom and rinse the glasses","Muster the officers for a mock court martial","Dine with the lieutenants and hear the gossip","Intervene in a quarrel between two lieutenants"],
+  ["Scrub the steerage and air the lockers","Run the midshipmen up the masts for a race","Set the young gentlemen to a navigation lesson","Overlook a prank and see what comes of it"],
+  ["Air the hammocks on deck and sling them in the sun","Pipe up hammocks in ninety seconds","Let the hands play cards and dice at the mess","Search for contraband rum under the mattresses"],
+  ["Scour the stove and the great copper","Run a galley fire drill with buckets","Brew a pea soup with the last of the vegetables","Light the stove in a heavy sea"],
+  ["Scrub the cots and burn sulphur against fever","Drill the loblolly boys in lifting the wounded","Visit the sick and cheer them with a ration of port","Operate by lantern light on a shattered leg"]],
+ [ // Orlop
+  ["Check the biscuit for weevils and bake fresh","Count the barrels by candle against the log","Sort the sound biscuit for the officers' table","Open a cask with a doubtful smell"],
+  ["Sweep the powder dust and change the felt slippers","Hold a magazine-passing drill, silent and fast","Swap the lanterns for fresh oil and wicks","Move powder across the ship in a thunderstorm"],
+  ["Flake out the cable and coil it fresh","Haul spare sails up through the hatch","Mend the spare canvas in a night's sewing","Sell spare cordage to a passing trader for coin"],
+  ["Count the kegs of powder against the book","Practise flooding the magazine in an emergency","Reward the powder monkeys with a plum duff","Open a barrel marked as lost"],
+  ["Tally the boatswain's twine and tar","Rig a jury mast from the spare spars","Lend the carpenter's mate to an apprentice's trade","Barter spare blocks for fresh fruit ashore"]],
+ [ // Hold
+  ["Rouse out the water casks and sweeten with charcoal","Bail and rig the buckets for a leak drill","Open a cask to share the last sweet water","Drink from the lowest cask and risk the flux"],
+  ["Count the round shot and polish off the rust","Run shot up the hoist in a mock action","Pile shot into pyramids for the gunners' pride","Move shot to trim a ship down by the head"],
+  ["Shift the ballast to trim her fore and aft","Hold a mock fire and flood drill in the dark","Add a round of shingle to steady her in the swell","Throw pigs overboard to lighten her over a bar"],
+  ["Grease the chain pump and clear the well","Pump out for an hour to test the leak","Cheer the men at the pump with a shanty","Open a seam to find a hidden leak"]]
+];
 /* ---------- decks, rooms, labels ---------- */
 const DECKS=[
  {name:"Upper deck",sub:"helm · boats · carronades · capstan",look:5.4,
@@ -6263,7 +6294,7 @@ function mkChips(){chips.innerHTML=`<button data-s="-1">All</button>`+DECKS.map(
 function sel(i){M.sel=(M.sel===i&&i>=0)?-1:i;M.hi=-1;M.pan=0;paint();}
 function paint(){chips.querySelectorAll("button[data-s]").forEach(b=>b.classList.toggle("on",+b.dataset.s===M.sel));
   if(M.sel<0)card.innerHTML=`<h3>USS Constitution</h3><p>Tap a deck, or a label.</p>`;
-  else{const d=DECKS[M.sel];card.innerHTML=`<h3>${d.name}</h3><div class="crm">${d.rooms.map((r,k)=>`<button class="rb${k===M.hi?" hi":""}" data-r="${k}">${r[0]}</button>`).join("")}</div>${M.hi>=0?`<div class="rd">${d.rooms[M.hi][1]}</div>`:""}`;
+  else{const d=DECKS[M.sel];card.innerHTML=`<h3>${d.name}</h3><div class="crm">${d.rooms.map((r,k)=>`<button class="rb${k===M.hi?" hi":""}" data-r="${k}">${r[0]}</button>`).join("")}</div>${M.hi>=0?`<div class="rd">${d.rooms[M.hi][1]}</div><ul class="ra">${ACT[M.sel][M.hi].map((t,i)=>`<li${i===3?' class="risk"':""}><b>${["Chore","Drill","Morale","Risk"][i]}</b> ${t}</li>`).join("")}</ul>`:""}`;
     card.querySelectorAll(".rb").forEach(r=>r.onclick=()=>{M.hi=(M.hi===+r.dataset.r)?-1:+r.dataset.r;paint();});}
   card.classList.toggle("tall",M.sel>=0);}
 let labelEls=null;
@@ -6549,4 +6580,5 @@ body.cutmode #shipView{display:none!important}
 body.cutmode #view3d{touch-action:none}
 #cutSvg text{font-size:10.5px}
 #cutSvg polyline{stroke-width:.5px}#cutSvg circle{stroke-width:.8px}
+#cutCard .ra{list-style:none;margin:4px 0 0;padding:0}#cutCard .ra li{font:12px Georgia,serif;line-height:1.3;padding:2px 0;border-top:1px dotted #cbbd98}#cutCard .ra b{font:10px "IBM Plex Mono",monospace;text-transform:uppercase;letter-spacing:.06em;color:#7b6a55;margin-right:5px}#cutCard .ra .risk b{color:#a83b2f}
 </style></body></html>
