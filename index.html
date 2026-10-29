@@ -2153,7 +2153,7 @@ function renderLog(){
 
 /* ---------- 3D view: blueprint style ---------- */
 const NM=1852, VEX=2.2;
-const PAL={day:{paper:[.965,.933,.851],ink:[.2,.15,.1]},night:{paper:[.075,.165,.39],ink:[.918,.875,.706]}};
+const PAL={day:{paper:[.965,.933,.851],ink:[.2,.15,.1]},night:{paper:[.052,.075,.125],ink:[.60,.67,.80]}};
 const WAVES=[{off:0,len:46,a:1,ph:.3},{off:24,len:25,a:.55,ph:1.7},{off:-33,len:13.5,a:.32,ph:4.1},{off:62,len:7.5,a:.18,ph:2.4}];
 WAVES[0].len=84;
 for(const w of WAVES){w.k=2*PI/w.len;w.om=Math.sqrt(9.81*w.k);w.dx=0;w.dz=1;}
@@ -2196,7 +2196,7 @@ float hatchObj(float shade,vec3 p,float sp){
 // Sun shading, hatching and soft cast shadows (ship on itself, ship on the water). Values come from Grigor's Shadow Tuner settings (second round, 2026-10-28); the game's own sun, weather and night feed them.
 const SH={disc:0,dirOff:0,lenMul:0.3,formAmt:0.82,termBias:0.28,termSoft:0.14,shadeTint:"#9a8f9f",washAmt:0.78,hType:1,hCol:"#2d2219",hOpac:0.6,hSp:0.28,hW:0.35,hAng:38,hGain:1.5,hStart:0.3,hCrossAng:85,hCrossStart:0.65,castOn:1,castAmt:0.6,selfSoft:0.1,sBias:0,wCol:"#3d5f75",wStr:0.61,wSoft:0.52,wFadeAmt:0.45,wFadeLen:5,wType:1,wHCol:"#2a4150",wHOpac:0.78,wHSp:0.35,wHW:0.05,wHAng:61,wHGain:3.15,wHStart:0.18,wHCrossAng:90,wHCrossStart:1};
 const SH_UH=Object.keys(SH).map(k=>{const v=SH[k];if(typeof v==="string"){const c=[1,3,5].map(i=>(parseInt(v.slice(i,i+2),16)/255).toFixed(4));return `const vec3 u_${k}=vec3(${c});`;}return `const float u_${k}=${(+v).toFixed(4)};`;}).join("\n")+`
-uniform sampler2D u_SMap; uniform mat4 u_SMat; uniform float u_SSize,u_SRange,u_STex,u_ShadowOn,u_LightK;
+uniform sampler2D u_SMap; uniform mat4 u_SMat; uniform float u_SSize,u_SRange,u_STex,u_ShadowOn,u_LightK,uNightK; uniform vec4 uMoon; uniform vec3 uLant;
 `;
 // Cloud shadows on the sea and the ship, from Grigor's Cloud Shadow Tuner settings of 2026-10-28. Each visible cloud sprite throws a soft ragged shadow along the sun's ray; the sun dims inside it.
 const CL={cRag:0.2,cCol:"#46617a",cStr:0.2,cSoft:420,cThick:0.8,cHType:1,cHCol:"#2a4150",cHOpac:0.25,cHSp:2.06,cHW:0.35,cHAng:50,cHGain:2.15,cHStart:0.19,cHCrossAng:90,cHCrossStart:0.18,cShipStr:0.45,cShipHatch:0.5,cDim:0.8,cLevel:0.54};
@@ -2275,7 +2275,7 @@ float cloudShadowAt(vec3 wp){
     m*=mix(1.0,smoothstep(0.0,c.z*0.8+u_cSoft,sd),u_cThick);
     best=max(best,m*c.w);
   }
-  return best*u_ShadowOn;
+  return best*u_ShadowOn*(1.0-uNightK);
 }
 // the ship: shaded sides tinted and hatched, plus the shadows its own sails, spars and decks throw
 vec3 sunShade(vec3 col,vec3 nw,vec3 wp,vec2 hc){
@@ -2290,6 +2290,13 @@ vec3 sunShade(vec3 col,vec3 nw,vec3 wp,vec2 hc){
   col*=mix(vec3(1.0),u_shadeTint,clamp(shade*u_washAmt,0.0,1.0));
   float h=hatchP(hc,u_hType,u_hAng,u_hSp,u_hW,u_hGain,u_hStart,u_hCrossAng,u_hCrossStart,shade)*u_hOpac;
   col=mix(col,u_hCol,clamp(h,0.0,1.0));
+  if(uNightK>0.5){ // by night: cool moonlight on the faces it reaches, the shaded sides left dark, and a warm lantern glow on the wood nearby
+    float lit=clamp(lam,0.0,1.0)*(1.0-csh)*uMoon.w;
+    col=mix(col,vec3(dot(col,vec3(0.33)))*vec3(0.82,0.92,1.18),0.62); // moonlight drains the colour
+    col=col*(0.85+1.7*lit)+vec3(0.50,0.60,0.85)*lit*0.14;
+    float ld=length(wp-uLant);
+    col+=vec3(1.0,0.60,0.26)*exp(-ld*ld/(2.0*4.5*4.5))*0.30;
+  }
   return col*(1.0-0.38*cs); // under cloud the whole ship simply darkens, no cast shape
 }`;
 const VS_INK=`
@@ -2478,7 +2485,7 @@ void main(){
     float cpt=1.0-smoothstep(1.15,1.3,min(min(length(vObj.xy-vec2(0.0,0.0)),length(vObj.xy-vec2(13.0,0.0))),min(length(vObj.xy-vec2(0.0,5.5)),length(vObj.xy-vec2(13.0,5.5)))));
     wash=mix(wash,vec3(0.86,0.70,0.40),max(tab*0.75,cpt*0.6));
   #endif
-  wash=mix(wash,wash*vec3(0.35,0.40,0.65),night); wa*=1.0-0.3*night;
+  wash=mix(wash,wash*vec3(0.34,0.37,0.46),night); wa*=1.0-0.3*night;
   vec3 base=mix(uPaper,wash,wa);
   float lum=dot(base,vec3(0.33));
   vec3 colr=lum<0.3?mix(base,vec3(0.62,0.52,0.38),clamp(ink,0.0,1.0)*0.32):mix(base,pen,clamp(ink,0.0,1.0)*0.62);
@@ -2543,7 +2550,7 @@ void main(){
   float hat=hatchAmt(0.28+rel*0.72,7.0)*(1.0-smoothstep(90.0,700.0,dist))*0.2*(1.0-rel);
   float weight=0.55+0.45*(1.0-rel);
   weight=mix(weight,0.45+0.55*rel,night);
-  float ink=clamp(max(line*weight,max(cont,hat)),0.0,1.0);
+  float ink=clamp(max(line*weight,max(cont,hat)),0.0,1.0)*mix(1.0,0.22,night);
   // watercolour wash: deeper in the troughs, pale on the crests, blotchy where the brush lifted
   vec3 deep=vec3(0.34,0.47,0.53), shal=vec3(0.62,0.74,0.73);
   vec3 dayW=mix(deep,shal,clamp(rel*0.55+crest*0.55,0.0,1.0));
@@ -2551,6 +2558,29 @@ void main(){
   vec3 wash=mix(mix(uPaper,vec3(0.72,0.81,0.82),0.5)*(0.94+0.1*rel),dayW,1.0-night);
   wash=mix(wash,uPaper*(0.85+0.3*fbm(q*0.07))+(uInk-uPaper)*0.0,night*0.5);
   vec3 col=mix(wash,uSeaInk,ink);
+  if(night>0.5){ // moonlit sea: near-black water, pale where the swell faces the moon, a glitter path under it, warm lantern light round the ship
+    vec3 Lm=normalize(uMoon.xyz); float mk=uMoon.w;
+    vec3 V=normalize(cameraPosition-vPos);
+    vec3 nn=normalize(n+vec3(vn(q*0.9)-0.5,0.0,vn(q*0.9+5.0)-0.5)*0.30*near+vec3(vn(q*0.17+2.0)-0.5,0.0,vn(q*0.17+8.0)-0.5)*0.10);
+    float diff=clamp(dot(n,Lm),0.0,1.0);
+    vec3 R_=reflect(-V,nn); float rm=clamp(dot(R_,Lm),0.0,1.0);
+    float path=pow(rm,38.0), core=pow(rm,420.0);
+    vec3 deepN=vec3(0.020,0.032,0.058), skyN=vec3(0.060,0.085,0.135);
+    float fres=pow(1.0-clamp(dot(V,n),0.0,1.0),3.0);
+    vec3 nw=mix(deepN,skyN,0.25+0.75*fres)*(0.8+0.5*crest)*(0.85+0.3*fbm(q*0.02));
+    nw+=vec3(0.07,0.10,0.17)*diff*mk*(0.4+0.6*crest);
+    vec2 sd2=shadowAt(vPos,0.03,u_wSoft); float shd=clamp(sd2.x*u_ShadowOn,0.0,1.0);
+    vec3 glit=vec3(0.78,0.86,1.0)*(path*0.30+core*1.6)*mk*(1.0-0.85*shd);
+    nw+=glit;
+    vec2 lp=vPos.xz-uLant.xz; float lw=exp(-dot(lp,lp)/(2.0*9.0*9.0));
+    nw+=vec3(1.0,0.58,0.24)*lw*0.12*(0.6+0.8*crest)*(1.0-smoothstep(300.0,1500.0,dist));
+    col=mix(nw,uSeaInk*0.55,ink*0.8);
+    float fo2=smoothstep(0.82,0.97,crest+(fbm(q*vec2(1.1,1.7))-0.5)*0.7)*mid*0.4*(0.25+mk);
+    col=mix(col,vec3(0.55,0.62,0.75),fo2);
+    col=mix(col,uPaper,smoothstep(uFogNear,uFogFar,dist));
+    vec3 cp2=vPos-uCutC;float cx2=dot(cp2,uCutN),cz2=dot(cp2,uCutB);float cutM2=uCutOn*smoothstep(uCutBox.x-1.5,uCutBox.x,cx2)*(1.0-smoothstep(uCutBox.y,uCutBox.y+2.0,cx2))*(1.0-smoothstep(uCutBox.z,uCutBox.z+2.0,abs(cz2)));
+    gl_FragColor=vec4(col,1.0-0.78*cutM2); return;
+  }
   float csG=cloudShadowAt(vPos);
   // foam: broken white on the crests, streaked along the swell
   float fo=smoothstep(0.78,0.97,crest+(fbm(q*vec2(1.1,1.7))-0.5)*0.75)*mid;
@@ -2694,6 +2724,28 @@ function sunTexture(ink){
   for(let i=0;i<24;i++){const a=i/24*2*PI,r0=40,r1=i%2?60:88;g.beginPath();g.moveTo(Math.cos(a)*r0,Math.sin(a)*r0);g.lineTo(Math.cos(a)*r1,Math.sin(a)*r1);g.stroke();}
   return new THREE.CanvasTexture(c);
 }
+// the moon: a soft glow round a softly shaded disc with the terminator of the real phase (illum 0..1, waxing = lit on the right)
+function moonTexture(illum,waxing){
+  const c=document.createElement("canvas");c.width=c.height=256;const g=c.getContext("2d");g.translate(128,128);
+  const hg=g.createRadialGradient(0,0,10,0,0,128);hg.addColorStop(0,"rgba(190,205,235,.55)");hg.addColorStop(.16,"rgba(150,170,215,.22)");hg.addColorStop(.5,"rgba(110,130,185,.06)");hg.addColorStop(1,"rgba(90,110,170,0)");
+  g.fillStyle=hg;g.fillRect(-128,-128,256,256);
+  const R0=17;g.save();g.beginPath();g.arc(0,0,R0,0,2*PI);g.clip();
+  g.fillStyle="#1a2235";g.fillRect(-R0,-R0,2*R0,2*R0); // the dark limb, faintly seen
+  g.fillStyle="#e9edf6";g.beginPath();g.moveTo(0,-R0);g.arc(0,0,R0,-PI/2,PI/2,!waxing);g.closePath();g.fill(); // the lit half
+  const k=1-2*illum; // the terminator: an ellipse that eats into the lit half (crescent) or spills over onto the dark half (gibbous)
+  g.fillStyle=k>0?"#1a2235":"#e9edf6";g.beginPath();g.ellipse(0,0,R0*Math.abs(k)+.01,R0,0,0,2*PI);g.fill();
+  g.globalAlpha=.16;g.fillStyle="#6c7a96";for(const[x,y,r]of[[-5,-4,4],[4,2,5],[-2,8,3],[7,-7,2.5],[-9,3,3]]){g.beginPath();g.arc(x,y,r,0,2*PI);g.fill();}
+  g.restore();
+  return new THREE.CanvasTexture(c);
+}
+function moonState(S,lh,di,lat,H,dcl,phi){
+  const t=Date.UTC(1745,2,10+di)+lh*3600e3-(Date.UTC(2000,0,6,18,14)),age=((t/864e5)%29.530588+29.530588)%29.530588;
+  const el=age/29.530588*2*PI,illum=(1-Math.cos(el))/2,waxing=age<29.530588/2;
+  const Hm=H-el,dm=5*D2R*Math.sin(2*PI*di/27.3); // the moon trails the sun by its elongation; its path is within a few degrees of the equator
+  const alt=Math.asin(Math.sin(phi)*Math.sin(dm)+Math.cos(phi)*Math.cos(dm)*Math.cos(Hm));
+  const az=Math.atan2(Math.sin(Hm),Math.cos(Hm)*Math.sin(phi)-Math.tan(dm)*Math.cos(phi))+PI;
+  return{alt:alt*R2D,az,illum,waxing,age};
+}
 function closestOnSeg(p,a,b){const dx=b.x-a.x,dy=b.y-a.y,l=dx*dx+dy*dy;let t=l?((p.x-a.x)*dx+(p.y-a.y)*dy)/l:0;t=clamp(t,0,1);return{x:a.x+t*dx,y:a.y+t*dy};}
 
 function init3D(){
@@ -2708,7 +2760,7 @@ function init3D(){
     // sun's-eye depth map of the ship, drawn once a frame; the ship and the sea both read it for shadows
     const SMS=(window.matchMedia&&matchMedia("(pointer:coarse)").matches)?1024:2048;
     const smRT=new THREE.WebGLRenderTarget(SMS,SMS,{minFilter:THREE.NearestFilter,magFilter:THREE.NearestFilter,format:THREE.RGBAFormat,type:THREE.UnsignedByteType});
-    Object.assign(U,{u_SMap:{value:smRT.texture},u_SMat:{value:new THREE.Matrix4()},u_SSize:{value:100},u_SRange:{value:100},u_STex:{value:1/SMS},u_ShadowOn:{value:0},u_LightK:{value:0},u_cl:{value:Array.from({length:CL_N},()=>new THREE.Vector4(0,0,0,0))},u_cPar:{value:new THREE.Vector2()},u_cHSh:{value:0}});
+    Object.assign(U,{u_SMap:{value:smRT.texture},u_SMat:{value:new THREE.Matrix4()},u_SSize:{value:100},u_SRange:{value:100},u_STex:{value:1/SMS},u_ShadowOn:{value:0},u_LightK:{value:0},uNightK:{value:0},uMoon:{value:new THREE.Vector4(0,1,0,0)},uLant:{value:new THREE.Vector3()},u_cl:{value:Array.from({length:CL_N},()=>new THREE.Vector4(0,0,0,0))},u_cPar:{value:new THREE.Vector2()},u_cHSh:{value:0}});
     const shDepth=new THREE.ShaderMaterial({vertexShader:"void main(){gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}",fragmentShader:"precision highp float;void main(){float v=gl_FragCoord.z;vec3 e=vec3(1.0,255.0,65025.0)*v;e=fract(e);e-=e.yzz*vec3(1.0/255.0,1.0/255.0,0.0);gl_FragColor=vec4(e,1.0);}",side:THREE.DoubleSide,blending:THREE.NoBlending});
     const ink=(defs)=>new THREE.ShaderMaterial({uniforms:U,vertexShader:VS_INK,fragmentShader:FS_INK,side:THREE.DoubleSide,defines:Object.assign({HATCH_SCALE:"5.0",SHADE_FLOOR:"0.0"},defs||{}),extensions:{derivatives:true}});
     const inkMat=ink({OBJ:1}),terrainMat=ink({CONTOUR:1});
@@ -2737,8 +2789,9 @@ function init3D(){
     // sun
     R.tex.sunD=sunTexture("#2e2519");R.tex.sunN=sunTexture("#eadfb4");
     const sun=new THREE.Sprite(new THREE.SpriteMaterial({map:R.tex.sunD,fog:false,depthWrite:false,transparent:true}));sun.scale.set(5200,5200,1);scene.add(sun);R.sun=sun;
+    { const mo=new THREE.Sprite(new THREE.SpriteMaterial({map:moonTexture(.5,true),fog:false,depthWrite:false,transparent:true}));mo.scale.set(22000,22000,1);mo.visible=false;scene.add(mo);R.moonSp=mo; }
     // clouds
-    R.tex.cloudD=cloudTexture("#f2e4b9","#2e2519");R.tex.cloudN=cloudTexture("#132a63","#eadfb4");R.tex.cloudDD=cloudTexture("#a9a79a","#3a2f22",true);R.tex.cloudDN=cloudTexture("#0a1a42","#eadfb4",true);
+    R.tex.cloudD=cloudTexture("#f2e4b9","#2e2519");R.tex.cloudN=cloudTexture("#1c2538","#8795b2");R.tex.cloudDD=cloudTexture("#a9a79a","#3a2f22",true);R.tex.cloudDN=cloudTexture("#0d121d","#76829c",true);
     for(let i=0;i<130;i++){const m=new THREE.Sprite(new THREE.SpriteMaterial({map:R.tex.cloudD,fog:false,depthWrite:false,transparent:true}));
       m.userData.v=[m,...[R.tex.cloudN,R.tex.cloudDD,R.tex.cloudDN].map(t=>{const q=new THREE.Sprite(new THREE.SpriteMaterial({map:t,fog:false,depthWrite:false,transparent:true}));scene.add(q);return q;})];
       const sz=800+Math.random()*1300;m.scale.set(sz,sz*.55,1);const ra=Math.random()*2*PI,rr=3000+Math.random()*14000;Object.assign(m.userData,{x:Math.cos(ra)*rr,z:Math.sin(ra)*rr,y:1100+Math.random()*1500,th:Math.random()*.96,dk:Math.random(),sz:sz,dkv:0,ph:Math.random()*6.283,op:0});scene.add(m);R.clouds.push(m);}
@@ -3325,7 +3378,7 @@ void main(){
   
   float night=step(dot(uPaper,vec3(0.33)),0.5);
   vec3 pen=mix(vec3(0.16,0.115,0.085),uInk,night);
-  wash=mix(wash,wash*vec3(0.35,0.40,0.65),night);
+  wash=mix(wash,wash*vec3(0.34,0.37,0.46),night);
   vec3 base=mix(uPaper,wash,0.94*(1.0-0.3*night));
   float lum=dot(base,vec3(0.33));
   vec3 colr=lum<0.3?mix(base,vec3(0.62,0.52,0.38),clamp(ink,0.0,1.0)*0.3):mix(base,pen,clamp(ink,0.0,1.0)*0.55);
@@ -3868,7 +3921,7 @@ function shadowPass(R){
   sc.overrideMaterial=null;for(const o of away)o.visible=true;for(const o of hide)o.visible=true;
 }
 /* ---- the sky: a shaded dome, real stars joined into constellations, and an altitude and bearing grid. Values come from Grigor's Sky Tuner settings of 2026-10-28. ---- */
-const SKY={year:1745,nightMid:-4,nightWid:12,dayZen:"#7fa3c4",dayHor:"#e9dfc2",nightZen:"#0b1534",nightHor:"#2b4585",grad:0.48,hazeAmt:0.75,hazeH:16,hazeCol:"#f3ead0",hazeGrid:0.35,hazeStars:0.62,glowAmt:0.5,glowSize:32,glowCol:"#fff0c0",duskCol:"#e8a070",duskAmt:0.8,duskWid:9,hColD:"#3a4a63",hColN:"#7f9be0",hOpac:0.09,hSp:1,hTight:0.8,hW:1.05,hLow:0.5,hFull:5,hCross:1,altStep:10,azStep:15,altBold:3,azBold:3,gridCol:"#9fb4e8",gridOp:0.18,gridBoldOp:0.33,gridLab:true,gridLabSize:8,starBase:0.5,starK:1.11,starBright:1.5,starCol:"#fff4dc",starTint:0.7,starHalo:0.6,starDark:0,lineCol:"#b8c9f0",lineOp:0.33,lineGap:3,conSize:10,conCol:"#d8e2ff",conOp:0.5,stSize:7,stCol:"#c9d3ea",navCol:"#ffd98a",stOp:0.8,sphR:90000};
+const SKY={year:1745,nightMid:-4,nightWid:12,dayZen:"#7fa3c4",dayHor:"#e9dfc2",nightZen:"#04070e",nightHor:"#16213a",grad:0.48,hazeAmt:0.75,hazeH:16,hazeCol:"#f3ead0",hazeGrid:0.35,hazeStars:0.62,glowAmt:0.5,glowSize:32,glowCol:"#fff0c0",duskCol:"#e8a070",duskAmt:0.8,duskWid:9,hColD:"#3a4a63",hColN:"#4a5a7e",hOpac:0.09,hSp:1,hTight:0.8,hW:1.05,hLow:0.5,hFull:5,hCross:1,altStep:10,azStep:15,altBold:3,azBold:3,gridCol:"#9fb4e8",gridOp:0.18,gridBoldOp:0.33,gridLab:true,gridLabSize:8,starBase:0.5,starK:1.11,starBright:1.5,starCol:"#fff4dc",starTint:0.7,starHalo:0.6,starDark:0,lineCol:"#b8c9f0",lineOp:0.33,lineGap:3,conSize:10,conCol:"#d8e2ff",conOp:0.5,stSize:7,stCol:"#c9d3ea",navCol:"#ffd98a",stOp:0.8,sphR:90000};
 const SKY_ST={
 "Polaris":[2.530,89.264,2.0,0.6],"Kochab":[14.845,74.156,2.1,1.47],"Pherkad":[15.345,71.834,3.0,0.05],"Yildun":[17.537,86.586,4.4,0.1],"Epsilon Ursae Minoris":[16.766,82.037,4.2,0.9],"Zeta Ursae Minoris":[15.734,77.795,4.3,0.04],"Eta Ursae Minoris":[16.292,75.755,5.0,0.4],
 "Dubhe":[11.062,61.751,1.8,1.06],"Merak":[11.031,56.382,2.3,0.0],"Phecda":[11.897,53.695,2.4,0.0],"Megrez":[12.257,57.033,3.3,0.08],"Alioth":[12.900,55.960,1.8,-0.02],"Mizar":[13.399,54.925,2.2,0.02],"Alkaid":[13.792,49.313,1.9,-0.1],
@@ -4034,7 +4087,7 @@ function updateSky(R,alt,lh,di,pa,pf,cover,sq,sunDir,lat){
   const cam=R.camera.position;
   S_.dome.position.copy(cam);S_.pts.position.copy(cam);S_.hp.position.copy(cam);S_.lines.position.copy(cam);S_.grid.position.copy(cam);
   const dk=x=>skyMix(x,x.map(v=>v*0.28),D);
-  S_.gu.uCol.value.set(...dk(skyHex(K.gridCol)));S_.lu.uCol.value.set(...dk(skyHex(K.lineCol)));
+  {const ng=1-.45*(1-D);S_.gu.uCol.value.set(...dk(skyHex(K.gridCol)).map(v=>v*ng));S_.lu.uCol.value.set(...dk(skyHex(K.lineCol)).map(v=>v*ng));}
   const chart=$("aSky").checked;
   S_.on=chart;S_.grid.visible=chart;S_.lines.visible=chart;R.horizon.visible=false; // the tuned look has no horizon line
   /* stars */
@@ -4123,20 +4176,30 @@ function update3D(dt,now){
   const grey=[.78,.76,.68];for(let i=0;i<3;i++)pa[i]=lerp(pa[i],lerp(grey[i],pa[i]*.8,pf),.35*sq+(.25*S.wx.cover)*(1-pf));
   R.paperA=pa;R.inkA=ia;
   R.U.uPaper.value.setRGB(pa[0],pa[1],pa[2]);R.U.uInk.value.setRGB(ia[0],ia[1],ia[2]);R.U.uSeaInk.value.setRGB(lerp(.24,ia[0],pf),lerp(.37,ia[1],pf),lerp(.5,ia[2],pf));
-  R.lineMat.color.setRGB(lerp(.17,ia[0],pf),lerp(.12,ia[1],pf),lerp(.09,ia[2],pf));R.sailLine.color.copy(R.lineMat.color);R.solidInk.color.setRGB(ia[0],ia[1],ia[2]);R.horizon.material.color.setRGB(ia[0],ia[1],ia[2]);
+  R.lineMat.color.setRGB(lerp(.17,ia[0]*.62,pf),lerp(.12,ia[1]*.62,pf),lerp(.09,ia[2]*.62,pf));R.sailLine.color.copy(R.lineMat.color);R.solidInk.color.setRGB(ia[0],ia[1],ia[2]);R.horizon.material.color.setRGB(ia[0],ia[1],ia[2]);
   R.renderer.setClearColor(R.U.uPaper.value);
   const haze=info.haze;let far=lerp(45000,110000,clamp((haze-.6)/.4,0,1));far=lerp(far,6000,sq);if(nightF>.5)far*=.8;if(PV.vis!=null)far=Math.min(far,Math.max(150,PV.vis*NM));
   R.U.uFogFar.value=far;R.U.uFogNear.value=Math.min(600,far*.1);
   R.scene.fog.color.setRGB(pa[0],pa[1],pa[2]);R.scene.fog.near=R.U.uFogNear.value;R.scene.fog.far=far;
+  // moon: real phase from the date (new moon 2000-01-06 18:14 UTC, 29.53-day month), rising later each night; its light and shadows take over from the sun
+  const mn=moonState(S,lh,di,g.lat,H,dcl,phi);R.moon=mn;
+  const mDir=new THREE.Vector3(Math.cos(mn.alt*D2R)*Math.sin(mn.az),Math.sin(mn.alt*D2R),-Math.cos(mn.alt*D2R)*Math.cos(mn.az));
+  const mk=smooth(1,14,mn.alt)*(.15+.85*mn.illum)*nightF*(1-.85*clamp((S.wx.cover-.45)/.45,0,1))*(1-.8*sq);
   // light dir
-  const L=alt>-3?sunDir:new THREE.Vector3(.35,.8,.45).normalize();
+  const L=alt>-3?sunDir:(mk>.01?mDir:new THREE.Vector3(.35,.8,.45).normalize());
   R.U.uSunW.value.copy(L);
   { const ov=(1-.85*clamp((S.wx.cover-.45)/.45,0,1))*(1-.8*sq)*(1-pf); // cloud, rain and night take the sun's shadows away
-    R.U.u_ShadowOn.value=smooth(-.5,6,alt)*ov*(PV.shadows?1:0);R.U.u_LightK.value=smooth(-6,3,alt)*ov;R.shAlt=alt;R.shAz=az; }
+    R.U.u_ShadowOn.value=smooth(-.5,6,alt)*ov*(PV.shadows?1:0);R.U.u_LightK.value=smooth(-6,3,alt)*ov;R.shAlt=alt;R.shAz=az;
+    R.U.uNightK.value=pf>.5?1:0;R.U.uMoon.value.set(mDir.x,mDir.y,mDir.z,mk);
+    if(pf>.5&&mk>.01){R.U.u_ShadowOn.value=mk*(PV.shadows?1:0);R.U.u_LightK.value=mk*.7;R.shAlt=Math.max(mn.alt,6);R.shAz=mn.az;}
+    if(R.ship){R.ship.updateMatrixWorld();R.U.uLant.value.copy(R.ship.localToWorld(new THREE.Vector3(0,3.5,-3)));} }
   R.camera.updateMatrixWorld();R.U.uLight.value.copy(L).transformDirection(R.camera.matrixWorldInverse);
   // sun/clouds/stars
-  R.sun.position.copy(R.camera.position).addScaledVector(sunDir,85000);R.sun.material.map=nightF>.5?R.tex.sunN:R.tex.sunD;R.sun.visible=alt>-4||nightF>.5;
-  R.sun.material.opacity=alt>-4?1-.9*clamp((S.wx.cover-.45)/.45,0,1):.0;if(nightF>.5){R.sun.visible=true;R.sun.material.opacity=.9;R.sun.position.set(-30000,70000,-40000).add(R.camera.position);}
+  R.sun.position.copy(R.camera.position).addScaledVector(sunDir,85000);R.sun.material.map=R.tex.sunD;R.sun.visible=alt>-4;
+  R.sun.material.opacity=alt>-4?1-.9*clamp((S.wx.cover-.45)/.45,0,1):.0;
+  { const mm=R.moonSp,vis=nightF>.4&&mn.alt>-1;mm.visible=vis;
+    if(vis){const key=Math.round(mn.illum*40)*(mn.waxing?1:-1);if(mm.userData.key!==key){mm.userData.key=key;mm.material.map=moonTexture(mn.illum,mn.waxing);mm.material.needsUpdate=true;}
+      mm.position.copy(R.camera.position).addScaledVector(mDir,85000);mm.material.opacity=smooth(-1,4,mn.alt)*(1-.92*clamp((S.wx.cover-.45)/.45,0,1))*(1-.9*sq);} }
   updateSky(R,alt,lh,di,pa,pf,S.wx.cover,sq,sunDir,g.lat);
   // waves
   const gain=paused?0:Math.min(speedMult,3);R.wt+=dt*gain;
