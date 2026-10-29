@@ -6042,7 +6042,7 @@ setInterval(()=>{if(sheet.hidden||!S)return;if(tab==="wind"&&!PV.wind){const w=l
 /* ===== Ship tab: USS Constitution sliced open, riding in the game's own sea ===== */
 (function(){
 const PI=Math.PI,Q=new URLSearchParams(location.search);
-const M={pan:0,on:false,sel:-1,built:false,cur:null,hi:-1,gA:{value:1},fast:1,uaz:0,upt:0,uz:1,uly:0,vis:new Map(),VM:[],PN:[],dim:[],ledger:false,flip:false};
+const M={pan:0,on:false,sel:-1,built:false,cur:null,hi:-1,man:-1,gA:{value:1},fast:1,uaz:0,upt:0,uz:1,uly:0,vis:new Map(),VM:[],PN:[],dim:[],ledger:false,flip:false};
 const SPc=SPEC.constitution,LS=linesOf(SPc),{H,deck,railY,keelY,zF,zA,hx}=LS;
 const YG=2.6,YB=0.3,YO=-1.8,YH=-4.9;                 // gun deck, berth deck, orlop and hold floors (from her spec's room bands)
 const FIT=2.4; window.__HX=hx;                                      // her size against the brig, for the camera
@@ -6250,7 +6250,8 @@ function build(R){
   { const zl=LS.Lh+10,g=new THREE.PlaneGeometry(36,zl*2+4);g.rotateX(-PI/2);g.translate(6,-H.T-1.6,0);const pm=new THREE.Mesh(g,new THREE.MeshBasicMaterial({color:0x6e93a8,fog:false}));pm.frustumCulled=false;R.ship.add(pm);M.seabed=pm; }
   R.renderer.localClippingEnabled=true;
   { const G2=G.clone();G2.scale.x=-1;G2.visible=false;R.bob.add(G2);M.G2=G2; }
-  M.labels=makeLabels();
+  M.labels=makeLabels();makeFig(R);
+
 }
 /* ---------- labels: anchors from the room bands ---------- */
 function makeLabels(){const f=(y,a,b)=>M.fr(y,a,b),m=(y,a,b)=>(f(y,a,b)[0]+f(y,a,b)[1])/2;
@@ -6301,27 +6302,77 @@ window.CUTCAM=function(R){
     const a=M.VM[k],p=M.PN[k];
     if(a&&bd){const b=M.bands[k][M.hi];a.userData.bu.value.set(b[0],b[1],1);p.userData.bu.value.set(b[0],b[1],1);}else if(a){a.userData.bu.value.z=0;p.userData.bu.value.z=0;}
     if(M.dim[k]!==key){M.dim[k]=key;if(a){const tr=dm||!!bd;a.transparent=tr;a.visible=!dm;a.opacity=1;a.depthWrite=!tr;a.needsUpdate=true;}if(p){p.transparent=true;p.opacity=dm?.3:.7;p.needsUpdate=true;}}}
-  M.R=R;
+  crewTick();M.R=R;
 };
+/* ---------- crew: figures at their stations, rosters in the room cards ---------- */
+const NOFF=["Captain","Lieutenant","Master","Mate","Midshipman"];
+function homeOf(m,i){const du=m.mode==="duty",sl=m.mode==="sleep",r=m.r||"Seaman";
+  if(m.sick)return[2,4];
+  if(r==="Surgeon"||r==="Surgeon's mate")return[2,4];
+  if(r==="Captain")return du?[0,0]:[1,0];
+  if(r==="Lieutenant"||r==="Master"||r==="Mate")return du?[0,0]:[2,0];
+  if(r==="Midshipman")return du?[0,0]:[2,1];
+  if(r==="Cook"||r==="Cabin boy")return du?[2,3]:[2,2];
+  if(r==="Bosun")return du?[0,3]:[3,4];
+  if(r==="Gunner")return du?[3,1]:[1,2];
+  if(r==="Carpenter")return du?[4,3]:[2,2];
+  if(r==="Marine")return du?[0,2]:sl?[2,2]:[1,2];
+  return du?[[0,2],[0,3],[0,4],[0,1]][i%4]:sl?[2,2]:[1,2];}
+const stateOf=m=>m.sick?(m.why||"Laid up"):m.mode==="duty"?"On watch":m.mode==="sleep"?"Asleep":"Off watch";
+const SKY={0:0,1:YG,2:YB,3:YO,4:YH};
+function makeFig(R){
+  const parts=[];const body=new THREE.CylinderGeometry(.17,.24,.9,7);body.translate(0,.45,0);const head=new THREE.SphereGeometry(.17,8,6);head.translate(0,1.1,0);
+  const pos=[],nor=[],col=[];for(const g of[body,head]){const ng=g.toNonIndexed(),p=ng.attributes.position.array,n=ng.attributes.normal.array;for(let i=0;i<p.length;i++){pos.push(p[i]);nor.push(n[i]);}
+    for(let i=0;i<n.length;i+=3){const s=.62+.38*Math.max(0,n[i]*.5+n[i+1]*.6+n[i+2]*.4);col.push(s,s,s);}}
+  const geo=new THREE.BufferGeometry();geo.setAttribute("position",new THREE.Float32BufferAttribute(pos,3));geo.setAttribute("color",new THREE.Float32BufferAttribute(col,3));
+  const mat=new THREE.MeshBasicMaterial({vertexColors:true});
+  const im=new THREE.InstancedMesh(geo,mat,800);im.count=0;im.frustumCulled=false;im.name="crewfig";M.G.add(im);M.fig=im;M.dirty=true;M.csig="";M.home=[];}
+const _m4=new THREE.Matrix4(),_q=new THREE.Quaternion(),_p=new THREE.Vector3(),_sc=new THREE.Vector3(),_cl=new THREE.Color();
+function crewLayout(){const im=M.fig;if(!im||typeof S==="undefined"||!S||!S.crew)return;const C=S.crew;crewX(S);
+  const g={};M.home=C.map((m,i)=>{const h=homeOf(m,i);(g[h[0]*10+h[1]]=g[h[0]*10+h[1]]||[]).push(i);return h;});M.grp=g;
+  im.count=Math.min(800,C.length);const place=new Array(C.length);
+  for(const key in g){const lv=Math.floor(key/10),rm=key%10,list=g[key],b=M.bands[lv][rm];const z0=b[0]+.3,z1=b[1]-.3,zm=(z0+z1)/2,y0=lv===0?deck(zm):SKY[lv];
+    const w0=Math.max(1,hx(zm,y0+1)-.7),cols=Math.max(1,Math.min(Math.floor(w0/.5),list.length)),rows=Math.ceil(list.length/cols),dz=Math.max(.3,Math.min(.75,(z1-z0)/Math.max(1,rows)));
+    list.forEach((i,k)=>{const r=Math.floor(k/cols),c=k%cols,z=Math.min(z1,z0+r*dz+(c%2)*.15),y=(lv===0?deck(z):SKY[lv])+.03,w=Math.max(.8,hx(z,y+1)-.7),dx=cols>1?Math.min(.55,(w-.4)/(cols-1)):0;place[i]=[-(.45+c*dx),y,z];});}
+  const sel=M.sel;
+  C.forEach((m,i)=>{if(i>=800)return;const pl=place[i],h=M.home[i],on=M.sel<0||h[0]===M.sel,s=(i===M.man)?1.7:1;
+    _p.set(pl[0],pl[1],pl[2]);_sc.set(on?s:0,on?s:0,on?s:0);_m4.compose(_p,_q,_sc);im.setMatrixAt(i,_m4);
+    const off=NOFF.includes(m.r);_cl.setHex(i===M.man?0xe0a82a:m.sick?0x7a9a6a:m.mode==="sleep"?0x9a8f78:m.r==="Marine"?0xa83b2f:off?0x2d4a73:0xe6dcc0);im.setColorAt(i,_cl);});
+  im.instanceMatrix.needsUpdate=true;if(im.instanceColor)im.instanceColor.needsUpdate=true;}
+function crewTick(){if(!M.fig||typeof S==="undefined"||!S||!S.crew)return;M.fc=(M.fc||0)+1;
+  if(M.fc%20===0){const sg=S.crew.length+":"+S.crew.map(m=>(m.mode||"r")[0]+(m.sick?1:0)).join("");if(sg!==M.csig){M.csig=sg;M.dirty=true;}}
+  if(M.dirty){M.dirty=false;crewLayout();}}
+function crewSummary(list){const C=list.map(i=>S.crew[i]),n=C.length||1,on=C.filter(m=>m.mode==="duty").length,sl=C.filter(m=>m.mode==="sleep").length,sk=C.filter(m=>m.sick).length,av=C.reduce((a,m)=>a+m.mo,0)/n;
+  return`${C.length} here · ${on} on watch · ${sl} asleep · ${sk} sick · spirits ${pcx(av)}`;}
+function crewCard(){let h="";const C=S.crew;
+  if(M.sel<0){const all=C.map((_,i)=>i);return`<div class="rd">${crewSummary(all)}</div>`;}
+  if(M.hi>=0){const list=(M.grp&&M.grp[M.sel*10+M.hi])||[];h+=`<div class="rd">${crewSummary(list)}</div>`;
+    const top=list.slice().sort((a,b)=>(C[b].sick-C[a].sick)||(NOFF.includes(C[b].r)-NOFF.includes(C[a].r))||(C[a].mo-C[b].mo)).slice(0,8);
+    h+=`<div class="crm">${top.map(i=>`<button class="rb${i===M.man?" hi":""}" data-m="${i}">${C[i].n.split(" ").pop()} · ${C[i].r}</button>`).join("")}${list.length>8?`<span class="rd">+${list.length-8} more</span>`:""}</div>`;}
+  if(M.man>=0&&C[M.man]){const m=C[M.man];h+=`<div class="mc"><b>${m.n}</b> ${m.r} · ${stateOf(m)}${crewInfo(m)}<div class="mb"><button type="button" data-o="on">Turn out</button><button type="button" data-o="off">Stand down</button></div></div>`;}
+  return h;}
+function crewBind(){card.querySelectorAll("button[data-m]").forEach(b=>b.onclick=()=>{M.man=M.man===+b.dataset.m?-1:+b.dataset.m;M.dirty=true;paint();});
+  card.querySelectorAll("button[data-o]").forEach(b=>b.onclick=()=>{const m=S.crew[M.man];if(!m)return;if(b.dataset.o==="on"){m.ov="on";m.mode="duty";}else{m.ov="off";if(m.mode==="duty")m.mode=m.f>.12?"sleep":"rest";}M.dirty=true;paint();});}
+function pickMan(i){if(!M.home||!M.home[i])return;const h=M.home[i];M.man=i;M.sel=h[0];M.hi=h[1];M.res="";M.dirty=true;paint();}
 /* ---------- UI ---------- */
 const root=document.createElement("div");root.id="cutUI";root.style.display="none";
 root.innerHTML=`<svg id="cutSvg"></svg><div id="cutChips"></div><div id="cutCard"></div>`;document.body.append(root);
 const svg=root.querySelector("#cutSvg"),chips=root.querySelector("#cutChips"),card=root.querySelector("#cutCard");
 const NSV="http://www.w3.org/2000/svg";
-function mkChips(){chips.innerHTML=`<button data-s="-1">All</button>`+DECKS.map((d,i)=>`<button data-s="${i}">${["Upper","Gun","Berth","Orlop","Hold"][i]}</button>`).join("")+`<button id="cutRe" title="Fly the camera in again">⟲</button><button id="cutFlip" title="Show the other side of her">Side</button><button id="cutLed" title="Crew, watches and stores">Crew</button>`;
-  chips.querySelectorAll("button[data-s]").forEach(b=>b.onclick=()=>sel(+b.dataset.s));chips.querySelector("#cutRe").onclick=()=>{M.cur=null;M.sel=-1;M.pan=0;M.uaz=M.upt=M.uly=0;M.uz=1;paint();};chips.querySelector("#cutFlip").onclick=()=>{M.flip=!M.flip;M.cur=null;};chips.querySelector("#cutLed").onclick=()=>{M.ledger=true;};}
-function sel(i){M.sel=(M.sel===i&&i>=0)?-1:i;M.hi=-1;M.res="";M.pan=0;paint();}
+function mkChips(){chips.innerHTML=`<button data-s="-1">All</button>`+DECKS.map((d,i)=>`<button data-s="${i}">${["Upper","Gun","Berth","Orlop","Hold"][i]}</button>`).join("")+`<button id="cutRe" title="Fly the camera in again">⟲</button><button id="cutFlip" title="Show the other side of her">Side</button><button id="cutLed" title="Stores, jobs and the watch bill">Ledger</button>`;
+  chips.querySelectorAll("button[data-s]").forEach(b=>b.onclick=()=>sel(+b.dataset.s));chips.querySelector("#cutRe").onclick=()=>{M.cur=null;M.sel=-1;M.man=-1;M.dirty=true;M.pan=0;M.uaz=M.upt=M.uly=0;M.uz=1;paint();};chips.querySelector("#cutFlip").onclick=()=>{M.flip=!M.flip;M.cur=null;};chips.querySelector("#cutLed").onclick=()=>{M.ledger=true;};}
+function sel(i){M.sel=(M.sel===i&&i>=0)?-1:i;M.hi=-1;M.man=-1;M.dirty=true;M.res="";M.pan=0;paint();}
 function paint(){chips.querySelectorAll("button[data-s]").forEach(b=>b.classList.toggle("on",+b.dataset.s===M.sel));
-  if(M.sel<0)card.innerHTML=`<h3>USS Constitution</h3><p>Tap a deck, or a label.</p>`;
-  else{const d=DECKS[M.sel];card.innerHTML=`<h3>${d.name}</h3><div class="crm">${d.rooms.map((r,k)=>`<button class="rb${k===M.hi?" hi":""}" data-r="${k}">${r[0]}</button>`).join("")}</div>${M.hi>=0?`<div class="rd">${d.rooms[M.hi][1]}</div><div class="ra">${ACT[M.sel][M.hi].map((t,i)=>`<button type="button" data-a="${i}"${i===3?' class="risk"':""}><b>${["Chore","Drill","Morale","Risk"][i]}</b> ${t}</button>`).join("")}</div>${M.res?`<div class="rr">${M.res}</div>`:""}`:""}`;
-    card.querySelectorAll(".rb").forEach(r=>r.onclick=()=>{M.hi=(M.hi===+r.dataset.r)?-1:+r.dataset.r;M.res="";paint();});card.querySelectorAll(".ra button").forEach(b=>b.onclick=()=>doAct(M.sel,M.hi,+b.dataset.a));}
+  if(M.sel<0)card.innerHTML=`<h3>USS Constitution</h3>${crewCard()}<p>Tap a deck, a label or a man.</p>`;
+  else{const d=DECKS[M.sel];card.innerHTML=`<h3>${d.name}</h3><div class="crm">${d.rooms.map((r,k)=>`<button class="rb${k===M.hi?" hi":""}" data-r="${k}">${r[0]}${M.grp&&M.grp[M.sel*10+k]?" ("+M.grp[M.sel*10+k].length+")":""}</button>`).join("")}</div>${M.hi>=0?`<div class="rd">${d.rooms[M.hi][1]}</div>${crewCard()}<div class="ra">${ACT[M.sel][M.hi].map((t,i)=>`<button type="button" data-a="${i}"${i===3?' class="risk"':""}><b>${["Chore","Drill","Morale","Risk"][i]}</b> ${t}</button>`).join("")}</div>${M.res?`<div class="rr">${M.res}</div>`:""}`:""}`;
+    card.querySelectorAll(".rb").forEach(r=>r.onclick=()=>{M.hi=(M.hi===+r.dataset.r)?-1:+r.dataset.r;M.res="";M.man=-1;M.dirty=true;paint();});card.querySelectorAll(".ra button").forEach(b=>b.onclick=()=>doAct(M.sel,M.hi,+b.dataset.a));crewBind();}
   card.classList.toggle("tall",M.sel>=0);}
 let labelEls=null;
 function labels(){const R=M.R;if(!R||!M.built||!M.on){if(!M.on&&labelEls)labelEls.forEach(e=>e.g.style.display="none");requestAnimationFrame(labels);return;}
   const rc=R.renderer.domElement.getBoundingClientRect(),W=innerWidth,H2=innerHeight;svg.setAttribute("viewBox",`0 0 ${W} ${H2}`);
   if(!labelEls){labelEls=M.labels.map(l=>{const g=document.createElementNS(NSV,"g");g.setAttribute("class","cl");const pl=document.createElementNS(NSV,"polyline"),dot=document.createElementNS(NSV,"circle"),rc2=document.createElementNS(NSV,"rect"),tx=document.createElementNS(NSV,"text");dot.setAttribute("r","2.6");
       tx.textContent=l[1].join(" ").replace(/ · /g," ");rc2.setAttribute("height","16");rc2.setAttribute("rx","2");g.append(pl,dot,rc2,tx);
-      g.onclick=()=>{if(M.sel===l[0]&&M.hi===l[4]){M.hi=-1;}else{M.sel=l[0];M.hi=l[4];}paint();};svg.append(g);return{g,pl,dot,rc:rc2,tx,l,w:tx.textContent.length*5.3+10};});}
+      g.onclick=()=>{if(M.sel===l[0]&&M.hi===l[4]){M.hi=-1;}else{M.sel=l[0];M.hi=l[4];}M.man=-1;M.dirty=true;paint();};svg.append(g);return{g,pl,dot,rc:rc2,tx,l,w:tx.textContent.length*5.3+10};});}
   R.bob.updateMatrixWorld(true);R.camera.updateMatrixWorld();
   const cardTop=card.getBoundingClientRect().top;
   const act=labelEls.filter(e=>{const l=e.l;const show=M.sel<0?l[3]===1:l[0]===M.sel;e.g.style.display=show?"":"none";return show;});
@@ -6369,11 +6420,20 @@ function boot(){
   setInterval(star,400);setInterval(sync,120);
 }
 {const ptr=new Map();const two=()=>{const a=[...ptr.values()];return a.length===2?{d:Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y)||1,x:(a[0].x+a[1].x)/2,y:(a[0].y+a[1].y)/2}:null;};
- addEventListener("pointerdown",e=>{if(M.on&&e.target&&e.target.id==="view3d"){ptr.set(e.pointerId,{x:e.clientX,y:e.clientY});e.stopPropagation();}},true);
+ addEventListener("pointerdown",e=>{if(M.on&&e.target&&e.target.id==="view3d"){ptr.set(e.pointerId,{x:e.clientX,y:e.clientY,sx:e.clientX,sy:e.clientY,n:ptr.size});e.stopPropagation();}},true);
  addEventListener("pointermove",e=>{const p=ptr.get(e.pointerId);if(!M.on||!p)return;
   if(ptr.size===1){M.uaz-=(e.clientX-p.x)*.35;M.upt+=(e.clientY-p.y)*.25;p.x=e.clientX;p.y=e.clientY;}
   else{const a=two();p.x=e.clientX;p.y=e.clientY;const b=two();if(a&&b){M.uz=Math.max(.2,Math.min(1.8,M.uz*a.d/b.d));M.uly=Math.max(-14,Math.min(14,M.uly+(b.y-a.y)*.04));M.pan=Math.max(-26,Math.min(26,M.pan-(b.x-a.x)*.05));}}},true);
- const up=e=>ptr.delete(e.pointerId);addEventListener("pointerup",up,true);addEventListener("pointercancel",up,true);
+ const rcast=new THREE.Raycaster();
+ const tapAt=(cx,cy)=>{if(!M.R||!M.fig)return -2;const r=M.R.renderer.domElement.getBoundingClientRect();
+   rcast.setFromCamera({x:((cx-r.left)/r.width)*2-1,y:-((cy-r.top)/r.height)*2+1},M.R.camera);M.fig.updateMatrixWorld(true);
+   const h=rcast.intersectObject(M.fig)[0];if(h&&h.instanceId!=null){pickMan(h.instanceId);return h.instanceId;}
+   let best=-1,bd=18;const mm=new THREE.Matrix4(),v=new THREE.Vector3();for(let i=0;i<M.fig.count;i++){M.fig.getMatrixAt(i,mm);if(mm.elements[0]===0)continue;v.setFromMatrixPosition(mm);v.y+=.7;v.applyMatrix4(M.fig.matrixWorld).project(M.R.camera);if(v.z>1)continue;
+    const d=Math.hypot(r.left+(v.x*.5+.5)*r.width-cx,r.top+(1-(v.y*.5+.5))*r.height-cy);if(d<bd){bd=d;best=i;}}
+   if(best>=0){pickMan(best);return best;}return -1;};window.__CUTtap=tapAt;
+ const up=e=>{const p=ptr.get(e.pointerId);ptr.delete(e.pointerId);
+  if(e.type==="pointerup"&&p&&p.n===0&&ptr.size===0&&Math.hypot(e.clientX-p.sx,e.clientY-p.sy)<7)tapAt(e.clientX,e.clientY);};
+ addEventListener("pointerup",up,true);addEventListener("pointercancel",up,true);
  addEventListener("wheel",e=>{if(M.on&&e.target&&e.target.id==="view3d")M.uz=Math.max(.2,Math.min(1.8,M.uz*Math.exp(e.deltaY*.001)));},{passive:true,capture:true});}
 window.addEventListener("load",()=>setTimeout(boot,400));
 window.__CUT=M;window.__CUTfast=()=>{M.fast=1;};
@@ -6601,4 +6661,5 @@ body.cutmode #view3d{touch-action:none}
 #cutSvg polyline{stroke-width:.5px}#cutSvg circle{stroke-width:.8px}
 #cutCard .ra{list-style:none;margin:4px 0 0;padding:0}#cutCard .ra li{font:12px Georgia,serif;line-height:1.3;padding:2px 0;border-top:1px dotted #cbbd98}#cutCard .ra b{font:10px "IBM Plex Mono",monospace;text-transform:uppercase;letter-spacing:.06em;color:#7b6a55;margin-right:5px}#cutCard .ra .risk b{color:#a83b2f}
 #cutCard .ra{display:flex;flex-direction:column;gap:3px;margin-top:5px}#cutCard .ra button{text-align:left;font:12px Georgia,serif;line-height:1.3;padding:4px 6px;border:1px solid #2e2519;border-radius:3px;background:#fff;color:#000}#cutCard .ra button.risk{border-color:#a83b2f}#cutCard .ra button b{font:10px "IBM Plex Mono",monospace;text-transform:uppercase;letter-spacing:.06em;color:#7b6a55;margin-right:5px}#cutCard .ra button.risk b{color:#a83b2f}#cutCard .rr{margin-top:5px;font:italic 12.5px Georgia,serif;color:#2e2519}
+#cutCard{max-height:46vh;overflow:auto}#cutCard .mc{margin-top:6px;border-top:1px dotted #cbbd98;padding-top:5px;font:12.5px Georgia,serif}#cutCard .mc .svhint{font:11.5px Georgia,serif;color:#4a3f30;margin-top:2px}#cutCard .mb{display:flex;gap:5px;margin-top:5px}#cutCard .mb button{font:12px Georgia,serif;padding:4px 8px;border:1px solid #000;border-radius:3px;background:#fff;color:#000}
 </style></body></html>
