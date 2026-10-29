@@ -4723,7 +4723,7 @@ function update3D(dt,now){
   if(R.cover>2)R.camera.setViewOffset(R.W,R.H,0,R.cover*.3,R.W,R.H);else R.camera.clearViewOffset();
   R.camera.updateMatrixWorld();R.camera.updateProjectionMatrix();
   R.sea.position.set(0,0,0);
-  if(!R.hid&&!(SV.open&&innerWidth>860&&!window.CUTON)){shadowPass(R);R.renderer.render(R.scene,R.camera);} // on a computer the ship page covers the 3D view, so skip drawing it
+  if(!R.hid&&!(SV.open&&innerWidth>860&&!window.CUTON)){shadowPass(R);DRStyle.render(R);} // on a computer the ship page covers the 3D view, so skip drawing it
   drawHud(now,sq,w);
 }
 
@@ -4833,6 +4833,144 @@ v3c.addEventListener("dblclick",resetCam3);
 /* ---------- view swapping ---------- */
 let main3d=true;
 function setMain(is3d){main3d=is3d;$("paneV3").className="pane "+(is3d?"big":"small");$("paneChart").className="pane "+(is3d?"small":"big");setTimeout(()=>{resize();resize3D();},0);}
+
+/* ---------- Style: screen-filter looks (Settings > Preview > Style). The 3D view is drawn into a texture and one full-screen pass repaints it, so the game itself is untouched. "Hashed diagram" is the plain look and skips the pass altogether. ---------- */
+const DRStyle=(function(){
+const GROUPS=["Palette and tint","Outlines","Shading bands","Brush strokes","Paper and canvas","Pixels and colours","Haze","Sky","Finish"];
+// [key, label, min, max, step, neutral, group]
+const DEFS=[
+ ["hue","Hue shift (°)",-180,180,1,0,0],["sat","Saturation",0,2,.01,1,0],["con","Contrast",.5,1.8,.01,1,0],["bri","Brightness",-.3,.3,.01,0,0],["tintH","Tint colour (°)",0,360,1,40,0],["tintA","Tint amount",0,1,.01,0,0],
+ ["oW","Line thickness (px)",0,4,.1,0,1],["oS","Line strength",0,1,.01,1,1],["oK","Line colour (black to sepia)",0,1,.01,0,1],
+ ["bands","Number of bands (0 = off)",0,12,1,0,2],["bandMix","Banding strength",0,1,.01,1,2],
+ ["stroke","Stroke size (px)",0,12,.5,0,3],["strokeS","Stroke strength",0,1,.01,0,3],["flow","Stroke swirl",0,1,.01,.5,3],["bleed","Colour bleed",0,1,.01,0,3],
+ ["paperS","Paper grain",0,1,.01,0,4],["paperScale","Grain size",.5,6,.1,1.5,4],["weave","Canvas weave",0,1,.01,0,4],
+ ["pix","Pixel size (px)",1,12,1,1,5],["cols","Colour levels (0 = all)",0,32,1,0,5],["dith","Dithering",0,1,.01,0,5],
+ ["haze","Haze amount",0,1,.01,0,6],["hazeC","Haze colour (warm to cool)",0,1,.01,.6,6],
+ ["skyBands","Sky bands (0 = off)",0,10,1,0,7],["skyGlow","Horizon glow",0,1,.01,0,7],
+ ["vig","Vignette",0,1,.01,0,8],["grain","Film grain",0,1,.01,0,8]
+];
+const NEUTRAL={};DEFS.forEach(d=>NEUTRAL[d[0]]=d[5]);
+const PRESETS={
+ hashed:{name:"Hashed diagram",note:"The current look: ink hatching on paper.",p:{}},
+ matte:{name:"Matte painting",note:"Soft painted gradients, atmospheric haze, no lines.",p:{sat:.9,con:.92,bri:.04,tintH:35,tintA:.1,stroke:3,strokeS:.35,flow:.4,haze:.55,hazeC:.65,skyGlow:.6,paperS:.08,vig:.35,grain:.05}},
+ oil:{name:"Oil painting",note:"Thick swirling brush strokes, canvas weave, warm varnish.",p:{sat:1.15,con:1.12,tintH:40,tintA:.12,stroke:6,strokeS:.75,flow:.6,paperS:.2,paperScale:1.5,weave:.6,vig:.3}},
+ pixel:{name:"Pixel art",note:"Big pixels, a handful of colours, dithered shading.",p:{pix:5,cols:6,dith:.6,sat:1.25,con:1.1}},
+ water:{name:"Watercolour",note:"Bleeding colour, washed out, paper grain, faint pencil lines.",p:{bleed:.8,stroke:4,strokeS:.4,flow:.6,sat:.75,con:.85,bri:.12,paperS:.55,paperScale:1.2,haze:.25,oW:1,oS:.25,oK:.6,vig:.2}},
+ woodcut:{name:"Woodcut",note:"Bold black lines, three flat tones, an old sea-chart print.",p:{cols:3,bands:4,bandMix:.9,oW:1.6,oS:1,oK:.4,sat:.5,con:1.4,tintH:40,tintA:.25,paperS:.35,grain:.1,dith:.7}},
+ toon:{name:"Toon / cel",note:"Flat shading bands, thick outlines, bright colours.",p:{bands:4,bandMix:.85,oW:2,oS:1,sat:1.4,con:1.1}}
+};
+const KEY="drStyle.v1";
+let st={preset:"hashed",amt:1,p:Object.assign({},NEUTRAL)},active=false,mat=null,rt=null,quad=null,ocam=null,rw=0,rh=0;
+const clampN=(v,a,b)=>Math.min(b,Math.max(a,+v));
+function recalc(){active=st.amt>0&&DEFS.some(d=>Math.abs((st.p[d[0]]??d[5])-d[5])>1e-4);}
+function save(){try{localStorage.setItem(KEY,JSON.stringify({preset:st.preset,amt:st.amt,p:st.p}));}catch(e){}}
+function set(o,persist){ // o: {preset?, amt?, p?: {key:value}}; unknown keys and out-of-range values are ignored or clamped
+  if(!o||typeof o!=="object")return;
+  if(typeof o.preset==="string")st.preset=PRESETS[o.preset]?o.preset:"custom";
+  if(o.amt!=null&&isFinite(o.amt))st.amt=clampN(o.amt,0,1);
+  if(o.p&&typeof o.p==="object")for(const d of DEFS)if(o.p[d[0]]!=null&&isFinite(o.p[d[0]]))st.p[d[0]]=clampN(o.p[d[0]],d[2],d[3]);
+  recalc();if(persist!==false)save();
+}
+function usePreset(k){const pr=PRESETS[k];if(!pr)return;st.preset=k;st.p=Object.assign({},NEUTRAL,pr.p);recalc();save();}
+try{const j=JSON.parse(localStorage.getItem(KEY)||"null");if(j){st.p=Object.assign({},NEUTRAL);set(j,false);}}catch(e){}
+recalc();
+
+const FRAG=`
+precision highp float;
+uniform sampler2D tD;uniform vec2 uRes;uniform float uDpr,uHor,uT,uAmt;
+uniform float hue,sat,con,bri,tintH,tintA,oW,oS,oK,bands,bandMix,stroke,strokeS,flow,bleed,paperS,paperScale,weave,pix,cols,dith,haze,hazeC,skyBands,skyGlow,vig,grain;
+varying vec2 vUv;
+float h21(vec2 p){p=fract(p*vec2(123.34,456.21));p+=dot(p,p+45.32);return fract(p.x*p.y);}
+float vn(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(h21(i),h21(i+vec2(1,0)),f.x),mix(h21(i+vec2(0,1)),h21(i+vec2(1,1)),f.x),f.y);}
+float lum(vec3 c){return dot(c,vec3(.299,.587,.114));}
+vec3 hsv2rgb(vec3 c){vec3 p=abs(fract(c.xxx+vec3(1.,2./3.,1./3.))*6.-3.);return c.z*mix(vec3(1.),clamp(p-1.,0.,1.),c.y);}
+float bayer(vec2 p){vec2 q=mod(p,4.);float v=0.;
+  // 4x4 ordered-dither matrix, built from two 2x2 levels
+  vec2 a=mod(q,2.),b=floor(q/2.);
+  float l1=a.x<.5?(a.y<.5?0.:2.):(a.y<.5?3.:1.),l2=b.x<.5?(b.y<.5?0.:2.):(b.y<.5?3.:1.);
+  return (l1*4.+l2+.5)/16.;}
+void main(){
+  vec2 uv=vUv,px=1./uRes;
+  vec3 orig=texture2D(tD,uv).rgb;
+  if(pix>1.5){vec2 cells=uRes/(pix*uDpr);uv=(floor(uv*cells)+.5)/cells;}
+  vec3 c;
+  if(stroke>0.){
+    float s=stroke*uDpr;vec2 g=uv*uRes/(s*3.);
+    float a=(vn(g)*2.+vn(g*2.3+7.)*.5-.6)*6.2832*(.15+flow);
+    vec2 d=vec2(cos(a),sin(a))*s*px*(.4+strokeS*1.3);
+    c=texture2D(tD,uv).rgb*.28+texture2D(tD,uv+d).rgb*.18+texture2D(tD,uv-d).rgb*.18+texture2D(tD,uv+d*2.).rgb*.18+texture2D(tD,uv-d*2.).rgb*.18;
+    c=mix(texture2D(tD,uv).rgb,c,.4+.6*strokeS);
+    float tex=vn(uv*uRes/(s*.6)+a*3.);c*=1.+(tex-.5)*.25*strokeS;
+  }else c=texture2D(tD,uv).rgb;
+  float w=max(oW,bleed*2.)*uDpr;
+  float edge=0.;
+  if(w>0.){vec2 o=px*w;
+    float tl=lum(texture2D(tD,uv+vec2(-o.x,o.y)).rgb),t=lum(texture2D(tD,uv+vec2(0.,o.y)).rgb),tr=lum(texture2D(tD,uv+o).rgb),
+      l=lum(texture2D(tD,uv+vec2(-o.x,0.)).rgb),r=lum(texture2D(tD,uv+vec2(o.x,0.)).rgb),
+      bl=lum(texture2D(tD,uv-o).rgb),b=lum(texture2D(tD,uv+vec2(0.,-o.y)).rgb),br=lum(texture2D(tD,uv+vec2(o.x,-o.y)).rgb);
+    float gx=-tl-2.*l-bl+tr+2.*r+br,gy=-tl-2.*t-tr+bl+2.*b+br;edge=clamp((length(vec2(gx,gy))-.12)*2.4,0.,1.);}
+  if(bleed>0.){vec2 o=px*bleed*5.*uDpr;
+    vec3 bl2=(texture2D(tD,uv+o).rgb+texture2D(tD,uv-o).rgb+texture2D(tD,uv+vec2(o.x,-o.y)).rgb+texture2D(tD,uv+vec2(-o.x,o.y)).rgb)*.25;
+    c=mix(c,bl2,.65*bleed);c*=1.-.45*bleed*edge;}
+  // palette
+  float L=lum(c);vec3 ch=c;
+  if(abs(hue)>.01){float ang=hue*.0174533,cs=cos(ang),sn=sin(ang);
+    mat3 m=mat3(.299+.701*cs+.168*sn,.299-.299*cs-.328*sn,.299-.3*cs+1.25*sn,.587-.587*cs+.33*sn,.587+.413*cs+.035*sn,.587-.588*cs-1.05*sn,.114-.114*cs-.497*sn,.114-.114*cs+.292*sn,.114+.886*cs-.2*sn);
+    ch=m*c;}
+  ch=mix(vec3(lum(ch)),ch,sat);ch=(ch-.5)*con+.5+bri;
+  if(tintA>0.){vec3 tc=hsv2rgb(vec3(tintH/360.,.55,1.));ch=mix(ch,ch*tc*1.25,tintA);}
+  c=clamp(ch,0.,1.);
+  if(bands>1.){float l2=lum(c),lb=floor(l2*bands+.5)/bands;c*=mix(1.,lb/max(l2,.02),bandMix);c=clamp(c,0.,1.);}
+  // haze toward the horizon
+  float hy=uv.y-uHor;
+  if(haze>0.){vec3 hc=mix(vec3(.93,.84,.68),vec3(.72,.82,.92),hazeC);float f=exp(-abs(hy)*5.5)*haze;c=mix(c,hc,clamp(f*.9+haze*.12,0.,1.));}
+  if(hy>0.){
+    if(skyBands>1.){float l2=lum(c),lb=floor(l2*skyBands+.5)/skyBands;c=clamp(c*(lb/max(l2,.02)),0.,1.);}
+    if(skyGlow>0.)c+=vec3(1.,.78,.5)*skyGlow*exp(-hy*7.)*.32;}
+  // paper and canvas
+  if(paperS>0.||weave>0.){vec2 pp=gl_FragCoord.xy/(paperScale*uDpr*2.);
+    float n=vn(pp)*.5+vn(pp*2.1+3.)*.3+vn(pp*4.7+9.)*.2;
+    c*=1.+paperS*(n-.5)*.7;
+    if(weave>0.){vec2 wp=gl_FragCoord.xy/(paperScale*uDpr*1.6);float wv=sin(wp.x*3.1416)*sin(wp.y*3.1416);c*=1.+weave*wv*.1;}}
+  // outlines
+  if(oW>0.){vec3 ink=mix(vec3(.04,.03,.03),vec3(.2,.13,.07),oK);c=mix(c,ink,clamp(edge*oS*1.4,0.,1.));}
+  // colour limits
+  if(cols>1.){float bv=bayer(floor(gl_FragCoord.xy/max(1.,pix*uDpr)));float n=cols-1.;c=floor(c*n+.5+(bv-.5)*dith*.999)/n;c=clamp(c,0.,1.);}
+  if(vig>0.){vec2 q=vUv-.5;c*=1.-vig*smoothstep(.25,.8,length(q*vec2(1.,.9)));}
+  if(grain>0.){float gn=h21(gl_FragCoord.xy+floor(uT*12.)*17.);c+=(gn-.5)*grain*.2;}
+  gl_FragColor=vec4(mix(orig,clamp(c,0.,1.),uAmt),1.);
+}`;
+function build(R){
+  const T=THREE;
+  const u={tD:{value:null},uRes:{value:new T.Vector2(1,1)},uDpr:{value:1},uHor:{value:.5},uT:{value:0},uAmt:{value:1}};
+  for(const d of DEFS)u[d[0]]={value:d[5]};
+  mat=new T.ShaderMaterial({uniforms:u,vertexShader:"varying vec2 vUv;void main(){vUv=uv;gl_Position=vec4(position.xy,0.,1.);}",fragmentShader:FRAG,depthTest:false,depthWrite:false});
+  quad=new T.Mesh(new T.PlaneGeometry(2,2),mat);quad.frustumCulled=false;
+  ocam=new T.OrthographicCamera(-1,1,1,-1,0,1);
+  window.__stScene=new T.Scene();window.__stScene.add(quad);
+}
+const _v=[0,0,0];
+function render(R){
+  const rd=R.renderer;
+  if(!active){rd.render(R.scene,R.camera);return;}
+  if(!mat)build(R);
+  const sz=rd.getDrawingBufferSize(new THREE.Vector2());
+  if(!rt||rw!==sz.x||rh!==sz.y){if(rt)rt.dispose();rw=sz.x;rh=sz.y;
+    rt=new THREE.WebGLRenderTarget(rw,rh,{minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter,format:THREE.RGBAFormat,depthBuffer:true});
+    if(rd.capabilities.isWebGL2)rt.samples=4;}
+  rd.setRenderTarget(rt);rd.render(R.scene,R.camera);rd.setRenderTarget(null);
+  const u=mat.uniforms;u.tD.value=rt.texture;u.uRes.value.set(rw,rh);u.uDpr.value=rd.getPixelRatio();u.uT.value=performance.now()/1000;u.uAmt.value=st.amt;
+  for(const d of DEFS)u[d[0]].value=st.p[d[0]]??d[5];
+  // where the horizon lies on screen, from the camera's heading
+  const cam=R.camera,e=cam.matrixWorld.elements,fx=-e[8],fz=-e[10],fl=Math.hypot(fx,fz);
+  let hor=.5;if(fl>1e-3){const v=new THREE.Vector3(cam.position.x+fx/fl*1e6,0,cam.position.z+fz/fl*1e6).project(cam);hor=clampN((v.y+1)/2,-1,2);}else hor=-1;
+  u.uHor.value=hor;
+  const ac=rd.autoClear;rd.autoClear=true;rd.render(window.__stScene,ocam);rd.autoClear=ac;
+}
+window.addEventListener("message",e=>{const d=e.data;if(d&&d.type==="drstyle")set(d,false);});
+return{DEFS,GROUPS,PRESETS,NEUTRAL,get:()=>st,set,usePreset,render,isActive:()=>active};
+})();
+window.DRStyle=DRStyle;
 
 /* ---------- automatic quality: when the frame rate drops, the 3D view draws islands and trees less far and a little less sharp, and puts them back once it runs smoothly ---------- */
 const QDIST=[75,55,40,30],QVEG=[9,6,4,3],QPR=[1,.85,.72,.6]; // island draw distance (nm), trees from shore (nm), share of full sharpness
@@ -6427,10 +6565,13 @@ const T={
   <div class="pvc"><button type="button" class="pvauto" id="pvCa" aria-pressed="${!PV.cur}">Auto</button></div>
   <div class="pvn">This is the steady drift. Coasts, passages, eddies, wind drift and the tides are still added on top.</div>`;},
  look(){return"";},
+ style(){const S_=DRStyle.get();return `<div class="pvc">${Object.entries(DRStyle.PRESETS).map(([k,v])=>`<button type="button" data-sty="${k}" aria-pressed="${S_.preset===k}">${v.name}</button>`).join("")}</div>
+  <div class="pvr"><label>Strength</label><input type="range" id="pvStA" min="0" max="1" step="0.01" value="${S_.amt}"><output id="pvStAo">${Math.round(S_.amt*100)}%</output></div>
+  <div class="pvn">${(DRStyle.PRESETS[S_.preset]||{note:"Your own mix, set in the Aesthetics Lab."}).note} Hashed diagram is the plain look and costs nothing; the others add one screen pass, so on a slow phone use a lower strength or keep the plain look.</div>`;},
  more(){return `<div class="pvc"><span class="pvn">Wildlife</span>${[["None",0],["Normal",1],["Plenty",2],["Teeming",3]].map(([n,v])=>`<button type="button" data-f="${v}" aria-pressed="${PV.fauna===v}">${n}</button>`).join("")}</div>
   <div class="pvn">Birds, porpoises, flying fish, whales and turtles still follow their own haunts and seasons.</div>`;}
 };
-const TABS=[["time","Time"],["sky","Sky"],["wind","Wind"],["sea","Sea"],["cur","Current"],["more","More"],["look","Look"]];
+const TABS=[["time","Time"],["sky","Sky"],["wind","Wind"],["sea","Sea"],["cur","Current"],["more","More"],["style","Style"],["look","Look"]];
 tabs.innerHTML=TABS.map(([k,n])=>`<button type="button" role="tab" data-t="${k}">${n}</button>`).join("");
 function draw(){if(!S)return;body.innerHTML=T[tab]();[...tabs.children].forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.t===tab)));sheet.classList.toggle("lk",tab==="look");if(tab==="look")DRLook.mount(body);else DRLook.unmount();wire();}
 function fillDays(){const m=+$$("pvM").value,n=new Date(Date.UTC(2001,m+1,0)).getUTCDate(),sel=$$("pvD"),cur=new Date(Date.UTC(2001,2,10+dayIndex(S)));
@@ -6473,6 +6614,8 @@ function wire(){
     const c=PV.cur||CURRENT;$$("pvCso").textContent=Math.round(c.set)+"° "+pointName(c.set);$$("pvCko").textContent=c.drift.toFixed(2)+" kn";
     on("pvCs",sync);on("pvCk",sync);$$("pvCa").onclick=()=>{PV.cur=null;CURRENT.set=orig.set;CURRENT.drift=orig.drift;draw();};}
   body.querySelectorAll("[data-f]").forEach(b=>b.onclick=()=>{PV.fauna=+b.dataset.f;draw();});
+  body.querySelectorAll("[data-sty]").forEach(b=>b.onclick=()=>{DRStyle.usePreset(b.dataset.sty);draw();});
+  if($$("pvStA"))on("pvStA",()=>{DRStyle.set({amt:+$$("pvStA").value});$$("pvStAo").textContent=Math.round($$("pvStA").value*100)+"%";});
 }
 function resetAll(){PV.wind=PV.sea=PV.wx=PV.vis=PV.cur=null;PV.fauna=1;PV.tide=1;PV.shadows=true;wxKey=null;CURRENT.set=orig.set;CURRENT.drift=orig.drift;draw();}
 tabs.addEventListener("click",e=>{const b=e.target.closest("button");if(b){tab=b.dataset.t;draw();}});
