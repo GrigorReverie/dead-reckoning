@@ -5749,10 +5749,10 @@ let tab="time",wxKey=null;
 const T={
  time(){const lh=localHours(S,S.t),di=dayIndex(S),d=new Date(Date.UTC(2001,2,10+di));
   return `<div class="pvr"><label>Time</label><input type="range" id="pvT" min="0" max="24" step="0.25" value="${(((lh%24)+24)%24).toFixed(2)}"><output id="pvTo"></output></div>
-  <div class="pvc"><span class="pvn">Date</span><select id="pvM">${MON.map((m,i)=>`<option value="${i}"${i===d.getUTCMonth()?" selected":""}>${m}</option>`).join("")}</select><select id="pvD"></select><button type="button" id="pvSet">Set date &amp; time</button></div>
+  <div class="pvc"><span class="pvn">Date</span><select id="pvM">${MON.map((m,i)=>`<option value="${i}"${i===d.getUTCMonth()?" selected":""}>${m}</option>`).join("")}</select><select id="pvD"></select></div>
   <div class="pvc"><span class="pvn">Jump to</span>${[["Dawn",5.5],["Morning",8],["Noon",12],["Dusk",18],["Night",23]].map(([n,h])=>`<button type="button" data-h="${h}">${n}</button>`).join("")}</div>
   <div class="pvc"><span class="pvn">Speed</span><button type="button" data-sp="0">Pause</button><button type="button" data-sp="1">1×</button><button type="button" data-sp="3">3×</button><button type="button" data-sp="60">60×</button></div>
-  <div class="pvn">Time only moves forward, so setting an earlier date carries on to that date next year. Seasons, the sun and whale season follow the date.</div>`;},
+  <div class="pvn">The game changes as soon as you let go of the slider or pick a date. Time only moves forward, so an earlier date carries on to that date next year. Seasons, the sun and whale season follow the date.</div>`;},
  sky(){const w=PV.wx,v=PV.vis;
   return `<div class="pvc">${Object.entries(WXP).map(([k,x])=>`<button type="button" data-w="${k}" aria-pressed="${wxKey===k}">${x.n}</button>`).join("")}<button type="button" class="pvauto" data-w="" aria-pressed="${!PV.wx}">Auto</button></div>
   <div class="pvr"><label>Cloud</label><input type="range" id="pvC" min="0" max="100" value="${Math.round((w?w.cover:S.wx.cover)*100)}"><output id="pvCo"></output></div>
@@ -5795,8 +5795,8 @@ function jump(hh,month,day){const lh=localHours(S,S.t),di=dayIndex(S);let d;
   snapWx();S.track.push({x:S.ship.x,y:S.ship.y});updateUI(true);}
 function wire(){
   const on=(id,fn)=>{const e=$$(id);if(e)e.addEventListener("input",fn);};
-  if($$("pvT")){const upd=()=>{$$("pvTo").textContent=hm(+$$("pvT").value);};upd();$$("pvT").oninput=upd;fillDays();$$("pvM").onchange=fillDays;
-    $$("pvSet").onclick=()=>jump(+$$("pvT").value,+$$("pvM").value,+$$("pvD").value);
+  if($$("pvT")){const upd=()=>{$$("pvTo").textContent=hm(+$$("pvT").value);};upd();$$("pvT").oninput=upd;$$("pvT").onchange=()=>jump(+$$("pvT").value,+$$("pvM").value,+$$("pvD").value);fillDays();$$("pvM").onchange=()=>{fillDays();jump(+$$("pvT").value,+$$("pvM").value,+$$("pvD").value);};$$("pvD").onchange=()=>jump(+$$("pvT").value,+$$("pvM").value,+$$("pvD").value);
+    
     body.querySelectorAll("[data-h]").forEach(b=>b.onclick=()=>{jump(+b.dataset.h);draw();});
     body.querySelectorAll("[data-sp]").forEach(b=>b.onclick=()=>{const v=+b.dataset.sp;if(!v){setPaused(true);}else{setPaused(false);setSpeed(v);}});}
   if($$("pvC")){const sync=()=>{PV.wx={cover:+$$("pvC").value/100,rain:+$$("pvR").value/100};wxKey=null;snapWx();$$("pvCo").textContent=$$("pvC").value+"%";$$("pvRo").textContent=$$("pvR").value+"%";body.querySelectorAll("[data-w]").forEach(b=>b.setAttribute("aria-pressed","false"));};
