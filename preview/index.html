@@ -472,7 +472,7 @@ body.fs3d #fsBar{left:max(12px,env(safe-area-inset-left,0px));bottom:max(12px,en
         <label class="chk"><input type="checkbox" id="aSky" checked> <span>Sky chart<small>Draws the altitude and bearing grid, the constellation lines and their names over the sky.</small></span></label>
       </div></div>
     <div class="menuwrap"><button class="tb" id="bMenu" aria-expanded="false" aria-haspopup="true" title="Voyages, help and sound"><span class="mtxt">Menu </span>☰</button>
-      <div class="menupop" id="menuPop" hidden><button class="tb" id="bVoy">New voyage</button><button class="tb" id="bPreview">Preview ◐</button><button class="tb" id="bHelp">How to sail</button><button class="tb" id="bSave">Save game</button><button class="tb" id="bLoad">Load game</button><button class="tb" id="bDark" aria-pressed="false">Dark mode</button><button class="tb" id="bSound" aria-pressed="false">Sound off</button><button class="tb" id="bFull" title="Use the whole screen">Full screen</button><button class="tb" id="bCheat">Cheats</button></div>
+      <div class="menupop" id="menuPop" hidden><button class="tb" id="bVoy">New voyage</button><button class="tb" id="bPreview">Preview ◐</button><button class="tb" id="bHelp">How to sail</button><button class="tb" id="bSave">Save game</button><button class="tb" id="bLoad">Load game</button><button class="tb" id="bDark" aria-pressed="false">Dark mode</button><button class="tb" id="bSound" aria-pressed="false">Sound off</button><button class="tb" id="bFull" title="Use the whole screen">Full screen</button><button class="tb" id="bQual" title="3D sharpness and detail: Auto, Low, Medium, High">Quality: Auto</button><button class="tb" id="bCheat">Cheats</button></div>
       <div class="menupop" id="cheatPop" hidden><div class="ah" style="font-family:var(--f-display);font-variant:small-caps">Cheats</div><button class="tb" data-cheat="money">Add £1,000</button><button class="tb" data-cheat="hold">Fill the hold</button><button class="tb" data-cheat="daynight">Switch day / night</button><button class="tb" data-cheat="ships">Unlock all ships</button></div></div>
   </div>
   <div class="infobar" aria-label="Date, wind and weather">
@@ -3042,7 +3042,7 @@ function init3D(){
     R.beacon=new THREE.LineSegments(bg,ochreLine);R.beacon.frustumCulled=false;scene.add(R.beacon);
     { const rg=new THREE.BufferGeometry();rg.setAttribute("position",new THREE.BufferAttribute(new Float32Array(66*3),3));rg.setDrawRange(0,0);
       R.routeLine=new THREE.Line(rg,new THREE.LineBasicMaterial({color:0xb2452c,fog:false,transparent:true,opacity:.8}));R.routeLine.frustumCulled=false;R.routeLine.visible=false;scene.add(R.routeLine); }
-    R3=R;R.basePR=renderer.getPixelRatio();R.q=0;resize3D();
+    R3=R;R.basePR=renderer.getPixelRatio();R.q=0;applyQuality();
   }catch(err){
     console.warn("3D unavailable:",err);R3=null;
     $("paneV3").hidden=true;setMain(false,true);
@@ -4727,7 +4727,7 @@ function update3D(dt,now){
     R.lantern.intensity=R.lampF*1.2;
     const lit=R.lampF>.5;if(S.lit!==undefined&&lit!==S.lit&&!paused){say(lit?"The watch lights the stern lantern and the binnacle lamp.":"The lanterns are doused at first light.",{slow:true});}S.lit=lit; }
   // world objects relative to ship
-  for(const o of R.isl){const c=o.isl.c;o.grp.position.set((c.x-sh.x)*NM,0,-(c.y-sh.y)*NM);const dd=Math.hypot(c.x-sh.x,c.y-sh.y);const q=R.q||0;o.grp.visible=dd<QDIST[q];if(o.veg)o.veg.visible=dd-o.Rr<QVEG[q];}
+  for(const o of R.isl){const c=o.isl.c;o.grp.position.set((c.x-sh.x)*NM,0,-(c.y-sh.y)*NM);const dd=Math.hypot(c.x-sh.x,c.y-sh.y);const q=R.q||0;o.grp.visible=dd<QDIST[q]*R.dm;if(o.veg)o.veg.visible=dd-o.Rr<QVEG[q]*R.dm;}
   updateFauna(R,dt,gain,wdx,wdz,nightF);
   updatePirates3D(R);
   const dest=R.towns[S.v.to];
@@ -5067,13 +5067,27 @@ if(window.DR_BAKED){let v=null;try{v=localStorage.getItem("drStylePrev.baked");}
 /* ---------- automatic quality: when the frame rate drops, the 3D view draws islands and trees less far and a little less sharp, and puts them back once it runs smoothly ---------- */
 const QDIST=[75,55,40,30],QVEG=[9,6,4,3],QPR=[1,.85,.72,.6]; // island draw distance (nm), trees from shore (nm), share of full sharpness
 const AQ={ms:16.7,t:0,good:0};
-function autoQ(rawMs){const R=R3;if(!R||R.hid||R.basePR==null)return;
+function autoQ(rawMs){const R=R3;if(!R||R.hid||R.basePR==null||QUAL.mode!=="auto")return;
   if(rawMs>2000||skipLeft>0||(SV.open&&innerWidth>860&&!window.CUTON)){AQ.t=0;return;} // ignore a hidden tab, time skips and frames the 3D view did not draw
   AQ.ms+=(Math.min(rawMs,250)-AQ.ms)*.05;AQ.t+=rawMs;if(AQ.t<2000)return;AQ.t=0;
   const fps=1000/AQ.ms;let q=R.q;
   if(fps<40&&q<QDIST.length-1){q++;AQ.good=0;}
   else if(fps>55){if(++AQ.good>=3&&q>0){q--;AQ.good=0;}}else AQ.good=0;
-  if(q!==R.q){R.q=q;R.renderer.setPixelRatio(Math.max(1,R.basePR*QPR[q]));resize3D();}}
+  if(q!==R.q){R.q=q;R.renderer.setPixelRatio(Math.max(1,R.basePR*QPR[q]));R.U.uDpr.value=R.renderer.getPixelRatio();resize3D();}}
+/* quality setting (Menu > Quality): Auto starts sharp and eases off if the frame rate drops; Low is the old phone-safe look; Medium and High draw the 3D view at a higher resolution with a sharper ship shadow, and High also draws islands and trees further out */
+const QUAL={mode:(()=>{try{return localStorage.getItem("dr.quality")||"auto";}catch(e){return"auto";}})()},QNAME={auto:"Auto",low:"Low",med:"Medium",high:"High"};
+function qualPR(){const dpr=window.devicePixelRatio||1,ph=matchMedia("(max-width:860px)").matches,m=QUAL.mode;
+  if(m==="high")return Math.min(ph?2.5:3,Math.max(dpr,2));
+  if(m==="med"||m==="auto")return Math.min(ph?2:2.25,Math.max(dpr,1.5));
+  return Math.min(ph?1.5:1.75,dpr);}
+function applyQuality(){const R=R3,b=$("bQual");if(b)b.textContent="Quality: "+QNAME[QUAL.mode];if(!R)return;
+  const coarse=window.matchMedia&&matchMedia("(pointer:coarse)").matches,m=QUAL.mode;
+  const sm=m==="high"?(coarse?2048:4096):m==="low"?(coarse?1024:2048):2048;
+  R.basePR=qualPR();R.q=0;R.dm=m==="high"?1.4:1;AQ.ms=16.7;AQ.t=0;AQ.good=0;
+  R.renderer.setPixelRatio(R.basePR);R.U.uDpr.value=R.basePR;
+  if(R.smRT.width!==sm){R.smRT.setSize(sm,sm);R.U.u_STex.value=1/sm;}
+  resize3D();}
+{const b=$("bQual");if(b)b.onclick=()=>{const o=["auto","low","med","high"];QUAL.mode=o[(o.indexOf(QUAL.mode)+1)%4];try{localStorage.setItem("dr.quality",QUAL.mode);}catch(e){}applyQuality();};}
 
 /* ---------- main loop ---------- */
 let lastFrame=performance.now(),acc=0,frameN=0;
