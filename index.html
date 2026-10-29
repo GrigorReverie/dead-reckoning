@@ -2160,7 +2160,7 @@ const SH_UH=Object.keys(SH).map(k=>{const v=SH[k];if(typeof v==="string"){const 
 uniform sampler2D u_SMap; uniform mat4 u_SMat; uniform float u_SSize,u_SRange,u_STex,u_ShadowOn,u_LightK;
 `;
 // Cloud shadows on the sea and the ship, from Grigor's Cloud Shadow Tuner settings of 2026-10-28. Each visible cloud sprite throws a soft ragged shadow along the sun's ray; the sun dims inside it.
-const CL={cRag:0.45,cCol:"#46617a",cStr:0.13,cSoft:77,cThick:0.57,cHType:1,cHCol:"#2a4150",cHOpac:0.8,cHSp:2.06,cHW:0.35,cHAng:50,cHGain:2.15,cHStart:0.19,cHCrossAng:90,cHCrossStart:0.18,cShipStr:0.45,cShipHatch:0.5,cDim:0.8,cLevel:0.54};
+const CL={cRag:0.2,cCol:"#46617a",cStr:0.2,cSoft:420,cThick:0.8,cHType:1,cHCol:"#2a4150",cHOpac:0.25,cHSp:2.06,cHW:0.35,cHAng:50,cHGain:2.15,cHStart:0.19,cHCrossAng:90,cHCrossStart:0.18,cShipStr:0.45,cShipHatch:0.5,cDim:0.8,cLevel:0.54};
 const CL_N=24;
 const CL_UH=Object.keys(CL).map(k=>{const v=CL[k];if(typeof v==="string"){const c=[1,3,5].map(i=>(parseInt(v.slice(i,i+2),16)/255).toFixed(4));return `const vec3 u_${k}=vec3(${c});`;}return `const float u_${k}=${(+v).toFixed(4)};`;}).join("\n")+`
 const vec2 u_cDir=vec2(${Math.cos(CL.cHAng*Math.PI/180).toFixed(5)},${Math.sin(CL.cHAng*Math.PI/180).toFixed(5)});
@@ -2248,13 +2248,10 @@ vec3 sunShade(vec3 col,vec3 nw,vec3 wp,vec2 hc){
     csh=shadowAt(wp+nw*u_sBias*0.6,u_sBias*(1.0+2.0*(1.0-clamp(lam,0.0,1.0))),u_selfSoft).x*u_castAmt*(1.0-form);
   }
   float shade=max(form*u_formAmt,csh)*u_LightK;
-  shade=mix(shade,u_cLevel*u_LightK,u_cDim*cs);
   col*=mix(vec3(1.0),u_shadeTint,clamp(shade*u_washAmt,0.0,1.0));
   float h=hatchP(hc,u_hType,u_hAng,u_hSp,u_hW,u_hGain,u_hStart,u_hCrossAng,u_hCrossStart,shade)*u_hOpac;
   col=mix(col,u_hCol,clamp(h,0.0,1.0));
-  col=mix(col,col*mix(vec3(1.0),u_cCol*1.55,0.8),cs*u_cShipStr);
-  float ch2=hatchP(cloudFld(wp)-u_cDir*u_cHSh,u_cHType>3.5?1.0:u_cHType,u_cHAng,u_cHSp,u_cHW,u_cHGain,u_cHStart,u_cHCrossAng,u_cHCrossStart,cs)*u_cHOpac*u_cShipHatch;
-  return mix(col,u_cHCol,clamp(ch2,0.0,1.0));
+  return col*(1.0-0.38*cs); // under cloud the whole ship simply darkens, no cast shape
 }`;
 const VS_INK=`
 attribute float aTone;
@@ -2604,12 +2601,20 @@ void main(){
 }`;
 
 function cloudTexture(paper,ink,dark){
-  // a drafted cumulus: thin cobalt outline, flat base, fine horizontal contour lines like the sea's; the dark kind is heavier, toned, with rain streaks under it
+  // a drafted cumulus: thin outline, flat base, fine horizontal contour lines like the sea's; the dark kind is heavier, toned, with rain streaks under it.
+  // Layered puffs with a lit top, a shaded underside and inner puff arcs give it a little volume.
   const c=document.createElement("canvas");c.width=512;c.height=300;const g=c.getContext("2d");
-  const cs=dark?[[110,170,60],[190,128,78],[290,112,84],[390,142,70],[240,172,70],[150,190,50],[340,190,56],[440,176,44]]:[[120,168,56],[200,138,70],[292,126,74],[380,152,60],[240,176,62],[160,188,44],[340,188,48]];
+  const cs=dark?[[110,170,60],[190,128,78],[290,112,84],[390,142,70],[240,172,70],[150,190,50],[340,190,56],[440,176,44],[60,196,34],[236,92,40],[336,100,36],[480,190,26]]:[[120,168,56],[200,138,70],[292,126,74],[380,152,60],[240,176,62],[160,188,44],[340,188,48],[78,190,30],[250,96,34],[330,98,32],[430,176,28]];
+  const hx=h=>[1,3,5].map(i=>parseInt(h.substr(i,2),16)),pa=hx(paper),pi=hx(ink),mx=(t,o)=>"rgb("+pa.map((v,i)=>Math.round(v+(pi[i]-v)*t)).join(",")+")",lit=(t)=>"rgb("+pa.map(v=>Math.round(v+(255-v)*t)).join(",")+")";
   g.fillStyle=paper;g.globalAlpha=dark?.97:.9;for(const[x,y,r]of cs){g.beginPath();g.arc(x,y,r,0,2*PI);g.fill();}g.globalAlpha=1;
   g.save();g.beginPath();for(const[x,y,r]of cs){g.moveTo(x+r,y);g.arc(x,y,r,0,2*PI);}g.clip();
+  // shaded underside: a wash that deepens toward the flat base, and each puff lit from above-left
+  const gr=g.createLinearGradient(0,90,0,232);gr.addColorStop(0,"rgba(0,0,0,0)");gr.addColorStop(.45,mx(dark?.1:.07)+"");gr.addColorStop(1,mx(dark?.34:.24));
+  g.globalAlpha=dark?.8:.7;g.fillStyle=gr;g.fillRect(0,80,512,160);g.globalAlpha=1;
+  for(const[x,y,r]of cs){if(r<36)continue;const rg=g.createRadialGradient(x-r*.3,y-r*.42,r*.05,x-r*.2,y-r*.3,r*.95);rg.addColorStop(0,lit(dark?.22:.55));rg.addColorStop(.55,lit(dark?.06:.2).replace("rgb","rgba").replace(")",",.35)"));rg.addColorStop(1,"rgba(255,255,255,0)");g.fillStyle=rg;g.fillRect(x-r,y-r,r*2,r*2);}
   g.strokeStyle=ink;g.lineWidth=dark?1.1:.9;const sp=dark?4.5:7;for(let y=dark?96:150,k=0;y<236;y+=sp,k++){g.globalAlpha=dark?Math.max(.25,.75-k*.012):.5-k*.03;g.beginPath();g.moveTo(40,y);g.lineTo(470,y);g.stroke();}
+  // inner puff arcs: short pen curves where one puff tucks behind another
+  g.lineWidth=dark?1:.8;for(let a=0;a<cs.length;a++){const[x,y,r]=cs[a];if(r<40)continue;g.globalAlpha=dark?.5:.38;g.beginPath();g.arc(x+r*.08,y+r*.12,r*.72,Math.PI*.12,Math.PI*.62);g.stroke();g.beginPath();g.arc(x-r*.1,y+r*.2,r*.5,Math.PI*.05,Math.PI*.5);g.stroke();}
   g.restore();g.globalAlpha=1;
   g.strokeStyle=ink;g.lineWidth=dark?1.9:1.5;
   for(let a=0;a<cs.length;a++){const[x,y,r]=cs[a];let pen=false;g.beginPath();
@@ -3645,7 +3650,7 @@ function updateFauna(R,dt,gain,wdx,wdz,nightF){
   const hdg=sh.heading*D2R,fx=Math.sin(hdg),fz=-Math.cos(hdg),sx=Math.cos(hdg),sz=Math.sin(hdg),bow=(R.hawse?R.hawse[0]:12)+2;
   const live=speedMult<=3,rnd=Math.random;
   for(const m of F.ghost)m.color.setRGB(.165*lerp(1,.6,nightF),.26*lerp(1,.7,nightF),.31*lerp(1,.9,nightF));
-  F.outU.uPx.value=1.15*2*Math.tan(R.camera.fov*D2R/2)/Math.max(200,R.H);
+  F.outU.uPx.value=.3*2*Math.tan(R.camera.fov*D2R/2)/Math.max(200,R.H);
   const tint=[lerp(1,.28,nightF),lerp(1,.34,nightF),lerp(1,.5,nightF)];F.fill.color.setRGB(...tint);F.fillFlat.color.setRGB(...tint);
   if((F.dcT-=dt)<=0){F.dcT=2;F.dc=coastNm(sh.x,sh.y);}
   const dc=F.dc,doy=69+dayIndex(S),humpSeason=doy<150||doy>335;
