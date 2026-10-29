@@ -2319,7 +2319,7 @@ void main(){
 #ifndef HATCH_UV
  if(vCutH>0.0)discard;
 #endif
- if(vCutG<1.0&&fract(sin(dot(gl_FragCoord.xy,vec2(12.9898,78.233)))*43758.5453)>vCutG)discard;
+ if(vCutG<1.0&&fract(dot(gl_FragCoord.xy,vec2(0.7548776662,0.5698402910)))>vCutG)discard;
 #if !defined(TEX_MAST)&&!defined(HATCH_UV)
  if(vCutD>0.0)discard;
 #endif
@@ -2370,7 +2370,7 @@ void main(){
 #ifndef HATCH_UV
  if(vCutH>0.0)discard;
 #endif
- if(vCutG<1.0&&fract(sin(dot(gl_FragCoord.xy,vec2(12.9898,78.233)))*43758.5453)>vCutG)discard;
+ if(vCutG<1.0&&fract(dot(gl_FragCoord.xy,vec2(0.7548776662,0.5698402910)))>vCutG)discard;
 #if !defined(TEX_MAST)&&!defined(HATCH_UV)
  if(vCutD>0.0)discard;
 #endif
@@ -3302,7 +3302,7 @@ void main(){
 #ifndef HATCH_UV
  if(vCutH>0.0)discard;
 #endif
- if(vCutG<1.0&&fract(sin(dot(gl_FragCoord.xy,vec2(12.9898,78.233)))*43758.5453)>vCutG)discard;
+ if(vCutG<1.0&&fract(dot(gl_FragCoord.xy,vec2(0.7548776662,0.5698402910)))>vCutG)discard;
 #if !defined(TEX_MAST)&&!defined(HATCH_UV)
  if(vCutD>0.0)discard;
 #endif
@@ -5863,7 +5863,7 @@ setInterval(()=>{if(sheet.hidden||!S)return;if(tab==="wind"&&!PV.wind){const w=l
 /* ===== Ship tab: USS Constitution sliced open, riding in the game's own sea ===== */
 (function(){
 const PI=Math.PI,Q=new URLSearchParams(location.search);
-const M={pan:0,on:false,sel:-1,built:false,cur:null,hi:-1,vis:new Map(),VM:[],PN:[],dim:[],ledger:false,flip:false};
+const M={pan:0,on:false,sel:-1,built:false,cur:null,hi:-1,fast:1,vis:new Map(),VM:[],PN:[],dim:[],ledger:false,flip:false};
 const SPc=SPEC.constitution,LS=linesOf(SPc),{H,deck,railY,keelY,zF,zA,hx}=LS;
 const YG=2.6,YB=0.3,YO=-1.8,YH=-4.9;                 // gun deck, berth deck, orlop and hold floors (from her spec's room bands)
 const FIT=2.4;                                       // her size against the brig, for the camera
@@ -6013,7 +6013,7 @@ function build(R){
     const lg=new THREE.BufferGeometry();lg.setAttribute("position",new THREE.Float32BufferAttribute(AL[k].concat(SG[k]),3));LG[k].add(new THREE.LineSegments(lg,LG[k].userData.pk||pen));}
   G.traverse(o=>{o.frustumCulled=false;});
   /* seabed under the see-through water */
-  { const zl=LS.Lh+10,g=new THREE.PlaneGeometry(36,zl*2+4);g.rotateX(-PI/2);g.translate(6,-H.T-1.6,0);const pm=new THREE.Mesh(g,new THREE.MeshBasicMaterial({color:0x6e93a8,fog:false}));pm.frustumCulled=false;R.ship.add(pm); }
+  { const zl=LS.Lh+10,g=new THREE.PlaneGeometry(36,zl*2+4);g.rotateX(-PI/2);g.translate(6,-H.T-1.6,0);const pm=new THREE.Mesh(g,new THREE.MeshBasicMaterial({color:0x6e93a8,fog:false}));pm.frustumCulled=false;R.ship.add(pm);M.seabed=pm; }
   R.renderer.localClippingEnabled=true;
   { const G2=G.clone();G2.scale.x=-1;G2.visible=false;R.bob.add(G2);M.G2=G2; }
   M.labels=makeLabels();
@@ -6051,7 +6051,7 @@ window.CUTCAM=function(R){
   _v.set(c.lx,c.ly,c.lz).applyMatrix4(m);
   const cp=R.camera.position;cp.copy(_v).addScaledVector(_s,Math.cos(az)*Math.cos(pt)*c.dist).addScaledVector(_b,Math.sin(az)*Math.cos(pt)*c.dist);cp.y+=Math.sin(pt)*c.dist;
   R.camera.lookAt(_v);
-  const U=R.U;U.uCutOn.value=1;U.uCutSl.value=M.sel<0?1:0;U.uGhost.value=M.sel<0?1:.2;U.uCutC.value.copy(_c);U.uCutN.value.copy(_s);U.uCutB.value.copy(_b);U.uCutR.value=90;U.uCutTop.value=TOP;U.uCutBox.value.set(-(H.B+3),24,LS.Lh+6);
+  const U=R.U;U.uCutOn.value=1;U.uCutSl.value=M.sel<0?1:0;U.uGhost.value=M.sel<0?1:.2;U.uCutC.value.copy(_c);U.uCutN.value.copy(_s);U.uCutB.value.copy(_b);U.uCutR.value=90;U.uCutTop.value=TOP;const wet=M.sel<0||M.sel>=3;if(wet)U.uCutBox.value.set(-(H.B+3),24,LS.Lh+6);else U.uCutBox.value.set(1000,1001,1);if(M.seabed)M.seabed.visible=wet;
   if(R.seaU){R.seaU.uCutB.value.copy(_b);}
   if(R.sea&&!R.sea.material.transparent){R.sea.material.transparent=true;R.sea.material.needsUpdate=true;}
   _pl.setFromNormalAndCoplanarPoint(_s.clone().negate(),_c);_pt.set(new THREE.Vector3(0,-1,0),_c.y+TOP);
