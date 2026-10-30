@@ -460,7 +460,8 @@ body.fs3d #fsBar{left:max(12px,env(safe-area-inset-left,0px));bottom:max(12px,en
       <button id="tPlus" title="Faster (3)" aria-label="Faster">+</button>
     </div>
     <div class="seg" role="group" aria-label="Skip ahead"><button id="skMinus" title="Skip less" aria-label="Skip less">−</button><button id="skVal" disabled>3 h</button><button id="skPlus" title="Skip more" aria-label="Skip more">+</button><button id="bSkip" title="Skip ahead by the chosen time, then confirm (K)">Skip</button></div>
-    <div class="menuwrap"><button class="tb" id="bAssist" aria-expanded="false" aria-haspopup="true" title="Crew assists: sails, watches, speed log and navigation">Assists ✦</button>
+    <div class="menuwrap"><button class="tb" id="bMenu" aria-expanded="false" aria-haspopup="true" title="Voyages, assists, help and sound"><span class="mtxt">Menu </span>☰</button>
+      <div class="menupop" id="menuPop" hidden><button class="tb" id="bVoy">New voyage</button><button class="tb" id="bAssist" title="Crew assists: sails, watches, speed log and navigation">Assists ✦</button><button class="tb" id="bPreview">Preview ◐</button><button class="tb" id="bHelp">How to sail</button><button class="tb" id="bSave">Save game</button><button class="tb" id="bLoad">Load game</button><button class="tb" id="bDark" aria-pressed="false">Dark mode</button><button class="tb" id="bSound" aria-pressed="false">Sound off</button><button class="tb" id="bFull" title="Use the whole screen">Full screen</button><button class="tb" id="bQual" title="3D sharpness and detail: Auto, Low, Medium, High">Quality: Auto</button><button class="tb" id="bCheat">Cheats</button></div>
       <div class="menupop" id="assistPop" hidden>
         <b class="ah">Sails</b>
         <label class="chk"><input type="checkbox" id="aSail"> <span>Sailmaster<small>Shortens sail when she strains and makes sail again as the wind eases.</small></span></label>
@@ -476,9 +477,7 @@ body.fs3d #fsBar{left:max(12px,env(safe-area-inset-left,0px));bottom:max(12px,en
         <label class="chk"><input type="checkbox" id="aDR"> <span>Dead reckoning only<small>Off: your true position shows on the chart. On: only your reckoning shows, and you must correct it with sights and bearings.</small></span></label>
         <b class="ah">Sky</b>
         <label class="chk"><input type="checkbox" id="aSky" checked> <span>Sky chart<small>Draws the altitude and bearing grid, the constellation lines and their names over the sky.</small></span></label>
-      </div></div>
-    <div class="menuwrap"><button class="tb" id="bMenu" aria-expanded="false" aria-haspopup="true" title="Voyages, help and sound"><span class="mtxt">Menu </span>☰</button>
-      <div class="menupop" id="menuPop" hidden><button class="tb" id="bVoy">New voyage</button><button class="tb" id="bPreview">Preview ◐</button><button class="tb" id="bHelp">How to sail</button><button class="tb" id="bSave">Save game</button><button class="tb" id="bLoad">Load game</button><button class="tb" id="bDark" aria-pressed="false">Dark mode</button><button class="tb" id="bSound" aria-pressed="false">Sound off</button><button class="tb" id="bFull" title="Use the whole screen">Full screen</button><button class="tb" id="bQual" title="3D sharpness and detail: Auto, Low, Medium, High">Quality: Auto</button><button class="tb" id="bCheat">Cheats</button></div>
+      </div>
       <div class="menupop" id="cheatPop" hidden><div class="ah" style="font-family:var(--f-display);font-variant:small-caps">Cheats</div><button class="tb" data-cheat="money">Add £1,000</button><button class="tb" data-cheat="hold">Fill the hold</button><button class="tb" data-cheat="daynight">Switch day / night</button><button class="tb" data-cheat="ships">Unlock all ships</button></div></div>
   </div>
   <div class="infobar" aria-label="Date, wind and weather">
@@ -1446,8 +1445,8 @@ function initAssists(){
   let saved={};try{saved=JSON.parse(localStorage.getItem("drAssists")||"{}");}catch(e){}
   ASSIST_IDS.forEach(id=>{if(id in saved)$(id).checked=!!saved[id];$(id).addEventListener("change",()=>{if(id==="aDR"&&S&&!S.done){S.mode=$("aDR").checked?"lost":"trial";say(S.mode==="lost"?"The chart now shows only your reckoning.":"The chart now shows your true position.",{log:false});updateUI(true);}const o={};ASSIST_IDS.forEach(k=>o[k]=$(k).checked);try{localStorage.setItem("drAssists",JSON.stringify(o));}catch(e){}});});
   const pop=$("assistPop"),btn=$("bAssist");
-  btn.onclick=e=>{e.stopPropagation();pop.hidden=!pop.hidden;btn.setAttribute("aria-expanded",String(!pop.hidden));if(!pop.hidden&&S)$("aRoute").checked=!!S.route.follow;};
-  document.addEventListener("click",e=>{if(!pop.hidden&&!e.target.closest("#assistPop")&&e.target!==btn){pop.hidden=true;btn.setAttribute("aria-expanded","false");}});
+  btn.onclick=e=>{pop.hidden=false;if(S)$("aRoute").checked=!!S.route.follow;};
+  document.addEventListener("click",e=>{if(!pop.hidden&&!e.target.closest("#assistPop,#bAssist"))pop.hidden=true;});
   window.addEventListener("keydown",e=>{if(e.key==="Escape"){pop.hidden=true;}});
   $("aRoute").onchange=e=>{if(!S)return;S.route.follow=e.target.checked;S.route.t=0;if(S.route.follow)routeSteerOnce();$("rFollow").checked=S.route.follow;};
 }
