@@ -1416,8 +1416,8 @@ function assistStep(s,dt,w){
   if($("aSail").checked&&sh.anch.mode!=="holding"){
     const kn=w.kn;let want=0;for(let L=0;L<SAILS.length;L++)if(SAILS[L].safe>kn+4)want=L;if(want===0&&SAILS[1].safe>kn)want=1;
     const hold=SAILS[sh.sail].safe>kn+2;
-    if((s.strain>0||!hold||sh.sail>want)&&sh.sail>0){setSail(sh.sail-1);say(`The sailmaster shortens her to ${SAILS[sh.sail].name.toLowerCase()}.`,{});s.sailT=s.t;}
-    else if(sh.sail<want&&s.t-(s.sailT||-9)>.25){setSail(sh.sail+1);say(`The wind has eased. The sailmaster sets ${SAILS[sh.sail].name.toLowerCase()}.`,{});s.sailT=s.t;}
+    if((s.strain>0||!hold||sh.sail>want)&&sh.sail>0){setSail(sh.sail-1);s.smOrd=true;say(`The sailmaster shortens her to ${SAILS[sh.sail].name.toLowerCase()}.`,{});s.sailT=s.t;}
+    else if(sh.sail<want&&s.t-(s.sailT||-9)>.25){setSail(sh.sail+1);s.smOrd=true;say(`The wind has eased. The sailmaster sets ${SAILS[sh.sail].name.toLowerCase()}.`,{});s.sailT=s.t;}
   }
   if($("aCrew").checked){
     const n=s.crew.length;
@@ -1443,7 +1443,7 @@ function initAssists(){
   const ml=$("mateLog").closest("label");[...ml.childNodes].filter(n=>n.nodeType===3).forEach(n=>n.remove());ml.append(Object.assign(document.createElement("span"),{innerHTML:"Mate heaves the log each hour<small>Reads the speed off the log line every hour for your reckoning, with a little error.</small>"}));
   [bl,ml].forEach(l=>{l.style.alignItems="flex-start";});
   let saved={};try{saved=JSON.parse(localStorage.getItem("drAssists")||"{}");}catch(e){}
-  ASSIST_IDS.forEach(id=>{if(id in saved)$(id).checked=!!saved[id];$(id).addEventListener("change",()=>{if(id==="aDR"&&S&&!S.done){S.mode=$("aDR").checked?"lost":"trial";say(S.mode==="lost"?"The chart now shows only your reckoning.":"The chart now shows your true position.",{log:false});updateUI(true);}const o={};ASSIST_IDS.forEach(k=>o[k]=$(k).checked);try{localStorage.setItem("drAssists",JSON.stringify(o));}catch(e){}});});
+  ASSIST_IDS.forEach(id=>{if(id in saved)$(id).checked=!!saved[id];$(id).addEventListener("change",()=>{if(id==="aSail"&&!$("aSail").checked&&S&&!S.done&&S.smOrd){S.smOrd=false;const sh=S.ship;sh.q=sh.q.filter(j=>!SAILIDS.includes(j.id));sh.sl={...sh.sa};sh.sail=clamp(Math.round(invEff(effOf(sh.sl))),0,SAILS.length-1);updateUI();} if(id==="aDR"&&S&&!S.done){S.mode=$("aDR").checked?"lost":"trial";say(S.mode==="lost"?"The chart now shows only your reckoning.":"The chart now shows your true position.",{log:false});updateUI(true);}const o={};ASSIST_IDS.forEach(k=>o[k]=$(k).checked);try{localStorage.setItem("drAssists",JSON.stringify(o));}catch(e){}});});
   const pop=$("assistPop"),btn=$("bAssist");
   btn.onclick=e=>{pop.hidden=false;if(S)$("aRoute").checked=!!S.route.follow;};
   document.addEventListener("click",e=>{if(!pop.hidden&&!e.target.closest("#assistPop,#bAssist"))pop.hidden=true;});
@@ -1536,7 +1536,7 @@ function orderSails(plan){const sh=S.ship,furl=[],set=[];
   for(const k of furl)sh.q.push({id:k,to:plan[k],at:S.t+(CLIMB[k]+FURLST[k]*5)/3600/crewEff()});
   for(const k of set)sh.q.push({id:k,to:plan[k],at:S.t+(CLIMB[k]+(nf+SETST[k])*5)/3600/crewEff()});
   sh.sl=plan;}
-function setSail(n){if(!S||S.done)return;S.ship.sail=clamp(n,0,SAILS.length-1);orderSails(planOf(S.ship.sail));updateUI();}
+function setSail(n){if(!S||S.done)return;S.smOrd=false;S.ship.sail=clamp(n,0,SAILS.length-1);orderSails(planOf(S.ship.sail));updateUI();}
 // one sail at a time: furled -> reefed -> full (topsails and courses reef; the rest are simply set or furled)
 const selSails=new Set();
 const selLabel=()=>{const a=[...selSails];return a.length===1?SAILNAME[a[0]]:a.length===SAILIDS.length?"All sails":`${a.length} sails`;};
