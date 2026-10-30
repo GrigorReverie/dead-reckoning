@@ -5329,7 +5329,7 @@ function damageStep(s,dt,w){const sh=s.ship,H=s.wx.H;
 const PRICE0={bis:18,meat:34,beer:22,fish:.24,lime:28,rum:190,med:300}; // shillings per 100 lb or gallons; salt fish per lb (Newfoundland cod fetched about 2.5d a pound in the islands)
 const PORTF={bridgetown:.9,castries:1.1,stjohns:1,kingstown:1.05,basseterre:1.15},STORECAP=1500;
 const storeCap=()=>S&&S.crew?Math.max(300,75*S.crew.length):STORECAP; // casks for about two and a half months
-const FISHX=30; // catch speed multiplier
+const FISHX=500; // catch speed multiplier
 const FISHN={bank:"snapper and grouper from the bank",dolphinfish:"dolphinfish",bonito:"bonito",tuna:"tunny"};
 const FISHSIGN={bank:"Gannets and boobies diving over a bank",dolphinfish:"Dolphinfish leaping, with birds working above them",bonito:"A bonito school breaking the surface, terns working over it",tuna:"Water boiling where a school of tunny is feeding"};
 const money=sh=>{sh=Math.round(sh);return `£${Math.floor(sh/20)} ${sh%20}s`;};
@@ -5642,7 +5642,7 @@ function fishStep(s,dt,w){if(!s.fish)return;const sh=s.ship,P=s.mode==="trial"?s
   if(!s.fishing)return;
   if(sh.v>5.5||w.kn>25||s.allHands){s.fishing=false;say(s.allHands?"All hands are needed. The lines are hauled in.":"Too much way on her: the lines are hauled in.",{});return;}
   const sch=s.fish.find(f=>f.amt>0&&Math.hypot(f.x-sh.x,f.y-sh.y)<f.r&&(f.kind==="bank"?sh.v<=1.2:sh.v<=5));
-  const k=Math.min(1,Math.max(0,s.nDuty-3)/3)*(.6+.4*clamp(s.eff,0,1)),lb= 50 FISHX*(sch?Math.min(sch.amt,sch.rate*k*dt*(.6+.8*rng())):.4*k*dt);
+  const k=Math.min(1,Math.max(0,s.nDuty-3)/3)*(.6+.4*clamp(s.eff,0,1)),lb= 50 * FISHX * (sch?Math.min(sch.amt,sch.rate*k*dt*(.6+.8*rng())):.4*k*dt);
   if(sch)sch.amt-=lb;s.fishAcc=(s.fishAcc||0)+lb;s.catchTotal=(s.catchTotal||0)+lb;s.stores.fish+=lb*.8;
   if(s.fishAcc>=25){s.fishAcc=0;say(sch?`The lines come in heavy: ${FISHN[sch.kind]}. About ${Math.round(sch.rate>30?30:25)} lb more in the tubs.`:"A fish or two on the lines.",{});}
   if(!sch){s.noBite=(s.noBite||0)+dt;if(s.noBite>2){s.noBite=0;say("Nothing is biting here. Look to the lookout for birds working on the water.",{});}}
