@@ -4844,6 +4844,9 @@ function camBack(){if(!R3||!camPrev)return;const c=camPrev;camPrev=camNow();camS
 window.__CAM=()=>R3;
 {const wp=document.getElementById("walkPad");if(wp){const stop=()=>{if(R3)R3.wk=null;};for(const b of wp.querySelectorAll("button[data-w]")){b.addEventListener("pointerdown",e=>{e.preventDefault();e.stopPropagation();const[x,y]=b.dataset.w.split(",").map(Number);if(R3)R3.wk={s:x,f:y};try{b.setPointerCapture(e.pointerId);}catch(_){}});for(const ev of["pointerup","pointercancel","lostpointercapture"])b.addEventListener(ev,stop);}}}
 v3c.addEventListener("pointerdown",e=>{if(!R3)return;if(e.pointerType==="mouse"&&e.button!==0){if(e.button===1)e.preventDefault();return;}
+  { // a tap on the heading tape orders that bearing; the ship eases round at the helm's turn rate
+    const r=v3c.getBoundingClientRect();
+    if($("paneV3").classList.contains("big")&&S&&e.clientY-r.top<=23){const W=R3.W,span=W<600?70:100;setCourse(Math.round(R3.camBrg+((e.clientX-r.left)-W/2)*span/(W-1)));e.preventDefault();return;}}
   if(ptr3.size>=2)return;try{v3c.setPointerCapture(e.pointerId);}catch(_){}
   ptr3.set(e.pointerId,{x:e.clientX,y:e.clientY});if(ptr3.size===1)R3.tapMoved=false;anchor3();v3c.classList.add("drag");});
 v3c.addEventListener("pointermove",e=>{const R=R3;if(!R||!ptr3.has(e.pointerId))return;
