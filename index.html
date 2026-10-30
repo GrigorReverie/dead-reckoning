@@ -3996,7 +3996,7 @@ function faFx(R,x,z,sz,spout,lean){const F=R.fauna,f=F.fx.find(f=>f.life<=0);if(
 function faWhere(R,x,z){const h=S.ship.heading,b=norm(Math.atan2(x,-z)/D2R-h),side=b<180?"starboard":"larboard",a=b<180?b:360-b;
   const pt=a<20?"right ahead":a<60?`on the ${side} bow`:a<120?`on the ${side} beam`:a<160?`on the ${side} quarter`:"right astern";
   const cab=Math.round(Math.hypot(x,z)/185);return(cab<=1?"close aboard ":cab<10?`${["","one","two","three","four","five","six","seven","eight","nine"][cab]} cables off, `:"a mile off, ")+pt;}
-function faSay(R,key,msg,hrs){const F=R.fauna;if(!S||S.t-(F.said[key]??-99)<(hrs||3))return;F.said[key]=S.t;say(msg,{log:true});}
+function faSay(R,key,msg,hrs){const F=R.fauna;if(!S||S.t-(F.said[key]??-99)<(hrs||3))return;F.said[key]=S.t;say(msg,{log:true,toast:false});}
 
 function updateFauna(R,dt,gain,wdx,wdz,nightF){
   const F=R.fauna;if(!F||!S)return;F._wdx=wdx;F._wdz=wdz;const sh=S.ship,rdt=Math.min(dt,.1)*gain,day=1-nightF,kn=sh.v||0,shV=kn*.5144;
