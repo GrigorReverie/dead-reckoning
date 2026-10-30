@@ -455,10 +455,11 @@ body.fs3d #fsBar{left:max(12px,env(safe-area-inset-left,0px));bottom:max(12px,en
     <div class="seg" role="group" aria-label="Time">
       <button id="tPause" aria-pressed="false" title="Pause (Space)">❚❚</button>
       <button id="t1" aria-pressed="true" title="Real time (1)">1×</button>
-      <button id="t3" aria-pressed="false" title="3× real time (2)">3×</button>
-      <button id="t60" aria-pressed="false" title="60×: one minute per second (3)">60×</button>
+      <button id="tMinus" title="Slower (2)" aria-label="Slower">−</button>
+      <button id="tVal" disabled aria-live="polite">1×</button>
+      <button id="tPlus" title="Faster (3)" aria-label="Faster">+</button>
     </div>
-    <div class="seg" role="group" aria-label="Skip ahead"><button id="bSkip" title="Skip ahead three hours (K)">+3 h</button><button id="bSkip12" title="Skip ahead twelve hours (Shift+K)">+12 h</button><button id="bSkip24" title="Skip ahead a day (Alt+K)">+24 h</button></div>
+    <div class="seg" role="group" aria-label="Skip ahead"><button id="skMinus" title="Skip less" aria-label="Skip less">−</button><button id="skVal" disabled>3 h</button><button id="skPlus" title="Skip more" aria-label="Skip more">+</button><button id="bSkip" title="Skip ahead by the chosen time, then confirm (K)">Skip</button></div>
     <div class="menuwrap"><button class="tb" id="bAssist" aria-expanded="false" aria-haspopup="true" title="Crew assists: sails, watches, speed log and navigation">Assists ✦</button>
       <div class="menupop" id="assistPop" hidden>
         <b class="ah">Sails</b>
@@ -756,12 +757,12 @@ body.fs3d #fsBar{left:max(12px,env(safe-area-inset-left,0px));bottom:max(12px,en
     <p><b>Wind is everything.</b> A square-rigged brig cannot sail closer than about 6 points (67°) to the wind. The shaded wedge on the compass is where she will stall. She is fastest with the wind on her quarter, a broad reach.</p>
     <p><b>To go upwind, tack.</b> Sail close-hauled on one side, then put the helm over in 5° steps (A and D, or the buttons) to swing her bows through the wind onto the other side. Keep speed up first: if she slows too much in the turn she will miss stays and fall back. Wearing turns the long way round through downwind; it is slower but never fails.</p>
     <p><b>Trim the yards.</b> The compass shows your brig from above with her two yards. The dashed line is the best angle for this wind. Brace the yards to match it: the sail edge turns green when they draw well, amber or red when they don't. With the wind behind you the yards go square; close-hauled they are braced right round. The crew braces them for you when you tack or wear. Tick the bosun box to have them trimmed always.</p>
-    <p><b>Time.</b> 1× is real time: one second on the clock for each real second, so a tack takes about half a minute and a Channel-sized crossing takes hours. Use 3× to hurry a little, or 60× (one minute per second) to skip across open water. The Skip 3 h button jumps three hours ahead; it stops early if something needs you. The game slows to 60× when something needs you.</p>
+    <p><b>Time.</b> 1× is real time: one second on the clock for each real second, so a tack takes about half a minute and a Channel-sized crossing takes hours. Use + to hurry (up to 60×) and − to slow down, or 60× (one minute per second) to skip across open water. The Skip 3 h button jumps three hours ahead; it stops early if something needs you. The game slows to 60× when something needs you.</p>
     <p><b>Mind your canvas.</b> More sail is faster until the wind gets up. If the rigging strains, shorten sail, or it will be damaged and she will sail slower.</p>
     <p><b>Lost at sea.</b> Your pencil track comes from the course you ordered and the speed read off the log line. The helmsman wanders, the ship slips to leeward and the current sets you west, and none of that is in your pencil track. The dashed ellipse shows how far off you might be. Take a noon sight for latitude, and cross-bearings on two peaks for a full fix.</p>
     <h3 style="font-size:17px;margin-top:6px">What every button and picture means</h3>
     <div id="helpIcons" class="hgrid"></div>
-    <p class="keys"><kbd>Space</kbd> pause · <kbd>K</kbd> skip 3 hours (<kbd>Shift</kbd>+<kbd>K</kbd> 12, <kbd>Alt</kbd>+<kbd>K</kbd> 24) · <kbd>1</kbd>–<kbd>3</kbd> speed (1×, 3×, 60×) · <kbd>A</kbd>/<kbd>D</kbd> course 5° · <kbd>W</kbd>/<kbd>S</kbd> sails · <kbd>M</kbd> swap 3D/chart · drag the 3D view to look round · <kbd>Q</kbd>/<kbd>E</kbd> brace yards · <kbd>L</kbd> heave log · drag and scroll the chart</p>
+    <p class="keys"><kbd>Space</kbd> pause · <kbd>K</kbd> skip the chosen hours · <kbd>1</kbd> 1× · <kbd>2</kbd>/<kbd>3</kbd> slower/faster · <kbd>A</kbd>/<kbd>D</kbd> course 5° · <kbd>W</kbd>/<kbd>S</kbd> sails · <kbd>M</kbd> swap 3D/chart · drag the 3D view to look round · <kbd>Q</kbd>/<kbd>E</kbd> brace yards · <kbd>L</kbd> heave log · drag and scroll the chart</p>
     <div class="row"><button class="btn primary" id="helpClose">Back to the ship</button></div>
   </div>
 </div>
@@ -1080,8 +1081,12 @@ let S=null, speedMult=1, paused=false, modalOpen=true;
 let skipLeft=0; // game hours still to skip
 let skipPrev=null,fadeWait=false; // a projected skip waiting for the captain's word; the fade to black while the hours pass
 const SKIPSTEP=1/180; // skipping runs the sim in 20-second steps
-const SKIPS=[["bSkip",3,"+3 h"],["bSkip12",12,"+12 h"],["bSkip24",24,"+24 h"]];
-function startSkip(h){h=h||3;if(!S||S.done||modalOpen||skipLeft>0)return;setPaused(false);skipLeft=h;for(const[id]of SKIPS)$(id).disabled=true;const me=SKIPS.find(x=>x[1]===h);$(me[0]).textContent="…";say(h===3?"Three hours pass. The watch changes and the log is kept.":h===12?"Twelve hours pass: a full day's half. The watches change and the log is kept.":"A day and a night pass. The watches change and the log is kept.",{log:false});}
+const SKIPS=[["bSkip",3,"Skip"]];
+const SPEEDS=[1,2,4,8,15,30,60],SKIPHS=[1,2,3,6,9,12,18,24,36,48];let skipH=3;
+function spdIdx(){let b=0;SPEEDS.forEach((v,i)=>{if(Math.abs(v-speedMult)<Math.abs(SPEEDS[b]-speedMult))b=i;});return b;}
+function stepSpeed(d){const i=Math.max(0,Math.min(SPEEDS.length-1,spdIdx()+d));setPaused(false);setSpeed(SPEEDS[i]);}
+function stepSkipH(d){const i=SKIPHS.indexOf(skipH),j=Math.max(0,Math.min(SKIPHS.length-1,i+d));skipH=SKIPHS[j];$("skVal").textContent=skipH+" h";if(skipPrev)previewSkip(skipH);}
+function startSkip(h){h=h||3;if(!S||S.done||modalOpen||skipLeft>0)return;setPaused(false);skipLeft=h;for(const[id]of SKIPS)$(id).disabled=true;$("bSkip").textContent="…";say(h+(h===1?" hour passes":" hours pass")+". The watches change and the log is kept.",{log:false});}
 function stopSkip(){if(skipLeft<=0&&!$("bSkip").disabled)return;if(fadeWait){fadeWait=false;setTimeout(()=>$("fadeBlack").classList.remove("on"),350);}skipLeft=0;for(const[id,,t]of SKIPS){$(id).disabled=false;$(id).textContent=t;}}
 
 // individual sails: area weights, and the preset sail plans the Shorten/Make sail buttons step through
@@ -1972,7 +1977,7 @@ function endVoyage(ok,where){
 }
 
 /* ---------- time controls ---------- */
-function setSpeed(m){speedMult=m;for(const[id,v]of[["t1",1],["t3",3],["t60",60]])$(id).setAttribute("aria-pressed",String(!paused&&m===v));}
+function setSpeed(m){speedMult=m;$("t1").setAttribute("aria-pressed",String(!paused&&m===1));$("tVal").textContent=m+"×";$("tVal").setAttribute("aria-pressed",String(!paused&&m>1));}
 function setPaused(p){paused=p;$("tPause").setAttribute("aria-pressed",String(p));setSpeed(speedMult);}
 
 /* ---------- sound ---------- */
@@ -6414,7 +6419,7 @@ $("rTog").onclick=()=>{const f=$("routePanel").classList.toggle("folded");$("rTo
   try{if(localStorage.getItem("dr-topbar")==="1")ap(true);}catch(e){}
   tg.onclick=()=>{const f=!bar.classList.contains("folded");ap(f);try{localStorage.setItem("dr-topbar",f?"1":"0");}catch(e){}}; }
 $("tPause").onclick=()=>setPaused(!paused);
-for(const[id,h]of SKIPS)$(id).onclick=()=>previewSkip(h);$("skOk").onclick=confirmSkip;$("skNo").onclick=cancelSkipPreview;$("bDrop").onclick=dropAnchor;$("bFish").onclick=toggleFish;
+$("bSkip").onclick=()=>previewSkip(skipH);$("skMinus").onclick=()=>stepSkipH(-1);$("skPlus").onclick=()=>stepSkipH(1);$("skOk").onclick=confirmSkip;$("skNo").onclick=cancelSkipPreview;$("bDrop").onclick=dropAnchor;$("bFish").onclick=toggleFish;
 { const store={get(k){try{return localStorage.getItem("dr-"+k);}catch(e){return null;}},set(k,v){try{localStorage.setItem("dr-"+k,v);}catch(e){}}};
   const apply=(el,key,col)=>{el.classList.toggle("collapsed",col);const b=el.querySelector(".ctog");if(b){b.textContent=col?"+":"–";b.setAttribute("aria-expanded",String(!col));}if(key==="dockall")document.querySelector(".main").classList.toggle("sidehid",col);store.set(key,col?"1":"0");setTimeout(()=>{resize();if(typeof resize3D==="function")resize3D();},0);};
   for(const b of document.querySelectorAll(".ctog")){const el=b.closest(b.dataset.pane?".pane":".dock"),key=b.dataset.pane||("dock"+b.dataset.dock);
@@ -6422,7 +6427,7 @@ for(const[id,h]of SKIPS)$(id).onclick=()=>previewSkip(h);$("skOk").onclick=confi
     b.addEventListener("click",e=>{e.stopPropagation();apply(el,key,!el.classList.contains("collapsed"));});} }
 { const da=document.querySelector(".dock-all");da.dataset.tab="helm";
   for(const b of da.querySelectorAll(".mtabs button"))b.addEventListener("click",()=>{da.dataset.tab=b.dataset.tab;for(const o of da.querySelectorAll(".mtabs button"))o.setAttribute("aria-pressed",String(o===b));}); }
-$("t1").onclick=()=>{setPaused(false);setSpeed(1);};$("t3").onclick=()=>{setPaused(false);setSpeed(3);};$("t60").onclick=()=>{setPaused(false);setSpeed(60);};
+$("t1").onclick=()=>{setPaused(false);setSpeed(1);};$("tMinus").onclick=()=>stepSpeed(-1);$("tPlus").onclick=()=>stepSpeed(1);
 $("cL5").onclick=()=>turn(-5);$("cR5").onclick=()=>turn(5);
 $("sUp").onclick=()=>setSail(S.ship.sail+1);
 { const sd=$("sailDiag"),pick=$("sailPick");
@@ -6544,8 +6549,8 @@ function fillHelpIcons(){
   const cv=(id,w)=>{const c=$(id);if(!c)return null;const i=new Image();i.className="cv";i.alt="";try{i.src=c.toDataURL();}catch(e){return null;}if(w==="auto")i.className="cv tall";else if(w){i.style.width=w;i.style.height="auto";}return i;};
   hh("Top bar");
   row("❚❚","<b>Pause.</b> Stops the clock. Handy for thinking, plotting and reading the chart.");
-  row("1× 3× 60×","<b>Speed of time.</b> 1× is real time. 3× hurries a little; 60× is a minute per second, for open water. The game drops to 60× only when something needs you.");
-  row("+3 h","<b>Skip ahead</b> three, twelve or twenty-four hours. It stops early if something needs your attention.");
+  row("− 1× +","<b>Speed of time.</b> 1× is real time. Tap + to hurry and − to slow down; 60× is a minute per second, for open water. The game drops to 60× only when something needs you.");
+  row("− 3 h +","<b>Skip ahead.</b> Set the hours with − and +, tap Skip, then confirm. It stops early if something needs your attention.");
   row("Assists ✦","<b>Assists.</b> Hands on board who do the small jobs for you: the sailmaster, bosun, mate, helm, navigator and lookout. Switch on only the ones you want; each is explained in the menu.");
   row("Menu ☰","<b>Menu.</b> Voyages, this guide, save and load, dark mode, sound and full screen.");
   hh("Information strip");
@@ -6669,12 +6674,12 @@ window.addEventListener("keydown",e=>{
   if(skipPrev){if(e.key==="Escape"){cancelSkipPreview();return;}if(e.key==="Enter"){e.preventDefault();confirmSkip();return;}if(e.key.toLowerCase()!=="k")return;}
   const k=e.key.toLowerCase();
   if(e.code==="Space"){e.preventDefault();setPaused(!paused);}
-  else if(k==="1"){setPaused(false);setSpeed(1);}else if(k==="2"){setPaused(false);setSpeed(3);}else if(k==="3"){setPaused(false);setSpeed(60);}
+  else if(k==="1"){setPaused(false);setSpeed(1);}else if(k==="2"){stepSpeed(-1);}else if(k==="3"){stepSpeed(1);}
   else if(k==="a"||e.key==="ArrowLeft")turn(-5);else if(k==="d"||e.key==="ArrowRight")turn(5);
   else if(k==="x")dropAnchor();else if(k==="o")toggleOars();else if(k==="f")toggleFish();else if(k==="w"||e.key==="ArrowUp")setSail(S.ship.sail+1);else if(k==="s"||e.key==="ArrowDown")setSail(S.ship.sail-1);
   else if(k==="l")openHeave();
   else if(k==="m")setMain(!main3d);else if(k==="r")setPlotting(!plotting);
-  else if(k==="k")previewSkip(e.altKey?24:e.shiftKey?12:3);else if(k==="q")braceBy(5);else if(k==="e")braceBy(-5);
+  else if(k==="k")previewSkip(skipH);else if(k==="q")braceBy(5);else if(k==="e")braceBy(-5);
 });
 // the ship picker: every voyage starts in 1745 whatever the ship
 const LEDE={jolly:"the <i>jolly boat</i> of a sloop of war, eighteen feet, four oars and a spritsail",cutter:"a Cumberland Fleet racing cutter, forty feet and very fast",
