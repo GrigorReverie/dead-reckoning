@@ -1255,8 +1255,8 @@ function drawSailGauge(sh){const c=$("sailSteps5");if(!c||c.hidden)return;
   for(let k=0;k<5;k++){const y0=Y(k/5),y1=Y((k+1)/5),yc=(y0+y1)/2,on=k===cur;x.font=(on?"600 ":"")+"italic 15px 'IM Fell English',Georgia,serif";x.textAlign="right";x.fillStyle=on?ink:soft;x.globalAlpha=on?1:.75;x.fillText(NM[k],TX-8,yc+5);x.globalAlpha=1;
     if(k<4){x.strokeStyle=soft;x.lineWidth=.8;x.globalAlpha=.6;x.beginPath();x.moveTo(6,y1);x.lineTo(TX-2,y1);x.stroke();x.globalAlpha=1;}}
   x.strokeStyle=ink;x.lineWidth=1.6;x.beginPath();x.moveTo(TX,T);x.lineTo(TX,B);x.moveTo(TX+TW,T);x.lineTo(TX+TW,B);x.stroke();x.beginPath();x.arc(TX+TW/2,T,TW/2,Math.PI,2*Math.PI);x.stroke();
-  x.beginPath();x.arc(TX+TW/2,B+14,13,0,2*Math.PI);x.stroke();
-  if(lv>.005){x.fillStyle=ink;x.globalAlpha=.82;x.beginPath();x.arc(TX+TW/2,B+14,13,0,2*Math.PI);x.fill();x.fillRect(TX+3,Y(lv),TW-6,B+14-Y(lv));x.globalAlpha=1;x.fillStyle="rgba(255,255,255,.35)";x.fillRect(TX+4,Y(lv)+2,2,B-Y(lv));}
+  x.beginPath();x.moveTo(TX,B);x.lineTo(TX+TW,B);x.stroke();
+  if(lv>.005){x.fillStyle=ink;x.globalAlpha=.82;x.fillRect(TX+3,Y(lv),TW-6,B-Y(lv));x.globalAlpha=1;x.fillStyle="rgba(255,255,255,.35)";x.fillRect(TX+4,Y(lv)+2,2,B-Y(lv));}
   x.fillStyle=ink;x.beginPath();x.moveTo(TX-3,Y(lv));x.lineTo(TX-12,Y(lv)-5);x.lineTo(TX-12,Y(lv)+5);x.closePath();x.fill();
   // the stage ordered: a brass marker on the scale side
   x.fillStyle=br;x.beginPath();x.moveTo(TX+TW+3,Y(tg));x.lineTo(TX+TW+13,Y(tg)-5);x.lineTo(TX+TW+13,Y(tg)+5);x.closePath();x.fill();
@@ -1460,7 +1460,7 @@ async function dockAtPort(){if(!S||S.done||S.docking)return;S.docking=true;const
   await fadeTo(1,800);
   const sh=S.ship,A=sh.anch;sh.x=P.x;sh.y=P.y;sh.v=0;
   {const f=PF[k];if(f&&f.dock){sh.x=f.dock.x;sh.y=f.dock.y;sh.heading=f.dock.hdg;}} // alongside the quay, her starboard side to the town
-  sh.ordered=sh.heading;sh.wander=0;sh.turnDir=0;sh.q=[];for(const id of SAILIDS){sh.sls[id]=0;sh.sa[id]=0;}if(sh.row)sh.row.on=false;
+  sh.ordered=sh.heading;sh.wander=0;sh.turnDir=0;sh.q=[];for(const id of SAILIDS){sh.sls[id]=0;sh.sa[id]=0;}sh.sail=0;sh.sl=planOf(0);if(sh.row)sh.row.on=false;
   A.mode="holding";A.depth=Math.max(2,Math.round(depthFm(sh.x,sh.y)));A.drag=0;A.dragWarned=false;A.t0=S.t;
   S.docked=k;S.arrivedNear=k;S.fishing=false;if(S.est){S.est.x=sh.x;S.est.y=sh.y;}
   await new Promise(r=>setTimeout(r,500));await fadeTo(0,900);
@@ -5554,7 +5554,7 @@ const netWorth=s=>Math.round(s.purse+shipTradeIn(s)+cargoValue(s));
 function careerInit(s,k){s.career={t0:s.t,start:k,owned:[CAREER_START],noted:null,done:false};s.purse=CAREER_PURSE;startDocked(s,k);}
 function startDocked(s,k){mkInit(s);
   const P=PORTS[k],sh=s.ship,A=sh.anch;{const f=PF[k];if(f&&f.dock){sh.x=f.dock.x;sh.y=f.dock.y;sh.heading=f.dock.hdg;}else{sh.x=P.x;sh.y=P.y;}}
-  sh.ordered=sh.heading;sh.v=0;for(const id of SAILIDS){sh.sls[id]=0;sh.sa[id]=0;}
+  sh.ordered=sh.heading;sh.v=0;for(const id of SAILIDS){sh.sls[id]=0;sh.sa[id]=0;}sh.sail=0;sh.sl=planOf(0);
   A.mode="holding";A.depth=Math.max(2,Math.round(depthFm(sh.x,sh.y)));A.drag=0;A.dragWarned=false;A.t0=s.t;s.docked=k;s.arrivedNear=k;if(s.est){s.est.x=sh.x;s.est.y=sh.y;}
   s.track=[{x:sh.x,y:sh.y}];s.estTrack=[{x:sh.x,y:sh.y}];}
 const SHIPKEYS=["ship","crew","shipId","stores","hull","leak","water","canvas","spares","jobs","pumpMode","pumping","pumpMen","eff","fat","strain","squall","nextSquall","squallWarned","callAll","allHands","ration","fishing"];
@@ -5565,7 +5565,7 @@ function buyShip(id){const s=S;if(!s||!s.career||s.done)return;const def=SHIPDEF
   if(!s.cheatShips&&holdUsed(s)>(CARGOT[id]??40)+1e-9){say("The cargo will not fit her hold. Sell or jettison some first.",{log:false});return;}
   const old=SPEC[s.shipId].name,ns=newState({...s.v,ship:id});
   for(const k of Object.keys(s))if(!SHIPKEYS.includes(k))ns[k]=s[k];
-  const o=s.ship,n=ns.ship;n.x=o.x;n.y=o.y;n.heading=o.heading;n.ordered=o.heading;n.v=0;n.anch=o.anch;n.bias=o.bias;for(const k of SAILIDS){n.sls[k]=0;n.sa[k]=0;}
+  const o=s.ship,n=ns.ship;n.x=o.x;n.y=o.y;n.heading=o.heading;n.ordered=o.heading;n.v=0;n.anch=o.anch;n.bias=o.bias;for(const k of SAILIDS){n.sls[k]=0;n.sa[k]=0;}n.sail=0;n.sl=planOf(0);
   ns.purse=s.purse-net;ns.career=Object.assign({},s.career);if(!ns.career.owned.includes(id))ns.career.owned.push(id);
   stopSkip();S=ns;applyShip();svNew();selSails.clear();$("sailSl").style.display="none";if(R3){R3.last=null;R3.nfc=null;}
   const last=LADDER[LADDER.length-1][0];
