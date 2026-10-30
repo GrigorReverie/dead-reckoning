@@ -1386,7 +1386,14 @@ function step(dt){
     if(lm.vis&&!s.seen.has(lm.isl)){s.seen.add(lm.isl);say(`Land ho! ${lm.isl} in sight, bearing ${pointName(Math.atan2(lm.x-sh.x,lm.y-sh.y)*R2D)}.`,{slow:true});}}
   // hazards
   const fa=footAt(sh.x,sh.y); // inside a harbour the plan decides what is land
-  if(fa&&fa.land){runAground(PF[fa.k].isl);return;}
+  // inside a harbour the bank is soft mud: she touches, loses her way and is set back into the water, so every ship can work out of every port
+  if(fa&&!fa.land)s.safe={x:sh.x,y:sh.y};
+  if(fa&&fa.land){
+    if(s.safe){sh.x=s.safe.x;sh.y=s.safe.y;}else{const f=PF[fa.k];if(f&&f.dock){sh.x=f.dock.x;sh.y=f.dock.y;}}
+    sh.v=0;
+    if(!s.touchWarned||s.t-s.touchWarned>.05){s.touchWarned=s.t;say("She touches the soft bank and loses her way. Back off and steer for the channel.",{log:true});}
+    return;
+  }
   for(const isl of islands.concat(reefs)){
     if(fa&&PF[fa.k].isl===isl)continue;
     if(inPoly(sh,isl.pts)){runAground(isl);return;}
@@ -5570,7 +5577,10 @@ function buyShip(id){const s=S;if(!s||!s.career||s.done)return;const def=SHIPDEF
   if(!def||id===s.shipId)return;
   if(!site||!s.docked){say("A ship can only be bought alongside the quay. Dock at a port first.",{log:false});return;}
   if(s.purse<net){say(`The purse is short: ${money(net)} needed after the trade-in.`,{log:false});return;}
-  if(!s.cheatShips&&holdUsed(s)>(CARGOT[id]??40)+1e-9){say("The cargo will not fit her hold. Sell or jettison some first.",{log:false});return;}
+  // a smaller ship: the surplus cargo is sold at the quay (rare consignments cannot be sold, so those must still fit)
+  if(!s.cheatShips&&holdUsed(s)>(CARGOT[id]??40)+1e-9){const cap=CARGOT[id]??40;
+    for(const g of Object.keys(s.cargo||{})){if(holdUsed(s)<=cap+1e-9)break;if(GOODS[g].tier>2)continue;const over=holdUsed(s)-cap,n=Math.min(Math.floor(s.cargo[g].n+1e-9),Math.ceil(over/GOODS[g].t-1e-9));if(n>=1)tradeSell(g,n);}
+    if(holdUsed(s)>cap+1e-9){say("The cargo will not fit her hold. Sell or jettison some first.",{log:false});return;}}
   const old=SPEC[s.shipId].name,ns=newState({...s.v,ship:id});
   for(const k of Object.keys(s))if(!SHIPKEYS.includes(k))ns[k]=s[k];
   const o=s.ship,n=ns.ship;n.x=o.x;n.y=o.y;n.heading=o.heading;n.ordered=o.heading;n.v=0;n.anch=o.anch;n.bias=o.bias;for(const k of SAILIDS){n.sls[k]=0;n.sa[k]=0;}n.sail=0;n.sl=planOf(0);
@@ -5591,7 +5601,7 @@ function careerUI(force){const P=document.getElementById("svCareer");if(!P)retur
     h+=`<p class="svhint">Goal: ${SPEC[LADDER[LADDER.length-1][0]].name}. Next rung ${i+1} of ${LADDER.length-1}: <b>${SPEC[nx[0]].name}</b> for ${money(nx[1])}, ${money(need)} after the trade-in of ${money(shipTradeIn(s))} on your ${SPEC[s.shipId].name}.</p><div class="rwind" title="Your purse against the next ship" style="margin:4px 0"><i style="width:${pct}%;--bw:${Math.round(10000/Math.max(pct,1))}%"></i></div><p class="svhint">Purse ${money(have)} of ${money(need)} (${pct}%).</p>`;}
   else h+=`<p class="svhint">You command the grandest ship on the ladder. Trade, explore, or sell down and start again.</p>`;
   h+=`<h3 style="margin-top:10px">Shipyard</h3><p class="svhint">${dock?`Alongside at ${site.name}. Your ${SPEC[s.shipId].name} is taken in part exchange at ${Math.round(TRADEIN*100)}% of her price; hold, stores and crew go with her.`:"Dock at a port to buy or sell ships."}</p><div class="mkw"><table class="mk"><tr><th>Ship</th><th class="num">Hold</th><th class="num">Crew</th><th class="num">Price</th><th></th></tr>`;
-  for(const[id,cost]of LADDER){const cur=id===s.shipId,net=s.cheatShips?0:cost-shipTradeIn(s),fits=s.cheatShips||holdUsed(s)<=(CARGOT[id]??40)+1e-9,ok=dock&&!cur&&s.purse>=net&&fits,why=cur?"Yours":!dock?"":s.purse<net?"Too dear":!fits?"Cargo too big":"";
+  for(const[id,cost]of LADDER){const cur=id===s.shipId,net=s.cheatShips?0:cost-shipTradeIn(s),fits=true,ok=dock&&!cur&&s.purse>=net&&fits,why=cur?"Yours":!dock?"":s.purse<net?"Too dear":!fits?"Cargo too big":"";
     h+=`<tr${cur?' class="dim"':""}><td>${SPEC[id].name}<br><small>${SPEC[id].role}</small></td><td class="num">${CARGOT[id]} t</td><td class="num">${SHIPX[id].crew.reduce((a,c)=>a+c[1],0)}</td><td class="num">${money(cost)}${cur?"":`<br><small>${net>=0?"pay "+money(net):"get "+money(-net)}</small>`}</td><td>${cur?"Yours":`<button data-ship="${id}"${ok?"":" disabled"}>${why||"Buy"}</button>`}</td></tr>`;}
   box.innerHTML=h+"</table></div>";}
 { const cb=document.getElementById("svCareerBody");if(cb)cb.addEventListener("click",e=>{const b=e.target.closest("button[data-ship]");if(b&&S)buyShip(b.dataset.ship);}); }
