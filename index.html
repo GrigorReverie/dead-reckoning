@@ -361,7 +361,7 @@ body.fs3d #fsBar{left:max(12px,env(safe-area-inset-left,0px));bottom:max(12px,en
   .ptools .tbicon,.bookbtn,.shipchart,#paneChart.small,#ctlIcon{bottom:24px!important;border-color:transparent!important;background:transparent!important;box-shadow:none!important;border-radius:6px}
   .ptools .tbicon[aria-pressed="true"],.bookbox.open .bookbtn,#ctlIcon[aria-pressed="true"]{background:var(--ink)!important;color:var(--paper)!important}
   #paneChart.small .mapicon{background:transparent!important}
-  .tbtab{display:flex!important;position:fixed;z-index:16;width:var(--ic);height:var(--ic);bottom:calc(env(safe-area-inset-bottom,0px) + 25px);border:0!important;background:transparent!important;box-shadow:none!important;border-radius:6px;padding:0;align-items:center;justify-content:center;color:var(--ink);cursor:pointer}
+  .tbtab{display:flex!important;position:fixed;z-index:16;width:var(--ic);height:var(--ic);bottom:calc(env(safe-area-inset-bottom,0px) + 28px);border:0!important;background:transparent!important;box-shadow:none!important;border-radius:6px;padding:0;align-items:center;justify-content:center;color:var(--ink);cursor:pointer}
   .tbtab svg{width:20px;height:20px;stroke-width:1.7}
   .tbtab[aria-pressed="true"]{background:var(--ink)!important;color:var(--paper)!important}
   #tbChart{left:calc(8.333% - var(--ic)/2)}#tbView{left:calc(25% - var(--ic)/2)}#tbShip{left:calc(41.667% - var(--ic)/2)}#tbStores{left:calc(58.333% - var(--ic)/2)}#tbBook{left:calc(75% - var(--ic)/2)}
@@ -374,7 +374,7 @@ body.fs3d #fsBar{left:max(12px,env(safe-area-inset-left,0px));bottom:max(12px,en
 #ctlIcon{display:none;width:var(--ic);height:var(--ic)}
 /* one row of view tabs (chart, 3D, ship, book) on every screen size; the old per-pane icons are hidden */
 #paneChart.small,.ptools,.shipchart,.bookbtn{display:none!important}
-.tbtab{display:flex;position:absolute;bottom:17px;z-index:41;width:var(--ic);height:var(--ic);padding:0;align-items:center;justify-content:center;background:rgba(246,238,217,.96);color:var(--ink);border:1px solid var(--ink);border-radius:3px;box-shadow:0 4px 14px rgba(20,14,10,.3);cursor:pointer}
+.tbtab{display:flex;position:absolute;bottom:20px;z-index:41;width:var(--ic);height:var(--ic);padding:0;align-items:center;justify-content:center;background:rgba(246,238,217,.96);color:var(--ink);border:1px solid var(--ink);border-radius:3px;box-shadow:0 4px 14px rgba(20,14,10,.3);cursor:pointer}
 .tbtab svg{width:20px;height:20px;stroke-width:1.7}
 .tbtab[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
 .tbtab.attn{animation:bookpulse 1.4s ease-in-out infinite}
@@ -383,7 +383,7 @@ body.fs3d #fsBar{left:max(12px,env(safe-area-inset-left,0px));bottom:max(12px,en
 .menupop .tb:hover,.bar .menupop .tb:hover{background:var(--paper-2)}
 .btn.primary:disabled{background:transparent;color:var(--ink);border-color:var(--ink)}
 @media (max-width:860px){
-  .tbtab{position:fixed;bottom:27px;z-index:16;border:0!important;background:transparent!important;box-shadow:none!important;border-radius:3px}
+  .tbtab{position:fixed;bottom:30px;z-index:16;border:0!important;background:transparent!important;box-shadow:none!important;border-radius:3px}
   .tbtab[aria-pressed="true"]{background:var(--ink)!important;color:var(--paper)!important}
   #tbChart{left:calc(8.333% - var(--ic)/2)}#tbView{left:calc(25% - var(--ic)/2)}#tbShip{left:calc(41.667% - var(--ic)/2)}#tbStores{left:calc(58.333% - var(--ic)/2)}#tbBook{left:calc(75% - var(--ic)/2)}
 }
