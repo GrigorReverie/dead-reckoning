@@ -5329,7 +5329,7 @@ function damageStep(s,dt,w){const sh=s.ship,H=s.wx.H;
 const PRICE0={bis:18,meat:34,beer:22,fish:.24,lime:28,rum:190,med:300}; // shillings per 100 lb or gallons; salt fish per lb (Newfoundland cod fetched about 2.5d a pound in the islands)
 const PORTF={bridgetown:.9,castries:1.1,stjohns:1,kingstown:1.05,basseterre:1.15},STORECAP=1500;
 const storeCap=()=>S&&S.crew?Math.max(300,75*S.crew.length):STORECAP; // casks for about two and a half months
-const FISHX=3; // catch speed multiplier
+const FISHX=30; // catch speed multiplier
 const FISHN={bank:"snapper and grouper from the bank",dolphinfish:"dolphinfish",bonito:"bonito",tuna:"tunny"};
 const FISHSIGN={bank:"Gannets and boobies diving over a bank",dolphinfish:"Dolphinfish leaping, with birds working above them",bonito:"A bonito school breaking the surface, terns working over it",tuna:"Water boiling where a school of tunny is feeding"};
 const money=sh=>{sh=Math.round(sh);return `£${Math.floor(sh/20)} ${sh%20}s`;};
