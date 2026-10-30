@@ -137,6 +137,8 @@ body.fs3d #fsBar{left:max(12px,env(safe-area-inset-left,0px));bottom:max(12px,en
 .mapctl{position:absolute;right:12px;top:12px;z-index:3;display:flex;flex-direction:column;gap:6px}
 .mapctl button{width:34px;height:34px;background:var(--paper);border:1px solid var(--ink);color:var(--ink);font-family:var(--f-data);font-size:15px;border-radius:2px}
 .mapctl button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+/* the look system forces the control background with !important, so an active button needs its own fixed dark fill and light icon in both themes */
+:root:root .mapctl button[aria-pressed="true"]{background:#2e2519!important;color:#f6eed9!important;border-color:#2e2519!important}
 /* notices stack 5px under the heading tape's bottom line (tape is 22px + 1px stroke), 3px apart */
 .toasts{position:absolute;z-index:8;left:50%;top:28px;transform:translateX(-50%);width:max-content;max-width:min(760px,94%);display:flex;flex-direction:column;align-items:center;gap:3px;pointer-events:none}
 .toast{max-width:100%;box-sizing:border-box;background:var(--ink);color:var(--paper);padding:2px 12px;font-family:var(--f-italic);font-size:13px;line-height:1.5;border-radius:2px;box-shadow:0 2px 8px rgba(0,0,0,.2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;pointer-events:auto;transition:opacity .25s}
