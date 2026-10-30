@@ -141,7 +141,7 @@ body.fs3d #fsBar{left:max(12px,env(safe-area-inset-left,0px));bottom:max(12px,en
 :root:root .mapctl button[aria-pressed="true"]{background:#2e2519!important;color:#f6eed9!important;border-color:#2e2519!important}
 /* notices stack 5px under the heading tape's bottom line (tape is 22px + 1px stroke), 3px apart */
 .toasts{position:absolute;z-index:8;left:50%;top:28px;transform:translateX(-50%);width:max-content;max-width:min(760px,94%);display:flex;flex-direction:column;align-items:center;gap:3px;pointer-events:none}
-.toast{max-width:100%;box-sizing:border-box;background:var(--ink);color:var(--paper);padding:2px 12px;font-family:var(--f-italic);font-size:13px;line-height:1.5;border-radius:2px;box-shadow:0 2px 8px rgba(0,0,0,.2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;pointer-events:auto;transition:opacity .25s}
+.toast{max-width:100%;box-sizing:border-box;background:var(--ink);color:var(--paper);padding:2px 12px;font-family:var(--f-italic);font-size:13px;line-height:1.5;border-radius:2px;box-shadow:0 2px 8px rgba(0,0,0,.2);white-space:normal;overflow-wrap:anywhere;text-align:center;cursor:pointer;pointer-events:auto;transition:opacity .25s}
 .toast.hide{opacity:0;pointer-events:none}
 .ptools{position:absolute;left:50px;top:34px;z-index:6;display:flex;gap:8px}.pane.small .ptools{display:none}#paneChart.small{top:34px!important;left:12px!important}
 .tbicon svg{width:17px;height:17px}.tbicon{width:30px;height:30px;display:flex;align-items:center;justify-content:center;padding:0;background:rgba(246,238,217,.96);color:var(--ink);border:1px solid var(--ink);border-radius:3px;box-shadow:0 4px 14px rgba(20,14,10,.3);cursor:pointer}.tbicon:hover{background:var(--paper-2)}.tbicon[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
@@ -1269,8 +1269,9 @@ function seaText(s){const X=s.wx,H=X.H,d=H<.5?"Calm":H<1.25?"Slight sea":H<2.5?"
 const TOAST_MS=17500,TOAST_MAX=4;
 /* each notice stays 17.5 s then fades quickly; tap one to dismiss it now; newer ones stack below */
 function dropToast(el){if(el.dataset.gone)return;el.dataset.gone=1;clearTimeout(el._t);el.classList.add("hide");setTimeout(()=>el.remove(),260);}
-function say(msg,{pause=false,slow=false,log=true}={}){
-  const box=$("toast");if(box){const el=document.createElement("div");el.className="toast";el.textContent=msg;el.title=msg;el.setAttribute("role","status");
+function sayLog(msg){say(msg,{toast:false});}
+function say(msg,{pause=false,slow=false,log=true,toast=true}={}){
+  const box=$("toast");if(box&&toast){const el=document.createElement("div");el.className="toast";el.textContent=msg;el.title=msg;el.setAttribute("role","status");
     el.addEventListener("click",()=>dropToast(el));box.appendChild(el);el._t=setTimeout(()=>dropToast(el),TOAST_MS);
     const live=[...box.children].filter(c=>!c.dataset.gone);for(let k=0;k<live.length-TOAST_MAX;k++)dropToast(live[k]);}
   if(log&&S){S.log.unshift({time:timeStr(S),remark:msg});renderLog();}
@@ -1949,7 +1950,7 @@ function startVoyage(v){
   setSpeed(1);setPaused(false);follow=true;$("follow").setAttribute("aria-pressed","true");
   cam.zoom=S.mode==="lost"?2.6:3.2;cam.x=S.ship.x;cam.y=S.ship.y;
   S.log=[];renderLog();
-  if(v.career){careerInit(S,v.from);say(`Career begins at ${PORTS[v.from].name}. You own a small cutter and ${money(S.purse)}. Trade, take contracts and save for a bigger ship: the shipyard is in the Ship tab.`);}else
+  if(v.career){careerInit(S,v.from);sayLog(`Career begins at ${PORTS[v.from].name}. You own a small cutter and ${money(S.purse)}. Trade, take contracts and save for a bigger ship: the shipyard is in the Ship tab.`);}else
   if(v.free){if(v.from in PORTS){startDocked(S,v.from);say(`Made fast alongside the quay at ${PORTS[v.from].name}. Weigh anchor when you are ready: the sea is yours.${S.mode==="lost"?" The chart shows only your reckoning.":""}`);}else say("Hove to. No orders: the sea is yours.");}else
   say(v.mode==="lost"?`Weighed anchor from ${placeOf(v.from).name}. From here on the chart shows only your reckoning.`:`${v.from in PORTS?"Weighed anchor from "+PORTS[v.from].name:"Hove to in the "+placeOf(v.from).name}. Bound for ${PORTS[v.to].name}.`);
   S.estSpeed=0;S.lastLog=null;S.heaveLog=[];
@@ -5298,7 +5299,7 @@ function startJob(id){if(!S||S.done)return;const J=JOBS[id];if(S.jobs[id]){delet
   for(const k in J.req)if(S.spares[k]<J.req[k]-1e-6){say(`You lack the ${SPAREN[k].split(" (")[0]} for that job. Buy more in port.`,{});return;}
   S.jobs[id]={id,p:0,why:""};say(`${J.n}: ${J.who} set to work.`,{});}
 function buySpare(item){if(!S)return;const p=atPort(S);if(!p){say("You must be in port to trade.",{log:false});return;}const c=Math.round(SPAREP[item]*(PORTF[p.k]||1));
-  if(S.purse<c){say("The purse is too light for that.",{log:false});return;}S.purse-=c;S.spares[item]+=1;say(`Bought one of ${SPAREN[item]} at ${p.name} for ${money(c)}.`,{});svBill();}
+  if(S.purse<c){say("The purse is too light for that.",{log:false});return;}S.purse-=c;S.spares[item]+=1;sayLog(`Bought one of ${SPAREN[item]} at ${p.name} for ${money(c)}.`,{});svBill();}
 function damageStep(s,dt,w){const sh=s.ship,H=s.wx.H;
   // heavy seas work the seams; weed and worm eat slowly at a warm-water anchorage
   if(H>3)s.hull=Math.max(.45,s.hull-.0025*(H-3)*dt);s.hull=Math.max(.45,s.hull-.0003*dt);
@@ -5354,7 +5355,7 @@ const priceOf=(s,item,k)=>item==="fish"?PRICE0.fish*(FISHD[k]||1)*(1+.12*Math.si
 const QTY={bis:100,meat:100,beer:100,lime:50,rum:20,med:20},ITEMN={bis:"lb of biscuit",meat:"lb of salt meat",beer:"gallons of beer",lime:"lb of limes",rum:"gallons of rum",med:"doses of physic and dressings"};
 function buyStore(item){if(!S)return;const p=atPort(S);if(!p){say("You must be in port to trade.",{log:false});return;}const c=Math.round(priceOf(S,item,p.k)*QTY[item]/100);
   if(S.purse<c){say("The purse is too light for that.",{log:false});return;}if((S.stores[item]||0)+QTY[item]>storeCap()){say("The casks are full.",{log:false});return;}
-  S.purse-=c;S.stores[item]=(S.stores[item]||0)+QTY[item];say(`Bought ${QTY[item]} ${ITEMN[item]} at ${p.name} for ${money(c)}.`,{});svBill();}
+  S.purse-=c;S.stores[item]=(S.stores[item]||0)+QTY[item];sayLog(`Bought ${QTY[item]} ${ITEMN[item]} at ${p.name} for ${money(c)}.`,{});svBill();}
 function sellFish(){if(!S)return;const p=atPort(S);if(!p){say("You must be in port to trade.",{log:false});return;}const lb=Math.floor(S.stores.fish);if(lb<1)return;const v=lb*priceOf(S,"fish",p.k);S.stores.fish-=lb;S.purse+=v;say(`Sold ${lb} lb of salt fish at ${p.name} for ${money(v)}.`,{});svBill();}
 /* ---------- trade between the ports: twelve goods in three tiers, a hold in tons, prices that follow each port's stock, standing, duties and smuggling, contracts, news, cargo risks, and pirates at sea ---------- */
 // Tier 1 is for sale from the start, tier 2 opens at standing 15, tier 3 comes only as consignments on special contracts (standing 40). Prices are shillings a unit; t is tons a unit.
@@ -5426,7 +5427,7 @@ function tradeBuy(g,n){const s=S;if(!s||s.done)return;mkInit(s);const site=trade
   if(n<1){say("The purse is too light for that.",{log:false});return;}
   const c=buyQuote(s,site.k,g,n,site.smug);s.purse-=c+fee;if(fee)s.fees[site.k]=dayIndex(s);
   s.mk.ports[site.k][g]-=n;const cur=s.cargo[g]||(s.cargo[g]={n:0,cost:0});cur.n+=n;cur.cost+=c;
-  say(`Bought ${n} ${n===1?G.u:gPl(g)} of ${gName(g)} at ${site.name} for ${money(c)}${fee?`, and ${fee}s harbour dues`:""}.`,{});
+  sayLog(`Bought ${n} ${n===1?G.u:gPl(g)} of ${gName(g)} at ${site.name} for ${money(c)}${fee?`, and ${fee}s harbour dues`:""}.`,{});
   if(site.smug)smuggleRisk(s,c);tradeUI(true);svBill();}
 function tradeSell(g,n){const s=S;if(!s||s.done)return;mkInit(s);const site=tradeSite(s);if(!site){say("You must be in port, or at anchor in a quiet cove after dark, to trade.",{log:false});return;}
   const cur=s.cargo[g];if(!cur||GOODS[g].tier>2){say("There is none aboard to sell.",{log:false});return;}
@@ -5434,7 +5435,7 @@ function tradeSell(g,n){const s=S;if(!s||s.done)return;mkInit(s);const site=trad
   const fee=payFee(s,site),v=sellQuote(s,site.k,g,n,site.smug),basis=cur.cost*n/cur.n,profit=v-basis;
   s.purse+=v-fee;if(fee)s.fees[site.k]=dayIndex(s);s.mk.ports[site.k][g]+=n;cur.n-=n;cur.cost-=basis;if(cur.n<.01)delete s.cargo[g];
   if(profit>0)addRep(s,Math.min(2.5,profit/120));
-  say(`Sold ${n} ${n===1?GOODS[g].u:gPl(g)} of ${gName(g)} at ${site.name} for ${money(v)}${profit>=0?`, a profit of ${money(profit)}`:`, a loss of ${money(-profit)}`}.${site.smug?"":` Duty is ${Math.round((DUTYIN[site.k]||0)*100)}%.`}`,{});
+  sayLog(`Sold ${n} ${n===1?GOODS[g].u:gPl(g)} of ${gName(g)} at ${site.name} for ${money(v)}${profit>=0?`, a profit of ${money(profit)}`:`, a loss of ${money(-profit)}`}.${site.smug?"":` Duty is ${Math.round((DUTYIN[site.k]||0)*100)}%.`}`,{});
   if(site.smug)smuggleRisk(s,v);tradeUI(true);svBill();}
 function tradeJettison(g,n){const s=S;if(!s||!s.cargo[g])return;const cur=s.cargo[g];n=Math.min(n==="all"?Infinity:n,cur.n);const part=cur.cost*n/cur.n;cur.n-=n;cur.cost-=part;if(cur.n<.01)delete s.cargo[g];
   say(`The hands heave ${Math.round(n)} ${n===1?GOODS[g].u:gPl(g)} of ${gName(g)} over the side. She rides lighter.`,{});tradeUI(true);}
@@ -5452,15 +5453,15 @@ function contractText(c,s){const G=GOODS[c.g];return `${c.special?"Consignment: 
 function contractAccept(id){const s=S;if(!s)return;const p=atPort(s);if(!p)return;const c=contractBoard(s,p.k).find(x=>x.id===id);if(!c)return;
   if(c.special){const t=c.n*GOODS[c.g].t;if(holdCap()-holdUsed(s)<t-1e-9){say("There is not room in the hold for that consignment.",{log:false});return;}
     const cur=s.cargo[c.g]||(s.cargo[c.g]={n:0,cost:0});cur.n+=c.n;}
-  s.contracts.push(c);say(`Contract taken at ${p.name}: ${contractText(c,s)}`,{});tradeUI(true);svBill();}
+  s.contracts.push(c);sayLog(`Contract taken at ${p.name}: ${contractText(c,s)}`,{});tradeUI(true);svBill();}
 function contractDeliver(id){const s=S;if(!s)return;const p=atPort(s),c=s.contracts.find(x=>x.id===id);if(!p||!c||p.k!==c.to)return;
   const cur=s.cargo[c.g];if(!cur||cur.n<c.n-1e-9){say(`You are short: the contract needs ${c.n} ${gPl(c.g)} of ${gName(c.g)} aboard.`,{log:false});return;}
   const part=cur.cost*c.n/cur.n;cur.n-=c.n;cur.cost-=part;if(cur.n<.01)delete s.cargo[c.g];
   const late=dayIndex(s)>c.due,pay=Math.round(c.reward*(late?.5:1));s.purse+=pay;addRep(s,late?-4:(c.special?8:4));
   s.contracts=s.contracts.filter(x=>x!==c);s.cdone.push(c.id);
-  say(late?`Delivered late at ${p.name}. The factor docks the pay to ${money(pay)} and does not look pleased.`:`Contract delivered at ${p.name}: ${money(pay)} paid and your name is better thought of.`,{});tradeUI(true);svBill();}
+  sayLog(late?`Delivered late at ${p.name}. The factor docks the pay to ${money(pay)} and does not look pleased.`:`Contract delivered at ${p.name}: ${money(pay)} paid and your name is better thought of.`,{});tradeUI(true);svBill();}
 function buyNews(){const s=S;if(!s)return;const p=atPort(s);if(!p||s.purse<8)return;s.purse-=8;for(const k in PORTS)tradeSeen(s,k);s.paidNews=dayIndex(s);
-  say("A coaster's master tells you what he saw in every port this week, for eight shillings. Your price list is up to date.",{});tradeUI(true);svBill();}
+  sayLog("A coaster's master tells you what he saw in every port this week, for eight shillings. Your price list is up to date.",{});tradeUI(true);svBill();}
 
 // the hold at sea: damp and heat spoil, a heavy sea works the casks, an overloaded ship strains in a gale; and pirates
 function tradeStep(s,dt,w){mkStep(s,dt);const day=dayIndex(s),d=dt/24;
@@ -5474,7 +5475,7 @@ function tradeStep(s,dt,w){mkStep(s,dt);const day=dayIndex(s),d=dt/24;
   if(s.contracts&&s.contracts.length&&s.cdayChk!==day){s.cdayChk=day;
     for(const c of s.contracts.slice())if(day>c.due+5){s.contracts=s.contracts.filter(x=>x!==c);s.cdone.push(c.id);addRep(s,-6);
       if(c.special&&s.cargo[c.g]){const cur=s.cargo[c.g];cur.n=Math.max(0,cur.n-c.n);if(cur.n<.01)delete s.cargo[c.g];}
-      say(`The ${PORTS[c.to].name} contract has lapsed. Your name suffers${c.special?" and the owners take back their consignment":""}.`,{});}}
+      sayLog(`The ${PORTS[c.to].name} contract has lapsed. Your name suffers${c.special?" and the owners take back their consignment":""}.`,{});}}
   pirStep(s,dt,w);}
 
 const pirRange=s=>(isNight(s)?3:7)*(s.wx&&s.wx.rain>.4?.6:1);
@@ -5569,11 +5570,11 @@ function buyShip(id){const s=S;if(!s||!s.career||s.done)return;const def=SHIPDEF
   ns.purse=s.purse-net;ns.career=Object.assign({},s.career);if(!ns.career.owned.includes(id))ns.career.owned.push(id);
   stopSkip();S=ns;applyShip();svNew();selSails.clear();$("sailSl").style.display="none";if(R3){R3.last=null;R3.nfc=null;}
   const last=LADDER[LADDER.length-1][0];
-  say(`Bought ${SPEC[id].name} for ${money(cost)}, with ${money(back)} allowed on ${old}. Her people come aboard and the ship is provisioned.`,{});
-  if(id===last&&!ns.career.done){ns.career.done=true;say(`Career complete: you command ${SPEC[id].name}, the grandest ship on the ladder. The sea stays yours to sail.`,{});}
+  sayLog(`Bought ${SPEC[id].name} for ${money(cost)}, with ${money(back)} allowed on ${old}. Her people come aboard and the ship is provisioned.`,{});
+  if(id===last&&!ns.career.done){ns.career.done=true;sayLog(`Career complete: you command ${SPEC[id].name}, the grandest ship on the ladder. The sea stays yours to sail.`,{});}
   svBill();tradeUI(true);updateUI(true);careerUI(true);}
 function careerNote(s){const i=rungOf(s.shipId),nx=LADDER[i+1];if(!nx||s.career.noted===nx[0])return;
-  if(s.purse+shipTradeIn(s)>=nx[1]){s.career.noted=nx[0];say(`You could now afford ${SPEC[nx[0]].name}. Dock and visit the shipyard in the Ship tab.`,{log:false});}}
+  if(s.purse+shipTradeIn(s)>=nx[1]){s.career.noted=nx[0];sayLog(`You could now afford ${SPEC[nx[0]].name}. Dock and visit the shipyard in the Ship tab.`,{log:false});}}
 function careerUI(force){const P=document.getElementById("svCareer");if(!P)return;if(!S||!S.career){P.hidden=true;return;}P.hidden=false;const s=S,box=document.getElementById("svCareerBody");
   careerNote(s);const site=atPort(s),dock=!!(site&&s.docked);
   const sig=[s.cheatShips,s.shipId,Math.round(s.purse),Math.round(cargoValue(s)),dock,site&&site.k,Math.floor(s.t/24)].join("|");if(!force&&box._sig===sig)return;box._sig=sig;
