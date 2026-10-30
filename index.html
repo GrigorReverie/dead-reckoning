@@ -2304,7 +2304,7 @@ function updateUI(force){
   $("ordTxt").textContent=`${Math.round(sh.ordered)}° ${pointName(sh.ordered)}`;
   { const fb=$("bFish");{const t=S.fishing?`Stop fishing · ${Math.round(S.catchTotal)} lb (F)`:"Put hand-lines over the side (F)";fb.title=t;fb.setAttribute("aria-label",t);}fb.setAttribute("aria-pressed",String(!!S.fishing)); }
   { const A=sh.anch,b=$("bDrop");{const t=A.mode==="up"?"Drop anchor (X)":A.mode==="weighing"?"Weighing anchor…":"Weigh anchor (X)";b.title=t;b.setAttribute("aria-label",t);b.setAttribute("aria-pressed",String(A.mode!=="up"));}b.disabled=A.mode==="weighing";
-    $("anchTxt").textContent=S.docked&&A.mode==="holding"?`Docked at ${PORTS[S.docked].name}`:A.mode==="holding"?`At anchor in ${A.depth} fathoms${A.drag>0?" · dragging":""}`:A.mode==="trailing"?`Anchor trailing: no bottom (${A.depth} fathoms)`:A.mode==="weighing"?"Heaving up the anchor…":sh.row&&sh.row.on?`Under ${SHIP.oars&&SHIP.oars.sweeps?"sweeps":"oars"}`:sh.sailSet<.5&&sh.v>.3?"Bare poles: drifting before the wind":""; }
+    $("anchTxt").textContent=S.docked&&A.mode==="holding"?`Docked at ${PORTS[S.docked].name}`:A.mode==="holding"?`At anchor in ${A.depth} fathoms${A.drag>0?" · dragging":""}`:A.mode==="trailing"?`Anchor trailing: no bottom (${A.depth} fathoms)`:A.mode==="weighing"?`Heaving up the anchor… ${Math.max(0,Math.min(99,Math.floor((S.t-A.t0)*3600/60*100)))}%`:sh.row&&sh.row.on?`Under ${SHIP.oars&&SHIP.oars.sweeps?"sweeps":"oars"}`:sh.sailSet<.5&&sh.v>.3?"Bare poles: drifting before the wind":""; }
   {
     const moving=SAILIDS.some(k=>Math.abs(sh.sl[k]-sh.sls[k])>.03);
     $("bookBtn").classList.toggle("attn",!!S.arrivedNear&&!$("bookBox").classList.contains("open"));
