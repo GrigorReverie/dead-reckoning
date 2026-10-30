@@ -321,7 +321,7 @@ body.fs3d #fsBar{left:max(12px,env(safe-area-inset-left,0px));bottom:max(12px,en
 .app{position:relative}
 @media (max-width:860px){.bar .mtxt{display:none}#assistPop{position:fixed;left:8px;right:8px;top:calc(env(safe-area-inset-top,0px) + 40px);width:auto}}
 /* keep the top bar clear of the iPhone status bar and notch when installed */
-.bar,.bar.folded{padding-top:calc(env(safe-area-inset-top,0px) + 1px)}
+.bar,.bar.folded{padding-top:calc(env(safe-area-inset-top,0px) + 1px);position:relative;top:-3px}
 .ov{padding-top:max(16px,calc(env(safe-area-inset-top,0px) + 12px))}
 /* the glass sits left of the compass; on a phone it shrinks with the dial */
 @media (max-width:860px){.compassbox{--baroW:calc((min(230px,64vw) - 28px)*.24);--stW:32px;--gp:6px}#baro,#sailSteps5{height:calc(min(230px,64vw) - 28px)}.cbrow{gap:6px}}
