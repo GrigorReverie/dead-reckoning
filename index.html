@@ -1901,7 +1901,14 @@ function takeBearing(lm){
   const w=windAt(S,sh.x,sh.y,S.t);const brg=norm(tb+gauss()*(.8+.2*beaufort(w.kn)));
   S.bearings.push({lm,brg,t:S.t,time:timeStr(S)});
   say(`${lm.name} bears ${Math.round(brg)}° (${pointName(brg)}).`);
+  (S.heaveLog=S.heaveLog||[]).unshift({txt:`${lm.name} bears ${Math.round(brg)}° (${pointName(brg)})`,time:timeStr(S)});if(S.heaveLog.length>40)S.heaveLog.length=40;
+  S.log.unshift({time:timeStr(S),remark:`Took a bearing: ${lm.name} bears ${Math.round(brg)}° (${pointName(brg)}).`});renderLog();
   updateUI(true);
+}
+function takeBearings(){
+  if(!S||S.done)return;const vis=LMS.filter(l=>l.vis);
+  if(!vis.length){say("Nothing in sight to take a bearing on.");return;}
+  vis.forEach(takeBearing);
 }
 function crossFix(){
   const b=S.bearings;if(b.length<2)return null;
@@ -2296,7 +2303,7 @@ function updateUI(force){
   $("strainTxt").innerHTML=S.strain>0?`<span class="warn">Straining: too much canvas for this wind.</span>`:`Safe up to about force ${beaufort(sailLerp(sh.sailSet).safe)-1} with this canvas.`;
   $("logKn").textContent=S.lastLog?`${fmtKn(S.lastLog.v)} kn`:"—";
   $("logAge").textContent=S.lastLog?`${S.lastLog.by==="you"?"by you":"by the mate"}, ${Math.round((S.t-S.lastLog.t)*60)} min ago`:"not yet hove";
-  {const h=(S.heaveLog||[]).slice(0,12).map(e=>`${e.time}: ${fmtKn(e.v)} kn`).join("<br>");if($("logHist").innerHTML!==h)$("logHist").innerHTML=h;}
+  {const h=(S.heaveLog||[]).slice(0,12).map(e=>`${e.time}: ${e.txt||fmtKn(e.v)+" kn"}`).join("<br>");if($("logHist").innerHTML!==h)$("logHist").innerHTML=h;}
   // reckoning
   const eg=toGeo(S.est.x,S.est.y),tg=toGeo(sh.x,sh.y);
   if(S.mode==="lost"){$("modeTag").textContent="lost at sea";
@@ -6566,7 +6573,10 @@ $("bVoy").onclick=()=>{$("ovStart").hidden=false;modalOpen=true;};
 {const ft=document.createElement("div");ft.className="cbfoot";$("compassBox").append(ft);const hb=document.createElement("button");hb.className="btn sm ico";hb.id="bHeave2";hb.title="Heave the log (L)";hb.setAttribute("aria-label","Heave the log");
   hb.innerHTML='<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="7.5" r="4"/><path d="M7 3.5v8M3 7.5h8"/><path d="M10.2 10.8C12.6 13 14 13.8 15.2 15.2" stroke-dasharray="1.1 1.7"/><path d="M14 15.6h6.4a6.4 6.4 0 0 1-6.4 6.4z" fill="currentColor" fill-opacity=".35"/></svg>';
   hb.onclick=()=>{if(!$("bHeave").disabled)openHeave();};new MutationObserver(()=>{hb.disabled=$("bHeave").disabled;}).observe($("bHeave"),{attributes:true,attributeFilter:["disabled"]});
-  ft.append($("bDrop"),hb,$("bFish"),$("logbox"));$("bHeave").hidden=true;$("bHeave").style.display="none"; // the heave button now sits between anchor and fishing; the old one stays hidden as the state holder
+  const bb=document.createElement("button");bb.className="btn sm ico";bb.id="bBrg";bb.title="Take bearings of the land in sight";bb.setAttribute("aria-label","Take bearing");
+  bb.innerHTML='<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5v3M12 17.5v3M3.5 12h3M17.5 12h3"/><path d="M12 12l4.5-6"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg>';
+  bb.onclick=takeBearings;
+  ft.append($("bDrop"),hb,$("bFish"),bb,$("logbox"));$("bHeave").hidden=true;$("bHeave").style.display="none"; // the heave button now sits between anchor and fishing; the old one stays hidden as the state holder
   $("cL5").hidden=$("cR5").hidden=true; // the 5° buttons are gone; A and D still turn her
   $("logbox").style.cssText+=";flex:1;min-width:0;padding:0 4px;gap:6px;border:0;justify-content:center;";} // the log-heaving panel opens under the compass // anchor and fishing sit at the bottom left and right of the compass
 $("paneV3").after($("paneTools")); // the icon row lives outside the pane so nothing in the pane can cover it
