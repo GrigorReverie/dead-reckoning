@@ -5642,7 +5642,7 @@ function fishStep(s,dt,w){if(!s.fish)return;const sh=s.ship,P=s.mode==="trial"?s
   if(!s.fishing)return;
   if(sh.v>5.5||w.kn>25||s.allHands){s.fishing=false;say(s.allHands?"All hands are needed. The lines are hauled in.":"Too much way on her: the lines are hauled in.",{});return;}
   const sch=s.fish.find(f=>f.amt>0&&Math.hypot(f.x-sh.x,f.y-sh.y)<f.r&&(f.kind==="bank"?sh.v<=1.2:sh.v<=5));
-  const k=Math.min(1,Math.max(0,s.nDuty-3)/3)*(.6+.4*clamp(s.eff,0,1)),lb= 10 * FISHX * (sch?Math.min(sch.amt,sch.rate*k*dt*(.6+.8*rng())):.4*k*dt);
+  const k=Math.min(1,Math.max(0,s.nDuty-3)/3)*(.6+.4*clamp(s.eff,0,1)),lb= 5 * FISHX * (sch?Math.min(sch.amt,sch.rate*k*dt*(.6+.8*rng())):.4*k*dt);
   if(sch)sch.amt-=lb;s.fishAcc=(s.fishAcc||0)+lb;s.catchTotal=(s.catchTotal||0)+lb;s.stores.fish+=lb*.8;
   if(s.fishAcc>=25){s.fishAcc=0;say(sch?`The lines come in heavy: ${FISHN[sch.kind]}. About ${Math.round(sch.rate>30?30:25)} lb more in the tubs.`:"A fish or two on the lines.",{});}
   if(!sch){s.noBite=(s.noBite||0)+dt;if(s.noBite>2){s.noBite=0;say("Nothing is biting here. Look to the lookout for birds working on the water.",{});}}
