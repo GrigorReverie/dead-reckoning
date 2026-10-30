@@ -133,6 +133,7 @@ body.fs3d #fsBar{left:max(12px,env(safe-area-inset-left,0px));bottom:max(12px,en
 .pane.small .mapctl button{width:22px;height:22px;font-size:12px}
 #chart{display:block;width:100%;height:100%;touch-action:none;cursor:grab}
 #chart.drag{cursor:grabbing}
+.chartlog{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);z-index:4;background:var(--paper);border:1px solid var(--ink);padding:4px 8px}.chartlog #logbox{flex:none}.chartlog #glassMsg{display:block}
 .mapctl{position:absolute;right:12px;top:12px;z-index:3;display:flex;flex-direction:column;gap:6px}
 .mapctl button{width:34px;height:34px;background:var(--paper);border:1px solid var(--ink);color:var(--ink);font-family:var(--f-data);font-size:15px;border-radius:2px}
 .mapctl button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
@@ -520,6 +521,8 @@ body.fs3d #fsBar{left:max(12px,env(safe-area-inset-left,0px));bottom:max(12px,en
           <button id="follow" aria-pressed="true" title="Follow the ship">◎</button>
           <button id="curTog" aria-pressed="false" title="Show ocean currents on the chart" aria-label="Show ocean currents on the chart"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8c3-3 6 3 9 0s6 3 9 0M3 15c3-3 6 3 9 0s6 3 9 0"/></svg></button>
           <button id="windTog" aria-pressed="true" title="Hide wind on the chart" aria-label="Hide wind on the chart"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9h11a3 3 0 1 0-3-3M3 15h15a3 3 0 1 1-3 3M3 12h7"/></svg></button>
+          <button id="cHeave" title="Heave the log (L)" aria-label="Heave the log"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="7.5" r="4"/><path d="M7 3.5v8M3 7.5h8"/><path d="M10.2 10.8C12.6 13 14 13.8 15.2 15.2" stroke-dasharray="1.1 1.7"/><path d="M14 15.6h6.4a6.4 6.4 0 0 1-6.4 6.4z" fill="currentColor" fill-opacity=".35"/></svg></button>
+          <button id="cBrg" title="Take bearings of the land in sight" aria-label="Take bearing"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5v3M12 17.5v3M3.5 12h3M17.5 12h3"/><path d="M12 12l4.5-6"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg></button>
           <button id="cldTog" aria-pressed="false" title="Show cloud cover on the chart" aria-label="Show cloud cover on the chart"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 18a4 4 0 0 1-.5-8A5.5 5.5 0 0 1 17 8.5 4.8 4.8 0 0 1 17 18z"/></svg></button>
         </div>
         <button class="ctog ptog" data-pane="paneChart" aria-expanded="true" title="Collapse or expand">–</button><button class="swapbtn" id="swap2" title="Make this the main view (M)">⤢</button><span class="plabel">Chart</span>
@@ -6584,6 +6587,11 @@ $("bVoy").onclick=()=>{$("ovStart").hidden=false;modalOpen=true;};
   ft.append(bb,$("bDrop"),$("bFish"),hb,$("logbox"));$("bHeave").hidden=true;$("bHeave").style.display="none"; // the heave button now sits between anchor and fishing; the old one stays hidden as the state holder
   $("cL5").hidden=$("cR5").hidden=true; // the 5° buttons are gone; A and D still turn her
   $("logbox").style.cssText+=";flex:1;min-width:0;padding:0 4px;gap:6px;border:0;justify-content:center;";} // the log-heaving panel opens under the compass // anchor and fishing sit at the bottom left and right of the compass
+{const cl=document.createElement("div");cl.className="chartlog";cl.hidden=true;$("paneChart").append(cl);const lb=$("logbox"),home=lb.parentNode;
+  const back=()=>{if(lb.parentNode===cl){home.append(lb);cl.hidden=true;}};
+  new MutationObserver(()=>{if(lb.hidden)back();}).observe(lb,{attributes:true,attributeFilter:["hidden"]});
+  $("cHeave").onclick=()=>{if(!S||S.done||heave)return;if($("paneChart").classList.contains("big")){cl.append(lb);cl.hidden=false;}openHeave();};
+  $("cBrg").onclick=takeBearings;} // chart-view copies of the compass log and bearing buttons; the log panel floats over the chart while the glass runs
 $("paneV3").after($("paneTools")); // the icon row lives outside the pane so nothing in the pane can cover it
 const applyDark=()=>{document.documentElement.dataset.theme=DARK?"dark":"light";$("bDark").textContent=DARK?"Light mode":"Dark mode";$("bDark").setAttribute("aria-pressed",String(DARK));try{localStorage.setItem('drDark',DARK?'1':'0');}catch(e){}if(S){try{updateUI(true);}catch(e){}if(SV&&SV.open)try{svDraw();}catch(e){}}};
 $("bDark").onclick=()=>{DARK=!DARK;applyDark();};applyDark();
