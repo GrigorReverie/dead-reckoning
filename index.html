@@ -148,7 +148,7 @@ body.fs3d #fsBar{left:max(12px,env(safe-area-inset-left,0px));bottom:max(12px,en
 .tbicon svg{width:17px;height:17px}.tbicon{width:30px;height:30px;display:flex;align-items:center;justify-content:center;padding:0;background:rgba(246,238,217,.96);color:var(--ink);border:1px solid var(--ink);border-radius:3px;box-shadow:0 4px 14px rgba(20,14,10,.3);cursor:pointer}.tbicon:hover{background:var(--paper-2)}.tbicon[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
 .shipchart{position:absolute;left:12px;top:170px;z-index:5}#paneChart.small .shipchart{display:none!important}
 .bartog{order:-1;width:24px;height:24px;line-height:1;padding:0;background:var(--paper);border:1px solid var(--ink);color:var(--ink);border-radius:2px;font-size:11px;cursor:pointer;flex:none}.bartog:hover{background:var(--paper-2)}
-.bar{justify-content:flex-end;flex-wrap:nowrap;gap:6px 8px;padding:4px max(10px,env(safe-area-inset-left,0px))}.bar .seg button,.bar .tb{padding:2px 7px;font-size:10.5px;line-height:1.5}.bar .bartog{width:20px;height:20px;font-size:10px}
+.bar{justify-content:flex-end;flex-wrap:nowrap;gap:6px 8px;padding:4px max(10px,env(safe-area-inset-left,0px))}.bar .seg button,.bar .tb{padding:6px 12px;font-size:13.5px;line-height:1.5}.bar .bartog{width:28px;height:28px;font-size:13px}
 .bar.folded .seg[aria-label="Skip ahead"],.bar.folded .menuwrap,.bar.folded #t1,.bar.folded #t3,.bar.folded #t60{display:none}.bar.folded{padding-top:4px;padding-bottom:4px}
 .side{background:var(--paper);border-left:6px solid var(--desk-2);overflow-y:auto;min-height:0;display:flex;flex-direction:column}
 .panel{padding:12px 16px;border-bottom:1px solid var(--rule);display:flex;flex-direction:column;gap:8px}
@@ -286,7 +286,7 @@ body.fs3d #fsBar{left:max(12px,env(safe-area-inset-left,0px));bottom:max(12px,en
   .bar{flex-wrap:wrap;gap:6px;padding:6px 10px}
   .bar>*{flex:none;white-space:nowrap}
   .brand{font-size:16px;margin-right:2px}.voy,.sp{display:none}
-  .seg button{padding:8px 10px;font-size:13px}.tb{padding:8px 10px;font-size:12px}.bar .seg button,.bar .tb{padding:3px 5px;font-size:10.5px}.bar{gap:4px 5px;padding:4px 8px}
+  .seg button{padding:8px 10px;font-size:13px}.tb{padding:8px 10px;font-size:12px}.bar .seg button,.bar .tb{padding:7px 8px;font-size:12.5px}.bar{gap:5px 6px;padding:5px 8px}
   .pane.small{width:124px;height:92px}.pane.small .mapctl,.pane.small .plabel{display:none}.pane.small .swapbtn{width:30px;height:30px}
   .pane.small.collapsed{width:92px;height:32px}.pane.small.collapsed .plabel{display:block}
   .ctog{width:30px;height:30px;font-size:17px}
@@ -526,6 +526,8 @@ body.fs3d #fsBar{left:max(12px,env(safe-area-inset-left,0px));bottom:max(12px,en
           <button id="windTog" aria-pressed="true" title="Hide wind on the chart" aria-label="Hide wind on the chart"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9h11a3 3 0 1 0-3-3M3 15h15a3 3 0 1 1-3 3M3 12h7"/></svg></button>
           <button id="cHeave" title="Heave the log (L)" aria-label="Heave the log"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="7.5" r="4"/><path d="M7 3.5v8M3 7.5h8"/><path d="M10.2 10.8C12.6 13 14 13.8 15.2 15.2" stroke-dasharray="1.1 1.7"/><path d="M14 15.6h6.4a6.4 6.4 0 0 1-6.4 6.4z" fill="currentColor" fill-opacity=".35"/></svg></button>
           <button id="cBrg" title="Take bearings of the land in sight" aria-label="Take bearing"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5v3M12 17.5v3M3.5 12h3M17.5 12h3"/><path d="M12 12l4.5-6"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg></button>
+          <button id="cEraseBrg" title="Erase the bearing lines from the chart" aria-label="Erase bearing lines"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20L16 4"/><path d="M14 20h7"/><path d="M3 20l5-5"/></svg></button>
+          <button id="cEraseTrk" title="Erase the path travelled from the chart" aria-label="Erase path travelled"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18c4-1 3-8 7-8s2 6 6 5 3-8 5-9" stroke-dasharray="2 2.200"/><path d="M14 21h7"/></svg></button>
           <button id="cldTog" aria-pressed="false" title="Show cloud cover on the chart" aria-label="Show cloud cover on the chart"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 18a4 4 0 0 1-.5-8A5.5 5.5 0 0 1 17 8.5 4.8 4.8 0 0 1 17 18z"/></svg></button>
         </div>
         <button class="ctog ptog" data-pane="paneChart" aria-expanded="true" title="Collapse or expand">–</button><button class="swapbtn" id="swap2" title="Make this the main view (M)">⤢</button><span class="plabel">Chart</span>
@@ -5100,7 +5102,7 @@ function projTrack(h){ // where dead reckoning says she will be: the ordered cou
   if(left>0){const b=sh.ordered*D2R;x+=Math.sin(b)*left;y+=Math.cos(b)*left;pts.push({x,y});}
   return{pts,end:pts[pts.length-1],nm:sp*h};}
 function clockAt(h){const lh=(((localHours(S,S.t+h))%24)+24)%24,hh=Math.floor(lh),mm=Math.floor((lh-hh)*60);return String(hh).padStart(2,"0")+":"+String(mm).padStart(2,"0");}
-function drawProj(){if(!S||S.done)return;
+function drawProj(){if(!S||S.done||S.mode==="lost")return; // by dead reckoning alone the hour-ahead line would give the position away
   const draw=(h,w,lab)=>{const t=projTrack(h);if(!t)return null;ctx.save();ctx.strokeStyle="#3f7a4a";ctx.fillStyle="#3f7a4a";ctx.lineWidth=w;ctx.beginPath();t.pts.forEach((q,i)=>i?ctx.lineTo(sx(q.x),sy(q.y)):ctx.moveTo(sx(q.x),sy(q.y)));ctx.stroke();
     const ex=sx(t.end.x),ey=sy(t.end.y);ctx.beginPath();ctx.arc(ex,ey,w>1?5.5:2.5,0,2*PI);if(w>1){ctx.stroke();ctx.beginPath();ctx.arc(ex,ey,1.8,0,2*PI);}ctx.fill();
     if(lab){ctx.font="10px 'IBM Plex Mono',monospace";ctx.textAlign="left";const tw=ctx.measureText(lab).width;ctx.fillStyle="rgba(246,238,217,.9)";ctx.fillRect(ex+8,ey-16,tw+6,13);ctx.fillStyle="#2f5f39";ctx.fillText(lab,ex+11,ey-6);}
@@ -6611,6 +6613,8 @@ $("bVoy").onclick=()=>{$("ovStart").hidden=false;modalOpen=true;};
   const back=()=>{if(lb.parentNode===cl){home.append(lb);cl.hidden=true;}};
   new MutationObserver(()=>{if(lb.hidden)back();}).observe(lb,{attributes:true,attributeFilter:["hidden"]});
   $("cHeave").onclick=()=>{if(!S||S.done||heave)return;if($("paneChart").classList.contains("big")){cl.append(lb);cl.hidden=false;}openHeave();};
+  $("cEraseBrg").onclick=()=>{if(!S)return;S.bearings=[];drawChart&&drawChart();};
+  $("cEraseTrk").onclick=()=>{if(!S)return;S.track=[{x:S.ship.x,y:S.ship.y}];S.estTrack=[{x:S.est.x,y:S.est.y}];drawChart&&drawChart();};
   $("cBrg").onclick=takeBearings;} // chart-view copies of the compass log and bearing buttons; the log panel floats over the chart while the glass runs
 $("paneV3").after($("paneTools")); // the icon row lives outside the pane so nothing in the pane can cover it
 const applyDark=()=>{document.documentElement.dataset.theme=DARK?"dark":"light";$("bDark").textContent=DARK?"Light mode":"Dark mode";$("bDark").setAttribute("aria-pressed",String(DARK));try{localStorage.setItem('drDark',DARK?'1':'0');}catch(e){}if(S){try{updateUI(true);}catch(e){}if(SV&&SV.open)try{svDraw();}catch(e){}}};
