@@ -1387,18 +1387,7 @@ function step(dt){
     if(lm.vis&&!s.seen.has(lm.isl)){s.seen.add(lm.isl);say(`Land ho! ${lm.isl} in sight, bearing ${pointName(Math.atan2(lm.x-sh.x,lm.y-sh.y)*R2D)}.`,{slow:true});}}
   // hazards
   const fa=footAt(sh.x,sh.y); // inside a harbour the plan decides what is land
-  // inside a harbour the bank is soft mud: she touches, loses her way and is set back into the water, so every ship can work out of every port
-  if(fa&&!fa.land)s.safe={x:sh.x,y:sh.y};
-  if(fa&&fa.land){
-    if(s.safe){sh.x=s.safe.x;sh.y=s.safe.y;}else{const f=PF[fa.k];if(f&&f.dock){sh.x=f.dock.x;sh.y=f.dock.y;}}
-    sh.v=0;
-    if(!s.touchWarned||s.t-s.touchWarned>.05){s.touchWarned=s.t;say("She touches the soft bank and loses her way. Back off and steer for the channel.",{log:true});}
-    return;
-  }
-  for(const isl of islands.concat(reefs)){
-    if(fa&&PF[fa.k].isl===isl)continue;
-    if(inPoly(sh,isl.pts)){runAground(isl);return;}
-  }
+  // grounding is switched off for now: no bank, dock or island stops the ship or ends the voyage
   let near=1e9,nearName="";for(const isl of islands.concat(reefs)){const d=distPoly(sh,isl.pts);if(d<near){near=d;nearName=isl.name;}}
   if(near<1.6&&!s.docked&&!fa&&s.t-s.breakersWarned>1){s.breakersWarned=s.t;say(`Breakers ahead! The leadsman finds bottom fast. ${s.mode==="lost"?"Land close aboard.":nearName+" close aboard."} Haul off!`,{pause:true});}
   // arrival
