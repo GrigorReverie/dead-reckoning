@@ -1406,7 +1406,7 @@ function mateHeave(s){const m=Math.max(0,Math.round(s.ship.v*(1+gauss()*.07)*2)/
 function assistStep(s,dt,w){
   if(s.done||s.t<(s.assistT||0))return;s.assistT=s.t+.02;
   const sh=s.ship;
-  if($("aSail").checked&&sh.anch.mode!=="holding"){
+  if($("aSail").checked&&sh.anch.mode==="up"){
     const kn=w.kn;let want=0;for(let L=0;L<SAILS.length;L++)if(SAILS[L].safe>kn+4)want=L;if(want===0&&SAILS[1].safe>kn)want=1;
     const hold=SAILS[sh.sail].safe>kn+2;
     if((s.strain>0||!hold||sh.sail>want)&&sh.sail>0){setSail(sh.sail-1);s.smOrd=true;say(`The sailmaster shortens her to ${SAILS[sh.sail].name.toLowerCase()}.`,{});s.sailT=s.t;}
