@@ -583,7 +583,7 @@ body.fs3d #fsBar{left:max(12px,env(safe-area-inset-left,0px));bottom:max(12px,en
               
               <button class="btn sm" id="cR5" title="Starboard 5° (D)">5° ►</button>
               <div style="grid-column:1/-1;display:flex;gap:8px;justify-content:center">
-                <button class="btn sm ico" id="bDrop" aria-label="Drop anchor" title="Let go the anchor, or heave it up (X)"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="2"/><path d="M12 7v14M8 11h8M4 14c0 4 3.5 7 8 7s8-3 8-7M4 14l-1.5 2M20 14l1.5 2"/></svg></button>
+                <button class="btn sm ico" id="bDrop" aria-label="Drop anchor" title="Let go the anchor, or heave it up (X)"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><mask id="anchM" maskUnits="userSpaceOnUse" x="0" y="0" width="24" height="24"><g stroke="#fff" stroke-width="4.2" fill="none"><circle cx="12" cy="5" r="2"/><path d="M12 7v14M8 11h8M4 14c0 4 3.5 7 8 7s8-3 8-7M4 14l-1.5 2M20 14l1.5 2"/></g></mask><circle cx="12" cy="5" r="2"/><path d="M12 7v14M8 11h8M4 14c0 4 3.5 7 8 7s8-3 8-7M4 14l-1.5 2M20 14l1.5 2"/><rect id="anchFill" mask="url(#anchM)" x="0" y="24" width="24" height="0" fill="currentColor" stroke="none"/></svg></button>
                 <button class="btn sm ico" id="bFish" aria-label="Fish" title="Put hand-lines over the side (F)"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12c3-5 9-6 13-2l1 2-1 2c-4 4-10 3-13-2zM15 10l6-4v12l-6-4M7 11h.01"/></svg></button>
               </div>
             </div>
@@ -1471,11 +1471,16 @@ async function dockAtPort(){if(!S||S.done||S.docking)return;S.docking=true;const
   await new Promise(r=>setTimeout(r,500));await fadeTo(0,900);
   S.docking=false;if(mission)$("ovEnd").hidden=false;else{modalOpen=false;say(`Made fast alongside the quay at ${P.name}. Sails furled and the anchor down.`,{});}
   updateUI(true);}
+// the anchor icon fills (let go, 20 s of game time) or drains (weighing, 60 s) in step with the game clock
+let anchFill={v:0,from:0,to:0,t0:0,dur:1};
+function anchFillTo(to,sec){if(!S)return;anchFill={v:anchFillNow(),from:anchFillNow(),to,t0:S.t,dur:sec/3600};}
+function anchFillNow(){const f=anchFill;if(!S||f.dur<=0||f.from===f.to)return f.to;const k=Math.max(0,Math.min(1,(S.t-f.t0)/f.dur));return f.from+(f.to-f.from)*k;}
+(function anchFillLoop(){try{const r=document.getElementById("anchFill");if(r&&S&&S.ship){const A=S.ship.anch,f=anchFill,run=S.t-f.t0<f.dur&&S.t>=f.t0;const v=run?anchFillNow():(A.mode==="up"?0:1);r.setAttribute("y",24-24*v);r.setAttribute("height",24*v);}}catch(e){}requestAnimationFrame(anchFillLoop);})();
 function dropAnchor(){if(!S||S.done)return;const sh=S.ship,A=sh.anch;
-  if(A.mode==="holding"||A.mode==="trailing"){S.docked=null;A.mode="weighing";A.t0=S.t;say("Cast off! Heave round, lads, weighing anchor.",{});updateUI();return;}
+  if(A.mode==="holding"||A.mode==="trailing"){S.docked=null;A.mode="weighing";A.t0=S.t;anchFillTo(0,60);say("Cast off! Heave round, lads, weighing anchor.",{});updateUI();return;}
   if(A.mode==="weighing")return;
   if(sh.v>3.5){say("She is making too much way to let go the anchor. Shorten sail and slow to under 3 knots first.",{});return;}
-  const d=depthFm(sh.x,sh.y);A.depth=d;A.t0=S.t;A.drag=0;A.dragWarned=false;
+  const d=depthFm(sh.x,sh.y);A.depth=d;A.t0=S.t;A.drag=0;anchFillTo(1,20);A.dragWarned=false;
   if(d<=30){A.mode="holding";say(`Let go! The anchor bites in ${d} fathoms and she rides to her cable.`,{});}
   else{A.mode="trailing";say(`Let go! No bottom: ${d} fathoms is more than the cable. The anchor hangs below as a drag and only slows her.`,{});}
   updateUI();}
