@@ -1,183 +1,366 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#132a63">
-<link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" href="icons/icon-192.png">
-<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="DR Preview">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<title>Dead Reckoning Preview</title>
-<meta name="claude:viewport-fit-sides" content="cover">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+English+SC&family=IM+Fell+English:ital@0;1&family=Spectral:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;600&display=swap">
-<style>
-html,body{height:100%;margin:0}
-body{background:#0b1a40;color:#eadfb4;font-family:"Spectral",Georgia,"Times New Roman",serif;overflow:hidden}
-*{box-sizing:border-box}
-#scene{
-  position:relative;
-  width:100vw;
-  height:100vh;
-  overflow:hidden;
-  background:linear-gradient(to bottom,
-    #132d47 0%,
-    #3d5d83 24%,
-    #7b5b5a 42%,
-    #d4773f 52%,
-    #d88d52 58%,
-    #b95a37 68%,
-    #183d46 100%);
-  filter:saturate(1.08);
-}
-#scene::before{
-  content:"";
-  position:absolute;
-  inset:0;
-  background:
-    radial-gradient(circle at 50% 60%, rgba(255,255,255,0.12), transparent 30%),
-    repeating-linear-gradient(90deg, rgba(255,255,255,0.015) 0, rgba(255,255,255,0.015) 2px, transparent 2px, transparent 8px);
-  opacity:.9;
-  pointer-events:none;
-}
-#scene::after{
-  content:"";
-  position:absolute;
-  inset:0;
-  background:linear-gradient(to bottom, transparent 0%, rgba(0,0,0,.12) 100%);
-  pointer-events:none;
-}
-.sun{
-  position:absolute;
-  left:50%;
-  top:38%;
-  width:180px;height:180px;
-  transform:translate(-50%,-50%);
-  border-radius:50%;
-  background:radial-gradient(circle at 50% 50%, #fce4a9 0%, #f9d98d 30%, rgba(247,191,108,.9) 52%, rgba(231,119,49,.6) 72%, transparent 100%);
-  box-shadow:0 0 45px rgba(255,202,114,.9),0 0 120px rgba(242,149,62,.4);
-}
-.sun::after{
-  content:"";
-  position:absolute;
-  inset:-24px;
-  border-radius:50%;
-  background:radial-gradient(circle, rgba(255,191,102,.42), transparent 70%);
-  filter:blur(12px);
-}
-.cloud{
-  position:absolute;
-  border-radius:50%;
-  background:rgba(245,214,177,.18);
-  filter:blur(4px);
-  opacity:.8;
-  box-shadow:24px 10px 0 rgba(245,214,177,.12),-20px 18px 0 rgba(245,214,177,.1),14px 24px 0 rgba(245,214,177,.08);
-}
-.cloud.c1{width:180px;height:50px;left:13%;top:17%;transform:rotate(-2deg)}
-.cloud.c2{width:200px;height:54px;right:16%;top:20%;transform:rotate(3deg)}
-.cloud.c3{width:260px;height:60px;left:42%;top:14%;opacity:.6}
-.glow-line{
-  position:absolute;
-  left:50%;top:55%;width:62%;height:160px;
-  transform:translateX(-50%);
-  background:linear-gradient(to bottom, rgba(255,196,84,.26), transparent 70%);
-  filter:blur(20px);
-  opacity:.7;
-}
-.sea{
-  position:absolute;
-  left:0;right:0;bottom:0;height:46%;
-  background:linear-gradient(to bottom, rgba(18,70,80,.45) 0%, rgba(22,84,96,.78) 18%, rgba(8,31,38,.94) 100%);
-  border-top:2px solid rgba(215,234,239,.18);
-  overflow:hidden;
-}
-.sea::before{
-  content:"";
-  position:absolute;
-  inset:0;
-  background:linear-gradient(180deg, rgba(255,255,255,.06), transparent 20%), repeating-linear-gradient(0deg, rgba(255,255,255,.06) 0px, rgba(255,255,255,.06) 2px, transparent 2px, transparent 10px);
-  opacity:.7;
-}
-.wave{position:absolute;left:-10%;width:120%;height:34%;border-radius:50% 50% 0 0 / 100% 100% 0 0;background:rgba(145,198,207,.20);filter:blur(5px)}
-.wave.w1{bottom:22%;transform:rotate(1deg)}
-.wave.w2{bottom:18%;transform:rotate(-2deg);opacity:.6}
-.wave.w3{bottom:11%;transform:rotate(2deg);opacity:.5}
-.ship{
-  position:absolute;
-  left:50%;bottom:20%;
-  width:32vw;min-width:420px;height:220px;
-  transform:translateX(-50%) rotate(-1.5deg);
-  filter:drop-shadow(0 18px 16px rgba(0,0,0,.28));
-}
-.hull{
-  position:absolute;left:18%;bottom:0;width:62%;height:84px;
-  background:linear-gradient(to bottom, #352b29 0%, #1e1a1a 30%, #0c0b0b 100%);
-  clip-path:polygon(8% 0%, 92% 0%, 100% 100%, 0% 100%);
-  border-radius:10px 12px 18px 18px;
-  box-shadow:inset 0 0 20px rgba(255,255,255,.05);
-}
-.hull::before{
-  content:"";position:absolute;left:8%;right:8%;top:10px;height:18px;border-radius:10px;background:rgba(255,255,255,.06);transform:skewX(-10deg)
-}
-.hull::after{
-  content:"";position:absolute;left:50%;top:18px;width:3px;height:44px;transform:translateX(-50%);background:rgba(255,255,255,.1);box-shadow:-90px 0 0 rgba(255,255,255,.05),90px 0 0 rgba(255,255,255,.05)
-}
-.bow{position:absolute;left:72%;bottom:8px;width:110px;height:54px;background:linear-gradient(to bottom,#2a2623,#151312);clip-path:polygon(0 25%,100% 0,100% 100%,0 100%);border-radius:12px 6px 0 0}
-.mast{position:absolute;bottom:82px;width:8px;background:linear-gradient(to right,#6b4b39,#312924,#6b4b39);border-radius:4px;box-shadow:inset 0 0 8px rgba(255,255,255,.08)}
-.mast.a{left:32%;height:124px}.mast.b{left:50%;height:142px}.mast.c{left:67%;height:118px}
-.sail{position:absolute;bottom:82px;background:linear-gradient(135deg,#f8f0d7 0%, #f4e6c5 38%, #d9c39a 100%);border:1px solid rgba(82,59,36,.28);box-shadow:inset 0 0 18px rgba(255,255,255,.18),0 0 8px rgba(255,255,255,.08)}
-.sail::before{content:"";position:absolute;inset:6% 16% 8% 10%;border-left:2px solid rgba(85,63,40,.18);border-right:2px solid rgba(85,63,40,.18);opacity:.7}
-.sail.a{left:35%;width:120px;height:76px;clip-path:polygon(0 0,100% 14%,100% 100%,0 92%);transform:rotate(-4deg)}
-.sail.b{left:53%;width:130px;height:92px;clip-path:polygon(0 0,100% 12%,100% 100%,0 86%);transform:rotate(2deg)}
-.sail.c{left:69%;width:100px;height:68px;clip-path:polygon(0 10%,100% 0,100% 100%,0 88%);transform:rotate(4deg)}
-.rail{position:absolute;left:20%;right:8%;bottom:72px;height:12px;border-radius:12px;background:linear-gradient(to right,#5a4333,#7d5d43,#5a4333);box-shadow:inset 0 0 10px rgba(0,0,0,.18)}
-.flag{position:absolute;left:70%;bottom:180px;width:82px;height:52px;background:linear-gradient(135deg,#f2d6a3 0%, #d5b06b 100%);clip-path:polygon(0 0,100% 16%,100% 78%,0 100%);border-left:4px solid rgba(90,67,51,.5);transform:skewY(-4deg);box-shadow:inset 0 0 22px rgba(255,255,255,.1)}
-.flag::before{content:"";position:absolute;left:0;top:0;width:6px;height:100%;background:rgba(76,55,41,.5)}
-.wake{position:absolute;bottom:-8px;width:240px;height:70px;border-radius:50%;background:linear-gradient(to right, rgba(255,255,255,.7), rgba(255,255,255,.15), transparent 80%);filter:blur(2px);transform:rotate(4deg);opacity:.7}
-.wake.one{left:6%}.wake.two{left:24%;width:200px;opacity:.5}.wake.three{left:48%;width:180px;opacity:.4}
-.foam{position:absolute;bottom:3%;height:30px;border-radius:50%;background:linear-gradient(to right, rgba(255,255,255,.8), rgba(255,255,255,.18), transparent 80%);opacity:.8;filter:blur(1px)}
-.foam.f1{left:10%;width:220px}.foam.f2{left:28%;width:260px}.foam.f3{left:52%;width:200px}.foam.f4{left:72%;width:240px}
-@media (max-width: 900px){
-  .ship{min-width:300px;transform:translateX(-50%) scale(.9) rotate(-1.5deg)}
-  .sun{width:140px;height:140px}
-  .cloud.one{left:6%}.cloud.two{right:8%}.cloud.three{left:34%}
-}
-</style>
-</head>
-<body>
-<div id="scene" aria-label="A majestic three-masted tall ship sailing through deep ocean waves at sunset in an oil painting style">
-  <div class="sun"></div>
-  <div class="cloud c1"></div>
-  <div class="cloud c2"></div>
-  <div class="cloud c3"></div>
-  <div class="glow-line"></div>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Dead Reckoning Preview</title>
+    <style>
+      :root {
+        --sky-top: #132d47;
+        --sky-mid: #3d5d83;
+        --sky-horizon: #d4773f;
+        --sun-core: #fce4a9;
+        --sea-deep: #0a2a33;
+        --sea-mid: #1d4c5d;
+        --foam: #edf7fb;
+        --panel: rgba(11, 24, 35, 0.38);
+        --panel-border: rgba(255,255,255,0.2);
+        --text: #f7f0df;
+        --muted: rgba(247,240,223,0.78);
+        --accent: #d7b66e;
+      }
 
-  <div class="ship">
-    <div class="flag"></div>
-    <div class="mast a"></div>
-    <div class="mast b"></div>
-    <div class="mast c"></div>
-    <div class="sail a"></div>
-    <div class="sail b"></div>
-    <div class="sail c"></div>
-    <div class="rail"></div>
-    <div class="hull"></div>
-    <div class="bow"></div>
-    <div class="wake one"></div>
-    <div class="wake two"></div>
-    <div class="wake three"></div>
-  </div>
+      * { box-sizing: border-box; }
 
-  <div class="sea">
-    <div class="wave w1"></div>
-    <div class="wave w2"></div>
-    <div class="wave w3"></div>
-    <div class="foam f1"></div>
-    <div class="foam f2"></div>
-    <div class="foam f3"></div>
-    <div class="foam f4"></div>
-  </div>
-</div>
-</body>
+      html, body {
+        margin: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #091a2f;
+        font-family: Georgia, "Times New Roman", serif;
+        color: var(--text);
+      }
+
+      body {
+        display: grid;
+        place-items: center;
+      }
+
+      .app {
+        position: relative;
+        width: 100vw;
+        height: 100vh;
+        overflow: hidden;
+        background: linear-gradient(
+          to bottom,
+          var(--sky-top) 0%,
+          var(--sky-mid) 23%,
+          #7b5b5a 42%,
+          var(--sky-horizon) 52%,
+          #d88d52 57%,
+          #b95a37 67%,
+          #183d46 100%
+        );
+        filter: saturate(1.06);
+      }
+
+      .app::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+          radial-gradient(circle at 50% 60%, rgba(255,255,255,0.14), transparent 32%),
+          repeating-linear-gradient(90deg, rgba(255,255,255,0.02) 0, rgba(255,255,255,0.02) 2px, transparent 2px, transparent 8px);
+        pointer-events: none;
+      }
+
+      .sun {
+        position: absolute;
+        left: 50%;
+        top: 38%;
+        width: 180px;
+        height: 180px;
+        transform: translate(-50%, -50%);
+        border-radius: 50%;
+        background: radial-gradient(circle at 50% 50%, var(--sun-core) 0%, #f9d98d 28%, rgba(247,191,108,.9) 52%, rgba(231,119,49,.6) 72%, transparent 100%);
+        box-shadow: 0 0 45px rgba(255, 202, 114, 0.9), 0 0 120px rgba(242,149,62,0.4);
+        opacity: 0.95;
+      }
+
+      .cloud {
+        position: absolute;
+        border-radius: 50%;
+        background: rgba(245,214,177,.2);
+        filter: blur(4px);
+        opacity: .8;
+        box-shadow: 24px 10px 0 rgba(245,214,177,.12), -20px 18px 0 rgba(245,214,177,.1), 14px 24px 0 rgba(245,214,177,.08);
+      }
+
+      .cloud.c1 { left: 10%; top: 16%; width: 180px; height: 50px; }
+      .cloud.c2 { right: 14%; top: 20%; width: 200px; height: 54px; }
+      .cloud.c3 { left: 42%; top: 14%; width: 260px; height: 60px; opacity: .6; }
+
+      .ship {
+        position: absolute;
+        left: 50%;
+        bottom: 18%;
+        width: 32vw;
+        min-width: 420px;
+        height: 220px;
+        transform: translateX(-50%) rotate(-1.5deg);
+        filter: drop-shadow(0 18px 16px rgba(0,0,0,0.28));
+      }
+
+      .hull {
+        position: absolute;
+        left: 18%;
+        bottom: 0;
+        width: 62%;
+        height: 84px;
+        background: linear-gradient(to bottom, #352b29 0%, #1e1a1a 30%, #0c0b0b 100%);
+        clip-path: polygon(8% 0%, 92% 0%, 100% 100%, 0% 100%);
+        border-radius: 10px 12px 18px 18px;
+      }
+
+      .bow {
+        position: absolute;
+        left: 72%;
+        bottom: 8px;
+        width: 110px;
+        height: 54px;
+        background: linear-gradient(to bottom, #2a2623, #151312);
+        clip-path: polygon(0 25%, 100% 0, 100% 100%, 0 100%);
+        border-radius: 12px 6px 0 0;
+      }
+
+      .mast {
+        position: absolute;
+        bottom: 82px;
+        width: 8px;
+        background: linear-gradient(to right, #6b4b39, #312924, #6b4b39);
+        border-radius: 4px;
+      }
+
+      .mast.a { left: 32%; height: 124px; }
+      .mast.b { left: 50%; height: 142px; }
+      .mast.c { left: 67%; height: 118px; }
+
+      .sail {
+        position: absolute;
+        bottom: 82px;
+        background: linear-gradient(135deg, #f8f0d7 0%, #f4e6c5 38%, #d9c39a 100%);
+        border: 1px solid rgba(82,59,36,.28);
+        box-shadow: inset 0 0 18px rgba(255,255,255,.18), 0 0 8px rgba(255,255,255,.08);
+      }
+
+      .sail::before {
+        content: "";
+        position: absolute;
+        inset: 6% 16% 8% 10%;
+        border-left: 2px solid rgba(85,63,40,.18);
+        border-right: 2px solid rgba(85,63,40,.18);
+        opacity: .7;
+      }
+
+      .sail.a { left: 35%; width: 120px; height: 76px; clip-path: polygon(0 0, 100% 14%, 100% 100%, 0 92%); transform: rotate(-4deg); }
+      .sail.b { left: 53%; width: 130px; height: 92px; clip-path: polygon(0 0, 100% 12%, 100% 100%, 0 86%); transform: rotate(2deg); }
+      .sail.c { left: 69%; width: 100px; height: 68px; clip-path: polygon(0 10%, 100% 0, 100% 100%, 0 88%); transform: rotate(4deg); }
+
+      .flag {
+        position: absolute;
+        left: 70%;
+        bottom: 180px;
+        width: 82px;
+        height: 52px;
+        background: linear-gradient(135deg, #f2d6a3 0%, #d5b06b 100%);
+        clip-path: polygon(0 0, 100% 16%, 100% 78%, 0 100%);
+        border-left: 4px solid rgba(90,67,51,.5);
+        transform: skewY(-4deg);
+      }
+
+      .sea {
+        position: absolute;
+        left: 0; right: 0; bottom: 0;
+        height: 46%;
+        background: linear-gradient(to bottom, rgba(18,70,80,.45) 0%, rgba(22,84,96,.78) 18%, rgba(8,31,38,.94) 100%);
+        border-top: 2px solid rgba(215,234,239,.18);
+        overflow: hidden;
+      }
+
+      .wave {
+        position: absolute;
+        left: -10%;
+        width: 120%;
+        height: 34%;
+        border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+        background: rgba(145,198,207,.20);
+        filter: blur(5px);
+      }
+
+      .wave.w1 { bottom: 22%; transform: rotate(1deg); }
+      .wave.w2 { bottom: 18%; transform: rotate(-2deg); opacity: .6; }
+      .wave.w3 { bottom: 11%; transform: rotate(2deg); opacity: .5; }
+
+      .foam {
+        position: absolute;
+        bottom: 3%;
+        height: 30px;
+        border-radius: 50%;
+        background: linear-gradient(to right, rgba(255,255,255,.8), rgba(255,255,255,.18), transparent 80%);
+        opacity: .8;
+        filter: blur(1px);
+      }
+
+      .foam.f1 { left: 10%; width: 220px; }
+      .foam.f2 { left: 28%; width: 260px; }
+      .foam.f3 { left: 52%; width: 200px; }
+      .foam.f4 { left: 72%; width: 240px; }
+
+      .overlay {
+        position: absolute;
+        left: 18px;
+        top: 18px;
+        z-index: 2;
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        background: rgba(10, 18, 28, 0.28);
+        border: 1px solid var(--panel-border);
+        border-radius: 999px;
+        padding: 10px 16px;
+        backdrop-filter: blur(4px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+      }
+
+      .title {
+        font-size: 22px;
+        letter-spacing: 0.08em;
+        color: var(--text);
+        opacity: 0.95;
+      }
+
+      .tag {
+        font-size: 11px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--muted);
+        opacity: 0.9;
+      }
+
+      .bottom-panel {
+        position: absolute;
+        left: 18px;
+        right: 18px;
+        bottom: 18px;
+        z-index: 2;
+        display: flex;
+        gap: 14px;
+        justify-content: space-between;
+        align-items: end;
+        pointer-events: none;
+      }
+
+      .card {
+        pointer-events: auto;
+        background: rgba(8, 23, 30, 0.38);
+        border: 1px solid var(--panel-border);
+        backdrop-filter: blur(6px);
+        border-radius: 14px;
+        padding: 12px 16px;
+        min-width: 200px;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.16);
+      }
+
+      .label {
+        font-size: 11px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: rgba(255,255,255,0.72);
+        margin-bottom: 8px;
+      }
+
+      .value {
+        font-size: 28px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        color: var(--text);
+      }
+
+      .muted {
+        color: var(--muted);
+        font-size: 14px;
+        letter-spacing: 0.08em;
+      }
+
+      @media (max-width: 900px) {
+        .ship {
+          min-width: 300px;
+          transform: translateX(-50%) scale(.9) rotate(-1.5deg);
+        }
+
+        .sun {
+          width: 140px;
+          height: 140px;
+        }
+
+        .overlay {
+          padding: 8px 12px;
+        }
+
+        .title {
+          font-size: 18px;
+        }
+
+        .bottom-panel {
+          gap: 8px;
+        }
+
+        .card {
+          min-width: 150px;
+          padding: 10px 12px;
+        }
+
+        .value {
+          font-size: 22px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app" aria-label="dead reckoning preview art scene">
+      <div class="overlay">
+        <div class="title">DEAD RECKONING</div>
+        <div class="tag">Preview</div>
+      </div>
+
+      <div class="sun"></div>
+      <div class="cloud c1"></div>
+      <div class="cloud c2"></div>
+      <div class="cloud c3"></div>
+
+      <div class="ship">
+        <div class="flag"></div>
+        <div class="mast a"></div>
+        <div class="mast b"></div>
+        <div class="mast c"></div>
+        <div class="sail a"></div>
+        <div class="sail b"></div>
+        <div class="sail c"></div>
+        <div class="hull"></div>
+        <div class="bow"></div>
+      </div>
+
+      <div class="sea">
+        <div class="wave w1"></div>
+        <div class="wave w2"></div>
+        <div class="wave w3"></div>
+        <div class="foam f1"></div>
+        <div class="foam f2"></div>
+        <div class="foam f3"></div>
+        <div class="foam f4"></div>
+      </div>
+
+      <div class="bottom-panel">
+        <div class="card">
+          <div class="label">Heading</div>
+          <div class="value">NNE</div>
+        </div>
+        <div class="card">
+          <div class="label">Sea state</div>
+          <div class="muted">Moderate swell</div>
+        </div>
+      </div>
+    </div>
+  </body>
 </html>
