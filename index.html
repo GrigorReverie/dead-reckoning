@@ -2082,7 +2082,7 @@ function drawChart(){
   ctx.restore();
   const showTrue=S.mode==="trial"||$("peek").checked||S.done;
   // pencil track (reckoning)
-  if(S.mode==="lost"){
+  if(false&&S.mode==="lost"){ // dead reckoning mode: no marker, track or error ellipse shows where you are
     ctx.save();ctx.strokeStyle="#4a5a8a";ctx.lineWidth=1.4;ctx.setLineDash([2,3]);ctx.beginPath();S.estTrack.forEach((p,i)=>i?ctx.lineTo(sx(p.x),sy(p.y)):ctx.moveTo(sx(p.x),sy(p.y)));ctx.lineTo(sx(S.est.x),sy(S.est.y));ctx.stroke();ctx.setLineDash([]);
     // error ellipse
     ctx.strokeStyle="rgba(74,90,138,.9)";ctx.setLineDash([5,4]);ctx.lineWidth=1;ctx.beginPath();ctx.ellipse(sx(S.est.x),sy(S.est.y),Math.max(4,S.est.sx*cam.zoom),Math.max(4,S.est.sy*cam.zoom),0,0,2*PI);ctx.stroke();ctx.setLineDash([]);
@@ -5068,7 +5068,7 @@ function frame(now){
     let n=0;while(acc>1e-12&&n<400){const d=Math.min(acc,MAXSTEP);step(d);acc-=d;n++;if(paused||S.done||modalOpen){acc=0;break;}}
     if(n>=400)acc=0;
   }else acc=0;
-  if(S&&follow){const tgt=S.mode==="lost"&&!$("peek").checked&&!S.done?S.est:S.ship;cam.x+=(tgt.x-cam.x)*.15;cam.y+=(tgt.y-cam.y)*.15;}
+  if(S&&follow&&!(S.mode==="lost"&&!$("peek").checked&&!S.done)){const tgt=S.ship;cam.x+=(tgt.x-cam.x)*.15;cam.y+=(tgt.y-cam.y)*.15;}
   if((frameN++&31)===0)measureDocks();
   drawChart();drawDial();update3D(dtR,now);updateUI();if(SV.open)svFrame(dtR,now);
   if(soundOn&&windGain&&S){const w=windAt(S,S.ship.x,S.ship.y,S.t);windGain.gain.value=paused?0:Math.min(.5,.04+w.kn/80);}
