@@ -1480,10 +1480,10 @@ async function dockAtPort(){if(!S||S.done||S.docking)return;S.docking=true;const
   S.docking=false;if(mission)$("ovEnd").hidden=false;else{modalOpen=false;say(`Made fast alongside the quay at ${P.name}. Sails furled and the anchor down.`,{});}
   updateUI(true);}
 function dropAnchor(){if(!S||S.done)return;const sh=S.ship,A=sh.anch;
-  if(A.mode==="holding"||A.mode==="trailing"){S.docked=null;A.mode="weighing";A.t0=S.t;say("Cast off! Heave round, lads, weighing anchor.",{});updateUI();return;}
+  if(A.mode==="holding"||A.mode==="trailing"){if(A.low!=null&&S.t-A.low<20/3600){say("The anchor is still going down. Wait for it to bite.",{log:false});return;}S.docked=null;A.mode="weighing";A.t0=S.t;say("Cast off! Heave round, lads, weighing anchor.",{});updateUI();return;}
   if(A.mode==="weighing")return;
   if(sh.v>3.5){say("She is making too much way to let go the anchor. Shorten sail and slow to under 3 knots first.",{});return;}
-  const d=depthFm(sh.x,sh.y);A.depth=d;A.t0=S.t;A.drag=0;A.dragWarned=false;
+  const d=depthFm(sh.x,sh.y);A.depth=d;A.t0=S.t;A.low=S.t;A.drag=0;A.dragWarned=false;
   if(d<=30){A.mode="holding";say(`Let go! The anchor bites in ${d} fathoms and she rides to her cable.`,{});}
   else{A.mode="trailing";say(`Let go! No bottom: ${d} fathoms is more than the cable. The anchor hangs below as a drag and only slows her.`,{});}
   updateUI();}
@@ -2304,7 +2304,7 @@ function updateUI(force){
   $("ordTxt").textContent=`${Math.round(sh.ordered)}° ${pointName(sh.ordered)}`;
   { const fb=$("bFish");{const t=S.fishing?`Stop fishing · ${Math.round(S.catchTotal)} lb (F)`:"Put hand-lines over the side (F)";fb.title=t;fb.setAttribute("aria-label",t);}fb.setAttribute("aria-pressed",String(!!S.fishing)); }
   { const A=sh.anch,b=$("bDrop");{const t=A.mode==="up"?"Drop anchor (X)":A.mode==="weighing"?"Weighing anchor…":"Weigh anchor (X)";b.title=t;b.setAttribute("aria-label",t);b.setAttribute("aria-pressed",String(A.mode!=="up"));}b.disabled=A.mode==="weighing";
-    $("anchTxt").textContent=S.docked&&A.mode==="holding"?`Docked at ${PORTS[S.docked].name}`:A.mode==="holding"?`At anchor in ${A.depth} fathoms${A.drag>0?" · dragging":""}`:A.mode==="trailing"?`Anchor trailing: no bottom (${A.depth} fathoms)`:A.mode==="weighing"?`Heaving up the anchor… ${Math.max(0,Math.min(99,Math.floor((S.t-A.t0)*3600/60*100)))}%`:sh.row&&sh.row.on?`Under ${SHIP.oars&&SHIP.oars.sweeps?"sweeps":"oars"}`:sh.sailSet<.5&&sh.v>.3?"Bare poles: drifting before the wind":""; }
+    $("anchTxt").textContent=(A.mode==="holding"||A.mode==="trailing")&&A.low!=null&&S.t-A.low<20/3600?`Lowering the anchor… ${Math.max(0,Math.min(99,Math.floor((S.t-A.low)*3600/20*100)))}%`:S.docked&&A.mode==="holding"?`Docked at ${PORTS[S.docked].name}`:A.mode==="holding"?`At anchor in ${A.depth} fathoms${A.drag>0?" · dragging":""}`:A.mode==="trailing"?`Anchor trailing: no bottom (${A.depth} fathoms)`:A.mode==="weighing"?`Heaving up the anchor… ${Math.max(0,Math.min(99,Math.floor((S.t-A.t0)*3600/60*100)))}%`:sh.row&&sh.row.on?`Under ${SHIP.oars&&SHIP.oars.sweeps?"sweeps":"oars"}`:sh.sailSet<.5&&sh.v>.3?"Bare poles: drifting before the wind":""; }
   {
     const moving=SAILIDS.some(k=>Math.abs(sh.sl[k]-sh.sls[k])>.03);
     $("bookBtn").classList.toggle("attn",!!S.arrivedNear&&!$("bookBox").classList.contains("open"));
