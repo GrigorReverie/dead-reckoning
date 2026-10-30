@@ -680,7 +680,7 @@ body.fs3d #fsBar{left:max(12px,env(safe-area-inset-left,0px));bottom:max(12px,en
           </div>
           <label class="chk"><input type="checkbox" id="bosun"> Bosun trims the yards for me</label>
           <div class="row" style="justify-content:space-between;flex-wrap:nowrap;border-top:1px dotted var(--rule);padding-top:8px">
-            <span><span class="mono" style="font-size:18px" id="logKn">—</span><br><small class="muted" id="logAge">—</small></span>
+            <span><span class="mono" style="font-size:18px" id="logKn">—</span><br><small class="muted" id="logAge">—</small><small class="muted" id="logHist" style="display:block;max-height:5.2em;overflow:auto"></small></span>
             <button class="btn sm ico" id="bHeave" aria-label="Heave the log" title="Heave the log (L)"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="7.5" r="4"/><path d="M7 3.5v8M3 7.5h8"/><path d="M10.2 10.8C12.6 13 14 13.8 15.2 15.2" stroke-dasharray="1.1 1.7"/><path d="M14 15.6h6.4a6.4 6.4 0 0 1-6.4 6.4z" fill="currentColor" fill-opacity=".35"/></svg></button>
           </div>
           <div id="logbox" hidden style="display:none;grid-template-columns:34px auto auto minmax(0,1fr);gap:10px;align-items:center;border:1px dotted var(--rule);padding:6px 8px">
@@ -1841,7 +1841,7 @@ function nip(){
   $("knotCount").textContent=heave.meas.toFixed(1);
   $("glassMsg").textContent=Math.abs(err)<.05?"Nipped right as the glass ran out. A clean reading.":err<0?"Nipped early. The reading is low.":"Nipped late. The reading is high.";
   $("bNip").disabled=true;
-  S.estSpeed=heave.meas;S.lastLog={v:heave.meas,t:S.t,by:"you"};S.heaves++;
+  S.estSpeed=heave.meas;S.lastLog={v:heave.meas,t:S.t,by:"you"};S.heaves++;(S.heaveLog=S.heaveLog||[]).unshift({v:heave.meas,time:timeStr(S)});if(S.heaveLog.length>40)S.heaveLog.length=40;
   S.log.unshift({time:timeStr(S),remark:`Hove the log: ${fmtKn(heave.meas)} knots.`});renderLog();
   if(R3&&R3.logfx)R3.logfx.end=performance.now();
   setTimeout(()=>{$("logbox").style.display="none";$("logbox").hidden=true;$("bHeave").disabled=false;heave=null;if(R3&&R3.logfx){R3.logfx.start=0;R3.logfx.end=0;R3.logfx.placed=false;}updateUI();},1300);
@@ -1939,7 +1939,7 @@ function startVoyage(v){
   if(v.career){careerInit(S,v.from);say(`Career begins at ${PORTS[v.from].name}. You own a small cutter and ${money(S.purse)}. Trade, take contracts and save for a bigger ship: the shipyard is in the Ship tab.`);}else
   if(v.free){if(v.from in PORTS){startDocked(S,v.from);say(`Made fast alongside the quay at ${PORTS[v.from].name}. Weigh anchor when you are ready: the sea is yours.${S.mode==="lost"?" The chart shows only your reckoning.":""}`);}else say("Hove to. No orders: the sea is yours.");}else
   say(v.mode==="lost"?`Weighed anchor from ${placeOf(v.from).name}. From here on the chart shows only your reckoning.`:`${v.from in PORTS?"Weighed anchor from "+PORTS[v.from].name:"Hove to in the "+placeOf(v.from).name}. Bound for ${PORTS[v.to].name}.`);
-  S.estSpeed=0;S.lastLog=null;
+  S.estSpeed=0;S.lastLog=null;S.heaveLog=[];
   {const w=windAt(S,S.ship.x,S.ship.y,S.t);S.ship.brace=S.ship.braceCmd=optBrace(angDiff(S.ship.heading,w.from));}
   updateUI(true);
 }
@@ -2296,6 +2296,7 @@ function updateUI(force){
   $("strainTxt").innerHTML=S.strain>0?`<span class="warn">Straining: too much canvas for this wind.</span>`:`Safe up to about force ${beaufort(sailLerp(sh.sailSet).safe)-1} with this canvas.`;
   $("logKn").textContent=S.lastLog?`${fmtKn(S.lastLog.v)} kn`:"—";
   $("logAge").textContent=S.lastLog?`${S.lastLog.by==="you"?"by you":"by the mate"}, ${Math.round((S.t-S.lastLog.t)*60)} min ago`:"not yet hove";
+  {const h=(S.heaveLog||[]).slice(0,12).map(e=>`${e.time}: ${fmtKn(e.v)} kn`).join("<br>");if($("logHist").innerHTML!==h)$("logHist").innerHTML=h;}
   // reckoning
   const eg=toGeo(S.est.x,S.est.y),tg=toGeo(sh.x,sh.y);
   if(S.mode==="lost"){$("modeTag").textContent="lost at sea";
@@ -6565,7 +6566,7 @@ $("bVoy").onclick=()=>{$("ovStart").hidden=false;modalOpen=true;};
 {const ft=document.createElement("div");ft.className="cbfoot";$("compassBox").append(ft);const hb=document.createElement("button");hb.className="btn sm ico";hb.id="bHeave2";hb.title="Heave the log (L)";hb.setAttribute("aria-label","Heave the log");
   hb.innerHTML='<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="7.5" r="4"/><path d="M7 3.5v8M3 7.5h8"/><path d="M10.2 10.8C12.6 13 14 13.8 15.2 15.2" stroke-dasharray="1.1 1.7"/><path d="M14 15.6h6.4a6.4 6.4 0 0 1-6.4 6.4z" fill="currentColor" fill-opacity=".35"/></svg>';
   hb.onclick=()=>{if(!$("bHeave").disabled)openHeave();};new MutationObserver(()=>{hb.disabled=$("bHeave").disabled;}).observe($("bHeave"),{attributes:true,attributeFilter:["disabled"]});
-  ft.append($("bDrop"),$("bFish"),$("logbox"));
+  ft.append($("bDrop"),hb,$("bFish"),$("logbox"));$("bHeave").hidden=true;$("bHeave").style.display="none"; // the heave button now sits between anchor and fishing; the old one stays hidden as the state holder
   $("cL5").hidden=$("cR5").hidden=true; // the 5° buttons are gone; A and D still turn her
   $("logbox").style.cssText+=";flex:1;min-width:0;padding:0 4px;gap:6px;border:0;justify-content:center;";} // the log-heaving panel opens under the compass // anchor and fishing sit at the bottom left and right of the compass
 $("paneV3").after($("paneTools")); // the icon row lives outside the pane so nothing in the pane can cover it
