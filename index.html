@@ -6473,7 +6473,7 @@ $("dhSl").oninput=e=>setCourse(+e.target.value);
 { const jb=document.createElement("button");jb.type="button";jb.id="cbJib";jb.className="btn sm ico cbjib";jb.setAttribute("aria-label","Back the jib");jb.title="Back the jib: set the heading you want on the compass, then tap";
   jb.innerHTML='<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v17M8 4.500c5 3.500 8 8 9 14.500H8M4 21h16"/></svg>';
   document.getElementById("compassBox").append(jb);jb.onclick=()=>backJib();
-  const st=document.createElement("style");st.textContent=".cbfoot .cbjib{visibility:hidden}.cbfoot .cbjib.on{visibility:visible}.cbfoot .cbjib.armed{background:var(--ink);color:var(--paper)}";document.head.append(st);
+  const st=document.createElement("style");st.textContent=".compassbox .cbjib{position:absolute;right:8px;bottom:7px;z-index:2;display:none}.compassbox .cbjib.on{display:flex}.compassbox .cbjib.armed{background:var(--ink);color:var(--paper)}.compassbox.collapsed .cbjib{display:none!important}@media (max-width:860px){.compassbox .cbjib{right:0;bottom:0}}";document.head.append(st);
 }
 $("sUp").onclick=()=>setSail(S.ship.sail+1);
 { const sd=$("sailDiag"),pick=$("sailPick");
@@ -6635,7 +6635,7 @@ $("bVoy").onclick=()=>{$("ovStart").hidden=false;modalOpen=true;};
   const bb=document.createElement("button");bb.className="btn sm ico";bb.id="bBrg";bb.title="Take bearings of the land in sight";bb.setAttribute("aria-label","Take bearing");
   bb.innerHTML='<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5v3M12 17.5v3M3.5 12h3M17.5 12h3"/><path d="M12 12l4.5-6"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg>';
   bb.onclick=takeBearings;
-  ft.append(bb,$("bDrop"),$("bFish"),hb,$("cbJib"),$("logbox"));$("bHeave").hidden=true;$("bHeave").style.display="none"; // the heave button now sits between anchor and fishing; the old one stays hidden as the state holder
+  ft.append(bb,$("bDrop"),$("bFish"),hb,$("logbox"));$("bHeave").hidden=true;$("bHeave").style.display="none"; // the heave button now sits between anchor and fishing; the old one stays hidden as the state holder
   $("cL5").hidden=$("cR5").hidden=true; // the 5° buttons are gone; A and D still turn her
   $("logbox").style.cssText+=";flex:1;min-width:0;padding:0 4px;gap:6px;border:0;justify-content:center;";} // the log-heaving panel opens under the compass // anchor and fishing sit at the bottom left and right of the compass
 {const cl=document.createElement("div");cl.className="chartlog";cl.hidden=true;$("paneChart").append(cl);const lb=$("logbox"),home=lb.parentNode;
