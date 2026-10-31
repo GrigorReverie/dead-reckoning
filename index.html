@@ -93,9 +93,9 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-
 .routebar .routelegs .lg{display:flex;align-items:center;gap:5px;font-size:10px;padding:0 3px 0 5px}.routebar .routelegs .lg i{display:none;font-style:normal}.routebar .routelegs .lg b{font-weight:600;color:var(--ink-soft)}.routebar .routelegs .tot{display:none}
 .routebar .lx{width:15px;height:15px;line-height:1;padding:0;font-size:12px;background:none;border:1px solid var(--rule);border-radius:2px;color:var(--ink);cursor:pointer}.routebar .lx:hover{background:var(--paper-2);border-color:var(--ink)}
 .routebar.open .routelegs{flex-direction:column;overflow-y:auto;overflow-x:hidden;max-height:min(36vh,260px);gap:1px}.routebar.open .routelegs .lg{display:grid;grid-template-columns:18px minmax(0,1.3fr) 64px 70px 18px;gap:6px;border:0;border-bottom:1px dotted var(--rule);padding:2px 2px;font-size:10.5px;white-space:normal}.routebar.open .routelegs .lg i{display:inline}.routebar.open .routelegs .tot{display:grid;font-weight:600}.routebar.open .routelegs .tot .lx{display:none}
-.skipbar{position:absolute;left:12px;right:12px;margin:0 auto;width:max-content;bottom:28px;z-index:7;max-width:min(560px,calc(100% - 48px));background:rgba(246,238,217,.97);border:1px solid var(--ink);box-shadow:0 6px 20px rgba(20,14,10,.35);padding:7px 10px;display:flex;align-items:center;gap:10px;font-size:12px}.skipbar[hidden]{display:none}.skipbar .skbtn{display:flex;gap:6px;flex:none}.skipbar #skOk{background:var(--ink);color:var(--paper)}
+.skipbar{position:fixed;left:12px;right:12px;margin:0 auto;width:max-content;bottom:28px;z-index:91;max-width:min(560px,calc(100% - 48px));background:rgba(246,238,217,.97);border:1px solid var(--ink);box-shadow:0 6px 20px rgba(20,14,10,.35);padding:7px 10px;display:flex;align-items:center;gap:10px;font-size:12px}.skipbar[hidden]{display:none}.skipbar .skbtn{display:flex;gap:6px;flex:none}.skipbar #skOk{background:var(--ink);color:var(--paper)}
 #fadeBlack{position:fixed;inset:0;background:#000;opacity:0;pointer-events:none;transition:opacity .7s ease;z-index:90}#fadeBlack.on{opacity:1;pointer-events:auto}
-#skipCount{position:fixed;inset:0;z-index:91;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:#f3e9d0;font-family:"IBM Plex Mono",monospace;pointer-events:none;opacity:0;transition:opacity .4s}#skipCount.on{opacity:1}#skipCount small{font-size:13px;letter-spacing:.2em;text-transform:uppercase;opacity:.8}#skipCount b{font-size:64px;font-weight:600}
+#skipCount{position:fixed;left:12px;right:12px;margin:0 auto;width:max-content;max-width:min(560px,calc(100% - 48px));bottom:28px;z-index:91;display:flex;align-items:baseline;gap:14px;background:rgba(246,238,217,.97);color:#1d2a52;border:1px solid #1d2a52;box-shadow:0 6px 20px rgba(0,0,0,.45);padding:9px 16px;font-family:"IBM Plex Mono",monospace;pointer-events:none;opacity:0;transition:opacity .4s}#skipCount.on{opacity:1}#skipCount small{font-size:12px;letter-spacing:.14em;text-transform:uppercase}#skipCount b{font-size:26px;font-weight:600}
 .routebar.folded{right:auto;padding:3px 6px}.routebar.folded .rrow>:not(.rt):not(.rtog){display:none}.routebar.folded .routelegs{display:none}
 .portcard{position:absolute;right:56px;top:12px;width:min(310px,calc(100% - 70px));max-height:calc(100% - 24px);overflow:auto;z-index:5;background:rgba(246,238,217,.95);border:1px solid var(--ink);padding:8px 10px;font-size:12.5px;box-shadow:0 6px 20px rgba(20,14,10,.3);display:flex;flex-direction:column;gap:6px}
 .portcard[hidden]{display:none}.pchead{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}.pchead b{font-family:var(--f-display);font-weight:400;font-size:17px;display:block}.pchead small{font-family:var(--f-data);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-soft)}
@@ -515,7 +515,6 @@ body.fs3d #fsBar{left:max(12px,env(safe-area-inset-left,0px));bottom:max(12px,en
             <button class="rtog" id="rTog" aria-expanded="true" title="Fold the route bar up or down">▲</button></div>
           <div id="routeLegs" class="routelegs"></div>
         </div>
-        <div class="skipbar" id="skipBar" hidden role="dialog" aria-label="Confirm skipping ahead"><span id="skTxt"></span><span class="skbtn"><button class="btn sm" id="skOk">Confirm</button><button class="btn sm" id="skNo">Cancel</button></span></div>
         <div class="portcard" id="portCard" hidden></div>
         <button type="button" class="tbicon shipchart" id="bShip2" title="The ship: cutaway, crew quarters and watches" aria-label="The ship: cutaway, crew quarters and watches"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M2.5 16.5h19l-3 4.5h-13z"/><path d="M8 16V3.500M16 16V6"/><path d="M8 5h-4.500v8H8M8 5h3.500v8H8M16 8h-3.500v6H16M16 8h3.500v6H16" stroke-width="1.2"/></svg></button>
         <div class="mapctl">
@@ -776,7 +775,7 @@ body.fs3d #fsBar{left:max(12px,env(safe-area-inset-left,0px));bottom:max(12px,en
     <div class="ppgrid"><canvas id="ppCv" aria-label="Plan of the harbour"></canvas><div id="ppInfo"></div></div>
   </div>
 </div>
-<div id="fadeBlack" aria-hidden="true"></div><div id="skipCount" aria-live="polite"></div>
+<div class="skipbar" id="skipBar" hidden role="dialog" aria-label="Confirm skipping ahead"><span id="skTxt"></span><span class="skbtn"><button class="btn sm" id="skOk">Confirm</button><button class="btn sm" id="skNo">Cancel</button></span></div><div id="fadeBlack" aria-hidden="true"></div><div id="skipCount" aria-live="polite"></div>
 <div class="ov" id="ovEnd" hidden>
   <div class="card">
     <h3 id="endTitle">Landfall</h3>
@@ -5137,7 +5136,7 @@ function showSkipPreview(){const h=skipPrev.h,t=projTrack(h);let txt;
   $("skTxt").textContent=txt;$("skipBar").hidden=false;}
 function previewSkip(h){if(!S||S.done||modalOpen||skipBusy||fadeWait)return;
   if(skipPrev){skipPrev.h=h;showSkipPreview();return;}
-  skipPrev={h,was3d:main3d,wasPaused:paused};setPaused(true);if(main3d)setMain(false);showSkipPreview();}
+  skipPrev={h,was3d:false,wasPaused:paused};setPaused(true);showSkipPreview();}
 function endSkipPreview(){const sp=skipPrev;skipPrev=null;$("skipBar").hidden=true;if(sp&&sp.was3d)setMain(true);return sp;}
 function cancelSkipPreview(){const sp=endSkipPreview();if(sp)setPaused(sp.wasPaused);}
 function confirmSkip(){if(!skipPrev)return;const h=skipPrev.h,fb=$("fadeBlack");fadeWait=true;fb.classList.add("on");
