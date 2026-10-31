@@ -95,6 +95,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-
 .routebar.open .routelegs{flex-direction:column;overflow-y:auto;overflow-x:hidden;max-height:min(36vh,260px);gap:1px}.routebar.open .routelegs .lg{display:grid;grid-template-columns:18px minmax(0,1.3fr) 64px 70px 18px;gap:6px;border:0;border-bottom:1px dotted var(--rule);padding:2px 2px;font-size:10.5px;white-space:normal}.routebar.open .routelegs .lg i{display:inline}.routebar.open .routelegs .tot{display:grid;font-weight:600}.routebar.open .routelegs .tot .lx{display:none}
 .skipbar{position:absolute;left:12px;right:12px;margin:0 auto;width:max-content;bottom:28px;z-index:7;max-width:min(560px,calc(100% - 48px));background:rgba(246,238,217,.97);border:1px solid var(--ink);box-shadow:0 6px 20px rgba(20,14,10,.35);padding:7px 10px;display:flex;align-items:center;gap:10px;font-size:12px}.skipbar[hidden]{display:none}.skipbar .skbtn{display:flex;gap:6px;flex:none}.skipbar #skOk{background:var(--ink);color:var(--paper)}
 #fadeBlack{position:fixed;inset:0;background:#000;opacity:0;pointer-events:none;transition:opacity .7s ease;z-index:90}#fadeBlack.on{opacity:1;pointer-events:auto}
+#skipCount{position:fixed;inset:0;z-index:91;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:#f3e9d0;font-family:"IBM Plex Mono",monospace;pointer-events:none;opacity:0;transition:opacity .4s}#skipCount.on{opacity:1}#skipCount small{font-size:13px;letter-spacing:.2em;text-transform:uppercase;opacity:.8}#skipCount b{font-size:64px;font-weight:600}
 .routebar.folded{right:auto;padding:3px 6px}.routebar.folded .rrow>:not(.rt):not(.rtog){display:none}.routebar.folded .routelegs{display:none}
 .portcard{position:absolute;right:56px;top:12px;width:min(310px,calc(100% - 70px));max-height:calc(100% - 24px);overflow:auto;z-index:5;background:rgba(246,238,217,.95);border:1px solid var(--ink);padding:8px 10px;font-size:12.5px;box-shadow:0 6px 20px rgba(20,14,10,.3);display:flex;flex-direction:column;gap:6px}
 .portcard[hidden]{display:none}.pchead{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}.pchead b{font-family:var(--f-display);font-weight:400;font-size:17px;display:block}.pchead small{font-family:var(--f-data);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-soft)}
@@ -775,7 +776,7 @@ body.fs3d #fsBar{left:max(12px,env(safe-area-inset-left,0px));bottom:max(12px,en
     <div class="ppgrid"><canvas id="ppCv" aria-label="Plan of the harbour"></canvas><div id="ppInfo"></div></div>
   </div>
 </div>
-<div id="fadeBlack" aria-hidden="true"></div>
+<div id="fadeBlack" aria-hidden="true"></div><div id="skipCount" aria-live="polite"></div>
 <div class="ov" id="ovEnd" hidden>
   <div class="card">
     <h3 id="endTitle">Landfall</h3>
@@ -1080,7 +1081,7 @@ const VOYAGES=[
 
 let DARK=false;try{DARK=localStorage.getItem('drDark')==='1';}catch(e){}
 let S=null, speedMult=1, paused=false, modalOpen=true;
-let skipLeft=0,skipTotal=0,skipEndCb=null; // game hours still to skip, hours asked for, and what to do when it ends
+let skipLeft=0,skipTotal=0,skipEndCb=null,skipBusy=false,skipCdEnd=0; // game hours still to skip, hours asked for, and what to do when it ends
 let skipPrev=null,fadeWait=false; // a projected skip waiting for the captain's word; the fade to black while the hours pass
 const SKIPSTEP=1/180; // skipping runs the sim in 20-second steps
 const SKIPS=[["bSkip",3,"Skip"]];
@@ -1088,8 +1089,10 @@ const SPEEDS=[1,2,4,8,15,30,60],SKIPHS=[1,2,3,6,9,12,18,24,36,48];let skipH=3;
 function spdIdx(){let b=0;SPEEDS.forEach((v,i)=>{if(Math.abs(v-speedMult)<Math.abs(SPEEDS[b]-speedMult))b=i;});return b;}
 function stepSpeed(d){const i=Math.max(0,Math.min(SPEEDS.length-1,spdIdx()+d));setPaused(false);setSpeed(SPEEDS[i]);}
 function stepSkipH(d){const i=SKIPHS.indexOf(skipH),j=Math.max(0,Math.min(SKIPHS.length-1,i+d));skipH=SKIPHS[j];$("skVal").textContent=skipH+" h";if(skipPrev)previewSkip(skipH);}
-function startSkip(h){h=h||3;if(!S||S.done||modalOpen||skipLeft>0)return;setPaused(false);skipLeft=skipTotal=h;for(const[id]of SKIPS)$(id).disabled=true;$("bSkip").textContent="…";say(h+(h===1?" hour passes":" hours pass")+". The watches change and the log is kept.",{log:false});}
-function stopSkip(){if(skipLeft<=0&&!$("bSkip").disabled)return;
+function startSkip(h){h=h||3;if(!S||S.done||modalOpen||skipBusy)return;setPaused(true);skipBusy=true;skipLeft=skipTotal=h;skipCdEnd=performance.now()+Math.max(1,Math.ceil(h-1e-9))*1000;skipCdShow();for(const[id]of SKIPS)$(id).disabled=true;$("bSkip").textContent="…";say(h+(h===1?" hour passes":" hours pass")+". The watches change and the log is kept.",{log:false,toast:false});}
+function skipCdShow(){const e=$("skipCount");if(!e)return;if(!skipBusy){e.classList.remove("on");return;}const n=Math.max(1,Math.ceil((skipCdEnd-performance.now())/1000-1e-9));e.innerHTML=`<small>Time passes</small><b>${n} h</b>`;e.classList.add("on");}
+function stopSkip(){if(skipLeft<=0&&!skipBusy&&!$("bSkip").disabled)return;
+  const wasBusy=skipBusy;skipBusy=false;if(wasBusy&&S&&!S.done){setPaused(true);}skipCdShow();
   const early=skipLeft>1e-6&&skipTotal>0&&S,done=skipTotal-skipLeft;
   skipTotal=0;
   if(early){skipLeft=0;const m=Math.round(done*60);say(`Time skip stopped early after ${m>=60?Math.floor(m/60)+" h "+(m%60)+" min":m+" min"} because something needs you.`,{toast:false});}
@@ -5077,10 +5080,11 @@ let lastFrame=performance.now(),acc=0,frameN=0;
 function frame(now){
   autoQ(now-lastFrame);
   const dtR=Math.min(.1,(now-lastFrame)/1000);lastFrame=now;
-  if(skipLeft>0){
-    if(!S||S.done||modalOpen||paused){stopSkip();}
-    else{for(let i=0;i<60&&skipLeft>0;i++){const d=Math.min(skipLeft,SKIPSTEP);step(d);if(skipLeft>0)skipLeft-=d;if(paused||S.done||modalOpen){stopSkip();break;}}
-      if(skipLeft<=1e-9)stopSkip();}
+  if(skipBusy){
+    if(!S||S.done||modalOpen){stopSkip();}
+    else{if(skipLeft>1e-9){for(let i=0;i<60&&skipLeft>0;i++){const d=Math.min(skipLeft,SKIPSTEP);step(d);if(skipLeft>0)skipLeft-=d;if(!skipBusy||S.done||modalOpen){stopSkip();break;}}
+        if(skipBusy&&skipLeft<=1e-9)skipLeft=0;}
+      if(skipBusy){skipCdShow();if(skipLeft<=0&&performance.now()>=skipCdEnd)stopSkip();}}
     acc=0;
   }else if(S&&!paused&&!modalOpen&&!S.done){
     acc+=dtR*speedMult/3600; // game hours elapsed this frame
@@ -5131,13 +5135,13 @@ function showSkipPreview(){const h=skipPrev.h,t=projTrack(h);let txt;
   if(t){const g=toGeo(t.end.x,t.end.y);txt=`Skip ${h} h? By reckoning you will be near ${fmtLat(g.lat)} ${fmtLon(g.lon)} at ${clockAt(h)}, about ${t.nm.toFixed(0)} nm on. Leeway, current and a change of wind are not in it.`;}
   else txt=`Skip ${h} h? She has no way on or lies at anchor, so she will stay about where she is until ${clockAt(h)}.`;
   $("skTxt").textContent=txt;$("skipBar").hidden=false;}
-function previewSkip(h){if(!S||S.done||modalOpen||skipLeft>0||fadeWait)return;
+function previewSkip(h){if(!S||S.done||modalOpen||skipBusy||fadeWait)return;
   if(skipPrev){skipPrev.h=h;showSkipPreview();return;}
   skipPrev={h,was3d:main3d,wasPaused:paused};setPaused(true);if(main3d)setMain(false);showSkipPreview();}
 function endSkipPreview(){const sp=skipPrev;skipPrev=null;$("skipBar").hidden=true;if(sp&&sp.was3d)setMain(true);return sp;}
 function cancelSkipPreview(){const sp=endSkipPreview();if(sp)setPaused(sp.wasPaused);}
 function confirmSkip(){if(!skipPrev)return;const h=skipPrev.h,fb=$("fadeBlack");fadeWait=true;fb.classList.add("on");
-  setTimeout(()=>{endSkipPreview();startSkip(h);if(skipLeft<=0){fadeWait=false;fb.classList.remove("on");}},750);}
+  setTimeout(()=>{endSkipPreview();startSkip(h);if(!skipBusy){fadeWait=false;fb.classList.remove("on");}},750);}
 function drawRoute(){const R=S.route;if(!R.pts.length)return;const P=dPos(),L=routeLegs();
   ctx.save();ctx.strokeStyle="#a8452c";ctx.fillStyle="#a8452c";ctx.lineWidth=.9;ctx.setLineDash([5,4]);ctx.beginPath();ctx.moveTo(sx(P.x),sy(P.y));R.pts.forEach(q=>ctx.lineTo(sx(q.x),sy(q.y)));ctx.stroke();ctx.setLineDash([]);
   ctx.font="9px 'IBM Plex Mono',monospace";ctx.lineWidth=.9;let a={x:P.x,y:P.y};
@@ -6872,9 +6876,9 @@ function jump(hh,month,day){const lh=localHours(S,S.t),di=dayIndex(S);let d;
   if(month==null)d=hh-(((lh%24)+24)%24);else{const tgt=Math.round((Date.UTC(2001,month,day)-Date.UTC(2001,2,10))/864e5);d=(tgt*24+hh)-lh;if(tgt!==di)while(d<0)d+=365*24;}
   if(month==null&&d<0)d+=24; // a bare time of day carries on to the next day
   if(Math.abs(d)<1e-6)return;
-  if(d>0&&d<=48&&!modalOpen&&skipLeft<=0&&!fadeWait){ // a short jump forward runs the whole simulation in the dark, then fades back in
-    fadeWait=true;$("fadeBlack").classList.add("on");
-    setTimeout(()=>{startSkip(d);if(skipLeft<=0){fadeWait=false;$("fadeBlack").classList.remove("on");}else skipEndCb=()=>{if(S)draw();};},650);
+  if(d>0&&d<=48&&!modalOpen&&!skipBusy&&!fadeWait){ // a short jump forward runs the whole simulation in the dark, then fades back in
+    setPaused(true);fadeWait=true;$("fadeBlack").classList.add("on");
+    setTimeout(()=>{startSkip(d);if(!skipBusy){fadeWait=false;$("fadeBlack").classList.remove("on");}else skipEndCb=()=>{if(S)draw();};},650);
     return;}
   S.t+=d;
   for(const k of["crNext","assistT","spotT","strikeUntil","lastFixT","leaveT","rumT","balT","breakersWarned"])if(S[k]>S.t)S[k]=S.t;
