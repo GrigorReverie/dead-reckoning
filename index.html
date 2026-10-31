@@ -1080,7 +1080,7 @@ const VOYAGES=[
 
 let DARK=false;try{DARK=localStorage.getItem('drDark')==='1';}catch(e){}
 let S=null, speedMult=1, paused=false, modalOpen=true;
-let skipLeft=0; // game hours still to skip
+let skipLeft=0,skipTotal=0,skipEndCb=null; // game hours still to skip, hours asked for, and what to do when it ends
 let skipPrev=null,fadeWait=false; // a projected skip waiting for the captain's word; the fade to black while the hours pass
 const SKIPSTEP=1/180; // skipping runs the sim in 20-second steps
 const SKIPS=[["bSkip",3,"Skip"]];
@@ -1088,8 +1088,12 @@ const SPEEDS=[1,2,4,8,15,30,60],SKIPHS=[1,2,3,6,9,12,18,24,36,48];let skipH=3;
 function spdIdx(){let b=0;SPEEDS.forEach((v,i)=>{if(Math.abs(v-speedMult)<Math.abs(SPEEDS[b]-speedMult))b=i;});return b;}
 function stepSpeed(d){const i=Math.max(0,Math.min(SPEEDS.length-1,spdIdx()+d));setPaused(false);setSpeed(SPEEDS[i]);}
 function stepSkipH(d){const i=SKIPHS.indexOf(skipH),j=Math.max(0,Math.min(SKIPHS.length-1,i+d));skipH=SKIPHS[j];$("skVal").textContent=skipH+" h";if(skipPrev)previewSkip(skipH);}
-function startSkip(h){h=h||3;if(!S||S.done||modalOpen||skipLeft>0)return;setPaused(false);skipLeft=h;for(const[id]of SKIPS)$(id).disabled=true;$("bSkip").textContent="…";say(h+(h===1?" hour passes":" hours pass")+". The watches change and the log is kept.",{log:false});}
-function stopSkip(){if(skipLeft<=0&&!$("bSkip").disabled)return;if(fadeWait){fadeWait=false;setTimeout(()=>$("fadeBlack").classList.remove("on"),350);}skipLeft=0;for(const[id,,t]of SKIPS){$(id).disabled=false;$(id).textContent=t;}}
+function startSkip(h){h=h||3;if(!S||S.done||modalOpen||skipLeft>0)return;setPaused(false);skipLeft=skipTotal=h;for(const[id]of SKIPS)$(id).disabled=true;$("bSkip").textContent="…";say(h+(h===1?" hour passes":" hours pass")+". The watches change and the log is kept.",{log:false});}
+function stopSkip(){if(skipLeft<=0&&!$("bSkip").disabled)return;
+  const early=skipLeft>1e-6&&skipTotal>0&&S,done=skipTotal-skipLeft;
+  skipTotal=0;
+  if(early){skipLeft=0;const m=Math.round(done*60);say(`Time skip stopped early after ${m>=60?Math.floor(m/60)+" h "+(m%60)+" min":m+" min"} because something needs you.`,{toast:false});}
+  if(skipEndCb){const f=skipEndCb;skipEndCb=null;setTimeout(f,0);}if(fadeWait){fadeWait=false;setTimeout(()=>$("fadeBlack").classList.remove("on"),350);}skipLeft=0;for(const[id,,t]of SKIPS){$(id).disabled=false;$(id).textContent=t;}}
 
 // individual sails: area weights, and the preset sail plans the Shorten/Make sail buttons step through
 let SAILIDS=["fg","ft","fc","mg","mt","mc","jib","drv"];
@@ -1482,7 +1486,7 @@ async function dockAtPort(){if(!S||S.done||S.docking)return;S.docking=true;const
   A.mode="holding";A.depth=Math.max(2,Math.round(depthFm(sh.x,sh.y)));A.drag=0;A.dragWarned=false;A.t0=S.t;
   S.docked=k;S.arrivedNear=k;S.fishing=false;if(S.est){S.est.x=sh.x;S.est.y=sh.y;}
   await new Promise(r=>setTimeout(r,500));await fadeTo(0,900);
-  S.docking=false;if(mission)$("ovEnd").hidden=false;else{modalOpen=false;say(`Made fast alongside the quay at ${P.name}. Sails furled and the anchor down.`,{});}
+  S.docking=false;if(mission)$("ovEnd").hidden=false;else{modalOpen=false;stopSkip();say(`Made fast alongside the quay at ${P.name}. Sails furled and the anchor down.`,{});}
   updateUI(true);}
 function dropAnchor(){if(!S||S.done)return;const sh=S.ship,A=sh.anch;
   if(A.mode==="holding"||A.mode==="trailing"){if(A.low!=null&&S.t-A.low<20/3600){say("The anchor is still going down. Wait for it to bite.",{log:false});return;}S.docked=null;A.mode="weighing";A.t0=S.t;say("Cast off! Heave round, lads, weighing anchor.",{});updateUI();return;}
@@ -5073,7 +5077,7 @@ function frame(now){
   const dtR=Math.min(.1,(now-lastFrame)/1000);lastFrame=now;
   if(skipLeft>0){
     if(!S||S.done||modalOpen||paused){stopSkip();}
-    else{for(let i=0;i<60&&skipLeft>0;i++){const d=Math.min(skipLeft,SKIPSTEP);step(d);skipLeft-=d;if(paused||S.done||modalOpen){stopSkip();break;}}
+    else{for(let i=0;i<60&&skipLeft>0;i++){const d=Math.min(skipLeft,SKIPSTEP);step(d);if(skipLeft>0)skipLeft-=d;if(paused||S.done||modalOpen){stopSkip();break;}}
       if(skipLeft<=1e-9)stopSkip();}
     acc=0;
   }else if(S&&!paused&&!modalOpen&&!S.done){
@@ -6868,6 +6872,10 @@ function jump(hh,month,day){const lh=localHours(S,S.t),di=dayIndex(S);let d;
   if(month==null)d=hh-(((lh%24)+24)%24);else{const tgt=Math.round((Date.UTC(2001,month,day)-Date.UTC(2001,2,10))/864e5);d=(tgt*24+hh)-lh;if(tgt!==di)while(d<0)d+=365*24;}
   if(month==null&&d<0)d+=24; // a bare time of day carries on to the next day
   if(Math.abs(d)<1e-6)return;
+  if(d>0&&d<=48&&!modalOpen&&skipLeft<=0&&!fadeWait){ // a short jump forward runs the whole simulation in the dark, then fades back in
+    fadeWait=true;$("fadeBlack").classList.add("on");
+    setTimeout(()=>{startSkip(d);if(skipLeft<=0){fadeWait=false;$("fadeBlack").classList.remove("on");}else skipEndCb=()=>{if(S)draw();};},650);
+    return;}
   S.t+=d;
   for(const k of["crNext","assistT","spotT","strikeUntil","lastFixT","leaveT","rumT","balT","breakersWarned"])if(S[k]>S.t)S[k]=S.t;
   S.squall=null;S.squallWarned=false;S.nextSquall=S.t+3+Math.random()*5;S.lastHalfHour=Math.floor(localHours(S,S.t)*2);S.lastHour=Math.floor(S.t);
