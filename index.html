@@ -1340,9 +1340,6 @@ function step(dt){
     const A=sh.anch;
     if(A.mode==="holding"||A.mode==="weighing"){sh.v+=(0-sh.v)*(1-Math.exp(-dt/.003));
       if(A.mode==="holding"){if(!s.docked){sh.heading=norm(sh.heading+angDiff(sh.heading,w.from)*(1-Math.exp(-dt/.015)));sh.ordered=sh.heading;sh.wander=0;sh.turnDir=0;}
-        else{ // alongside: lie bow to the harbour exit, unless that is head to wind; then the nearest heading clear of the no-go zone on the exit's side, so she can fill and go the moment the anchor is up
-          const f=PF[s.docked];if(f){const ex=norm(f.d*R2D),lim=NOGO+10,off=angDiff(w.from,ex),tgt=Math.abs(off)>=lim?ex:norm(w.from+(off<0?-lim:lim));
-            sh.heading=norm(sh.heading+angDiff(sh.heading,tgt)*(1-Math.exp(-dt/.02)));sh.ordered=sh.heading;sh.wander=0;sh.turnDir=0;}}
         A.drag=!s.docked&&w.kn>30?(w.kn-30)*.12:0;if(A.drag>0&&!A.dragWarned){A.dragWarned=true;say("The anchor is dragging in this wind! Veer more cable or get under way.",{slow:true});}if(A.drag===0)A.dragWarned=false;}
       if(A.mode==="weighing"&&s.t>=A.t0+60/3600){A.mode="up";say("Anchor's aweigh! The hands cat and fish it.",{});updateUI(true);}}
     else if(A.mode==="trailing")sh.v+=(sh.v*.4-sh.v)*(1-Math.exp(-dt/.004)); }
