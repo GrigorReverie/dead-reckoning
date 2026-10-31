@@ -5136,11 +5136,11 @@ function showSkipPreview(){const h=skipPrev.h,t=projTrack(h);let txt;
   $("skTxt").textContent=txt;$("skipBar").hidden=false;}
 function previewSkip(h){if(!S||S.done||modalOpen||skipBusy||fadeWait)return;
   if(skipPrev){skipPrev.h=h;showSkipPreview();return;}
-  skipPrev={h,was3d:false,wasPaused:paused};setPaused(true);showSkipPreview();}
-function endSkipPreview(){const sp=skipPrev;skipPrev=null;$("skipBar").hidden=true;if(sp&&sp.was3d)setMain(true);return sp;}
+  skipPrev={h,was3d:main3d,wasPaused:paused};setPaused(true);if(main3d)setMain(false);showSkipPreview();}
+function endSkipPreview(stay){const sp=skipPrev;skipPrev=null;$("skipBar").hidden=true;if(sp&&sp.was3d&&!stay)setMain(true);return sp;}
 function cancelSkipPreview(){const sp=endSkipPreview();if(sp)setPaused(sp.wasPaused);}
 function confirmSkip(){if(!skipPrev)return;const h=skipPrev.h,fb=$("fadeBlack");fadeWait=true;fb.classList.add("on");
-  setTimeout(()=>{endSkipPreview();startSkip(h);if(!skipBusy){fadeWait=false;fb.classList.remove("on");}},750);}
+  setTimeout(()=>{endSkipPreview(true);startSkip(h);if(!skipBusy){fadeWait=false;fb.classList.remove("on");}},750);}
 function drawRoute(){const R=S.route;if(!R.pts.length)return;const P=dPos(),L=routeLegs();
   ctx.save();ctx.strokeStyle="#a8452c";ctx.fillStyle="#a8452c";ctx.lineWidth=.9;ctx.setLineDash([5,4]);ctx.beginPath();ctx.moveTo(sx(P.x),sy(P.y));R.pts.forEach(q=>ctx.lineTo(sx(q.x),sy(q.y)));ctx.stroke();ctx.setLineDash([]);
   ctx.font="9px 'IBM Plex Mono',monospace";ctx.lineWidth=.9;let a={x:P.x,y:P.y};
