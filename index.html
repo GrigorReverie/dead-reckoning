@@ -1340,6 +1340,10 @@ function step(dt){
     const A=sh.anch;
     if(A.mode==="holding"||A.mode==="weighing"){sh.v+=(0-sh.v)*(1-Math.exp(-dt/.003));
       if(A.mode==="holding"){if(!s.docked){sh.heading=norm(sh.heading+angDiff(sh.heading,w.from)*(1-Math.exp(-dt/.015)));sh.ordered=sh.heading;sh.wander=0;sh.turnDir=0;}
+        else{ // alongside: lie with the town to starboard or to port, whichever points her further from the wind, so she can fill and go on weighing anchor (no missed stays)
+          const f=PF[s.docked];if(f&&f.dock){const hA=f.dock.hdg,hB=norm(hA+180),oA=Math.abs(angDiff(w.from,hA)),oB=Math.abs(angDiff(w.from,hB));
+            if(s.dockFlip==null)s.dockFlip=oB>oA;else if(s.dockFlip&&oA>oB+20)s.dockFlip=false;else if(!s.dockFlip&&oB>oA+20)s.dockFlip=true;
+            sh.heading=norm(sh.heading+angDiff(sh.heading,s.dockFlip?hB:hA)*(1-Math.exp(-dt/.02)));sh.ordered=sh.heading;sh.wander=0;sh.turnDir=0;}}
         A.drag=!s.docked&&w.kn>30?(w.kn-30)*.12:0;if(A.drag>0&&!A.dragWarned){A.dragWarned=true;say("The anchor is dragging in this wind! Veer more cable or get under way.",{slow:true});}if(A.drag===0)A.dragWarned=false;}
       if(A.mode==="weighing"&&s.t>=A.t0+60/3600){A.mode="up";say("Anchor's aweigh! The hands cat and fish it.",{});updateUI(true);}}
     else if(A.mode==="trailing")sh.v+=(sh.v*.4-sh.v)*(1-Math.exp(-dt/.004)); }
@@ -1468,12 +1472,12 @@ async function dockAtPort(){if(!S||S.done||S.docking)return;S.docking=true;const
   {const f=PF[k];if(f&&f.dock){sh.x=f.dock.x;sh.y=f.dock.y;sh.heading=f.dock.hdg;}} // alongside the quay, her starboard side to the town
   sh.ordered=sh.heading;sh.wander=0;sh.turnDir=0;sh.q=[];for(const id of SAILIDS){sh.sls[id]=0;sh.sa[id]=0;}sh.sail=0;sh.sl=planOf(0);if(sh.row)sh.row.on=false;
   A.mode="holding";A.depth=Math.max(2,Math.round(depthFm(sh.x,sh.y)));A.drag=0;A.dragWarned=false;A.t0=S.t;
-  S.docked=k;S.arrivedNear=k;S.fishing=false;if(S.est){S.est.x=sh.x;S.est.y=sh.y;}
+  S.dockFlip=null;S.docked=k;S.arrivedNear=k;S.fishing=false;if(S.est){S.est.x=sh.x;S.est.y=sh.y;}
   await new Promise(r=>setTimeout(r,500));await fadeTo(0,900);
   S.docking=false;if(mission)$("ovEnd").hidden=false;else{modalOpen=false;say(`Made fast alongside the quay at ${P.name}. Sails furled and the anchor down.`,{});}
   updateUI(true);}
 function dropAnchor(){if(!S||S.done)return;const sh=S.ship,A=sh.anch;
-  if(A.mode==="holding"||A.mode==="trailing"){if(A.low!=null&&S.t-A.low<20/3600){say("The anchor is still going down. Wait for it to bite.",{log:false});return;}S.docked=null;A.mode="weighing";A.t0=S.t;say("Cast off! Heave round, lads, weighing anchor.",{});updateUI();return;}
+  if(A.mode==="holding"||A.mode==="trailing"){if(A.low!=null&&S.t-A.low<20/3600){say("The anchor is still going down. Wait for it to bite.",{log:false});return;}S.dockFlip=null;S.docked=null;A.mode="weighing";A.t0=S.t;say("Cast off! Heave round, lads, weighing anchor.",{});updateUI();return;}
   if(A.mode==="weighing")return;
   if(sh.v>3.5){say("She is making too much way to let go the anchor. Shorten sail and slow to under 3 knots first.",{});return;}
   const d=depthFm(sh.x,sh.y);A.depth=d;A.t0=S.t;A.low=S.t;A.drag=0;A.dragWarned=false;
@@ -5559,7 +5563,7 @@ function careerInit(s,k){s.career={t0:s.t,start:k,owned:[CAREER_START],noted:nul
 function startDocked(s,k){mkInit(s);
   const P=PORTS[k],sh=s.ship,A=sh.anch;{const f=PF[k];if(f&&f.dock){sh.x=f.dock.x;sh.y=f.dock.y;sh.heading=f.dock.hdg;}else{sh.x=P.x;sh.y=P.y;}}
   sh.ordered=sh.heading;sh.v=0;for(const id of SAILIDS){sh.sls[id]=0;sh.sa[id]=0;}sh.sail=0;sh.sl=planOf(0);
-  A.mode="holding";A.depth=Math.max(2,Math.round(depthFm(sh.x,sh.y)));A.drag=0;A.dragWarned=false;A.t0=s.t;s.docked=k;s.arrivedNear=k;if(s.est){s.est.x=sh.x;s.est.y=sh.y;}
+  A.mode="holding";A.depth=Math.max(2,Math.round(depthFm(sh.x,sh.y)));A.drag=0;A.dragWarned=false;A.t0=s.t;s.dockFlip=null;s.docked=k;s.arrivedNear=k;if(s.est){s.est.x=sh.x;s.est.y=sh.y;}
   s.track=[{x:sh.x,y:sh.y}];s.estTrack=[{x:sh.x,y:sh.y}];}
 const SHIPKEYS=["ship","crew","shipId","stores","hull","leak","water","canvas","spares","jobs","pumpMode","pumping","pumpMen","eff","fat","strain","squall","nextSquall","squallWarned","callAll","allHands","ration","fishing"];
 function buyShip(id){const s=S;if(!s||!s.career||s.done)return;const def=SHIPDEFS[id],cost=priceOf_(id),back=shipTradeIn(s),net=s.cheatShips?0:cost-back,site=atPort(s);
