@@ -5084,6 +5084,28 @@ return{DEFS,GROUPS,PRESETS,NEUTRAL,get:()=>st,set,usePreset,render,isActive:()=>
 })();
 window.DRStyle=DRStyle;
 
+/* ---------- published style: the Style Guide Board hands over a "PUBLISH STYLE {...}" code. It is stored below, so every device picks it up once on its next open; the same code can also be pasted in Menu > Preview > Style to try it on one device. ---------- */
+const DR_PUBLISHED_STYLE=null; // {v:1,name,look:{...DR LOOK...},style:{amt,p:{...}},css:"..."} or null
+window.DRPub=(function(){
+ const KEY="drPubStyle.v1";
+ function clean(t){t=String(t||"").slice(0,8000);return t.replace(/@import[^;]*;?/gi,"").replace(/<\/?style[^>]*>/gi,"").replace(/expression\s*\(/gi,"x(").replace(/javascript:/gi,"").replace(/behavior\s*:/gi,"x:").replace(/url\(\s*(['"]?)(?!data:image\/(svg\+xml|png|webp|jpeg|gif))[^)]*\)/gi,"none");}
+ function setCss(t){let e=document.getElementById("drPubCss");if(!e){e=document.createElement("style");e.id="drPubCss";document.head.appendChild(e);}e.textContent=clean(t);}
+ function apply(o,keep){
+  if(!o||typeof o!=="object")return false;
+  if(o.look&&typeof o.look==="object")DRLook.set(o.look);
+  if(o.style&&typeof o.style==="object"){DRStyle.usePreset("hashed");DRStyle.set({preset:"custom",amt:o.style.amt==null?1:o.style.amt,p:o.style.p||{}});}
+  setCss(o.css||"");
+  if(keep!==false){try{localStorage.setItem(KEY+".css",clean(o.css||""));}catch(e){}}
+  return true;}
+ const P=DR_PUBLISHED_STYLE;
+ if(P){let id="";try{id=JSON.stringify(P);}catch(e){}let h=0;for(let i=0;i<id.length;i++)h=(h*31+id.charCodeAt(i))|0;
+  let seen=null;try{seen=localStorage.getItem(KEY);}catch(e){}
+  if(seen!==String(h)){apply(P,false);try{localStorage.setItem(KEY,String(h));localStorage.setItem(KEY+".css",clean(P.css||""));}catch(e){}}
+  else setCss(clean(P.css||""));}
+ else{try{const c=localStorage.getItem(KEY+".css");if(c)setCss(c);}catch(e){}}
+ return{apply,parse(t){try{const o=JSON.parse(String(t).trim().replace(/^(PUBLISH STYLE|PUSH PREVIEW STYLE SETTINGS|STYLE SETTINGS|DR LOOK)\s*/i,""));return o;}catch(e){return null;}}};
+})();
+
 /* ---------- automatic quality: when the frame rate drops, the 3D view draws islands and trees less far and a little less sharp, and puts them back once it runs smoothly ---------- */
 const QDIST=[75,55,40,30],QVEG=[9,6,4,3],QPR=[1,.85,.72,.6]; // island draw distance (nm), trees from shore (nm), share of full sharpness
 const AQ={ms:16.7,t:0,good:0};
@@ -6954,7 +6976,7 @@ function wire(){
   body.querySelectorAll("[data-sk]").forEach(i=>i.oninput=()=>{DRStyle.set({preset:"custom",p:{[i.dataset.sk]:+i.value}});i.nextElementSibling.textContent=+(+i.value).toFixed(3);});
   body.querySelectorAll("details.pvg").forEach(d=>d.ontoggle=()=>{if(d.open)PV.stOpen=+d.dataset.sg;});
   if($$("pvStC"))$$("pvStC").onclick=()=>{const s_=DRStyle.get(),p={};for(const d of DRStyle.DEFS)if(Math.abs((s_.p[d[0]]??d[5])-d[5])>1e-4)p[d[0]]=+(+s_.p[d[0]]).toFixed(3);const t="STYLE SETTINGS "+JSON.stringify({amt:s_.amt,p});(navigator.clipboard&&navigator.clipboard.writeText?navigator.clipboard.writeText(t):Promise.reject()).then(()=>{$$("pvStM2").textContent="Copied.";},()=>{$$("pvStM2").textContent=t;});};
-  if($$("pvStB"))$$("pvStB").onclick=()=>{try{const o=JSON.parse($$("pvStP").value.trim().replace(/^(PUSH PREVIEW\s*)?STYLE SETTINGS\s*/,"")),g=o.game||o;DRStyle.set({preset:"custom",amt:g.amt==null?1:g.amt,p:g.p||{}});$$("pvStM2").textContent="Style applied.";draw();}catch(e){$$("pvStM2").textContent="That text is not a Lab style. Copy it again from the Lab.";}};
+  if($$("pvStB"))$$("pvStB").onclick=()=>{try{const o0=DRPub.parse($$("pvStP").value);if(o0&&(o0.look||o0.css||o0.v)&&DRPub.apply(o0)){$$("pvStM2").textContent="Published style applied on this device.";draw();return;}const o=JSON.parse($$("pvStP").value.trim().replace(/^(PUSH PREVIEW\s*)?STYLE SETTINGS\s*/,"")),g=o.game||o;DRStyle.set({preset:"custom",amt:g.amt==null?1:g.amt,p:g.p||{}});$$("pvStM2").textContent="Style applied.";draw();}catch(e){$$("pvStM2").textContent="That text is not a Lab style. Copy it again from the Lab.";}};
   if($$("pvStR"))$$("pvStR").onclick=()=>{DRStyle.set({preset:"hashed",amt:1});DRStyle.usePreset("hashed");draw();};
   if($$("pvStA"))on("pvStA",()=>{DRStyle.set({amt:+$$("pvStA").value});$$("pvStAo").textContent=Math.round($$("pvStA").value*100)+"%";});
 }
