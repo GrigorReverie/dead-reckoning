@@ -579,6 +579,7 @@ body.fs3d #fsBar{left:max(12px,env(safe-area-inset-left,0px));bottom:max(12px,en
             <div class="setrows">
               <div><span class="k">Yards</span><span class="pips"><i class="yd" id="brOrdPip"></i></span><span id="brOrd">—</span></div>
             </div>
+            <div id="dockHdg" hidden style="display:none;align-items:center;gap:6px;font-size:12px"><span>Heading <b id="dhTxt" class="mono"></b></span><input type="range" id="dhSl" min="0" max="355" step="5" style="flex:1;min-width:80px" aria-label="Heading alongside the quay"></div>
             <div class="helmbtns">
               <button class="btn sm" id="cL5" title="Port 5° (A)">◄ 5°</button>
               
@@ -1305,13 +1306,28 @@ function step(dt){
   sh.wander+=-sh.wander*dt*1.5+gauss()*sig*Math.sqrt(dt)*1.6;
   const target=norm(sh.ordered+sh.wander+sh.bias);
   const rw=sh.row&&sh.row.on?sh.row:null;
-  const rate=(8000+800*sh.v+(rw?(rw.pivot?9000:2500):0))*dt*SHIP.turnK; // degrees per hour: the brig tacks in about half a minute, a boat spins round, a first rate takes her time
-  let diff=angDiff(sh.heading,target);
-  if(sh.turnDir){ // forced direction for tack/wear
+  { // in irons: head to wind and stopped, the helm has no bite; only a backed headsail pays her off
+    const th0=Math.abs(angDiff(sh.heading,w.from)),am=sh.anch.mode;
+    if(!s.irons&&th0<NOGO&&sh.v<.5&&!rw&&!s.docked&&(am==="up"||am==="trailing")){
+      s.irons=true;sh.jibBack=0;
+      if(sh.turnDir||Math.abs(angDiff(sh.heading,target))>4){s.missed++;sh.turnDir=0;say("Missed stays! She hung in the wind and is in irons, drifting astern. Back the jib to push her bow off.",{slow:true});}
+      else say("In irons! She has lost her way head to wind and the helm has no bite. Back the jib to push her bow off.",{slow:true});
+    }
+    if(s.irons&&(th0>=NOGO||rw||am==="holding"||am==="weighing"||s.docked)){s.irons=false;}
+    if(s.docked){sh.wander=0;sh.turnDir=0;}
+  }
+  const rate=(s.docked?6000:8000+800*sh.v+(rw?(rw.pivot?9000:2500):0))*dt*SHIP.turnK; // degrees per hour: the brig tacks in about half a minute, a boat spins round, a first rate takes her time
+  let diff=angDiff(sh.heading,s.docked?sh.ordered:target);
+  if(s.irons){diff=0;sh.turnDir=0;}
+  else if(sh.turnDir){ // forced direction for tack/wear
     let d=sh.turnDir>0?norm(target-sh.heading):-norm(sh.heading-target);
     if(Math.abs(d)<6){sh.turnDir=0;}else diff=d;
   }
   sh.heading=norm(sh.heading+clamp(diff,-rate,rate));
+  if(sh.jibBack){ // a headsail hauled aback: the wind on its wrong side pushes the bow round, harder in more wind and with more headsail
+    const hs=SAILIDS.filter(k=>k==="jib"||/^h\d/.test(k)),sz=hs.length?hs.reduce((a,k)=>a+sh.sls[k],0)/hs.length:0,th1=Math.abs(angDiff(sh.heading,w.from));
+    if(!s.irons&&th1>=NOGO+12)sh.jibBack=0;else if(sz>.05){sh.heading=norm(sh.heading+sh.jibBack*Math.min(9000,600*w.kn*sz*SHIP.turnK)*dt);sh.ordered=sh.heading;sh.wander=0;}
+  }
   // point of sail
   const rel=angDiff(sh.heading,w.from); // wind relative to bow, + = starboard
   const th=Math.abs(rel);
@@ -1328,7 +1344,7 @@ function step(dt){
   const abackNow=alpha<-6&&Math.abs(sh.brace)>4;
   s.trim=abackNow?0:Math.max(.05,Math.cos(Math.min(terr*1.6,90)*D2R));
   if(abackNow&&!s.aback&&!inIrons)say(SHIP.fa?"Taken aback! The wind is on the wrong side of the sails. Let fly the sheets and bring the booms across.":"Taken aback! The wind is on the wrong side of the sails. Brace the yards round.",{slow:true});
-  s.aback=abackNow;
+  s.aback=abackNow;if(sh.jibBack&&!s.irons)s.trim*=.5;
   let raw=SHIP.speedK*polar(th)*w.kn*sail.eff*(.5+.5*sh.rig)*(.7+.3*s.canvas)*(1-.3*clamp(s.water/80,0,1))*cargoSpeedF(s)*(1-.03*Math.max(0,bf-5))*s.trim*(1-.1*clamp((s.wx.H-1.8)/3.2,0,1)); // a heavy sea slows her
   if(sh.sailSet<.5)raw=th>100?w.kn*.12:0;
   const vRow=rowStep(s,dt,bf);if(vRow>0){const r0=Math.max(0,raw);raw=Math.max(r0,vRow)+.25*Math.min(r0,vRow);} // oars help little once the sails drive her faster than the men can pull
@@ -1343,11 +1359,6 @@ function step(dt){
         A.drag=!s.docked&&w.kn>30?(w.kn-30)*.12:0;if(A.drag>0&&!A.dragWarned){A.dragWarned=true;say("The anchor is dragging in this wind! Veer more cable or get under way.",{slow:true});}if(A.drag===0)A.dragWarned=false;}
       if(A.mode==="weighing"&&s.t>=A.t0+60/3600){A.mode="up";say("Anchor's aweigh! The hands cat and fish it.",{});updateUI(true);}}
     else if(A.mode==="trailing")sh.v+=(sh.v*.4-sh.v)*(1-Math.exp(-dt/.004)); }
-  if(inIrons&&sh.v<.5&&!rw&&Math.abs(angDiff(sh.heading,target))>4){
-    // missed stays: she pays off on the old tack
-    s.missed++;const side=sh.lastSide||1;sh.heading=norm(w.from-side*(NOGO+5));sh.ordered=norm(sh.heading);sh.turnDir=0;sh.wander=0;sh.brace=sh.braceCmd=optBrace(side*(NOGO+5));
-    say("Missed stays! She hung in the wind and fell off on the old tack. Build speed and try again, or wear ship.",{slow:true});
-  }
   if(!inIrons)sh.lastSide=rel>0?1:-1;
   // strain
   const over=w.kn-sail.safe;
@@ -1361,7 +1372,8 @@ function step(dt){
   const cu=anchored?null:currentAt(sh.x,sh.y);
   const vx=anchored?dr*Math.sin(dwn):sh.v*Math.sin(track*D2R)+cu.drift*Math.sin(cu.set*D2R);
   const vy=anchored?dr*Math.cos(dwn):sh.v*Math.cos(track*D2R)+cu.drift*Math.cos(cu.set*D2R);
-  sh.x+=vx*dt;sh.y+=vy*dt;s.distance+=sh.v*dt;s.maxV=Math.max(s.maxV,sh.v);
+  const sd=s.irons?clamp(.15+.02*w.kn,.15,.6):0; // in irons she gathers sternway
+  sh.x+=(vx-sd*Math.sin(sh.heading*D2R))*dt;sh.y+=(vy-sd*Math.cos(sh.heading*D2R))*dt;s.distance+=sh.v*dt;s.maxV=Math.max(s.maxV,sh.v);
   // reckoning: ordered course + logged speed only
   s.est.x+=s.estSpeed*Math.sin(sh.ordered*D2R)*dt;s.est.y+=s.estSpeed*Math.cos(sh.ordered*D2R)*dt;
   const g=(.06*s.estSpeed+.45)*dt;s.est.sx+=g;s.est.sy+=g;
@@ -1480,7 +1492,15 @@ function dropAnchor(){if(!S||S.done)return;const sh=S.ship,A=sh.anch;
   if(d<=30){A.mode="holding";say(`Let go! The anchor bites in ${d} fathoms and she rides to her cable.`,{});}
   else{A.mode="trailing";say(`Let go! No bottom: ${d} fathoms is more than the cable. The anchor hangs below as a drag and only slows her.`,{});}
   updateUI();}
-function setCourse(d){if(!S||S.done)return;if(S.ship.anch.mode==="holding"||S.ship.anch.mode==="weighing"){say("She is at anchor. Weigh anchor before you steer.",{log:false});return;}S.ship.ordered=norm(Math.round(d));S.ship.turnDir=0;updateUI();}
+function setCourse(d){if(!S||S.done)return;if(S.docked){S.ship.ordered=norm(Math.round(d));S.ship.turnDir=0;updateUI(true);return;} // alongside: the captain warps her round to any heading he likes
+  if(S.ship.anch.mode==="holding"||S.ship.anch.mode==="weighing"){say("She is at anchor. Weigh anchor before you steer.",{log:false});return;}
+  if(S.irons){if(S.t-(S.ironsHintT||-1)>.02){S.ironsHintT=S.t;say("She is in irons and the helm has no bite. Back the jib to push her bow off the wind.",{log:false});}return;}
+  S.ship.ordered=norm(Math.round(d));S.ship.turnDir=0;updateUI();}
+function backJib(side){if(!S||S.done)return;const sh=S.ship;
+  if(side){const hs=SAILIDS.filter(k=>k==="jib"||/^h\d/.test(k));if(!hs.length||hs.reduce((a,k)=>a+sh.sls[k],0)/hs.length<=.05){say("No headsail is set to back. Make sail on the jib first.",{log:false});return;}
+    if(sh.jibBack!==side)say(`Jib hauled aback: the wind on its wrong side pushes her bow to ${side>0?"starboard":"port"}.`,{log:false});sh.jibBack=side;}
+  else if(sh.jibBack){sh.jibBack=0;say("Let go the jib sheets. The headsail fills on the new side.",{log:false});}
+  updateUI(true);}
 function turn(by){if(!S)return;setCourse(S.ship.ordered+by);}
 // ---- oars: sweeps for a boat, a galley-built xebec or a small brig in a calm ----
 // strokes from backing water to a flat-out sprint: speed as a share of her best pull, strokes a minute, and how fast it spends the rowers' wind (per hour)
@@ -1511,7 +1531,7 @@ function rowStep(s,dt,bf){const sh=s.ship,r=sh.row,O=SHIP.oars;if(!r||!O)return 
   const sea=1-.35*clamp((s.wx.H-.5)/2,0,1);
   return O.kn*st.k*(.3+.7*Math.sqrt(r.wind))*Math.sqrt(h/need)*sea*(r.pivot?.25:1);}
 function tackOrWear(kind){if(S&&S.ship.anch.mode==='holding'){say("She is at anchor. Weigh anchor first.",{log:false});return;}
-  if(!S||S.done)return;const sh=S.ship;const w=windAt(S,sh.x,sh.y,S.t);
+  if(!S||S.done)return;if(S.irons){setCourse(S.ship.ordered);return;}const sh=S.ship;const w=windAt(S,sh.x,sh.y,S.t);
   const rel=angDiff(sh.heading,w.from);const th=Math.abs(rel);
   const newH=norm(w.from+(rel>0?1:-1)*Math.max(th,NOGO+7));
   sh.ordered=Math.round(newH);
@@ -2292,6 +2312,11 @@ function updateUI(force){
   $("windTxt").innerHTML=`From <b>${pointName(w.from)}</b> · Force ${bf}, ${BNAME[bf].toLowerCase()}${S.mode==="trial"?` <span class="mono muted">(${w.kn.toFixed(0)} kn)</span>`:""}${S.squall?' · <span class="warn">squall</span>':""}`;
   const rel=angDiff(sh.heading,w.from),th=Math.abs(rel);
   const pos=th<NOGO?"In irons":th<80?"Close-hauled":th<100?"Beam reach":th<160?"Broad reach":"Running";
+  {const dh=$("dockHdg"),on=!!S.docked;dh.hidden=!on;dh.style.display=on?"flex":"none";if(on){$("dhTxt").textContent=`${Math.round(sh.ordered)}°`;if(document.activeElement!==$("dhSl"))$("dhSl").value=Math.round(sh.ordered/5)*5%360;}
+   const ib=$("ironsBox"),am=sh.anch.mode,show=!S.docked&&(am==="up"||am==="trailing")&&(S.irons||sh.jibBack||(th<NOGO+6&&sh.v<1.5));ib.hidden=!show;
+   if(show){$("irTitle").textContent=S.irons?"In irons":sh.jibBack?"Jib aback":"Close to the wind";$("irFill").style.width=Math.round(clamp(th/NOGO,0,1)*100)+"%";
+     $("irPort").style.fontWeight=sh.jibBack<0?"700":"";$("irStb").style.fontWeight=sh.jibBack>0?"700":"";$("irRel").hidden=!sh.jibBack;
+     if(!S.irons&&sh.jibBack&&th>=NOGO)$("irTitle").textContent="Clear: release the jib";}}
   $("posail").textContent=`${pos} · wind ${rel>0?"starboard":"port"}`;$("posail").className=th<NOGO?"warn":"";
   $("wxTxt").textContent=wxText(S,w);{const g=glassText(S);$("glassTxt").innerHTML=g.fall?`<span class="warn">${g.txt}</span>`:g.txt;}$("seaTxt").textContent=seaText(S);drawBaro();
   $("ordTxt").textContent=`${Math.round(sh.ordered)}° ${pointName(sh.ordered)}`;
@@ -6438,6 +6463,14 @@ $("bSkip").onclick=()=>previewSkip(skipH);$("skMinus").onclick=()=>stepSkipH(-1)
   for(const b of da.querySelectorAll(".mtabs button"))b.addEventListener("click",()=>{da.dataset.tab=b.dataset.tab;for(const o of da.querySelectorAll(".mtabs button"))o.setAttribute("aria-pressed",String(o===b));}); }
 $("t1").onclick=()=>{setPaused(false);setSpeed(1);};$("tMinus").onclick=()=>stepSpeed(-1);$("tPlus").onclick=()=>stepSpeed(1);
 $("cL5").onclick=()=>turn(-5);$("cR5").onclick=()=>turn(5);
+$("dhSl").oninput=e=>setCourse(+e.target.value);
+{ // corner box: progress towards falling off, and the headsail controls
+  const bx=document.createElement("div");bx.id="ironsBox";bx.hidden=true;
+  bx.innerHTML='<b id="irTitle">In irons</b><div class="irbar"><i id="irFill"></i></div><div class="irbtns"><button type="button" class="btn sm" id="irPort" title="Back the jib: push the bow to port">◄ Jib</button><button type="button" class="btn sm" id="irRel" title="Release the jib">Release</button><button type="button" class="btn sm" id="irStb" title="Back the jib: push the bow to starboard">Jib ►</button></div>';
+  document.body.append(bx);
+  const st=document.createElement("style");st.textContent="#ironsBox{position:fixed;left:max(12px,env(safe-area-inset-left,0px));top:96px;z-index:35;width:150px;padding:6px 8px;background:rgba(246,238,217,.96);border:1px solid var(--ink);border-radius:3px;box-shadow:0 4px 14px rgba(20,14,10,.3);font-size:12px;color:var(--ink)}#ironsBox[hidden]{display:none}#ironsBox .irbar{height:6px;margin:5px 0;background:rgba(0,0,0,.15);border-radius:3px;overflow:hidden}#ironsBox .irbar i{display:block;height:100%;width:0;background:#a8452c}#ironsBox .irbtns{display:flex;gap:4px;justify-content:space-between}#ironsBox .btn.sm{padding:2px 5px;min-height:24px;font-size:11px}";document.head.append(st);
+  $("irPort").onclick=()=>backJib(-1);$("irStb").onclick=()=>backJib(1);$("irRel").onclick=()=>backJib(0);
+}
 $("sUp").onclick=()=>setSail(S.ship.sail+1);
 { const sd=$("sailDiag"),pick=$("sailPick");
   sd.addEventListener("click",e=>{const p=e.target.closest("polygon[data-s]");if(p)selectSail(p.dataset.s);});
