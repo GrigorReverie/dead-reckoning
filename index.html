@@ -70,7 +70,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-
 .cbtop{align-self:stretch;display:flex;justify-content:space-between;padding:0 calc(var(--baroW) + var(--gp));margin-bottom:-14px;position:relative;z-index:1;pointer-events:none}.cbtop button{pointer-events:auto;position:relative;top:0}
 .cbtop button{border:0;background:none;color:var(--ink);padding:0 4px;font-size:13px;line-height:1;cursor:pointer;touch-action:manipulation;min-width:28px;height:26px}.cbtop button:hover{color:var(--red,#a8452c)}
 .compassbox.collapsed .cbtop{display:none}.compassbox .cbscope{left:auto;right:4px}.compassbox.collapsed .cbscope{display:none}.compassbox .cbscope[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
-@media (max-width:860px){.cbtog{display:none!important}.cbtop{margin-bottom:-26px}}
+@media (min-width:0px){.cbtog{display:none!important}.cbtop{margin-bottom:-26px}}
 .winf{font-size:12px;white-space:nowrap}.winf b{font-weight:600}
 .cbfoot{flex-wrap:wrap;justify-content:center!important;gap:8px 10px}.cbfoot:has(#logbox:not([hidden])){flex-wrap:nowrap!important;gap:4px!important;column-gap:4px!important}.cbfoot:has(#logbox:not([hidden])) .btn.ico{width:28px!important;height:28px!important;flex:0 1 auto}.cbfoot #logbox{flex:0 1 auto!important;gap:4px!important;padding:0!important}.cbfoot #logbox #glass{width:14px!important;height:22px!important}.cbfoot #logbox .mono{font-size:11px!important}.cbfoot #bNip{width:30px!important;height:30px!important}.cbfoot #bNip svg{width:18px!important;height:18px!important}
 .cbfoot-l{display:flex;gap:4px;flex:none}.cbfoot .ws{flex:1;min-width:0;text-align:center}.cbfoot .btn.ico{flex:none;width:var(--stW);height:var(--stW);min-height:0;padding:0;display:flex;align-items:center;justify-content:center}
@@ -102,7 +102,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-
 .ptbl h4{font-family:var(--f-display);font-weight:400;font-size:13.5px;margin:2px 0;border-bottom:1px dotted var(--rule)}.ptbl div{display:flex;justify-content:space-between;gap:8px;font-family:var(--f-data);font-size:11.5px}.ptbl em{color:var(--ink-soft);font-style:normal}.ptbl ul{margin:2px 0 0;padding-left:16px;font-size:12.5px;line-height:1.4}.pnote{margin:0;font-size:11.5px;color:var(--ink-soft)}
 .pane.small .portcard{right:auto;left:6px;top:36px;width:calc(100% - 12px);font-size:11px;max-height:calc(100% - 42px)}
 .card.portplan{max-width:1040px}.ppgrid{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:16px}.ppgrid canvas{width:100%;display:block;border:1px solid var(--ink)}.card.portplan h3{margin:0}.card.portplan .pchead small{font-family:var(--f-data);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-soft)}
-@media (max-width:860px){.ppgrid{grid-template-columns:minmax(0,1fr)}.portcard{left:8px;right:8px;top:70px;width:auto;max-height:40%}}
+@media (min-width:0px){.ppgrid{grid-template-columns:minmax(0,1fr)}.portcard{left:8px;right:8px;top:70px;width:auto;max-height:40%}}
 .routelegs{display:flex;flex-direction:column;gap:2px;font-size:12.5px;font-family:var(--f-data)}
 .routelegs div{display:flex;justify-content:space-between;gap:8px}
 #rPlot[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
@@ -171,9 +171,9 @@ body.fs3d #fsBar{left:max(12px,env(safe-area-inset-left,0px));bottom:max(12px,en
 .dock-all{width:100%;margin:0}
 .dockhead b.dh{cursor:pointer;display:inline-flex;align-items:center;gap:8px}
 .side .dock-all{background:var(--paper);backdrop-filter:none;border:0;border-bottom:1px solid var(--rule);box-shadow:none;border-radius:0;padding:10px 16px 12px;flex:none}
-@media (min-width:861px){.main.sidehid{grid-template-columns:minmax(0,1fr)}.main.sidehid .side{position:absolute;right:24px;bottom:30px;z-index:30;width:auto;background:none;border:0;overflow:visible}.main.sidehid .side .dock-all{background:rgba(246,238,217,.96);border:1px solid var(--ink);border-radius:3px;box-shadow:0 4px 14px rgba(20,14,10,.3);padding:6px 8px}.main.sidehid .dock-all .dht,.main.sidehid .dock-all #posail{display:none}.main.sidehid .dock-all .dockhead{gap:6px}}
+
 .side .dock.collapsed{width:auto!important;min-width:0}.dock-all.collapsed .ctog,.dock-all.collapsed .dockhead small{display:none!important}.dock-all.collapsed .dockhead .dht{display:none}.dock-all.collapsed .dockhead b.dh svg{width:16px;height:16px}
-@media (max-width:860px){.main.sidehid .side{border:0;padding:0;height:0;min-height:0;overflow:visible}.main.sidehid .chartwrap{height:calc(100vh - 150px);min-height:58vh}.side .dock-all.collapsed{position:fixed;right:max(24px,calc(env(safe-area-inset-right,0px) + 14px));bottom:max(30px,calc(env(safe-area-inset-bottom,0px) + 18px));z-index:30;width:auto!important;background:rgba(246,238,217,.96);border:1px solid var(--ink);border-radius:3px;box-shadow:0 4px 14px rgba(20,14,10,.3);padding:6px 8px}}.side .dockhead small{display:none}
+@media (min-width:0px){.main.sidehid .side{border:0;padding:0;height:0;min-height:0;overflow:visible}.main.sidehid .chartwrap{height:calc(100vh - 150px);min-height:58vh}.side .dock-all.collapsed{position:fixed;right:max(24px,calc(env(safe-area-inset-right,0px) + 14px));bottom:max(30px,calc(env(safe-area-inset-bottom,0px) + 18px));z-index:30;width:auto!important;background:rgba(246,238,217,.96);border:1px solid var(--ink);border-radius:3px;box-shadow:0 4px 14px rgba(20,14,10,.3);padding:6px 8px}}.side .dockhead small{display:none}
 .side .dockgrid{grid-template-columns:minmax(0,1fr);gap:10px}
 .side .subr,.side .subt{border-left:0;padding-left:0;border-top:1px dotted var(--rule);padding-top:8px}
 .bookbox{pointer-events:auto;display:flex;flex-direction:column;align-items:flex-start;gap:6px;margin-right:auto}
@@ -278,7 +278,7 @@ body.fs3d #fsBar{left:max(12px,env(safe-area-inset-left,0px));bottom:max(12px,en
 .glassbox{display:grid;grid-template-columns:110px minmax(0,1fr);gap:18px;align-items:center}
 #glass{width:110px;height:170px}
 .knots{font-family:var(--f-data);font-size:44px;font-variant-numeric:tabular-nums}
-@media (max-width:860px){
+@media (min-width:0px){
   #braceTxt,.trim .lng,#braceTxt+br{display:none}.trim .pct{font-size:15px;font-weight:600}
   .pane.small.collapsed{width:100px;height:28px}
   .dock.collapsed{min-width:130px}
@@ -320,12 +320,12 @@ body.fs3d #fsBar{left:max(12px,env(safe-area-inset-left,0px));bottom:max(12px,en
   .voylist{grid-template-columns:minmax(0,1fr)}
 }
 .app{position:relative}
-@media (max-width:860px){.bar .mtxt{display:none}#assistPop{position:fixed;left:8px;right:8px;top:calc(env(safe-area-inset-top,0px) + 40px);width:auto}}
+@media (min-width:0px){.bar .mtxt{display:none}#assistPop{position:fixed;left:8px;right:8px;top:calc(env(safe-area-inset-top,0px) + 40px);width:auto}}
 /* keep the top bar clear of the iPhone status bar and notch when installed */
 .bar,.bar.folded{padding-top:calc(env(safe-area-inset-top,0px) + 1px);position:relative;top:-3px}
 .ov{padding-top:max(16px,calc(env(safe-area-inset-top,0px) + 12px))}
 /* the glass sits left of the compass; on a phone it shrinks with the dial */
-@media (max-width:860px){.compassbox{--baroW:calc((min(230px,64vw) - 28px)*.24);--stW:32px;--gp:6px}#baro,#sailSteps5{height:calc(min(230px,64vw) - 28px)}.cbrow{gap:6px}}
+@media (min-width:0px){.compassbox{--baroW:calc((min(230px,64vw) - 28px)*.24);--stW:32px;--gp:6px}#baro,#sailSteps5{height:calc(min(230px,64vw) - 28px)}.cbrow{gap:6px}}
 /* the four view icons (chart, camera, ship, book) share one centred row along the bottom */
 :root{--ic:40px;--icg:24px}
 #paneV3.small ~ #paneTools{display:none!important}
@@ -336,7 +336,7 @@ body.fs3d #fsBar{left:max(12px,env(safe-area-inset-left,0px));bottom:max(12px,en
 .shipchart{top:auto!important;bottom:14px;left:calc(50% - var(--ic) - var(--icg)/2)!important}
 .bookbox{position:static}.bookbtn{position:absolute;bottom:2px;left:calc(50% + var(--ic) + 1.5*var(--icg))}
 .bookbody{position:absolute;bottom:calc(var(--ic) + 12px);left:50%;transform:translateX(-50%)}
-@media (max-width:860px){
+@media (min-width:0px){
   .ptools,#paneChart.small,.shipchart,.bookbtn{position:fixed!important;z-index:16;bottom:max(16px,calc(env(safe-area-inset-bottom,0px) + 10px))!important}
   .bookbtn{left:calc(50% + var(--ic) + 1.5*var(--icg))!important}
   .bookbody{position:fixed;bottom:calc(max(16px,env(safe-area-inset-bottom,0px) + 10px) + var(--ic) + 10px);left:50%;transform:translateX(-50%)}
@@ -383,13 +383,13 @@ body.fs3d #fsBar{left:max(12px,env(safe-area-inset-left,0px));bottom:max(12px,en
 .menupop .tb,.bar .menupop .tb{border:0;background:none;text-align:left;padding:7px 10px;font-size:12.5px;line-height:1.3;width:100%;border-radius:2px;color:var(--ink)}
 .menupop .tb:hover,.bar .menupop .tb:hover{background:var(--paper-2)}
 .btn.primary:disabled{background:transparent;color:var(--ink);border-color:var(--ink)}
-@media (max-width:860px){
+@media (min-width:0px){
   .tbtab{position:fixed;bottom:30px;z-index:16;border:0!important;background:transparent!important;box-shadow:none!important;border-radius:3px}
   .tbtab[aria-pressed="true"]{background:var(--ink)!important;color:var(--paper)!important}
   #tbChart{left:calc(8.333% - var(--ic)/2)}#tbView{left:calc(25% - var(--ic)/2)}#tbShip{left:calc(41.667% - var(--ic)/2)}#tbStores{left:calc(58.333% - var(--ic)/2)}#tbBook{left:calc(75% - var(--ic)/2)}
 }
-.sheet{display:contents}@media (min-width:861px){#tabbar{display:none}}
-@media (max-width:860px){
+.sheet{display:contents}
+@media (min-width:0px){
   /* the book page's top padding stays see-through over the 3D view, whatever colour the Look sets */
   :root:root:root .bookbody{background:transparent!important;background-image:none!important;box-shadow:none!important}
   /* bottom bar: outline icons in a thin box at the original size; the pressed one only gets a bolder box, no fill, fade or motion; menus and overlays cover the bar */
@@ -443,7 +443,7 @@ body.fs3d #fsBar{left:max(12px,env(safe-area-inset-left,0px));bottom:max(12px,en
 .svw button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
 .svf{height:6px;border:1px solid var(--ink);background:var(--paper)}.svf i{display:block;height:100%;background:var(--ink)}
 .svs{grid-column:1/-1;font:11px var(--f-data);color:var(--ink-soft)}
-@media (max-width:860px){.shipv{grid-template-columns:minmax(0,1fr);overflow:auto;grid-template-rows:auto auto;align-content:start}.sv-main{overflow:visible}.sv-side{border-left:0;border-top:2px solid var(--ink);overflow:visible}.svw button{width:34px;height:32px}.svbtns button{padding:9px 12px}}
+@media (min-width:0px){.shipv{grid-template-columns:minmax(0,1fr);overflow:auto;grid-template-rows:auto auto;align-content:start}.sv-main{overflow:visible}.sv-side{border-left:0;border-top:2px solid var(--ink);overflow:visible}.svw button{width:34px;height:32px}.svbtns button{padding:9px 12px}}
 @media (prefers-reduced-motion: reduce){.toast{transition:none}}
 #freePick{display:flex;flex-direction:column;gap:10px}#freePick[hidden]{display:none}
 </style>
@@ -861,12 +861,12 @@ function css(){
   const BD=FL+",.tb,.btn,.ctog,.bartog,.seg,.card,.shipcard,.voycard,.pane.small";
   const rule=(sel,body)=>P(sel)+"{"+body+"}\n";
   if(L.ow!=null)o+=rule(BD,"border-width:"+L.ow+"px!important;border-style:"+(L.ow?"solid":"none")+"!important")+"@media(min-width:861px){"+rule(".compassbox:not(.collapsed)","border-width:"+L.ow+"px!important;border-style:"+(L.ow?"solid":"none")+"!important")+"}\n";
-  if(L.oc)o+=rule(BD,"border-color:"+L.oc+"!important")+"@media(min-width:861px){"+rule(".compassbox:not(.collapsed)","border-color:"+L.oc+"!important")+"}\n";
+  if(L.oc)o+=rule(BD,"border-color:"+L.oc+"!important")+"\n";
   if(L.rad!=null)o+=rule(BD,"border-radius:"+L.rad+"px!important");
   if(auto())o+=rule(".bar,.infobar,.side,.card,"+FL+",.tb,.btn,.mapicon","transition:background-color 1.5s,color 1.5s,border-color 1.5s")+rule("#chart,#ppCv,#dial,#glass","transition:filter 2.5s");
-  if(L.op!=null||auto()){const op=L.op!=null?L.op:94,b="background:color-mix(in srgb,var(--paper) "+op+"%,transparent)!important";o+=rule(FL+",.mapicon",b)+"@media(min-width:861px){"+rule(".compassbox:not(.collapsed)",b)+"}\n";}
+  if(L.op!=null||auto()){const op=L.op!=null?L.op:94,b="background:color-mix(in srgb,var(--paper) "+op+"%,transparent)!important";o+=rule(FL+",.mapicon",b)+"\n";}
   if(L.sh!=null){const b="box-shadow:"+(L.sh?"0 8px 28px rgba(20,14,10,"+(L.sh/100*.7).toFixed(2)+")":"none")+"!important";o+=rule(FL,b);}
-  if(L.tx&&L.tx!=="none"){const u=texUrl(L.tx,L.ta!=null?L.ta:40);if(u)o+=rule(FL+",.bar,.infobar,.side,.card","background-image:"+u+"!important")+"@media(min-width:861px){"+rule(".compassbox:not(.collapsed)","background-image:"+u+"!important")+"}\n";}
+  if(L.tx&&L.tx!=="none"){const u=texUrl(L.tx,L.ta!=null?L.ta:40);if(u)o+=rule(FL+",.bar,.infobar,.side,.card","background-image:"+u+"!important")+"\n";}
   if(L.fs!=null&&L.fs!==100)o+=rule(".infobar,.bookbody,.portcard,.menupop,.routebar,.dock:not(.dock-all)","zoom:"+L.fs/100);
   const fv=[];if(FD[L.fd])fv.push("--f-display:"+FD[L.fd][0]);if(FB[L.fb])fv.push("--f-body:"+FB[L.fb][0],"--f-italic:"+FB[L.fb][0]);if(FM[L.fm])fv.push("--f-data:"+FM[L.fm][0]);
   if(fv.length)o+=":root:root{"+fv.join(";")+"}\n";
@@ -2994,7 +2994,7 @@ function init3D(){
   try{
     if(typeof THREE==="undefined")throw new Error("three.js did not load");
     const renderer=new THREE.WebGLRenderer({canvas:v3c,antialias:true});
-    renderer.setPixelRatio(Math.min(matchMedia("(max-width:860px)").matches?1.5:1.75,window.devicePixelRatio||1)); // phones draw the 3D view a little less sharp to save work
+    renderer.setPixelRatio(Math.min(matchMedia("(min-width:0px)").matches?1.5:1.75,window.devicePixelRatio||1)); // phones draw the 3D view a little less sharp to save work
     const scene=new THREE.Scene();scene.fog=new THREE.Fog(0xf2e4b9,500,60000);
     const camera=new THREE.PerspectiveCamera(55,1,3,130000);
     const U={uGridOn:{value:1},uPaper:{value:new THREE.Color()},uInk:{value:new THREE.Color()},uSeaInk:{value:new THREE.Color()},uSeaStyle:{value:1},uFogNear:{value:500},uFogFar:{value:60000},
@@ -4797,7 +4797,7 @@ function update3D(dt,now){
   if(R.cover>2)R.camera.setViewOffset(R.W,R.H,0,R.cover*.3,R.W,R.H);else R.camera.clearViewOffset();
   R.camera.updateMatrixWorld();R.camera.updateProjectionMatrix();
   R.sea.position.set(0,0,0);
-  if(!R.hid&&main3d&&!(SV.open&&innerWidth>860&&!window.CUTON)){shadowPass(R);DRStyle.render(R);} // on a computer the ship page covers the 3D view, so skip drawing it
+  if(!R.hid&&main3d&&!(SV.open&&false&&!window.CUTON)){shadowPass(R);DRStyle.render(R);} // on a computer the ship page covers the 3D view, so skip drawing it
   drawHud(now,sq,w);
 }
 
@@ -5053,7 +5053,7 @@ window.DRStyle=DRStyle;
 const QDIST=[75,55,40,30],QVEG=[9,6,4,3],QPR=[1,.85,.72,.6]; // island draw distance (nm), trees from shore (nm), share of full sharpness
 const AQ={ms:16.7,t:0,good:0};
 function autoQ(rawMs){const R=R3;if(!R||R.hid||R.basePR==null||QUAL.mode!=="auto")return;
-  if(rawMs>2000||skipLeft>0||(SV.open&&innerWidth>860&&!window.CUTON)){AQ.t=0;return;} // ignore a hidden tab, time skips and frames the 3D view did not draw
+  if(rawMs>2000||skipLeft>0||(SV.open&&false&&!window.CUTON)){AQ.t=0;return;} // ignore a hidden tab, time skips and frames the 3D view did not draw
   AQ.ms+=(Math.min(rawMs,250)-AQ.ms)*.05;AQ.t+=rawMs;if(AQ.t<2000)return;AQ.t=0;
   const fps=1000/AQ.ms;let q=R.q;
   if(fps<40&&q<QDIST.length-1){q++;AQ.good=0;}
@@ -5061,7 +5061,7 @@ function autoQ(rawMs){const R=R3;if(!R||R.hid||R.basePR==null||QUAL.mode!=="auto
   if(q!==R.q){R.q=q;R.renderer.setPixelRatio(Math.max(1,R.basePR*QPR[q]));R.U.uDpr.value=R.renderer.getPixelRatio();resize3D();}}
 /* quality setting (Menu > Quality): Auto starts sharp and eases off if the frame rate drops; Low is the old phone-safe look; Medium and High draw the 3D view at a higher resolution with a sharper ship shadow, and High also draws islands and trees further out */
 const QUAL={mode:(()=>{try{return localStorage.getItem("dr.quality")||"auto";}catch(e){return"auto";}})()},QNAME={auto:"Auto",low:"Low",med:"Medium",high:"High"};
-function qualPR(){const dpr=window.devicePixelRatio||1,ph=matchMedia("(max-width:860px)").matches,m=QUAL.mode;
+function qualPR(){const dpr=window.devicePixelRatio||1,ph=matchMedia("(min-width:0px)").matches,m=QUAL.mode;
   if(m==="high")return Math.min(ph?2.5:3,Math.max(dpr,2));
   if(m==="med"||m==="auto")return Math.min(ph?2:2.25,Math.max(dpr,1.5));
   return Math.min(ph?1.5:1.75,dpr);}
@@ -5945,7 +5945,7 @@ function svGeo(){if(SVG.id===SHIP.id)return SVG.g;const sp=SHIP.spec,Ls=linesOf(
 function svHome(G,m,i){if(m.r==="Captain")return G.offR[0]||G.crewR[0]||G.rooms[0];if(m.r==="Cook"&&G.gal)return G.gal;
   if(!ROLE[m.r]||ROLE[m.r].s<1||m.r!=="Seaman"&&m.r!=="Marine"&&m.r!=="Soldier"){if(G.offR.length&&m.r!=="Cabin boy"&&m.r!=="Carpenter"&&m.r!=="Gunner"&&m.r!=="Bosun")return G.offR[(i%Math.max(1,G.offR.length-1))+(G.offR.length>1?1:0)]||G.offR[0];}
   const C=G.crewR.length?G.crewR:G.rooms;let tot=C.reduce((a,r)=>a+(r.z1-r.z0),0),u=((i*0.6180339)%1)*tot;for(const r of C){u-=r.z1-r.z0;if(u<=0)return r;}return C[C.length-1];}
-function svDrawGen(now){const c=$("shipCv"),par=c.parentElement,dpr=Math.min(2,devicePixelRatio||1),W=Math.max(par.clientWidth,innerWidth<=860?720:300),H=Math.round(W*SVH/SVW);
+function svDrawGen(now){const c=$("shipCv"),par=c.parentElement,dpr=Math.min(2,devicePixelRatio||1),W=Math.max(par.clientWidth,true?720:300),H=Math.round(W*SVH/SVW);
   if(c.width!==Math.round(W*dpr)||c.height!==Math.round(H*dpr)){c.width=Math.round(W*dpr);c.height=Math.round(H*dpr);c.style.height=H+"px";c.style.width=W+"px";}
   const g=c.getContext("2d"),k=W/SVW,G=svGeo(),day=!isNight(S)&&!DARK,tm=now/1000,sh=S.ship;g.setTransform(dpr*k,0,0,dpr*k,0,0);g.clearRect(0,0,SVW,SVH);
   const im=SVG.img[SHIP.id];g.fillStyle="#f6eed9";g.fillRect(0,0,SVW,SVH);if(im&&im.complete&&im.naturalWidth)g.drawImage(im,0,0,SVW,SVH);
@@ -6034,7 +6034,7 @@ function svPerson(g,K,m,i,f,x,y,tm,day,sel,lyY,sc){const SHIRT=SV_SHIRT,SKIN=SV_
       if(fc){L(2.2,fc);line(x-5,y-42,x+5,y-42);}}
     g.globalAlpha=1;L(1.5,col);g.restore();
 }
-function svDraw(now){if(SHIP.id!=="brig"){svDrawGen(now);return;}const c=$("shipCv"),par=c.parentElement,dpr=Math.min(2,devicePixelRatio||1),W=Math.max(par.clientWidth,innerWidth<=860?720:300),H=Math.round(W*SVH/SVW);
+function svDraw(now){if(SHIP.id!=="brig"){svDrawGen(now);return;}const c=$("shipCv"),par=c.parentElement,dpr=Math.min(2,devicePixelRatio||1),W=Math.max(par.clientWidth,true?720:300),H=Math.round(W*SVH/SVW);
   if(c.width!==Math.round(W*dpr)||c.height!==Math.round(H*dpr)){c.width=Math.round(W*dpr);c.height=Math.round(H*dpr);c.style.height=H+"px";c.style.width=W+"px";}
   const g=c.getContext("2d"),K=svCol(),k=W/SVW,day=!isNight(S)&&!DARK;if(day){K.ink='#2b2119';K.soft='#8a7a62';}g.setTransform(dpr*k,0,0,dpr*k,0,0);g.clearRect(0,0,SVW,SVH);g.fillStyle=K.paper;g.fillRect(0,0,SVW,SVH);
   g.lineJoin="round";g.lineCap="round";const L=(w,col)=>{g.lineWidth=w>=10?w:w*.58;g.strokeStyle=col||K.ink;};
@@ -6456,7 +6456,7 @@ $("follow").onclick=()=>{follow=!follow;$("follow").setAttribute("aria-pressed",
 initRoute();initShip();
 $("rTog").onclick=()=>{const f=$("routePanel").classList.toggle("folded");$("rTog").textContent=f?"▼":"▲";$("rTog").setAttribute("aria-expanded",String(!f));};
 { const ib=document.querySelector(".infobar"),tg=$("ibTog"),ap=f=>{ib.classList.toggle("folded",f);tg.textContent=f?"▼":"▲";tg.setAttribute("aria-expanded",String(!f));setTimeout(()=>{resize();if(typeof resize3D==="function")resize3D();},0);};
-  try{const v=localStorage.getItem("dr-infobar");if(v==="1"||(v===null&&matchMedia("(max-width:860px)").matches))ap(true);}catch(e){}
+  try{const v=localStorage.getItem("dr-infobar");if(v==="1"||(v===null&&matchMedia("(min-width:0px)").matches))ap(true);}catch(e){}
   tg.onclick=()=>{const f=!ib.classList.contains("folded");ap(f);try{localStorage.setItem("dr-infobar",f?"1":"0");}catch(e){}}; }
 { const bar=document.querySelector(".bar"),tg=$("barTog"),ap=f=>{bar.classList.toggle("folded",f);tg.textContent=f?"▼":"▲";tg.setAttribute("aria-expanded",String(!f));$("menuPop").hidden=true;setTimeout(()=>{resize();if(typeof resize3D==="function")resize3D();},0);};
   try{if(localStorage.getItem("dr-topbar")==="1")ap(true);}catch(e){}
@@ -6476,7 +6476,7 @@ $("dhSl").oninput=e=>setCourse(+e.target.value);
 { const jb=document.createElement("button");jb.type="button";jb.id="cbJib";jb.className="btn sm ico cbjib";jb.setAttribute("aria-label","Back the jib");jb.title="Back the jib: set the heading you want on the compass, then tap";
   jb.innerHTML='<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v17M8 4.500c5 3.500 8 8 9 14.500H8M4 21h16"/></svg>';
   document.getElementById("compassBox").append(jb);jb.onclick=()=>backJib();
-  const st=document.createElement("style");st.textContent=".compassbox .cbjib{position:absolute;right:8px;bottom:7px;z-index:2;display:none}.compassbox .cbjib.on{display:flex}.compassbox .cbjib.armed{background:var(--ink);color:var(--paper)}.compassbox.collapsed .cbjib{display:none!important}@media (max-width:860px){.compassbox .cbjib{right:0;bottom:0}}";document.head.append(st);
+  const st=document.createElement("style");st.textContent=".compassbox .cbjib{position:absolute;right:8px;bottom:7px;z-index:2;display:none}.compassbox .cbjib.on{display:flex}.compassbox .cbjib.armed{background:var(--ink);color:var(--paper)}.compassbox.collapsed .cbjib{display:none!important}@media (min-width:0px){.compassbox .cbjib{right:0;bottom:0}}";document.head.append(st);
 }
 $("sUp").onclick=()=>setSail(S.ship.sail+1);
 { const sd=$("sailDiag"),pick=$("sailPick");
@@ -6487,7 +6487,7 @@ $("sUp").onclick=()=>setSail(S.ship.sail+1);
   sd.addEventListener("mouseleave",()=>{pick.textContent="Click sails to pick them (as many as you like), then tap how much to set.";}); }
 function braceBy(d){if(!S||S.done)return;S.ship.braceCmd=clamp(S.ship.braceCmd+d,-BMAX,BMAX);updateUI(true);}
 $("brL").onclick=()=>braceBy(5);$("brR").onclick=()=>braceBy(-5);$("sDn").onclick=()=>setSail(S.ship.sail-1);
-if(matchMedia("(max-width:860px)").matches)$("compassBox").classList.remove("collapsed");
+if(matchMedia("(min-width:0px)").matches)$("compassBox").classList.remove("collapsed");
 $("cbScope").onclick=()=>{if(!R3)return;if(R3.shot!=="deck")camShot("deck");window.setScope(!R3.scope);};
 $("cbBtn").onclick=()=>{const c=$("compassBox"),o=c.classList.toggle("collapsed");$("cbBtn").setAttribute("aria-expanded",String(!o));};
 { const mp=$("menuPop"),mb=$("bMenu"),shut=()=>{mp.hidden=true;mb.setAttribute("aria-expanded","false");};
@@ -6510,11 +6510,11 @@ $("bookBtn").onclick=()=>{const bx=$("bookBox"),o=!bx.classList.contains("open")
 {const dk=document.querySelector(".dock-all"),ci=document.createElement("button");ci.type="button";ci.id="ctlIcon";ci.className="tbicon";ci.title="Ship controls: helm, sails, log";ci.setAttribute("aria-label","Ship controls");ci.innerHTML=document.querySelector(".dockhead b.dh svg").outerHTML;document.body.append(ci);
   const sync=()=>ci.setAttribute("aria-pressed",String(!dk.classList.contains("collapsed")));sync();new MutationObserver(sync).observe(dk,{attributes:true,attributeFilter:["class"]});
   ci.onclick=()=>{document.querySelector('.ctog[data-dock="all"]').click();};
-  if(matchMedia("(max-width:860px)").matches)dk.classList.add("collapsed");sync();
+  if(matchMedia("(min-width:0px)").matches)dk.classList.add("collapsed");sync();
   // a panel open below the view takes about 60% of the room and slides up over the view when scrolled; closed, the view fills it down to the bottom menu
   [dk,$("bookBody"),$("shipView")].forEach(el=>{const sh=document.createElement("div");sh.className="sheet";while(el.firstChild)sh.append(el.firstChild);el.append(sh);});
   const cw=document.querySelector(".chartwrap"),bx=$("bookBox"),root=document.documentElement;
-  const phone=()=>matchMedia("(max-width:860px)").matches;
+  const phone=()=>matchMedia("(min-width:0px)").matches;
   const closePanels=()=>{if(phone())dk.classList.add("collapsed");bx.classList.remove("open");$("bookBtn").setAttribute("aria-expanded","false");if(SV.open)openShip(false);};
   const mkTab=(id,src,title,fn)=>{const b=document.createElement("button");b.type="button";b.id=id;b.className="tbicon tbtab";b.title=title;b.setAttribute("aria-label",title);const v=$(src).querySelector("svg");if(v)b.innerHTML=v.outerHTML;b.onclick=()=>{fn();setTimeout(fit,0);};cw.append(b);return b;};
   const tbChart=mkTab("tbChart","mapIcon","Sea chart: tap again to come back to the 3D view",()=>{closePanels();setMain(!main3d);});
@@ -6543,7 +6543,7 @@ $("bookBtn").onclick=()=>{const bx=$("bookBox"),o=!bx.classList.contains("open")
   tbStores.innerHTML='<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8l8-4 8 4v10l-8 4-8-4z"/><path d="M4 8l8 4 8-4M12 12v10"/></svg>';
   const tbBook=mkTab("tbBook","bookBtn","Navigator's book: reckoning, noon sight, landmarks and log",()=>{$("bookBtn").click();});
   const tb=document.createElement("div");tb.id="tabbar";tb.setAttribute("aria-hidden","true");document.body.append(tb);
-  const fit=()=>{tbChart.setAttribute("aria-pressed",String(!main3d));tbView.setAttribute("aria-pressed",String(main3d&&dk.classList.contains("collapsed")&&!bx.classList.contains("open")&&!SV.open));const lg=!!(window.__cutLedger&&window.__cutLedger());tbShip.setAttribute("aria-pressed",String(!!SV.open&&!lg));tbStores.setAttribute("aria-pressed",String(!!SV.open&&lg));tbBook.setAttribute("aria-pressed",String(bx.classList.contains("open")));tbBook.classList.toggle("attn",$("bookBtn").classList.contains("attn"));if(!matchMedia("(max-width:860px)").matches){if(cw.style.height)cw.style.height="";return;}
+  const fit=()=>{tbChart.setAttribute("aria-pressed",String(!main3d));tbView.setAttribute("aria-pressed",String(main3d&&dk.classList.contains("collapsed")&&!bx.classList.contains("open")&&!SV.open));const lg=!!(window.__cutLedger&&window.__cutLedger());tbShip.setAttribute("aria-pressed",String(!!SV.open&&!lg));tbStores.setAttribute("aria-pressed",String(!!SV.open&&lg));tbBook.setAttribute("aria-pressed",String(bx.classList.contains("open")));tbBook.classList.toggle("attn",$("bookBtn").classList.contains("attn"));if(!matchMedia("(min-width:0px)").matches){if(cw.style.height)cw.style.height="";return;}
     const open=!dk.classList.contains("collapsed")||bx.classList.contains("open")||(SV.open&&!window.CUTON)||!!(window.__cutSheet&&window.__cutSheet());
     const top=cw.getBoundingClientRect().top,barTop=tb.getBoundingClientRect().top,avail=Math.max(260,Math.round(barTop-top));
     const h=open?Math.max(190,Math.round(avail*.4)):avail;if(cw.style.height!==h+"px"){cw.style.height=h+"px";try{resize();resize3D();}catch(e){}}
@@ -6611,7 +6611,7 @@ function fillHelpIcons(){
   row(svgOf("bookBtn")||"Book","<b>Navigator's book.</b> Dead reckoning, the noon sight, landmarks and the log book.");
   row(svgOf("ctlIcon")||"Helm","<b>Ship controls.</b> Opens or folds the helm, sails and log panel (the wheel on the right of the bottom row on a phone).");
   hh("The compass");
-  row(svgOf("cbBtn")||"Dial","<b>Fold the compass</b> away or bring it back (desktop only).");
+  row(svgOf("cbBtn")||"Dial","<b>Fold the compass</b> away or bring it back.");
   const d=cv("dial","56px");if(d)row(d,"<b>The compass.</b> Your brig seen from above. The <b>red arrow</b> is your ordered course, the <b>red feathered arrow</b> (the colour of the ship's flag) the wind and the <b>dark blue arrow</b> the current (as on the chart), the <b>shaded wedge</b> the no-go zone where she stalls, and the <b>dashed line</b> across the yards the best angle. Tap the outer card to steer; tap inside to point the sails.");
   const g=cv("baro","auto");if(g)row(g,"<b>The glass.</b> A barometer left of the compass, in inches of mercury. The arrow shows if it is rising or falling; the words beside the scale say what to expect. A fast fall means foul weather.");
   { const sl=cv("sailSteps5","30px");if(sl)row(sl,"<b>Sail set.</b> A slider beside the compass: empty at bare poles, filled when every sail is out, with a mark at each of the five stages. Tap or drag it to set all sails at once; it fills or empties as the sails go up or come in."); }
@@ -6760,7 +6760,7 @@ $("voyList").querySelectorAll("button").forEach(b=>b.onclick=()=>startVoyage(VOY
   $("voyList").hidden=true;fp.hidden=false;$("freeBack").parentNode.hidden=true;
   $("freePorts").querySelectorAll("button").forEach(b=>b.onclick=()=>{const k=b.dataset.p;
     startVoyage(gameMode==="career"?{id:"career",tag:"Career",title:"From "+PORTS[k].name,from:k,to:null,mode:"trial",hdg:280,free:true,career:true,ship:CAREER_START,desc:""}:{id:"free",tag:"Free sailing",title:"From "+PORTS[k].name,from:k,to:null,mode:"trial",hdg:280,free:true,desc:""});});}
-{ const mq=matchMedia("(max-width:860px)"),box=document.querySelector(".compassbox"),home=$("paneV3");
+{ const mq=matchMedia("(min-width:0px)"),box=document.querySelector(".compassbox"),home=$("paneV3");
   const place=()=>{const tgt=mq.matches?document.querySelector(".dock-all .dockbody"):home;if(box.parentNode!==tgt)mq.matches?tgt.insertBefore(box,tgt.firstChild):tgt.appendChild(box);};
   place();mq.addEventListener("change",()=>{place();resize();resize3D();}); }
 window.addEventListener("resize",()=>{resize();resize3D();});
@@ -7637,7 +7637,7 @@ function leave(){const R=M.R||R3;M.on=false;window.CUTON=false;root.style.displa
   if(R&&M.cam){Object.assign(R,M.cam);R.yaw=R.ty;M.cam=null;} // back to the 3D angle you left for the ship view
   M.cur=null;}
 const back=document.createElement("button");back.hidden=true; // no Cutaway button: the Ship icon in the bottom bar goes back
-back.onclick=()=>{M.ledger=false;};window.__cutSheet=()=>!!(M.on&&!M.ledger&&M.sel>=0&&M.hi>=0&&matchMedia("(max-width:860px)").matches);window.__cutLedger=v=>{if(v!==undefined)M.ledger=!!v;return!!M.ledger;};
+back.onclick=()=>{M.ledger=false;};window.__cutSheet=()=>!!(M.on&&!M.ledger&&M.sel>=0&&M.hi>=0&&matchMedia("(min-width:0px)").matches);window.__cutLedger=v=>{if(v!==undefined)M.ledger=!!v;return!!M.ledger;};
 function want(){return typeof SV!=="undefined"&&SV.open&&SHIP&&!!LAYOUT[SHIP.id]&&typeof R3!=="undefined"&&R3&&R3.shipId===SHIP.id&&R3.bob;}
 function sync(){const w=want(),on=w&&!M.ledger;
   if(!w)M.ledger=false;
@@ -7670,10 +7670,10 @@ window.__DR={hour:()=>S&&!S.done?localHours(S,S.t):null,preview:PV,cam:()=>R3,fo
 })();
 </script>
 <style>/* UI Layout Tuner settings (phone), 2026-10-29 */
-@media (max-width:860px){#baro{width:70px!important}#sailSteps5{width:70px!important}#baro,#sailSteps5{height:220px!important}.cbrow{column-gap:3px!important}.cbfoot .btn.ico{width:30px!important}.cbfoot .btn.ico{height:30px!important}.dockctl .mono{font-size:11px!important}.dockctl{row-gap:2px!important}.dockctl .setrows{font-size:10px!important}.side .dock-all:not(.collapsed){padding-top:280px!important}.sheet{padding-left:3px!important;padding-right:3px!important}.dockgrid{row-gap:3px!important}.dockbody{row-gap:3px!important;column-gap:3px!important}.dockhead b.dh{font-size:16px!important}.sheet .btn.sm{min-height:25px!important}.sheet .btn.sm{font-size:12px!important}.sheet .muted{font-size:10px!important}.bar .tb{min-height:6px!important}.bar .tb{font-size:12px!important}.infobar{font-size:10px!important}}
+@media (min-width:0px){#baro{width:70px!important}#sailSteps5{width:70px!important}#baro,#sailSteps5{height:220px!important}.cbrow{column-gap:3px!important}.cbfoot .btn.ico{width:30px!important}.cbfoot .btn.ico{height:30px!important}.dockctl .mono{font-size:11px!important}.dockctl{row-gap:2px!important}.dockctl .setrows{font-size:10px!important}.side .dock-all:not(.collapsed){padding-top:280px!important}.sheet{padding-left:3px!important;padding-right:3px!important}.dockgrid{row-gap:3px!important}.dockbody{row-gap:3px!important;column-gap:3px!important}.dockhead b.dh{font-size:16px!important}.sheet .btn.sm{min-height:25px!important}.sheet .btn.sm{font-size:12px!important}.sheet .muted{font-size:10px!important}.bar .tb{min-height:6px!important}.bar .tb{font-size:12px!important}.infobar{font-size:10px!important}}
 </style>
 <style>/* UI Layout Tuner settings round 2 (phone), 2026-10-30 */
-@media (max-width:860px){html #baro{width:49px!important}html #sailSteps5{width:74px!important}html .cbrow{column-gap:0px!important}html .cbfoot .btn.ico{height:26px!important}html .cbfoot{column-gap:18px!important}html .dockctl .mono{font-size:10px!important}html .dockctl{row-gap:0px!important}html .dockctl .setrows{font-size:9.5px!important}html .side .dock-all:not(.collapsed){padding-top:250px!important}html .sheet{padding-left:13px!important;padding-right:13px!important}html .dockgrid{row-gap:0px!important}html .dockbody{row-gap:0px!important;column-gap:0px!important}html .dockhead b.dh{font-size:15px!important}html .subhead{font-size:16.5px!important}html .sheet .btn.sm{min-height:27px!important}html .sheet .btn.sm{font-size:10px!important}html #fsBtn{width:50px!important;height:50px!important}html .mapctl{row-gap:10px!important}html #routePanel{font-size:10px!important}html #paneV3.pane.small{width:60px!important}html #paneV3.pane.small{height:50px!important}html #cutCard .rd{font-size:12px!important}html #cutCard{left:9px!important;right:9px!important}html #bookBody{font-size:12px!important}}
+@media (min-width:0px){html #baro{width:49px!important}html #sailSteps5{width:74px!important}html .cbrow{column-gap:0px!important}html .cbfoot .btn.ico{height:26px!important}html .cbfoot{column-gap:18px!important}html .dockctl .mono{font-size:10px!important}html .dockctl{row-gap:0px!important}html .dockctl .setrows{font-size:9.5px!important}html .side .dock-all:not(.collapsed){padding-top:250px!important}html .sheet{padding-left:13px!important;padding-right:13px!important}html .dockgrid{row-gap:0px!important}html .dockbody{row-gap:0px!important;column-gap:0px!important}html .dockhead b.dh{font-size:15px!important}html .subhead{font-size:16.5px!important}html .sheet .btn.sm{min-height:27px!important}html .sheet .btn.sm{font-size:10px!important}html #fsBtn{width:50px!important;height:50px!important}html .mapctl{row-gap:10px!important}html #routePanel{font-size:10px!important}html #paneV3.pane.small{width:60px!important}html #paneV3.pane.small{height:50px!important}html #cutCard .rd{font-size:12px!important}html #cutCard{left:9px!important;right:9px!important}html #bookBody{font-size:12px!important}}
 </style>
 <script>
 /* Layout editor: Menu > Edit layout. Moves/resizes the real controls with CSS translate/scale, saved on this device. */
@@ -7681,12 +7681,12 @@ window.__DR={hour:()=>S&&!S.done?localHours(S,S.t):null,preview:PV,cam:()=>R3,fo
 const LAYOUT_EDITOR=true; // Menu > Edit layout is visible on desktop and phone (set false to hide it; saved positions stay in localStorage drLayout.v1)
 if(!LAYOUT_EDITOR)return;
 const $=id=>document.getElementById(id),KEY="drLayout.v1";
-const cls=()=>matchMedia("(max-width:860px)").matches?"phone":"desk";
+const cls=()=>matchMedia("(min-width:0px)").matches?"phone":"desk";
 let L;try{L=JSON.parse(localStorage.getItem(KEY))||{}}catch(e){L={}}
 L.phone=L.phone||{};L.desk=L.desk||{};
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(L))}catch(e){}};
 const st=document.createElement("style");st.id="drLayout";(document.head||document.documentElement).appendChild(st);
-const FIX='@media (max-width:860px){body.lay-custom .cbfoot{height:34px}body.lay-custom .cbfoot .ws{max-height:34px;overflow:hidden;font-size:10px;line-height:1.1}body.lay-custom #sailSl[style*="display:none"],body.lay-custom #sailSl[style*="display: none"]{display:flex!important;visibility:hidden}body.lay-custom .side .compassbox{width:370px;max-width:none}body.lay-custom .side .dock-all:not(.collapsed){overflow-x:hidden!important}body.lay-custom .side .dock-all .dockbody{align-items:stretch}}\n';
+const FIX='@media (min-width:0px){body.lay-custom .cbfoot{height:34px}body.lay-custom .cbfoot .ws{max-height:34px;overflow:hidden;font-size:10px;line-height:1.1}body.lay-custom #sailSl[style*="display:none"],body.lay-custom #sailSl[style*="display: none"]{display:flex!important;visibility:hidden}body.lay-custom .side .compassbox{width:370px;max-width:none}body.lay-custom .side .dock-all:not(.collapsed){overflow-x:hidden!important}body.lay-custom .side .dock-all .dockbody{align-items:stretch}}\n';
 const M=()=>L[cls()];
 function apply(){const m=M();let o="";for(const k in m){const[x,y,s,r]=m[k];o+=k+"{translate:"+x+"px "+y+"px"+(s!==1||r?";transform-origin:50% 50%":"")+(r?";rotate:"+r+"deg":"")+(s!==1?";scale:"+s:"")+"}\n"}
  st.textContent=o+FIX;document.body.classList.toggle("lay-custom",E.on||Object.keys(m).length>0)}
@@ -7848,7 +7848,7 @@ window.__drEdit={enter,leave,E,L,go};
 <script>if("serviceWorker" in navigator&&location.protocol.startsWith("http"))window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 <script>
 /* phones: size the app to the true screen height, so the bottom bar sits flush without a drag */
-(function(){const de=document.documentElement,mq=matchMedia("(max-width:860px)");
+(function(){const de=document.documentElement,mq=matchMedia("(min-width:0px)");
  const st=()=>navigator.standalone===true||matchMedia("(display-mode: standalone)").matches;
  function fixH(){if(!mq.matches){de.style.removeProperty("--app-h");return;}
   let h=Math.max(innerHeight,de.clientHeight,(window.visualViewport?visualViewport.height:0));
@@ -7876,11 +7876,7 @@ window.__drEdit={enter,leave,E,L,go};
 .cst{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-top:6px}
 .cst div{border:1px solid #cbbd98;padding:2px 6px}.cst small{display:block;font:9px "IBM Plex Mono",monospace;letter-spacing:.08em;text-transform:uppercase;color:#7b6a55}.cst b{font:400 14px "IM Fell English SC",serif}
 .crm{margin-top:5px}.rm{display:flex;gap:7px;font-size:12px;line-height:1.3;border-bottom:1px dotted #cbbd98;padding:2px 0;cursor:pointer}.rm b{font:400 12.5px "IM Fell English SC",serif;flex:none;width:104px}.rm span{font:italic 12.5px "IM Fell English",serif;color:#7b6a55}.rm.hi{background:rgba(184,134,42,.18)}
-@media (min-width:900px){
- #cutChips{left:auto;right:16px;bottom:16px;width:auto}
- #cutCard{left:auto;right:16px;bottom:56px;width:340px;max-height:60vh}
- #cutCard.tall{max-height:70vh}
-}
+
 body.cutmode #aboutBox,body.cutmode .dockwrap{}
 
 .crm{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
@@ -7903,9 +7899,9 @@ body.cutmode #view3d{touch-action:none}
 #cutSvg text{font-size:10.5px}
 #cutSvg polyline{stroke-width:.5px}#cutSvg circle{stroke-width:.8px}
 #cutCard .ra{list-style:none;margin:4px 0 0;padding:0}#cutCard .ra li{font:12px Georgia,serif;line-height:1.3;padding:2px 0;border-top:1px dotted #cbbd98}#cutCard .ra b{font:10px "IBM Plex Mono",monospace;text-transform:uppercase;letter-spacing:.06em;color:#7b6a55;margin-right:5px}#cutCard .ra .risk b{color:#a83b2f}
-#cutCard .ra{display:flex;flex-direction:column;gap:4px;margin-top:5px}#cutCard .ra button{display:grid;grid-template-columns:54px 1fr 30px;align-items:center;gap:6px;width:100%;text-align:left;font:12px Georgia,serif;line-height:1.3;padding:6px 8px;min-height:34px;border:1px solid #2e2519;border-radius:3px;background:#fff;color:#000}#cutCard .ra button.risk{border-color:#a83b2f}#cutCard .ra button b{font:10px "IBM Plex Mono",monospace;text-transform:uppercase;letter-spacing:.06em;color:#7b6a55;margin-right:0}#cutCard .ra button em{font:normal 10.5px "IBM Plex Mono",monospace;color:#7b6a55;text-align:right}#cutCard .ra button:disabled{opacity:.45}#cutCard .shx{float:right;width:30px;height:30px;font:20px/1 Georgia,serif;border:1px solid #2e2519;border-radius:3px;background:#fff;color:#000;padding:0;cursor:pointer}@media (max-width:860px){#cutCard.sh{left:0;right:0;top:auto;bottom:var(--pbot,72px);height:var(--smin,200px);max-height:none;width:auto;border-width:2px 0 0;overflow:auto;padding:10px 14px 14px;background:var(--paper,#f6eed9);color:var(--ink,#2e2519)}#cutChips{bottom:calc(var(--pbot,72px) + var(--smin,0px) + 3px)!important}}#cutCard .hn{margin-top:6px;font:12px Georgia,serif}#cutCard .hp{display:flex;gap:4px;margin-top:3px}#cutCard .hp button{flex:1;display:flex;flex-direction:column;align-items:center;padding:3px 0;font:12px Georgia,serif;border:1px solid #2e2519;border-radius:3px;background:#fff;color:#000}#cutCard .hp button small{font:9.5px "IBM Plex Mono",monospace;color:#7b6a55}#cutCard .hp button[aria-pressed="true"]{background:#2e2519;color:#f6eed9}#cutCard .hp button[aria-pressed="true"] small{color:#d8ccaf}#cutCard .hp button:disabled{opacity:.5}#cutCard .jb{margin-top:6px;border:1px solid #2e2519;border-radius:3px;background:#fff;color:#000;padding:6px 8px}#cutCard .jn{display:grid;grid-template-columns:54px 1fr;gap:6px;font:12px Georgia,serif;align-items:center}#cutCard .jn b{font:10px "IBM Plex Mono",monospace;text-transform:uppercase;letter-spacing:.06em;color:#7b6a55}#cutCard .jbar{height:10px;border:1px solid #2e2519;border-radius:2px;margin:6px 0;overflow:hidden;background:#f6eed9}#cutCard .jbar i{display:block;height:100%;background:#2e2519}#cutCard .jm{display:flex;align-items:center;gap:6px}#cutCard .jm span{flex:1;font:11px "IBM Plex Mono",monospace;color:#4a3f30}#cutCard .jm button{font:12px Georgia,serif;padding:5px 12px;border:1px solid #000;border-radius:3px;background:#fff;color:#000}#cutCard .ra button.risk b{color:#a83b2f}#cutCard .rr{margin-top:5px;font:italic 12.5px Georgia,serif;color:#2e2519}
+#cutCard .ra{display:flex;flex-direction:column;gap:4px;margin-top:5px}#cutCard .ra button{display:grid;grid-template-columns:54px 1fr 30px;align-items:center;gap:6px;width:100%;text-align:left;font:12px Georgia,serif;line-height:1.3;padding:6px 8px;min-height:34px;border:1px solid #2e2519;border-radius:3px;background:#fff;color:#000}#cutCard .ra button.risk{border-color:#a83b2f}#cutCard .ra button b{font:10px "IBM Plex Mono",monospace;text-transform:uppercase;letter-spacing:.06em;color:#7b6a55;margin-right:0}#cutCard .ra button em{font:normal 10.5px "IBM Plex Mono",monospace;color:#7b6a55;text-align:right}#cutCard .ra button:disabled{opacity:.45}#cutCard .shx{float:right;width:30px;height:30px;font:20px/1 Georgia,serif;border:1px solid #2e2519;border-radius:3px;background:#fff;color:#000;padding:0;cursor:pointer}@media (min-width:0px){#cutCard.sh{left:0;right:0;top:auto;bottom:var(--pbot,72px);height:var(--smin,200px);max-height:none;width:auto;border-width:2px 0 0;overflow:auto;padding:10px 14px 14px;background:var(--paper,#f6eed9);color:var(--ink,#2e2519)}#cutChips{bottom:calc(var(--pbot,72px) + var(--smin,0px) + 3px)!important}}#cutCard .hn{margin-top:6px;font:12px Georgia,serif}#cutCard .hp{display:flex;gap:4px;margin-top:3px}#cutCard .hp button{flex:1;display:flex;flex-direction:column;align-items:center;padding:3px 0;font:12px Georgia,serif;border:1px solid #2e2519;border-radius:3px;background:#fff;color:#000}#cutCard .hp button small{font:9.5px "IBM Plex Mono",monospace;color:#7b6a55}#cutCard .hp button[aria-pressed="true"]{background:#2e2519;color:#f6eed9}#cutCard .hp button[aria-pressed="true"] small{color:#d8ccaf}#cutCard .hp button:disabled{opacity:.5}#cutCard .jb{margin-top:6px;border:1px solid #2e2519;border-radius:3px;background:#fff;color:#000;padding:6px 8px}#cutCard .jn{display:grid;grid-template-columns:54px 1fr;gap:6px;font:12px Georgia,serif;align-items:center}#cutCard .jn b{font:10px "IBM Plex Mono",monospace;text-transform:uppercase;letter-spacing:.06em;color:#7b6a55}#cutCard .jbar{height:10px;border:1px solid #2e2519;border-radius:2px;margin:6px 0;overflow:hidden;background:#f6eed9}#cutCard .jbar i{display:block;height:100%;background:#2e2519}#cutCard .jm{display:flex;align-items:center;gap:6px}#cutCard .jm span{flex:1;font:11px "IBM Plex Mono",monospace;color:#4a3f30}#cutCard .jm button{font:12px Georgia,serif;padding:5px 12px;border:1px solid #000;border-radius:3px;background:#fff;color:#000}#cutCard .ra button.risk b{color:#a83b2f}#cutCard .rr{margin-top:5px;font:italic 12.5px Georgia,serif;color:#2e2519}
 #cutCard{max-height:46vh;overflow:auto}#cutCard .mc{margin-top:6px;border-top:1px dotted #cbbd98;padding-top:5px;font:12.5px Georgia,serif}#cutCard .mc .svhint{font:11.5px Georgia,serif;color:#4a3f30;margin-top:2px}#cutCard .mb{display:flex;gap:5px;margin-top:5px}#cutCard .mb button{font:12px Georgia,serif;padding:4px 8px;border:1px solid #000;border-radius:3px;background:#fff;color:#000}
-#cutChips{justify-content:space-between;gap:6px}#cutChips button{flex:1 1 0;max-width:38px;min-width:0;height:42px;padding:0;display:flex;flex-direction:column;align-items:center;justify-content:center;border:0;border-radius:3px;background:var(--paper,#f6eed9);color:var(--ink,#2e2519)}#cutChips button svg{width:21px;height:21px}#cutChips button span{display:block;font:6.5px/1 "IBM Plex Mono",monospace;letter-spacing:0;text-transform:uppercase;margin-top:3px;max-width:100%;overflow:hidden;white-space:nowrap}#cutChips button.on,#cutChips button:active{background:var(--ink,#2e2519);color:var(--paper,#f6eed9)}#cutChips #cutRe{margin-left:0}#cutChips #cutLed{border-style:solid}@media (max-width:860px){#cutChips{left:12px;right:12px;bottom:calc(var(--pbot,72px) + 3px)}}
+#cutChips{justify-content:space-between;gap:6px}#cutChips button{flex:1 1 0;max-width:38px;min-width:0;height:42px;padding:0;display:flex;flex-direction:column;align-items:center;justify-content:center;border:0;border-radius:3px;background:var(--paper,#f6eed9);color:var(--ink,#2e2519)}#cutChips button svg{width:21px;height:21px}#cutChips button span{display:block;font:6.5px/1 "IBM Plex Mono",monospace;letter-spacing:0;text-transform:uppercase;margin-top:3px;max-width:100%;overflow:hidden;white-space:nowrap}#cutChips button.on,#cutChips button:active{background:var(--ink,#2e2519);color:var(--paper,#f6eed9)}#cutChips #cutRe{margin-left:0}#cutChips #cutLed{border-style:solid}@media (min-width:0px){#cutChips{left:12px;right:12px;bottom:calc(var(--pbot,72px) + 3px)}}
 
 #cutSvg .sel rect{fill:#000!important}#cutSvg rect{stroke-width:1.4px}#cutSvg text{font-weight:600}
 #cutSvg g.em rect{fill:#ffd400}#cutSvg g.em.sel rect{fill:#000!important}
