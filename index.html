@@ -1324,7 +1324,7 @@ function step(dt){
     if(Math.abs(d)<6){sh.turnDir=0;}else diff=d;
   }
   sh.heading=norm(sh.heading+clamp(diff,-rate,rate));
-  if(sh.jibBack){ // a headsail hauled aback: the wind on its wrong side pushes the bow round, harder in more wind and with more headsail
+  if(sh.jibBack&&(sh.anch.mode==="up"||sh.anch.mode==="trailing")){ // a headsail hauled aback: the wind on its wrong side pushes the bow round, harder in more wind and with more headsail
     const hs=SAILIDS.filter(k=>k==="jib"||/^h\d/.test(k)),sz=hs.length?hs.reduce((a,k)=>a+sh.sls[k],0)/hs.length:0,th1=Math.abs(angDiff(sh.heading,w.from));
     if(!s.irons&&th1>=NOGO+12)sh.jibBack=0;else if(sz>.05){sh.heading=norm(sh.heading+sh.jibBack*Math.min(9000,600*w.kn*sz*SHIP.turnK)*dt);sh.ordered=sh.heading;sh.wander=0;}
   }
@@ -1497,7 +1497,8 @@ function setCourse(d){if(!S||S.done)return;if(S.docked){S.ship.ordered=norm(Math
   if(S.irons){if(S.t-(S.ironsHintT||-1)>.02){S.ironsHintT=S.t;say("She is in irons and the helm has no bite. Back the jib to push her bow off the wind.",{log:false});}return;}
   S.ship.ordered=norm(Math.round(d));S.ship.turnDir=0;updateUI();}
 function backJib(side){if(!S||S.done)return;const sh=S.ship;
-  if(side){const hs=SAILIDS.filter(k=>k==="jib"||/^h\d/.test(k));if(!hs.length||hs.reduce((a,k)=>a+sh.sls[k],0)/hs.length<=.05){say("No headsail is set to back. Make sail on the jib first.",{log:false});return;}
+  if(side&&(S.docked||sh.anch.mode==="holding"||sh.anch.mode==="weighing")){if(sh.jibBack!==side)say(`Jib to be hauled aback when you weigh: her bow will fall off to ${side>0?"starboard":"port"}. Make sail on the jib before you cast off.`,{log:false});sh.jibBack=side;}
+  else if(side){const hs=SAILIDS.filter(k=>k==="jib"||/^h\d/.test(k));if(!hs.length||hs.reduce((a,k)=>a+sh.sls[k],0)/hs.length<=.05){say("No headsail is set to back. Make sail on the jib first.",{log:false});return;}
     if(sh.jibBack!==side)say(`Jib hauled aback: the wind on its wrong side pushes her bow to ${side>0?"starboard":"port"}.`,{log:false});sh.jibBack=side;}
   else if(sh.jibBack){sh.jibBack=0;say("Let go the jib sheets. The headsail fills on the new side.",{log:false});}
   updateUI(true);}
@@ -2313,8 +2314,8 @@ function updateUI(force){
   const rel=angDiff(sh.heading,w.from),th=Math.abs(rel);
   const pos=th<NOGO?"In irons":th<80?"Close-hauled":th<100?"Beam reach":th<160?"Broad reach":"Running";
   {const dh=$("dockHdg"),on=!!S.docked;dh.hidden=!on;dh.style.display=on?"flex":"none";if(on){$("dhTxt").textContent=`${Math.round(sh.ordered)}°`;if(document.activeElement!==$("dhSl"))$("dhSl").value=Math.round(sh.ordered/5)*5%360;}
-   const ib=$("ironsBox"),am=sh.anch.mode,show=!S.docked&&(am==="up"||am==="trailing")&&(S.irons||sh.jibBack||(th<NOGO+6&&sh.v<1.5));ib.hidden=!show;
-   if(show){$("irTitle").textContent=S.irons?"In irons":sh.jibBack?"Jib aback":"Close to the wind";$("irFill").style.width=Math.round(clamp(th/NOGO,0,1)*100)+"%";
+   const ib=$("ironsBox"),am=sh.anch.mode,show=(S.docked||am==="holding"||am==="weighing")?th<NOGO+6||!!sh.jibBack:(am==="up"||am==="trailing")&&(S.irons||sh.jibBack||(th<NOGO+6&&sh.v<1.5));ib.hidden=!show;
+   if(show){$("irTitle").textContent=S.docked&&th<NOGO?"Head to wind: pick the jib side":S.irons?"In irons":sh.jibBack?"Jib aback":"Close to the wind";$("irFill").style.width=Math.round(clamp(th/NOGO,0,1)*100)+"%";
      $("irPort").style.fontWeight=sh.jibBack<0?"700":"";$("irStb").style.fontWeight=sh.jibBack>0?"700":"";$("irRel").hidden=!sh.jibBack;
      if(!S.irons&&sh.jibBack&&th>=NOGO)$("irTitle").textContent="Clear: release the jib";}}
   $("posail").textContent=`${pos} · wind ${rel>0?"starboard":"port"}`;$("posail").className=th<NOGO?"warn":"";
@@ -6467,8 +6468,8 @@ $("dhSl").oninput=e=>setCourse(+e.target.value);
 { // corner box: progress towards falling off, and the headsail controls
   const bx=document.createElement("div");bx.id="ironsBox";bx.hidden=true;
   bx.innerHTML='<b id="irTitle">In irons</b><div class="irbar"><i id="irFill"></i></div><div class="irbtns"><button type="button" class="btn sm" id="irPort" title="Back the jib: push the bow to port">◄ Jib</button><button type="button" class="btn sm" id="irRel" title="Release the jib">Release</button><button type="button" class="btn sm" id="irStb" title="Back the jib: push the bow to starboard">Jib ►</button></div>';
-  document.body.append(bx);
-  const st=document.createElement("style");st.textContent="#ironsBox{position:fixed;left:max(12px,env(safe-area-inset-left,0px));top:96px;z-index:35;width:150px;padding:6px 8px;background:rgba(246,238,217,.96);border:1px solid var(--ink);border-radius:3px;box-shadow:0 4px 14px rgba(20,14,10,.3);font-size:12px;color:var(--ink)}#ironsBox[hidden]{display:none}#ironsBox .irbar{height:6px;margin:5px 0;background:rgba(0,0,0,.15);border-radius:3px;overflow:hidden}#ironsBox .irbar i{display:block;height:100%;width:0;background:#a8452c}#ironsBox .irbtns{display:flex;gap:4px;justify-content:space-between}#ironsBox .btn.sm{padding:2px 5px;min-height:24px;font-size:11px}";document.head.append(st);
+  (document.querySelector(".dockctl")||document.body).prepend(bx);
+  const st=document.createElement("style");st.textContent="#ironsBox{position:relative;width:100%;box-sizing:border-box;margin-bottom:4px;padding:5px 7px;background:rgba(246,238,217,.96);border:1px solid var(--ink);border-radius:3px;box-shadow:0 4px 14px rgba(20,14,10,.3);font-size:12px;color:var(--ink)}#ironsBox[hidden]{display:none}#ironsBox .irbar{height:6px;margin:5px 0;background:rgba(0,0,0,.15);border-radius:3px;overflow:hidden}#ironsBox .irbar i{display:block;height:100%;width:0;background:#a8452c}#ironsBox .irbtns{display:flex;gap:4px;justify-content:space-between}#ironsBox .btn.sm{padding:2px 5px;min-height:24px;font-size:11px}";document.head.append(st);
   $("irPort").onclick=()=>backJib(-1);$("irStb").onclick=()=>backJib(1);$("irRel").onclick=()=>backJib(0);
 }
 $("sUp").onclick=()=>setSail(S.ship.sail+1);
