@@ -522,6 +522,8 @@ body.fs3d #fsBar{left:max(12px,env(safe-area-inset-left,0px));bottom:max(12px,en
           <button id="zOut" title="Zoom out">−</button>
           <button id="follow" aria-pressed="true" title="Follow the ship">◎</button>
           <button id="curTog" aria-pressed="false" title="Show ocean currents on the chart" aria-label="Show ocean currents on the chart"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8c3-3 6 3 9 0s6 3 9 0M3 15c3-3 6 3 9 0s6 3 9 0"/></svg></button>
+          <button id="depTog" aria-pressed="true" title="Hide depth lines and soundings" aria-label="Hide depth lines and soundings"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7c4-3 7 2 9-1s6-1 9 1M3 13c4-3 7 2 9-1s6-1 9 1M3 19c4-3 7 2 9-1s6-1 9 1"/></svg></button>
+          <button id="hgtTog" aria-pressed="true" title="Hide land heights (contours and shading)" aria-label="Hide land heights (contours and shading)"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 19l7-12 4 7 3-4 6 9z"/></svg></button>
           <button id="windTog" aria-pressed="true" title="Hide wind on the chart" aria-label="Hide wind on the chart"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9h11a3 3 0 1 0-3-3M3 15h15a3 3 0 1 1-3 3M3 12h7"/></svg></button>
           <button id="cHeave" title="Heave the log (L)" aria-label="Heave the log"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="7.5" r="4"/><path d="M7 3.5v8M3 7.5h8"/><path d="M10.2 10.8C12.6 13 14 13.8 15.2 15.2" stroke-dasharray="1.1 1.7"/><path d="M14 15.6h6.4a6.4 6.4 0 0 1-6.4 6.4z" fill="currentColor" fill-opacity=".35"/></svg></button>
           <button id="cBrg" title="Take bearings of the land in sight" aria-label="Take bearing"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5v3M12 17.5v3M3.5 12h3M17.5 12h3"/><path d="M12 12l4.5-6"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg></button>
@@ -2055,11 +2057,144 @@ function makePaper(){const c=document.createElement("canvas");c.width=c.height=2
   for(let i=0;i<im.data.length;i+=4){const n=Math.random()*255;im.data[i]=120;im.data[i+1]=95;im.data[i+2]=60;im.data[i+3]=n<40?22:n<200?8:0;}g.putImageData(im,0,0);paperPat=ctx.createPattern(c,"repeat");}
 const ROSE=geo(12.1,-59.3);
 function path(pts){ctx.beginPath();pts.forEach((p,i)=>i?ctx.lineTo(sx(p.x),sy(p.y)):ctx.moveTo(sx(p.x),sy(p.y)));ctx.closePath();}
+/* ---------- chart relief: water depth lines (fathoms), seabed tint, soundings, land contours and hill shading ---------- */
+const FM=1.8288;
+const DEPTH_LV=[10,20,50,100,200,500,1000]; // fathoms; DEPTH_LV_ZOOM is the zoom below which that line is left off
+const DEPTH_LV_ZOOM=[1.6,2.4,.9,1.3,.8,.8,.8];
+const LAND_LV=[25,50,100,200,300,500,750,1000,1250], LAND_LV_ZOOM=[7,5,3,1.6,2.4,1.2,1.2,1.2,1.2];
+// hand-placed shelves and banks: centre, half-sizes in nm, depth on top in metres
+const BANKS=[
+ [17.45,-61.80,20,26,34],[17.62,-63.32,22,9,28],[17.25,-62.68,16,10,26],[10.45,-62.15,28,22,26],[10.98,-60.95,26,12,48],
+ [12.55,-61.5,9,38,40],[13.95,-60.99,8,15,60],[14.65,-61.02,7,16,70],[16.2,-61.5,18,16,45],[15.45,-61.35,5,16,80],[13.17,-59.55,9,12,45]
+].map(([la,lo,rx,ry,m])=>({...geo(la,lo),rx,ry,m}));
+const PORT_APRON=()=>Object.values(PORTS);
+let RELIEF=null;
+function edgeDist(P,x,y){let m=1e9;for(let i=0;i<P.length;i++){const q=closestOnSeg({x,y},P[i],P[(i+1)%P.length]);m=Math.min(m,Math.hypot(x-q.x,y-q.y));}return m;}
+function depthBase(x,y,d){
+  let m=4+3000*(1-Math.exp(-Math.pow(d/11,1.3)));
+  m*=1+.12*Math.sin(x/37+1.3)*Math.cos(y/29)+.06*Math.sin(x/11+y/13); // gentle undulation so the lines do not look machined
+  m=Math.min(m,3200+x*2.5);
+  for(const b of BANKS){const rr=Math.hypot((x-b.x)/b.rx,(y-b.y)/b.ry);if(rr<1.6){const t=clamp((rr-1)/.6,0,1),s=t*t*(3-2*t);m=Math.min(m,b.m+(m-b.m)*s);}}
+  for(const p of PORT_APRON()){const dd=Math.hypot(x-p.x,y-p.y);if(dd<3)m=Math.min(m,6+dd*(m>40?9:3));}
+  return m;}
+// contour chains by marching squares on a grid Z (value per node), levels lv; returns {level:[chain...]} chain = {c:[x,y,...],closed}
+function contourChains(Z,NX,NY,g,ox,oy,lv){
+  const out=[];
+  for(const L of lv){
+    const segs=[],ptOf=new Map(),adj=new Map();
+    const ep=(i,j,h)=>{const id=2*(j*NX+i)+h;if(!ptOf.has(id)){const i2=h?i:i+1,j2=h?j+1:j,a=Z[j*NX+i],b=Z[j2*NX+i2],t=(L-a)/(b-a);ptOf.set(id,[ox+(i+(i2-i)*t)*g,oy+(j+(j2-j)*t)*g]);}return id;};
+    for(let j=0;j<NY-1;j++)for(let i=0;i<NX-1;i++){
+      const a=Z[j*NX+i]>=L,b=Z[j*NX+i+1]>=L,c=Z[(j+1)*NX+i+1]>=L,d=Z[(j+1)*NX+i]>=L,k=a+b*2+c*4+d*8;if(k===0||k===15)continue;
+      const T=()=>ep(i,j,0),R=()=>ep(i+1,j,1),B=()=>ep(i,j+1,0),Lf=()=>ep(i,j,1);let s;
+      switch(k){case 1:case 14:s=[Lf(),T()];break;case 2:case 13:s=[T(),R()];break;case 3:case 12:s=[Lf(),R()];break;case 4:case 11:s=[R(),B()];break;
+        case 6:case 9:s=[T(),B()];break;case 7:case 8:s=[Lf(),B()];break;case 5:s=[Lf(),B(),T(),R()];break;case 10:s=[Lf(),T(),B(),R()];break;}
+      for(let q=0;q<s.length;q+=2)segs.push(s[q],s[q+1]);}
+    for(let q=0;q<segs.length;q+=2){const A=segs[q],Bn=segs[q+1];(adj.get(A)||adj.set(A,[]).get(A)).push(Bn);(adj.get(Bn)||adj.set(Bn,[]).get(Bn)).push(A);}
+    const seen=new Set(),chains=[];
+    const walk=(start)=>{const ids=[start];seen.add(start);let cur=start,prev=-1;
+      for(;;){const nx=(adj.get(cur)||[]).find(n=>n!==prev&&!seen.has(n));if(nx==null)break;seen.add(nx);ids.push(nx);prev=cur;cur=nx;}return ids;};
+    for(const [id,nb] of adj){if(seen.has(id)||nb.length!==1)continue;chains.push({ids:walk(id),closed:false});}
+    for(const [id] of adj){if(seen.has(id))continue;const ids=walk(id);chains.push({ids,closed:true});}
+    for(const ch of chains){let pts=ch.ids.map(id=>ptOf.get(id));
+      for(let it=0;it<2&&pts.length>2;it++){const n=[];const m=pts.length,last=ch.closed?m:m-1;if(!ch.closed)n.push(pts[0]);
+        for(let i=0;i<last;i++){const p=pts[i],q=pts[(i+1)%m];n.push([p[0]*.75+q[0]*.25,p[1]*.75+q[1]*.25],[p[0]*.25+q[0]*.75,p[1]*.25+q[1]*.75]);}
+        if(!ch.closed)n.push(pts[m-1]);pts=n;}
+      let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;const c=new Float32Array(pts.length*2);pts.forEach((p,i)=>{c[i*2]=p[0];c[i*2+1]=p[1];x0=Math.min(x0,p[0]);x1=Math.max(x1,p[0]);y0=Math.min(y0,p[1]);y1=Math.max(y1,p[1]);});
+      out.push({lv:L,c,closed:ch.closed,x0,x1,y0,y1});}
+  }
+  return out;}
+function buildRelief(){
+  if(RELIEF)return RELIEF;
+  const g=.75,NX=Math.ceil(W_NM/g)+1,NY=Math.ceil(H_NM/g)+1,Z=new Float32Array(NX*NY),land=new Uint8Array(NX*NY);
+  const info=islands.map(I=>{let mr=0;for(const p of I.pts)mr=Math.max(mr,Math.hypot(p.x-I.c.x,p.y-I.c.y));return{I,mr};});
+  for(let j=0;j<NY;j++)for(let i=0;i<NX;i++){const x=i*g,y=j*g;let d=60,inside=false;
+    for(const o of info){const lb=Math.hypot(x-o.I.c.x,y-o.I.c.y)-o.mr;if(lb>=d)continue;if(lb<0&&inPoly({x,y},o.I.pts)){inside=true;break;}d=Math.min(d,edgeDist(o.I.pts,x,y));}
+    if(inside){Z[j*NX+i]=0;land[j*NX+i]=1;}else Z[j*NX+i]=depthBase(x,y,d)/FM;}
+  const chains=contourChains(Z,NX,NY,g,0,0,DEPTH_LV);
+  // seabed tint raster: one pixel per node, shallow water washed out to cream, deep water a touch bluer
+  const cv=document.createElement("canvas");cv.width=NX;cv.height=NY;const c2=cv.getContext("2d"),im=c2.createImageData(NX,NY);
+  for(let k=0;k<NX*NY;k++){const f=Z[k],o=k*4;let r,gg,b,a;
+    if(land[k]){a=0;r=gg=b=0;}
+    else if(f<10){r=246;gg=238;b=217;a=150-f*3;}
+    else if(f<20){r=246;gg=238;b=217;a=105-(f-10)*3;}
+    else if(f<50){r=246;gg=238;b=217;a=70-(f-20)*1.6;}
+    else if(f<100){r=246;gg=238;b=217;a=22-(f-50)*.44;}
+    else{r=64;gg=104;b=138;a=Math.min(46,(f-100)/20);}
+    im.data[o]=r;im.data[o+1]=gg;im.data[o+2]=b;im.data[o+3]=a;}
+  c2.putImageData(im,0,0);
+  // land: per island height grid, tint + hill shading raster, contours
+  const lands=[];
+  for(const I of islands){
+    let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;for(const p of I.pts){x0=Math.min(x0,p.x);x1=Math.max(x1,p.x);y0=Math.min(y0,p.y);y1=Math.max(y1,p.y);}
+    const size=Math.max(x1-x0,y1-y0),lg=clamp(size/110,.12,.6),pad=lg*2,ox=x0-pad,oy=y0-pad,w=Math.ceil((x1-x0+pad*2)/lg)+1,h=Math.ceil((y1-y0+pad*2)/lg)+1;
+    const pk=LMS.filter(m=>m.isl===I.name);let H,px,py;
+    if(pk.length){const m=pk.reduce((a,b)=>b.h>a.h?b:a);H=m.h;px=m.x;py=m.y;}else{H=I.main?900:clamp(I.r*45,25,350);px=I.c.x;py=I.c.y;}
+    const E=new Float32Array(w*h);let any=false;
+    for(let j=0;j<h;j++)for(let i=0;i<w;i++){const x=ox+i*lg,y=oy+j*lg;if(!inPoly({x,y},I.pts))continue;
+      const dc=edgeDist(I.pts,x,y),dp=Math.hypot(x-px,y-py),t=dc/(dc+dp*(I.main?.5:.8)+1e-6);
+      let e=H*Math.pow(t,1.35)*(1+.18*Math.sin(x*1.7+y*.9)*Math.cos(y*1.3));e=Math.max(.5,e);E[j*w+i]=e;any=true;}
+    if(!any)continue;
+    const lch=contourChains(E,w,h,lg,ox,oy,LAND_LV.filter(l=>l<H*.98));
+    const lc=document.createElement("canvas");lc.width=w;lc.height=h;const lx=lc.getContext("2d"),li=lx.createImageData(w,h);
+    for(let j=0;j<h;j++)for(let i=0;i<w;i++){const k=j*w+i,e=E[k],o=k*4;if(e<=0){li.data[o+3]=0;continue;}
+      const ex=E[j*w+Math.min(w-1,i+1)]-E[j*w+Math.max(0,i-1)],ey=E[Math.min(h-1,j+1)*w+i]-E[Math.max(0,j-1)*w+i];
+      const sl=(-ex*.7+ey*.7)/(lg*2)/Math.max(60,H*.18); // light from the north-west: slopes facing it brighten, the others darken
+      const sh=clamp(sl,-1,1),tt=clamp(e/Math.max(300,H),0,1);
+      const r=205-tt*95,gg=200-tt*70,b=140-tt*60;
+      li.data[o]=clamp(r+sh*38,0,255);li.data[o+1]=clamp(gg+sh*34,0,255);li.data[o+2]=clamp(b+sh*28,0,255);li.data[o+3]=60+tt*80;}
+    lx.putImageData(li,0,0);
+    lands.push({I,cv:lc,ox,oy,lg,w:w*lg,h:h*lg,chains:lch,H});}
+  RELIEF={g,NX,NY,Z,land,chains,tint:cv,lands};return RELIEF;}
+function depthFmAt(x,y){const R=buildRelief(),u=x/R.g,v=y/R.g,i=Math.floor(u),j=Math.floor(v);if(i<0||j<0||i>=R.NX-1||j>=R.NY-1)return null;
+  if(R.land[j*R.NX+i])return 0;const fu=u-i,fv=v-j,Z=R.Z,NX=R.NX;
+  return (Z[j*NX+i]*(1-fu)+Z[j*NX+i+1]*fu)*(1-fv)+(Z[(j+1)*NX+i]*(1-fu)+Z[(j+1)*NX+i+1]*fu)*fv;}
+function strokeChains(chs,levels,zooms,style,label){
+  const z=cam.zoom,x0=cam.x-CW/2/z-2,x1=cam.x+CW/2/z+2,yT=cam.y+CYC/z+2,yB=cam.y-(CH-CYC)/z-2,labs=[];
+  for(let li=0;li<levels.length;li++){if(z<zooms[li])continue;const L=levels[li];style(L);ctx.beginPath();
+    for(const ch of chs){if(ch.lv!==L||ch.x1<x0||ch.x0>x1||ch.y1<yB||ch.y0>yT)continue;const c=ch.c,n=c.length/2;let lx=0,ly=0,acc=0,first=true;
+      for(let k=0;k<n;k++){const X=sx(c[k*2]),Y=sy(c[k*2+1]);
+        if(first){ctx.moveTo(X,Y);lx=X;ly=Y;first=false;continue;}
+        const d=Math.hypot(X-lx,Y-ly);if(d<1.4&&k<n-1)continue;ctx.lineTo(X,Y);acc+=d;
+        if(label&&acc>300&&X>30&&X<CW-30&&Y>30&&Y<CH-30){acc=0;labs.push([X,Y,L]);}lx=X;ly=Y;}
+      if(ch.closed)ctx.closePath();}
+    ctx.stroke();}
+  return labs;}
+function drawReliefWater(){
+  if(!showDepth)return;const R=buildRelief(),z=cam.zoom;
+  ctx.save();ctx.imageSmoothingEnabled=true;ctx.translate(sx(-R.g/2),sy(-R.g/2));ctx.scale(1,-1);ctx.drawImage(R.tint,0,0,R.NX*R.g*z,R.NY*R.g*z);ctx.restore();}
+function drawReliefLines(){
+  if(!showDepth)return;const R=buildRelief(),z=cam.zoom;ctx.save();ctx.lineJoin="round";ctx.lineCap="round";
+  const labs=strokeChains(R.chains,DEPTH_LV,DEPTH_LV_ZOOM,L=>{ctx.strokeStyle=L>=200?"rgba(52,86,120,.55)":"rgba(52,86,120,.42)";ctx.lineWidth=L%100===0||L===50?.9:.65;ctx.setLineDash(L<50?[1,2.5]:L>=500?[6,3]:[]);},true);
+  ctx.setLineDash([]);ctx.font="italic 10px 'IM Fell English',Georgia,serif";ctx.textAlign="center";ctx.textBaseline="middle";
+  for(const[X,Y,L]of labs){const t=String(L);const w=ctx.measureText(t).width;ctx.fillStyle="rgba(246,238,217,.85)";ctx.fillRect(X-w/2-2,Y-6,w+4,12);ctx.fillStyle="rgba(40,70,104,.85)";ctx.fillText(t,X,Y);}
+  // soundings in fathoms where the water is shoal, laid on a lattice that thins out as you zoom away
+  if(z>=1.6){const s=[1,2,4,8,16].find(n=>n*z>=48)||16,xa=cam.x-CW/2/z,xb=cam.x+CW/2/z,yt=cam.y+CYC/z,yb=cam.y-(CH-CYC)/z;
+    ctx.fillStyle="rgba(60,50,35,.7)";ctx.font="9px 'IM Fell English',Georgia,serif";
+    for(let gx=Math.floor(xa/s)*s;gx<=xb;gx+=s)for(let gy=Math.floor(yb/s)*s;gy<=yt;gy+=s){
+      const hh=Math.sin(gx*12.9898+gy*78.233)*43758.5453,hr=hh-Math.floor(hh),hr2=(hh*7.13)-Math.floor(hh*7.13);
+      const x=gx+(hr-.5)*s*.7,y=gy+(hr2-.5)*s*.7,f=depthFmAt(x,y);if(f==null||f<=0.2||f>150||coastNm(x,y)>14)continue;
+      const X=sx(x),Y=sy(y);if(X<0||X>CW||Y<0||Y>CH)continue;ctx.fillText(f<10?f.toFixed(f<5?1:0):String(Math.round(f)),X,Y);}}
+  ctx.restore();}
+function drawReliefLand(){
+  if(!showLand)return;const R=buildRelief(),z=cam.zoom;
+  for(const L of R.lands){const I=L.I;path(I.pts);ctx.save();ctx.clip();ctx.imageSmoothingEnabled=true;ctx.translate(sx(L.ox-L.lg/2),sy(L.oy-L.lg/2));ctx.scale(1,-1);ctx.drawImage(L.cv,0,0,L.w*z,L.h*z);ctx.setTransform(DPR,0,0,DPR,0,0);
+    ctx.lineJoin="round";ctx.lineCap="round";
+    strokeChains(L.chains,LAND_LV,LAND_LV_ZOOM,Lv=>{ctx.strokeStyle=Lv%500===0?"rgba(92,68,40,.75)":"rgba(112,86,52,.5)";ctx.lineWidth=Lv%500===0?1:.6;});
+    ctx.restore();}
+  ctx.save();ctx.strokeStyle="#2e2519";ctx.lineWidth=1.2;for(const I of islands){path(I.pts);ctx.stroke();}ctx.restore();}
+function drawSpotHeights(){
+  if(!showLand||cam.zoom<2.6)return;ctx.save();ctx.font="italic 10px 'IM Fell English',Georgia,serif";ctx.textAlign="left";
+  for(const lm of LMS){const X=sx(lm.x),Y=sy(lm.y);if(X<-40||X>CW+40||Y<-20||Y>CH+20)continue;const t=lm.h+" m";ctx.fillStyle="rgba(246,238,217,.8)";const w=ctx.measureText(t).width;ctx.fillRect(X+6,Y-8,w+4,11);ctx.fillStyle="#6a2e1c";ctx.fillText(t,X+8,Y);}
+  ctx.restore();}
+let showDepth=true,showLand=true;try{showDepth=localStorage.getItem("drDepth")!=="0";showLand=localStorage.getItem("drLandH")!=="0";}catch(e){}
+function setDepth(v){showDepth=v;$("depTog").setAttribute("aria-pressed",String(v));const t=v?"Hide depth lines and soundings":"Show depth lines and soundings";$("depTog").title=t;$("depTog").setAttribute("aria-label",t);try{localStorage.setItem("drDepth",v?"1":"0");}catch(e){}}
+function setLandH(v){showLand=v;$("hgtTog").setAttribute("aria-pressed",String(v));const t=v?"Hide land heights (contours and shading)":"Show land heights (contours and shading)";$("hgtTog").title=t;$("hgtTog").setAttribute("aria-label",t);try{localStorage.setItem("drLandH",v?"1":"0");}catch(e){}}
 function drawChart(){
   if(CW<2||CH<2)return; // the chart pane is folded away, so there is nothing to draw
   ctx.setTransform(DPR,0,0,DPR,0,0);
   ctx.fillStyle="#f6eed9";ctx.fillRect(0,0,CW,CH);
   ctx.fillStyle="rgba(143,176,184,.26)";ctx.fillRect(0,0,CW,CH);
+  drawReliefWater();
   if(paperPat){ctx.fillStyle=paperPat;ctx.fillRect(0,0,CW,CH);}
   // off-chart margins
   ctx.fillStyle="rgba(60,45,30,.10)";
@@ -2082,15 +2217,18 @@ function drawChart(){
   ctx.save();ctx.lineJoin="round";
   for(const isl of islands){path(isl.pts);ctx.strokeStyle="rgba(74,110,140,.18)";ctx.lineWidth=Math.min(40,Math.max(2,4*cam.zoom));ctx.stroke();}
   for(const isl of islands){if(isl.main)continue;for(const k of[1.08,1.17]){ctx.beginPath();isl.pts.forEach((p,i)=>{const x=sx(isl.c.x+(p.x-isl.c.x)*k),y=sy(isl.c.y+(p.y-isl.c.y)*k);i?ctx.lineTo(x,y):ctx.moveTo(x,y);});ctx.closePath();ctx.strokeStyle=`rgba(46,37,25,${k<1.1?.35:.18})`;ctx.lineWidth=.7;ctx.stroke();}}
+  drawReliefLines();
   // reefs
   for(const r of reefs){ctx.strokeStyle="rgba(74,110,140,.75)";ctx.lineWidth=1;for(let i=0;i<r.pts.length;i++){const p=r.pts[i],x=sx(p.x),y=sy(p.y),s=Math.max(2,cam.zoom*.6);ctx.beginPath();ctx.moveTo(x-s,y);ctx.lineTo(x+s,y);ctx.moveTo(x,y-s);ctx.lineTo(x,y+s);ctx.stroke();}}
   // land
   for(const isl of islands){path(isl.pts);ctx.fillStyle="#d9d6a4";ctx.fill();ctx.strokeStyle="#2e2519";ctx.lineWidth=1.2;ctx.stroke();}
   ctx.restore();
+  drawReliefLand();
   // land hatching
-  ctx.save();for(const isl of islands){path(isl.pts);ctx.save();ctx.clip();ctx.strokeStyle="rgba(46,37,25,.12)";ctx.lineWidth=.6;const c=sx(isl.c.x),d=sy(isl.c.y),r=Math.max(40,30*cam.zoom);for(let k=-r;k<r;k+=4){ctx.beginPath();ctx.moveTo(c+k,d-r);ctx.lineTo(c+k+r*.6,d+r);ctx.stroke();}ctx.restore();}ctx.restore();
+  if(!showLand){ctx.save();for(const isl of islands){path(isl.pts);ctx.save();ctx.clip();ctx.strokeStyle="rgba(46,37,25,.12)";ctx.lineWidth=.6;const c=sx(isl.c.x),d=sy(isl.c.y),r=Math.max(40,30*cam.zoom);for(let k=-r;k<r;k+=4){ctx.beginPath();ctx.moveTo(c+k,d-r);ctx.lineTo(c+k+r*.6,d+r);ctx.stroke();}ctx.restore();}ctx.restore();}
   // landmarks
   for(const lm of LMS){const x=sx(lm.x),y=sy(lm.y),s=Math.max(3,Math.min(7,cam.zoom*1.4));ctx.beginPath();ctx.moveTo(x,y-s);ctx.lineTo(x+s*.8,y+s*.6);ctx.lineTo(x-s*.8,y+s*.6);ctx.closePath();ctx.fillStyle=lm.vis?"#a8452c":"#7b6a55";ctx.fill();}
+  drawSpotHeights();
   // labels
   ctx.save();ctx.fillStyle="#2e2519";ctx.textAlign="center";
   for(const isl of islands){if(isl.small&&cam.zoom<2.2)continue;const fs=isl.main?14:isl.small?11:Math.max(11,Math.min(17,cam.zoom*4));ctx.font=`italic ${fs}px 'IM Fell English',Georgia,serif`;
@@ -6511,6 +6649,7 @@ $("windTog").onclick=()=>setWind(!showWind);setWind(showWind);
 let showCld=false;try{showCld=localStorage.getItem("drCld")==="1";}catch(e){}
 function setCld(v){showCld=v;$("cldTog").setAttribute("aria-pressed",String(v));const t=v?"Hide cloud cover on the chart":"Show cloud cover on the chart";$("cldTog").title=t;$("cldTog").setAttribute("aria-label",t);try{localStorage.setItem("drCld",v?"1":"0");}catch(e){}}
 $("cldTog").onclick=()=>setCld(!showCld);setCld(showCld);
+$("depTog").onclick=()=>setDepth(!showDepth);setDepth(showDepth);$("hgtTog").onclick=()=>setLandH(!showLand);setLandH(showLand);setTimeout(()=>{try{buildRelief();}catch(e){}},600);
 $("follow").onclick=()=>{follow=!follow;$("follow").setAttribute("aria-pressed",String(follow));};
 initRoute();initShip();
 $("rTog").onclick=()=>{const f=$("routePanel").classList.toggle("folded");$("rTog").textContent=f?"▼":"▲";$("rTog").setAttribute("aria-expanded",String(!f));};
@@ -6885,7 +7024,7 @@ const SCN_MECH=[
   dials:[{k:"dr",label:"Chart shows",live:true,opts:()=>[["true","True position"],["dr","Reckoning only"]],def:"true"}],
   apply(s,g){const lost=g("dr")==="dr";$("aDR").checked=lost;s.mode=lost?"lost":"trial";},
   triggers:[],
-  readouts:[["Reckoning error",s=>Math.hypot(s.est.x-s.ship.x,s.est.y-s.ship.y).toFixed(1)+" nm"],["Log heaves / fixes",s=>(s.heaves||0)+" / "+(s.fixes||0)]]},
+  readouts:[["Reckoning error",s=>Math.hypot(s.est.x-s.ship.x,s.est.y-s.ship.y).toFixed(1)+" nm"],["Log heaves / fixes",s=>(s.heaves||0)+" / "+(s.fixes||0)],["Water under keel (chart)",s=>{const f=depthFmAt(s.ship.x,s.ship.y);return f==null?"-":f<=0?"aground (land)":Math.round(f)+" fathoms";}]]},
  {id:"damage",name:"Hull and rigging",
   dials:[{k:"hull",label:"Hull at start",start:true,opts:()=>[["1","Sound"],["0.7","Damaged"],["0.4","Badly damaged"]],def:"1"}],
   apply(s,g,starting){if(starting)s.hull=+g("hull");},
@@ -7900,7 +8039,7 @@ window.addEventListener("load",()=>setTimeout(boot,400));
 window.__CUT=M;window.__CUTfast=()=>{M.fast=1;};
 })();
 
-window.__DR={hour:()=>S&&!S.done?localHours(S,S.t):null,preview:PV,cam:()=>R3,footAt,PF,portGeom,openPortCard,openPortPlan,tideLvl,tideTable,tideStream,plotFix,LMS,currentAt,landInit,WINDK,CURK,dockAtPort,showCrisis,crisisKind,punish,loadState,packState,decS,toggleOars,setStroke,oarPivot,STROKES,pickShip,get SHIP(){return SHIP},SHIPDEFS,SPEC,useShip,applyShip,crewOf,rigOf,linesOf,get shipPick(){return shipPick},set shipPick(v){shipPick=v},svMove,svCtx,sx,sy,openPortCard,openPortPlan,get R3(){return R3},setMain,update3D,get S(){return S},VOYAGES,PORTS,islands,reefs,LMS,step,startVoyage,setCourse,tackOrWear,setSail,assistStep,noonAvailable,windAt:(x,y,t)=>windAt(S,x,y,t),inPoly,crossFix,plotFix,takeBearing,markNoon,startObserve,noonAvailable,endVoyage,toGeo,geo,atPort:()=>atPort(S),buyStore,sellFish,toggleFish,coastNm,fishStep,tradeBuy,tradeSell,tradeUI,tradeSite,tradeJettison,contractBoard,contractText,contractAccept,contractDeliver,mkInit,holdUsed,marketBlurb,tradeStep,buyNews};
+window.__DR={buildRelief,depthFmAt,drawChart,cam,hour:()=>S&&!S.done?localHours(S,S.t):null,preview:PV,cam:()=>R3,footAt,PF,portGeom,openPortCard,openPortPlan,tideLvl,tideTable,tideStream,plotFix,LMS,currentAt,landInit,WINDK,CURK,dockAtPort,showCrisis,crisisKind,punish,loadState,packState,decS,toggleOars,setStroke,oarPivot,STROKES,pickShip,get SHIP(){return SHIP},SHIPDEFS,SPEC,useShip,applyShip,crewOf,rigOf,linesOf,get shipPick(){return shipPick},set shipPick(v){shipPick=v},svMove,svCtx,sx,sy,openPortCard,openPortPlan,get R3(){return R3},setMain,update3D,get S(){return S},VOYAGES,PORTS,islands,reefs,LMS,step,startVoyage,setCourse,tackOrWear,setSail,assistStep,noonAvailable,windAt:(x,y,t)=>windAt(S,x,y,t),inPoly,crossFix,plotFix,takeBearing,markNoon,startObserve,noonAvailable,endVoyage,toGeo,geo,atPort:()=>atPort(S),buyStore,sellFish,toggleFish,coastNm,fishStep,tradeBuy,tradeSell,tradeUI,tradeSite,tradeJettison,contractBoard,contractText,contractAccept,contractDeliver,mkInit,holdUsed,marketBlurb,tradeStep,buyNews};
 })();
 </script>
 <style>/* UI Layout Tuner settings (phone), 2026-10-29 */
