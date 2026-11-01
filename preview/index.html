@@ -8035,4 +8035,20 @@ new MutationObserver(apply).observe(document.documentElement,{attributes:true,at
 function go(){menu();apply();led();}
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",go);else go();
 addEventListener("load",go);[300,1500,4000].forEach(t=>setTimeout(go,t));setInterval(led,700);
+})();</script><script id="drUiVisHook">(function(){
+/* One master switch for the game's visuals: "With images" (icons, frames, textures) or "Vector only" (the code-drawn look).
+   Replaces the separate "UI images" and "Frames and textures" Menu items by driving both of their on/off keys. */
+const K=["drUiImg.on","drUiFrm.on"];
+const get=k=>{try{return localStorage.getItem(k);}catch(e){return null;}};
+const set=(k,v)=>{try{localStorage.setItem(k,v);}catch(e){}};
+const imagesOn=()=>K.some(k=>get(k)!=="0");
+function css(){if(document.getElementById("drUiVisCss"))return;const s=document.createElement("style");s.id="drUiVisCss";s.textContent="#bUiImg,#bUiFrm{display:none!important}";document.head.append(s);}
+function menu(){const mp=document.getElementById("menuPop");if(!mp||document.getElementById("bVis"))return;
+  const b=document.createElement("button");b.className="tb";b.id="bVis";b.title="Switch the whole game between the new images (icons, frames, textures) and the original code-drawn look";
+  const lab=()=>{const on=imagesOn();b.textContent="Visuals: "+(on?"With images":"Vector only");b.setAttribute("aria-pressed",on);};lab();
+  b.onclick=()=>{const v=imagesOn()?"0":"1";K.forEach(k=>set(k,v));lab();if(window.drUiImgSync)window.drUiImgSync();if(window.drUiFrmSync)window.drUiFrmSync();};
+  const ref=document.getElementById("bUiImg")||document.getElementById("bUiFrm")||document.getElementById("bCheat");mp.insertBefore(b,ref||null);}
+function go(){css();menu();}
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",go);else go();
+addEventListener("load",go);[300,1500,4000].forEach(t=>setTimeout(go,t));
 })();</script></body></html>
