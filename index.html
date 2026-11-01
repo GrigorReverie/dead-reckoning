@@ -2010,10 +2010,10 @@ function ringBell(n){
 
 /* ---------- rendering: chart ---------- */
 const cv=$("chart"),ctx=cv.getContext("2d");
-const cam={x:200,y:200,zoom:3};let follow=true;let DPR=1,CW=0,CH=0;
+const cam={x:200,y:200,zoom:3};let follow=true;let drag=null;const pts=new Map();let DPR=1,CW=0,CH=0;
 function resize(){DPR=Math.min(2,window.devicePixelRatio||1);const r=cv.getBoundingClientRect();CW=r.width;CH=r.height;cv.width=Math.round(CW*DPR);cv.height=Math.round(CH*DPR);measureDocks();}
 let CYC=0; // vertical centre of the visible chart, above the floating docks
-function measureDocks(){const r=cv.getBoundingClientRect(),d=document.querySelector('.bookbox').getBoundingClientRect();const cover=Math.max(0,Math.min(r.height*.6,r.bottom-d.top+8));CYC=(CH-cover)/2;}
+function measureDocks(){const r=cv.getBoundingClientRect(),d=document.querySelector('.bookbox').getBoundingClientRect();const cover=Math.max(0,Math.min(r.height*.6,r.bottom-d.top+8));const n=(CH-cover)/2;if(!follow&&CYC&&n!==CYC){cam.y+=(CYC-n)/cam.zoom;if(drag)drag.cy+=(CYC-n)/cam.zoom;}CYC=n;} // keep the map still when the dock height changes
 const sx=x=>(x-cam.x)*cam.zoom+CW/2, sy=y=>CYC-(y-cam.y)*cam.zoom;
 const wx=px=>(px-CW/2)/cam.zoom+cam.x, wy=py=>cam.y-(py-CYC)/cam.zoom;
 let paperPat=null;
@@ -6709,14 +6709,14 @@ function initShip(){svStkInit();svVizInit();svFolds();$("bShip").onclick=$("bShi
   window.addEventListener("resize",()=>{if(SV.open)document.documentElement.style.setProperty("--bar-h",document.querySelector(".bar").offsetHeight+"px");});}
 
 /* ---------- input ---------- */
-let drag=null;const pts=new Map();
+
 cv.addEventListener("pointerdown",e=>{cv.setPointerCapture(e.pointerId);pts.set(e.pointerId,{x:e.offsetX,y:e.offsetY});if(pts.size===1&&!follow){drag={x:e.offsetX,y:e.offsetY,cx:cam.x,cy:cam.y};cv.classList.add("drag");}});
 cv.addEventListener("pointermove",e=>{if(!pts.has(e.pointerId))return;const prev=pts.get(e.pointerId);pts.set(e.pointerId,{x:e.offsetX,y:e.offsetY});
   if(pts.size===2){const[a,b]=[...pts.values()];const pa=e.pointerId===[...pts.keys()][0]?prev:a,pb=e.pointerId===[...pts.keys()][1]?prev:b;const d0=Math.hypot(pa.x-pb.x,pa.y-pb.y),d1=Math.hypot(a.x-b.x,a.y-b.y);if(d0>0)zoomAt(d1/d0,(a.x+b.x)/2,(a.y+b.y)/2);return;}
   if(drag){const dx=e.offsetX-drag.x,dy=e.offsetY-drag.y;if(Math.abs(dx)+Math.abs(dy)>3){follow=false;$("follow").setAttribute("aria-pressed","false");}cam.x=drag.cx-dx/cam.zoom;cam.y=drag.cy+dy/cam.zoom;}});
-const endPtr=e=>{pts.delete(e.pointerId);if(!pts.size){drag=null;cv.classList.remove("drag");}};
+const endPtr=e=>{pts.delete(e.pointerId);drag=null;if(!pts.size)cv.classList.remove("drag");}; // a finger lifting after a pinch must not resume an old pan origin (that snapped the chart back)
 cv.addEventListener("pointerup",endPtr);cv.addEventListener("pointercancel",endPtr);
-function zoomAt(f,px,py){if(follow&&S){cam.zoom=clamp(cam.zoom*f,.8,6000);return;}const bx=wx(px),by=wy(py);cam.zoom=clamp(cam.zoom*f,.8,6000);cam.x=bx-(px-CW/2)/cam.zoom;cam.y=by+(py-CYC)/cam.zoom;}
+function zoomAt(f,px,py){if(follow&&S){cam.zoom=clamp(cam.zoom*f,.8,6000);return;}const bx=wx(px),by=wy(py);cam.zoom=clamp(cam.zoom*f,.8,6000);cam.x=bx-(px-CW/2)/cam.zoom;cam.y=by+(py-CYC)/cam.zoom;if(drag){const p=[...pts.values()][0];if(p)drag={x:p.x,y:p.y,cx:cam.x,cy:cam.y};}}
 cv.addEventListener("wheel",e=>{e.preventDefault();zoomAt(Math.exp(-e.deltaY*.0015),e.offsetX,e.offsetY);},{passive:false});
 $("zIn").onclick=()=>zoomAt(1.4,CW/2,CYC);$("zOut").onclick=()=>zoomAt(1/1.4,CW/2,CYC);
 let showCur=false;try{showCur=localStorage.getItem("drCur")==="1";}catch(e){}
