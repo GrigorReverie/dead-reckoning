@@ -1,0 +1,109 @@
+# Dead Reckoning: game Bible
+
+The single place that says what this game is. Mechanics detail lives in [`mechanics.md`](mechanics.md) (the reusable, UI-free catalogue) and [`sea-events.md`](sea-events.md) (how to add an encounter). If this file and the code disagree, fix whichever is wrong in the same change.
+
+**Status keys:** Live = in `index.html`. Preview = only in `preview/index.html` (DR Preview). Idea = not built.
+**Scope of this edition:** only what exists today. Lore gaps are listed under "Open questions", not invented.
+
+## 1. Vision
+Captain a sailing ship in the 1700s. Manage crew, stores and upkeep, trade between ports, and sail seas where wind and waves matter. Navigate by dead reckoning: you know your speed in knots and heading, so you estimate where you are and correct it with fixes. A chart shows the major trade ports.
+
+It runs in the browser as an installable PWA (GitHub Pages), on phone and desktop, works offline, and saves per device with optional private-gist sync.
+
+## 2. Setting
+- **Default scenario:** the brig *Hesper* in the Lesser Antilles, March 1745.
+- **Sea:** Windward and Leeward Islands, with a hidden "true" position in lost mode.
+- **Ports (5):** Bridgetown, Castries, St John's, Kingstown, Basseterre. There is also a start-only spot, open sea west of Barbados.
+- **Era choices made:** octant-era navigation; no gun combat; the slave trade is left out of the trade system (from the original brief).
+
+## 3. Design pillars
+1. **You are the captain, not the ship.** Orders go through the helm, the crew and the sails.
+2. **Uncertainty is the game.** Position is an estimate; weather, current and error all push it off.
+3. **The sea has rules.** Real Beaufort wind and sea, polar-based sailing, tides and set-and-drift.
+4. **Trade is a puzzle of ports.** Each port makes some goods and lacks others.
+5. **Forgiving realism.** Assists exist so the depth is optional, not a wall.
+6. **Looks like a period chart and print**, not a modern UI (see section 10).
+
+## 4. Modes
+| Mode | What it is |
+|---|---|
+| Free | Sail and trade freely. Start money £120. |
+| Career | Start in a cutter (£40), earn, and move up the fleet at the shipyard (60% part-exchange). |
+| Scenario | Sandbox/test mode built from the `SCN_MECH` registry: setup sheet, Test panel, presets. |
+
+Voyages can also be scripted start/finish pairs: trial (true position shown) or lost (reckoning only).
+
+## 5. Core loops
+- **Moment to moment:** set heading, sails and braces; watch wind, sea, speed and condition; handle events.
+- **Voyage:** plot a course, reckon position, correct with a log, noon sight or bearings, arrive, dock.
+- **Port:** read prices, load and unload at the quay, hire crew, repair, resupply, pay duties.
+- **Campaign:** build standing and money, unlock better goods and contracts, buy a bigger ship.
+
+## 6. Mechanics overview
+Full rules are in `mechanics.md`. Registered ids in `GAME_MECHANICS`: `setup`, `weather`, `tides`, `fishing`, `pirates`, `crew`, `trade`, `navigation`, `damage`. Preview adds `traffic`, `harbour`, `events` and quay loading.
+
+| Area | Summary | Status |
+|---|---|---|
+| Sailing | Polar speed table, no-go zone (67 degrees), sail settings from bare poles to all plain sail, brace angle, irons | Live |
+| Weather | Wind and Beaufort sea state, swell, cloud, rain, squalls, land wind shadows | Live |
+| Currents and tides | Set and drift; tides twice daily with spring/neap | Live |
+| Navigation | Dead reckoning, heave the log, noon sight, landmark bearings, chart position lock | Live |
+| Time | Real-time with pause, game speed, Skip runs the full simulation | Live |
+| Crew | Personalities, watches, jobs, hiring, surgeon, discipline, crises | Live |
+| Vessel condition | Hull, rigging, leaks, repairs, spares | Live |
+| Provisions | Stores, fishing (patches, hand-lines), wildlife | Live |
+| Trade | 12 goods, port prices, news, duties, smuggling, contracts, standing | Live |
+| Pirates | Open-sea chase or prowl, boarding crisis, no gun combat | Live |
+| Sea events | Derelict, castaway, squall encounters with weighted outcomes | Preview |
+| Traffic | Other vessels on lanes, moored harbour ships | Preview |
+| Quay loading | Basket, receipt, crates loaded one by one into the hold | Preview |
+
+## 7. Ships
+Ten ships, each with its own hull, rig, cutaway and camera settings (`SHIPSPEC`, `CAMCFG`):
+
+| Ship | Role |
+|---|---|
+| Jolly boat (c. 1780) | Utility, oars and spritsail |
+| Cumberland Fleet yacht (1775) | Pleasure cutter, the career start |
+| HMS Sultana (1767) | Customs schooner |
+| Brig *Hesper* (1745) | The game's default merchant brig |
+| HMY Royal Caroline (1749) | Royal yacht |
+| HM Bark Endeavour | Collier hull, exploration |
+| Spanish xebec | Mediterranean raider |
+| Götheborg (1738) | East Indiaman |
+| USS Constitution (1797) | Heavy frigate |
+| Santísima Trinidad | Largest warship of the century |
+
+Per-ship stats are compared in the Ship Stats Compare dashboard. Hull capacity (tons) sets the cargo limit; cargo weight slows the ship by up to 14%.
+
+## 8. Economy
+- **Goods (12):** tier 1: sugar, molasses, lumber, flour. Tier 2: rum, cotton, coffee, bar iron. Tier 3 (free consignments on special contracts only): Madeira, indigo, tortoiseshell, ambergris.
+- **Prices** follow each port's stock (makers cheap, others dear), plus events (glut, shortage, hurricane, war news). Other ports' prices are known only as last seen, unless you pay for news.
+- **Costs:** import duty 3 to 7%, export duty 2%, harbour dues, spoilage, wet and rough-sea damage.
+- **Standing:** Unknown, Known, Trusted, Eminent. It unlocks tier 2 (at 15) and contracts.
+- **Smuggling:** land cargo at night in quiet coves to dodge duty, with a risk of being caught.
+- **Tuning:** the Trade Economy and Career Pace dashboards.
+
+## 9. People
+Named crew with personalities, two watches, jobs by room, fatigue, morale, beer and biscuit, injuries and a surgeon. Crises give decision moments. Assists let the player hand work to the crew at 25/50/75/100% on watch.
+
+## 10. Art and UI direction
+- **Chart:** 17th-century-style chart look with contour and depth lines (in progress); pen-and-ink icons.
+- **3D:** three.js scenes: port plans in 3D, painted walking crew, cutaway of every ship, Deck camera at eye level, spyglass, sun and cloud shadows, day/night sky and constellations.
+- **Styles:** Visuals dropdown (Original, New, Images); Menu > Preview > Style presets; UI Look and 3D Style sliders; one responsive layout for phone and desktop.
+- **Performance:** automatic quality (Auto/Low/Medium/High).
+- **Tools:** private tuner dashboards, listed in the Dashboards hub, are where values are tuned before being pasted into the game.
+
+## 11. Roadmap and open ideas
+In progress (Preview): traffic, harbour ships, sea events, quay loading, ship controls module, engine/games folder split plan (`engine-plan/`).
+
+Ideas not built: St John's reefs in 3D; bar depth blocking deep ships at low tide; wind-sea wavelength; pay and shares; chronometer as a late upgrade (from the brief).
+
+## 12. Open questions for Grigor
+- Backstory for the captain, the *Hesper* and the owners (none written yet).
+- Factions, nations and their relations in the islands.
+- A win condition or story arc for Career beyond "grow the fleet".
+- More ports beyond the five.
+
+## 13. Keeping this file true
+Update it in the same change whenever a mechanic, ship, port, good or mode changes, alongside `GAME_MECHANICS`, `SCN_MECH` and `mechanics.md`.

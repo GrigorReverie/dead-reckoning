@@ -8,4 +8,6 @@ Scenario mode (the third start option, next to Free and Career) builds its setup
 
 When you add or change a mechanic (fishing, pirates, weather, tides, crew crises, trading, navigation, damage and so on), update both places in the same change.
 
+**Game Bible rule.** `docs/game-bible.md` is the living design document (vision, setting, pillars, loops, mechanics overview, ships, ports, economy, art and UI direction, roadmap). When you add or change a mechanic, ship, port, good, mode or art direction, update the Bible in the same change.
+
 Publish to `main` only when Grigor says "publish".
