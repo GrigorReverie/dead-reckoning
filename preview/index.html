@@ -7107,8 +7107,9 @@ const SCN_MECH=[
   triggers:[],
   readouts:[["Reckoning error",s=>Math.hypot(s.est.x-s.ship.x,s.est.y-s.ship.y).toFixed(1)+" nm"],["Log heaves / fixes",s=>(s.heaves||0)+" / "+(s.fixes||0)],["Water under keel (chart)",s=>{const f=depthFmAt(s.ship.x,s.ship.y);return f==null?"-":f<=0?"aground (land)":Math.round(f)+" fathoms";}]]},
  {id:"events",name:"Sea events",
-  dials:[{k:"freq",label:"Event frequency",live:true,opts:()=>[["1","Natural"],["4","Often"],["12","Very often"],["0","Never"]],def:"1"}],
-  apply(s,g){EVFREQ=+g("freq");},
+  dials:[{k:"start",label:"Start with",start:true,opts:()=>[["none","Nothing in sight"],["derelict","A drifting derelict ahead"],["castaway","A marooned castaway ahead"],["squall","A violent squall ahead"]],def:"none"},
+   {k:"freq",label:"Event frequency",live:true,opts:()=>[["1","Natural"],["4","Often"],["12","Very often"],["0","Never"]],def:"1"}],
+  apply(s,g,starting){EVFREQ=+g("freq");if(starting){s.ev=[];const k=g("start");if(k&&k!=="none")evSpawn(s,k,true);}},
   triggers:[["Drifting derelict",s=>evTrigger(s,"derelict")],["Marooned castaway",s=>evTrigger(s,"castaway")],["Violent squall",s=>evTrigger(s,"squall")],["Clear all events",s=>{s.ev=[];}]],
   readouts:[["Events about",s=>{const E=s.ev||[];if(!E.length)return "none";const e=E.reduce((a,b)=>Math.hypot(a.x-s.ship.x,a.y-s.ship.y)<Math.hypot(b.x-s.ship.x,b.y-s.ship.y)?a:b);return E.length+", nearest "+EV_DEFS[e.id].name.toLowerCase()+" "+Math.hypot(e.x-s.ship.x,e.y-s.ship.y).toFixed(1)+" nm"}],["Next event in",s=>EVFREQ>0&&s.evNext!=null?Math.max(0,s.evNext-s.t).toFixed(0)+" h":"never"]]},
  {id:"damage",name:"Hull and rigging",
@@ -7119,6 +7120,9 @@ const SCN_MECH=[
 ];
 const SCN_PRESETS=[
  {id:"fishing",name:"Fishing",desc:"Calm, at sea, a school beside the ship. No pirates.",set:{"setup.place":"leeward","weather.wind":"12","weather.sky":"fair","weather.sea":"slight","fishing.fish":"rich","pirates.pir":"0"}},
+ {id:"evderelict",name:"Derelict",desc:"A drifting wreck ahead, at sea.",set:{"setup.place":"leeward","setup.hour":9,"events.start":"derelict","events.freq":"0","weather.wind":"12","weather.sky":"fair","pirates.pir":"0"}},
+ {id:"evcastaway",name:"Castaway",desc:"A marooned castaway ahead, at sea.",set:{"setup.place":"leeward","setup.hour":9,"events.start":"castaway","events.freq":"0","weather.wind":"12","weather.sky":"fair","pirates.pir":"0"}},
+ {id:"evsquall",name:"Squall",desc:"A violent squall bearing down, at sea.",set:{"setup.place":"leeward","setup.hour":9,"events.start":"squall","events.freq":"0","weather.wind":"12","weather.sky":"fair","pirates.pir":"0"}},
  {id:"pirates",name:"Pirates",desc:"A full hold at sea and pirates about.",set:{"setup.place":"leeward","trade.cargo":"full","pirates.pir":"4","weather.wind":"18","weather.sky":"clear","weather.sea":"moderate"}},
  {id:"storm",name:"Storm",desc:"A gale and a high sea, at sea.",set:{"setup.place":"leeward","weather.wind":"34","weather.dir":"45","weather.sea":"high","weather.sky":"storm","pirates.pir":"0"}},
  {id:"trading",name:"Trading",desc:"Docked at Bridgetown with money to spend.",set:{"setup.place":"bridgetown","setup.purse":400,"setup.hour":9,"weather.wind":"12","pirates.pir":"1"}},
