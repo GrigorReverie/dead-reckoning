@@ -7535,7 +7535,7 @@ function build(R){
   /* ---- HOLD ---- */
   LV=4;
   { const[z0,z1]=level(YH+1);const nz=Math.floor((z1-z0-6)/.95);
-    for(let k=0;k<nz;k++){const z=z0+3+k*.95;if(Math.abs(z-3)<1.4)continue;for(const x of[-.55,-1.55,-2.55,-3.55]){if(hx(z,YH+.7)<-x+.5)continue;Cy(x,YH+.55,z,.46,.9,0xc99a5a,{ax:"z",seg:10});if(k%2===0&&x>-3)Cy(x-.5,YH+1.45,z+.45,.42,.85,0xd6a965,{ax:"z",seg:10});}}
+    for(let k=0;k<nz;k++){const z=z0+3+k*.95;if(Math.abs(z-3)<1.4)continue;for(const x of[-.55,-1.55,-2.55,-3.55]){if(hx(z,YH+.7)<-x+.5)continue;CSLOT.push([x,YH+.02,z,.9,LV]);if(k%2===0&&x>-3)CSLOT.push([x-.5,YH+.92,z+.45,.85,LV]);}}
     for(let k=0;k<12;k++)B(-.2,.2,YH,YH+.3,z0+3+k*.9,z0+3.7+k*.9,0x5b5a58,false);
     for(let k=0;k<8;k++){const z=-2+k*.9;B(-4.3,-3.2,YH,YH+.35,z,z+.75,0x6a6864);}
     { const g=new THREE.SphereGeometry(1,16,9,0,2*PI,0,PI/2);g.scale(1.6,.6,5);g.translate(-1.2,YH,-13.5);const ng=g.toNonIndexed();ng.computeVertexNormals();const c=paint(ng,0xaaa491),p=ng.attributes.position.array;for(let i=0;i<p.length;i++){AP[LV].push(p[i]);AC[LV].push(c[i]);} }
@@ -7635,8 +7635,8 @@ function build(R){
       for(let k=0;k<Math.floor((len-.4)/.9);k++){const z=c.z0+.3+k*.9,x=-Math.min(3.75,W(z,y+.3,.2)*.75);if(x>-1.2*f)continue;B(x-.55*f,x+.55*f,y,y+.35*f,z,z+.75,0x6a6864);}},
      pump(c){const z=c.zc,y=c.f(z),f=Math.max(.5,Math.min(1,s*1.5)),top=deck(z)+.2;Cy(-.4*f,(y+top)/2,z,.2*f,top-y,0xc9962f,{seg:10});},
      cargo(c){crates(c,null,.9);},
-     tea(c){crates(c,[0x8a5a2b,0x9a6a3b,0xb08040],.6);},
-     china(c){crates(c,[0xd9c9a0,0xcbb88a],.8);const y=c.f(c.zc);for(let k=0;k<4;k++){const z=c.z1-.6-k*.55;if(z<c.z0)break;Cy(-.5,y+.3,z,.22,.6,k%2?0xe8eef2:0x2f5f8a,{seg:10,e:false});}},
+     tea(c){crates(c,null,.7);},
+     china(c){crates(c,null,.8);},
      benches(c){const n=c.o.n||8;for(let i=0;i<n;i++){const z=c.z0+(i+.5)*(c.z1-c.z0)/n,y=c.f(z),w=hx(z,y+.6);if(w<1)continue;
         B(-w+.15,-.45,y+.42,y+.5,z-.16,z+.16,0x8c5f33);B(-.6,-.45,y,y+.42,z-.1,z+.1,0x6a4423,false);B(-w+.3,-.6,y,y+.12,z+.45,z+.55,0x6a4423,false);
         Cy(-w*.5-.3,y+.95,z+.3,.045,w*1.25,0xc49a5e,{ax:"x",seg:6,e:false});}},
