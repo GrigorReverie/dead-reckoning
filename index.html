@@ -7836,6 +7836,12 @@ function build(R){
       if(d.y!=="deck"){if(r.k.some(t=>CLOSED.includes(t))){if(i>0)pz(z0,d.y,hh);if(i<d.R.length-1)pz(z1,d.y,hh);}}
       else if(!r.o.up&&LS.deckAt(zc)-deck(zc)>.6){const zb=zc<0?z1:z0,hb=LS.deckAt(zb+(zc<0?-.4:.4))-deck(zb);if(hb>.6)pz(zb,deck(zb),hb-.05,0xcfa575);}});});
   }
+  /* keep everything on a deck inside her: no prop, plank, cask or stack may poke out through the hull side or up through the deck above (squashed against the wall or ceiling instead) */
+  { const skk=Math.max(.15,H.T/6.2);
+    const ceil=(k,z)=>k<=0?1e9:(k===1?deck(z):M.L.decks[k-1].y)-.3*skk-.05;
+    for(let k=0;k<NL;k++)for(const arr of[AP[k],AL[k],SG[k]])for(let i=0;i<arr.length;i+=3){
+      const z=arr[i+2];let y=arr[i+1];const c=ceil(k,z);if(y>c)y=arr[i+1]=c;
+      const w=Math.max(.05,hx(z,y)-.06);if(arr[i]<-w)arr[i]=-w;else if(arr[i]>w)arr[i]=w;} }
   for(let k=0;k<=NL;k++){if(AP[k].length){const mg=new THREE.BufferGeometry();mg.setAttribute("position",new THREE.Float32BufferAttribute(AP[k],3));mg.setAttribute("color",new THREE.Float32BufferAttribute(AC[k],3));const vk=vm.clone(),pk=pen.clone();bandify(vk);bandify(pk);M.VM[k]=vk;M.PN[k]=pk;LG[k].add(new THREE.Mesh(mg,vk));LG[k].userData.pk=pk;}
     const lg=new THREE.BufferGeometry();lg.setAttribute("position",new THREE.Float32BufferAttribute(AL[k].concat(SG[k]),3));LG[k].add(new THREE.LineSegments(lg,LG[k].userData.pk||pen));}
   buildExplode(R,NL,vm,pen);
@@ -8038,7 +8044,7 @@ function crewAnim(){const C=S.crew,P=M.P,n=Math.min(1200,C.length),now=performan
     else{lie=true;}
     if(lie){const sw=C[i].sick?0:.12*Math.sin(t*.8);_e.set(-PI/2,0,0);_q.setFromEuler(_e);_q2.setFromAxisAngle(_ax,sw);_q.premultiply(_q2);y+=.32+(C[i].sick?0:.4);}
     else{_e.set(0,yaw,0);_q.setFromEuler(_e);}
-    _p.set(pl[0],y+xo(zb[0]),z);_sc.set(s,s,s);_F.compose(_p,_q,_sc);
+    {const hw=hx(z,y+.9)-.45;_p.set(hw>.1?Math.max(-hw,Math.min(hw,pl[0])):pl[0],y+xo(zb[0]),z);}_sc.set(s,s,s);_F.compose(_p,_q,_sc);
     for(const k of["body","hip","head","hair"])P[k].setMatrixAt(i,_F);
     P.tail.setMatrixAt(i,a.look&&a.look.long?_F:_Z);
     for(const k of["tri","round","knit","cap"])P[k].setMatrixAt(i,!lie&&a.look&&a.look.hat===k?_F:_Z);
@@ -8109,7 +8115,7 @@ function labels(){const R=M.R;if(!M.on){if(labelEls)labelEls.forEach(e=>e.g.styl
     arr.forEach((e,k)=>{const l=e.l,ax=e.ax,ay=e.ay;
       { const n=M.grp&&M.grp[l[0]*10+l[4]]?M.grp[l[0]*10+l[4]].length:0,t=e.base+(n?" "+n:"");if(e.tx.textContent!==t){e.tx.textContent=t;e.w=t.length*5.3+10;} }
       e.g.classList.toggle("sel",M.sel===l[0]&&M.hi===l[4]);
-      const vi=(bot-top)*.08,hi=Math.round(W*.08),ty=side?bot-18-vi-(c-1-k)*stepAll:top+vi+k*stepAll,bx=side?W-hi-e.w:hi;
+      const vi=(bot-top)*(M.sel<0?.16:.08),hi=Math.round(W*(M.sel<0?.22:.08)),ty=side?bot-18-vi-(c-1-k)*stepAll:top+vi+k*stepAll,bx=side?W-hi-e.w:hi;
       e.rc.setAttribute("x",bx);e.rc.setAttribute("y",ty);e.rc.setAttribute("width",e.w);
       e.tx.setAttribute("x",bx+5);e.tx.setAttribute("y",ty+11.5);
       const ok=!(e.vz>1||ax<8||ax>W-8||ay<70||ay>cardTop-6);
