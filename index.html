@@ -1032,6 +1032,8 @@ const BNAME=["Calm","Light air","Light breeze","Gentle breeze","Moderate breeze"
 const beaufort=kn=>{let i=0;while(i<BFT.length&&kn>=BFT[i])i++;return i;};
 const CURRENT={set:290,drift:.35};
 // Preview menu overrides (null = the game's own auto weather); see the Preview panel near the end of the script
+// Every game mechanic is listed here AND described in the Scenario registry (SCN_MECH). Add an id here and an entry there when you add a mechanic.
+const GAME_MECHANICS=["setup","weather","tides","fishing","pirates","crew","trade","navigation","damage"];
 const PV={wind:null,sea:null,cur:null,wx:null,vis:null,fauna:1,tide:1,shadows:true};
 // tides: semi-diurnal (12.42 h) with a fortnightly spring and neap swing; range in metres, ph the hour of high water in the lunar cycle
 const TIDEX={bridgetown:{r:.9,ph:3.1},castries:{r:.7,ph:4.0},stjohns:{r:1.0,ph:5.2,bar:3},kingstown:{r:.8,ph:3.7},basseterre:{r:.9,ph:5.9}};
@@ -5575,7 +5577,7 @@ function tradeStep(s,dt,w){mkStep(s,dt);const day=dayIndex(s),d=dt/24;
 const pirRange=s=>(isNight(s)?3:7)*(s.wx&&s.wx.rain>.4?.6:1);
 function pirStep(s,dt,w){const P=s.pir||(s.pir=[]),sh=s.ship;if(s.done)return;
   const near=portsNear(s),open=!atPort(s)&&near.d>6&&coastNm(sh.x,sh.y)>3,val=cargoValue(s);
-  if(!P.length&&open&&val>350&&s.t>(s.pirCool||0)&&Math.random()<.02*Math.min(2.5,val/1500)*dt){
+  if(!P.length&&open&&val>350&&s.t>(s.pirCool||0)&&Math.random()<.02*Math.min(2.5,val/1500)*(s.scnPir==null?1:s.scnPir)*dt){
     const a=Math.random()*2*PI,d=6+Math.random()*3,x=sh.x+Math.sin(a)*d,y=sh.y+Math.cos(a)*d;
     if(coastNm(x,y)>1.5)P.push({x,y,h:norm(a*180/PI+180+(Math.random()-.5)*120),v:0,seen:false,mode:"prowl",t0:s.t});}
   for(const p of P.slice()){
@@ -6801,18 +6803,186 @@ function pickShip(id){shipPick=id;try{localStorage.setItem("drShip",id);}catch(e
 $("shipList").innerHTML=SHIPSPEC.map(sp=>`<button type="button" class="shipcard" role="radio" data-s="${sp.id}"><img src="icons/ships/${sp.id}-side.webp" alt="" loading="lazy"><b>${sp.name}</b><span>${sp.role}</span></button>`).join("");
 $("shipList").querySelectorAll("button").forEach(b=>b.onclick=()=>pickShip(b.dataset.s));
 pickShip(shipPick);requestAnimationFrame(()=>{const b=$("shipList").querySelector('[aria-checked="true"]');if(b)b.scrollIntoView({block:"nearest",inline:"center"});});
+/* ---------- SCENARIO MODE: a sandbox for testing mechanics (no goals, no end) ----------
+   THE MECHANICS REGISTRY. Every mechanic in the game is described once in SCN_MECH below: its dials, trigger buttons and live readouts.
+   The setup sheet, the Test panel and the presets are all built from this list, so a mechanic added here shows up everywhere on its own.
+   RULE: when you add or change a game mechanic, add or update its entry here and its id in GAME_MECHANICS (top of the script). */
+const CUR0={set:CURRENT.set,drift:CURRENT.drift};
+const SCN_SKY={clear:["Clear",.02,0],fair:["Fair",.25,0],broken:["Broken cloud",.55,0],over:["Overcast",.9,0],rain:["Rain",.85,.5],storm:["Storm",1,.95],fog:["Fog",.6,0]};
+const SCN_SEA={calm:["Calm",.3,.2],slight:["Slight",.9,.5],moderate:["Moderate",1.8,1.2],rough:["Rough",3.5,2.2],high:["High",6,3.5]};
+const SCN_PTS=[["N",0],["NE",45],["E",90],["SE",135],["S",180],["SW",225],["W",270],["NW",315]];
+const scnOK=()=>S&&!S.done;
+function scnSnap(){const X=S&&S.wx;if(!X||!PV.wx)return;X.rain=PV.wx.rain;X.cover=PV.wx.cover;X.dark=clamp((X.cover-.5)/.45*1.1+X.rain*.6,0,1);}
+function scnFillHold(s){mkInit(s);const gs=Object.keys(GOODS).filter(g=>GOODS[g].tier===1);let i=0,n=0;while(unitsFit(s,gs[i%gs.length])>=1&&n++<500){const g=gs[i++%gs.length],c=s.cargo[g]||(s.cargo[g]={n:0,cost:0});c.n++;c.cost+=GOODS[g].p;}}
+function scnClock(s,h){const lh=((localHours(s,s.t)%24)+24)%24;let d=(h-lh+24)%24;if(d<.1)d+=24;s.t+=d;s.lastHalfHour=Math.floor(localHours(s,s.t)*2);s.lastHour=Math.floor(s.t);}
+function scnSchool(s,kind){const sh=s.ship,RT={dolphinfish:35,bonito:28,tuna:22};let x,y,t=0;do{const a=Math.random()*2*PI;x=sh.x+Math.sin(a)*1.6;y=sh.y+Math.cos(a)*1.6;t++;}while(coastNm(x,y)<1&&t<40);
+  s.fish.push({kind,x,y,r:1.2,amt:FISHX*500,rate:RT[kind],vx:0,vy:0,id:s.fish.length});}
+function scnPirate(s,mode){const sh=s.ship,a=Math.random()*2*PI;let x,y,t=0;do{x=sh.x+Math.sin(a+t*.5)*5;y=sh.y+Math.cos(a+t*.5)*5;t++;}while(coastNm(x,y)<1.5&&t<12);
+  (s.pir||(s.pir=[])).push({x,y,h:norm(a*180/PI+180),v:0,seen:false,mode,t0:s.t});}
+function scnCrisis(k){if(!scnOK())return;if(S.crisis||modalOpen){say("Finish what is on screen first.",{log:false});return;}
+  let c=null;if(k==="hurt"){const m=S.crew.find(x=>x.r==="Seaman"&&x.mode==="duty")||S.crew.find(x=>x.r==="Seaman");if(m){m.hp=.2;c=crisisKind("surgery",m.n);}}else c=crisisKind(k);
+  if(c)showCrisis(c);else say("That cannot happen with this crew right now.",{log:false});}
+const SCN_MECH=[
+ {id:"setup",name:"Ship, start and time",
+  dials:[
+   {k:"ship",label:"Ship",start:true,opts:()=>SHIPSPEC.map(x=>[x.id,x.name]),def:()=>shipPick},
+   {k:"place",label:"Start",start:true,opts:()=>[...Object.keys(PORTS).map(k=>[k,"Docked at "+PORTS[k].name]),["leeward","At sea, west of Barbados"]],def:"leeward"},
+   {k:"hour",label:"Start time",start:true,range:[0,23,1],fmt:v=>String(v).padStart(2,"0")+":00",def:7},
+   {k:"purse",label:"Money",start:true,range:[0,2000,20],fmt:v=>"£"+v,def:120},
+   {k:"crew",label:"Crew condition",start:true,opts:()=>[["fit","Fit and cheerful"],["tired","Tired and grumbling"],["ailing","Sick and hurt"]],def:"fit"}],
+  apply(s,g,starting){if(!starting)return;s.purse=g("purse")*20;const mode=g("crew");
+   for(const m of s.crew){if(m.mo==null){m.mo=.7;m.sk=SKILL0[m.r]??.25+Math.random()*.5;m.hp=1;m.scv=0;m.sus=.75+Math.random()*.5;m.sick=false;m.why="";}
+    if(mode==="tired"){m.mo=.35;}else if(mode==="ailing"){m.mo=.4;m.hp=Math.random()<.4?.55:.85;}}},
+  triggers:[["Dawn",s=>scnClock(s,6)],["Noon",s=>scnClock(s,12)],["Dusk",s=>scnClock(s,18)],["Midnight",s=>scnClock(s,0)],["Skip 6 hours",()=>startSkip(6)]],
+  readouts:[["Local time",s=>{const h=((localHours(s,s.t)%24)+24)%24;return String(Math.floor(h)).padStart(2,"0")+":"+String(Math.floor((h%1)*60)).padStart(2,"0")+(isNight(s)?" (night)":"")}],
+   ["Speed",s=>s.ship.v.toFixed(1)+" kn"],["Heading",s=>Math.round(s.ship.heading)+"°"]]},
+ {id:"weather",name:"Wind, sea and sky",
+  dials:[
+   {k:"wind",label:"Wind",live:true,opts:()=>[["auto","Natural"],["6","Light, 6 kn"],["12","Gentle, 12 kn"],["18","Fresh, 18 kn"],["26","Strong, 26 kn"],["34","Gale, 34 kn"],["42","Storm, 42 kn"]],def:"auto"},
+   {k:"dir",label:"Wind from",live:true,opts:()=>SCN_PTS.map(([n,d])=>[String(d),n]),def:"90"},
+   {k:"sea",label:"Sea state",live:true,opts:()=>[["auto","Natural"],...Object.keys(SCN_SEA).map(k=>[k,SCN_SEA[k][0]])],def:"auto"},
+   {k:"sky",label:"Sky",live:true,opts:()=>[["auto","Natural"],...Object.keys(SCN_SKY).map(k=>[k,SCN_SKY[k][0]])],def:"auto"}],
+  apply(s,g){const w=g("wind"),sea=g("sea"),sky=g("sky");
+   PV.wind=w==="auto"?null:{dir:+g("dir"),kn:+w};
+   PV.sea=sea==="auto"?null:{wind:SCN_SEA[sea][1],swell:SCN_SEA[sea][2],swDir:null};
+   if(sky==="auto"){PV.wx=null;PV.vis=null;}else{const k=SCN_SKY[sky];PV.wx={cover:k[1],rain:k[2]};PV.vis=sky==="fog"?.4:null;scnSnap();}},
+  triggers:[["Storm now",()=>{PV.wind={dir:+(PV.wind&&PV.wind.dir||60),kn:38};PV.sea={wind:6,swell:3.5,swDir:null};PV.wx={cover:1,rain:.95};PV.vis=null;scnSnap();}],
+   ["Back to natural",()=>{PV.wind=PV.sea=PV.wx=null;PV.vis=null;}]],
+  readouts:[["Wind",s=>{const w=windAt(s,s.ship.x,s.ship.y,s.t);return Math.round(w.kn)+" kn from "+Math.round(w.from)+"° (force "+beaufort(w.kn)+")"}],
+   ["Wave height",s=>s.wx?s.wx.H.toFixed(1)+" m":"—"],["Rain / cloud",s=>s.wx?Math.round((s.wx.rain||0)*100)+"% / "+Math.round((s.wx.cover||0)*100)+"%":"—"]]},
+ {id:"tides",name:"Tides and currents",
+  dials:[
+   {k:"tide",label:"Tide range",live:true,opts:()=>[["0","None"],["0.5","Weak"],["1","Normal"],["1.8","Strong"],["2.5","Extreme"]],def:"1"},
+   {k:"cur",label:"Ocean current",live:true,opts:()=>[["auto","Natural"],["0","None"],["0.3","Weak, 0.3 kn"],["1.2","Strong, 1.2 kn"],["2","Very strong, 2 kn"]],def:"auto"}],
+  apply(s,g){PV.tide=+g("tide");const c=g("cur");if(c==="auto"){PV.cur=null;CURRENT.set=CUR0.set;CURRENT.drift=CUR0.drift;}else{PV.cur={set:CUR0.set,drift:+c};CURRENT.set=PV.cur.set;CURRENT.drift=PV.cur.drift;}},
+  triggers:[],
+  readouts:[["Current",s=>CURRENT.drift.toFixed(2)+" kn towards "+Math.round((CURRENT.set+180)%360)+"°"],
+   ["Tide at nearest port",s=>{try{const p=portsNear(s);return p.name+" "+tideLvl(p.k,s.t).toFixed(2)+" m"}catch(e){return "—"}}]]},
+ {id:"fishing",name:"Fishing",
+  dials:[{k:"fish",label:"Fish",start:true,opts:()=>[["normal","Natural patches"],["rich","School beside the ship"],["none","None"]],def:"normal"}],
+  apply(s,g,starting){if(!starting)return;const f=g("fish");if(f==="rich")scnSchool(s,"bonito");else if(f==="none"){s.fish=[];s.grounds=[];}},
+  triggers:[["Bonito school",s=>scnSchool(s,"bonito")],["Tuna school",s=>scnSchool(s,"tuna")],["Dolphinfish school",s=>scnSchool(s,"dolphinfish")],["Lines out / in",()=>toggleFish()]],
+  readouts:[["Lines",s=>s.fishing?"out":"in"],["Nearest school",s=>{let b=null;for(const f of s.fish||[]){const d=Math.hypot(f.x-s.ship.x,f.y-s.ship.y);if(!b||d<b.d)b={d,k:f.kind};}return b?b.k+", "+b.d.toFixed(1)+" nm":"none"}],
+   ["Fish in stores",s=>String(Math.round(s.stores.fish||0))]]},
+ {id:"pirates",name:"Pirates",
+  dials:[{k:"pir",label:"Pirate frequency",live:true,opts:()=>[["1","Normal"],["4","Often"],["0","Never"]],def:"1"}],
+  apply(s,g){s.scnPir=+g("pir");},
+  triggers:[["Pirate sloop gives chase",s=>scnPirate(s,"chase")],["Pirate sloop prowling",s=>scnPirate(s,"prowl")],["Clear all pirates",s=>{s.pir=[];}]],
+  readouts:[["Pirate sails",s=>{const P=s.pir||[];if(!P.length)return "none";const p=P.reduce((a,b)=>Math.hypot(a.x-s.ship.x,a.y-s.ship.y)<Math.hypot(b.x-s.ship.x,b.y-s.ship.y)?a:b);return P.length+", nearest "+Math.hypot(p.x-s.ship.x,p.y-s.ship.y).toFixed(1)+" nm ("+p.mode+")"}],
+   ["Cargo worth",s=>money(cargoValue(s))]]},
+ {id:"crew",name:"Crew and crises",
+  dials:[],apply(){},
+  triggers:[["Man overboard",()=>scnCrisis("mob")],["Galley fire",()=>scnCrisis("fire")],["Mutiny brewing",()=>scnCrisis("mutiny")],["Crushed hand (surgery)",()=>scnCrisis("hurt")]],
+  readouts:[["Hands",s=>String(s.crew.length)],["Morale",s=>{const c=s.crew.filter(m=>m.mo!=null);return c.length?Math.round(c.reduce((a,m)=>a+m.mo,0)/c.length*100)+"%":"—"}],
+   ["Health",s=>{const c=s.crew.filter(m=>m.hp!=null);return c.length?Math.round(c.reduce((a,m)=>a+m.hp,0)/c.length*100)+"%":"—"}],
+   ["Hurt or sick",s=>String(s.crew.filter(m=>(m.hp!=null&&m.hp<.7)||m.sick).length)]]},
+ {id:"trade",name:"Trading and cargo",
+  dials:[{k:"cargo",label:"Hold at start",start:true,opts:()=>[["none","Empty"],["full","Full of goods"]],def:"none"}],
+  apply(s,g,starting){if(starting&&g("cargo")==="full")scnFillHold(s);},
+  triggers:[["Add £1,000",s=>{s.purse+=20000;}],["Fill the hold",s=>scnFillHold(s)],["Empty the hold",s=>{s.cargo={};}]],
+  readouts:[["Purse",s=>money(s.purse)],["Hold",s=>holdUsed(s).toFixed(1)+" / "+holdCap()+" t"],["Cargo worth",s=>money(cargoValue(s))]]},
+ {id:"navigation",name:"Navigation",
+  dials:[{k:"dr",label:"Chart shows",live:true,opts:()=>[["true","True position"],["dr","Reckoning only"]],def:"true"}],
+  apply(s,g){const lost=g("dr")==="dr";$("aDR").checked=lost;s.mode=lost?"lost":"trial";},
+  triggers:[],
+  readouts:[["Reckoning error",s=>Math.hypot(s.est.x-s.ship.x,s.est.y-s.ship.y).toFixed(1)+" nm"],["Log heaves / fixes",s=>(s.heaves||0)+" / "+(s.fixes||0)]]},
+ {id:"damage",name:"Hull and rigging",
+  dials:[{k:"hull",label:"Hull at start",start:true,opts:()=>[["1","Sound"],["0.7","Damaged"],["0.4","Badly damaged"]],def:"1"}],
+  apply(s,g,starting){if(starting)s.hull=+g("hull");},
+  triggers:[["Damage hull 25%",s=>{s.hull=Math.max(.2,s.hull-.25);}],["Repair hull",s=>{s.hull=1;}]],
+  readouts:[["Hull",s=>Math.round(s.hull*100)+"%"],["Rigging",s=>Math.round(s.ship.rig*100)+"%"],["Leak / water in hold",s=>(s.leak||0).toFixed(1)+" / "+(s.water||0).toFixed(1)]]}
+];
+const SCN_PRESETS=[
+ {id:"fishing",name:"Fishing",desc:"Calm, at sea, a school beside the ship. No pirates.",set:{"setup.place":"leeward","weather.wind":"12","weather.sky":"fair","weather.sea":"slight","fishing.fish":"rich","pirates.pir":"0"}},
+ {id:"pirates",name:"Pirates",desc:"A full hold at sea and pirates about.",set:{"setup.place":"leeward","trade.cargo":"full","pirates.pir":"4","weather.wind":"18","weather.sky":"clear","weather.sea":"moderate"}},
+ {id:"storm",name:"Storm",desc:"A gale and a high sea, at sea.",set:{"setup.place":"leeward","weather.wind":"34","weather.dir":"45","weather.sea":"high","weather.sky":"storm","pirates.pir":"0"}},
+ {id:"trading",name:"Trading",desc:"Docked at Bridgetown with money to spend.",set:{"setup.place":"bridgetown","setup.purse":400,"setup.hour":9,"weather.wind":"12","pirates.pir":"1"}},
+ {id:"crisis",name:"Crew crisis",desc:"A sick, tired crew; fire the crises yourself.",set:{"setup.place":"leeward","setup.crew":"ailing","weather.wind":"12","weather.sky":"fair","pirates.pir":"0"}},
+ {id:"nav",name:"Navigation",desc:"Reckoning only, a strong current, no landmarks to cheat from.",set:{"setup.place":"leeward","navigation.dr":"dr","tides.cur":"1.2","weather.wind":"12","weather.sky":"clear","pirates.pir":"0"}}
+];
+const scnDV=d=>typeof d.def==="function"?d.def():d.def;
+function scnDefaults(){const c={};for(const m of SCN_MECH)for(const d of m.dials)c[m.id+"."+d.k]=scnDV(d);return c;}
+function scnCfgLoad(){const c=scnDefaults();try{const j=JSON.parse(localStorage.getItem("drScn")||"{}");for(const k in j)if(k in c)c[k]=j[k];}catch(e){}return c;}
+function scnCfgSave(c){try{localStorage.setItem("drScn",JSON.stringify(c));}catch(e){}}
+function scnGetter(c){return m=>k=>c[m+"."+k];}
+function scnApplyMech(s,m,c,starting){try{m.apply(s,k=>c[m.id+"."+k],starting);}catch(e){console.warn("scenario apply",m.id,e);}}
+function scnStart(c,name){
+  PV.wind=PV.sea=PV.cur=PV.wx=PV.vis=null;PV.fauna=1;PV.tide=1;CURRENT.set=CUR0.set;CURRENT.drift=CUR0.drift;
+  $("aDR").checked=c["navigation.dr"]==="dr";
+  startVoyage({id:"scenario",tag:"Scenario",title:name||"Scenario",from:c["setup.place"],to:null,mode:"trial",hdg:280,free:true,ship:c["setup.ship"],desc:""});
+  const s=S;s.scn={name:name||"Scenario",cfg:JSON.parse(JSON.stringify(c))};
+  const dh=(+c["setup.hour"])-7;if(dh){s.t+=dh;s.t0+=dh;s.nextSquall+=dh;s.lastHalfHour=Math.floor(localHours(s,s.t)*2);s.lastHour=Math.floor(s.t);genWx(s);}
+  for(const m of SCN_MECH)scnApplyMech(s,m,s.scn.cfg,true);
+  try{updateUI(true);tradeUI(true);}catch(e){}
+  say("Scenario: "+(name||"custom")+". No goals and no end; open the Test panel (top left) to change things and trigger events.",{log:false});
+  scnPanelRefresh(true);
+}
+/* the control for one dial: a drop-down or a slider */
+function scnControl(m,d,c,onchange){
+  const key=m.id+"."+d.k,row=document.createElement("label");row.className="scnrow";const nm=document.createElement("span");nm.textContent=d.label;row.append(nm);
+  if(d.range){const inp=document.createElement("input");inp.type="range";inp.min=d.range[0];inp.max=d.range[1];inp.step=d.range[2];inp.value=c[key];const out=document.createElement("output");const f=d.fmt||String;out.textContent=f(+c[key]);
+    inp.oninput=()=>{c[key]=+inp.value;out.textContent=f(+inp.value);onchange&&onchange(key);};row.append(inp,out);}
+  else{const sel=document.createElement("select");for(const [v,l] of d.opts()){const o=document.createElement("option");o.value=v;o.textContent=l;sel.append(o);}sel.value=c[key];
+    sel.onchange=()=>{c[key]=sel.value;onchange&&onchange(key);};row.append(sel);}
+  return row;}
+function scnBuildSetup(host){
+  const c=scnCfgLoad();host.innerHTML="";
+  const h=document.createElement("p");h.className="muted";h.style.margin="0";h.textContent="A sandbox for testing: pick a preset, change any dial, then start. There are no goals and no end. In play, a Test panel lets you change conditions and fire events.";host.append(h);
+  const pr=document.createElement("div");pr.className="scnpre";
+  const dials=document.createElement("div");dials.className="scndials";
+  const draw=()=>{dials.innerHTML="";for(const m of SCN_MECH){if(!m.dials.length)continue;const det=document.createElement("details");det.open=m.id==="setup";const sm=document.createElement("summary");sm.textContent=m.name;det.append(sm);for(const d of m.dials)det.append(scnControl(m,d,c,()=>scnCfgSave(c)));dials.append(det);}};
+  for(const p of SCN_PRESETS){const b=document.createElement("button");b.type="button";b.className="voycard scnp";b.innerHTML=`<b>${p.name}</b><span class="d">${p.desc}</span>`;
+    b.onclick=()=>{Object.assign(c,scnDefaults(),p.set);c["setup.ship"]=c["setup.ship"]||shipPick;scnCfgSave(c);host.dataset.name=p.name;draw();};pr.append(b);}
+  const go=document.createElement("button");go.type="button";go.className="btn";go.id="scnGo";go.textContent="Start scenario";go.onclick=()=>{scnCfgSave(c);scnStart(c,host.dataset.name||"Custom");};
+  host.append(pr,dials,go);draw();}
+/* the Test panel: built from the registry; readouts update live */
+let SCNP=null;
+function scnPanelBuild(){
+  const st=document.createElement("style");st.textContent=`#scnSetup>*{margin-bottom:8px}.scnpre{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px}.scnp{text-align:left}.scndials details{border:1px solid var(--ink);margin-top:6px;padding:4px 8px;background:rgba(246,238,217,.5)}.scndials summary,#scnPanel summary{cursor:pointer;font-family:var(--f-display);font-variant:small-caps;font-size:15px}
+.scnrow{display:flex;align-items:center;gap:8px;margin:5px 0;font-size:13px}.scnrow>span{flex:0 0 120px}.scnrow select,.scnrow input{flex:1;min-width:0}.scnrow output{min-width:42px;text-align:right;font-family:var(--f-data)}
+#scnBtn{position:fixed;left:8px;top:96px;z-index:70}#scnPanel{position:fixed;left:8px;top:132px;width:min(330px,calc(100vw - 16px));max-height:calc(100vh - 220px);overflow:auto;z-index:70;background:var(--paper);border:1px solid var(--ink);padding:8px 10px;box-shadow:0 6px 20px rgba(18,36,90,.3)}
+#scnPanel details{border-top:1px solid var(--ink-soft,#999);padding:4px 0}#scnPanel .scntr{display:flex;flex-wrap:wrap;gap:4px;margin:4px 0}#scnPanel .scnro{display:flex;justify-content:space-between;gap:8px;font-size:12.5px;padding:1px 0}#scnPanel .scnro b{font-weight:400;opacity:.75}#scnPanel .scnro span{font-family:var(--f-data);text-align:right}`;document.head.append(st);
+  const btn=document.createElement("button");btn.id="scnBtn";btn.type="button";btn.className="btn sm";btn.textContent="Test ⚗";btn.hidden=true;document.body.append(btn);
+  const pn=document.createElement("div");pn.id="scnPanel";pn.hidden=true;document.body.append(pn);
+  btn.onclick=()=>{pn.hidden=!pn.hidden;if(!pn.hidden)scnPanelRefresh(true);};
+  SCNP={btn,pn,ro:[],open:{}};}
+function scnPanelRefresh(rebuild){
+  if(!SCNP)return;const {btn,pn}=SCNP,on=S&&S.scn&&!S.done;btn.hidden=!on;if(!on){pn.hidden=true;return;}
+  if(pn.hidden)return;
+  if(rebuild||!SCNP.built||SCNP.built!==S.scn){
+    pn.innerHTML="";SCNP.ro=[];SCNP.built=S.scn;
+    const hd=document.createElement("div");hd.style.cssText="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:6px";
+    hd.innerHTML=`<b style="font-family:var(--f-display);font-size:16px;flex:1">Test: ${S.scn.name}</b>`;
+    const rs=document.createElement("button");rs.className="btn sm";rs.textContent="Restart";rs.onclick=()=>scnStart(S.scn.cfg,S.scn.name);
+    const su=document.createElement("button");su.className="btn sm";su.textContent="Change setup";su.onclick=()=>{pn.hidden=true;$("ovStart").hidden=false;modalOpen=true;};
+    hd.append(rs,su);pn.append(hd);
+    const miss=(typeof GAME_MECHANICS!=="undefined"?GAME_MECHANICS:[]).filter(id=>!SCN_MECH.some(m=>m.id===id));
+    if(miss.length){const w=document.createElement("div");w.className="muted";w.style.cssText="font-size:12px;margin-bottom:6px";w.textContent="Not in Scenario yet: "+miss.join(", ");pn.append(w);}
+    for(const m of SCN_MECH){const det=document.createElement("details");det.open=SCNP.open[m.id]!==undefined?SCNP.open[m.id]:["setup","weather"].includes(m.id);det.ontoggle=()=>{SCNP.open[m.id]=det.open;};
+      const sm=document.createElement("summary");sm.textContent=m.name;det.append(sm);
+      for(const [l,f] of m.readouts){const r=document.createElement("div");r.className="scnro";r.innerHTML=`<b>${l}</b><span>—</span>`;det.append(r);SCNP.ro.push([r.lastChild,f]);}
+      for(const d of m.dials)if(d.live)det.append(scnControl(m,d,S.scn.cfg,()=>{scnApplyMech(S,m,S.scn.cfg,false);}));
+      if(m.triggers.length){const tr=document.createElement("div");tr.className="scntr";for(const [l,f] of m.triggers){const b=document.createElement("button");b.className="btn sm";b.textContent=l;b.onclick=()=>{if(!scnOK())return;try{f(S);}catch(e){console.warn(e);}try{updateUI(true);tradeUI(true);}catch(e){}scnPanelRefresh(false);};tr.append(b);}det.append(tr);}
+      pn.append(det);}
+  }
+  for(const [el,f] of SCNP.ro){let v="—";try{v=f(S);}catch(e){}if(el.textContent!==v)el.textContent=v;}
+}
+scnPanelBuild();setInterval(()=>scnPanelRefresh(false),400);
+window.__SCN={SCN_MECH,SCN_PRESETS,scnStart,scnDefaults};
 $("voyList").innerHTML=VOYAGES.map((v,i)=>`<button class="voycard" data-v="${i}"><span class="tag">${v.tag}</span><b>${v.title}</b><span class="d">${v.desc}</span></button>`).join("");
 $("voyList").querySelectorAll("button").forEach(b=>b.onclick=()=>startVoyage(VOYAGES[+b.dataset.v]));
 {const fb=document.createElement("button");fb.className="voycard";fb.id="freeCard";fb.innerHTML='<span class="tag">No orders</span><b>Free sailing</b><span class="d">Start from any port and sail where you like. No mission, no end: trade, fish, explore the islands and come to anchor when you please.</span>';
   const fp=$("freePick"); // free roam is the only way to start: the sea trial and lost-at-sea voyages stay in VOYAGES for old saves but are not offered
-  fp.innerHTML='<div class="row" role="radiogroup" aria-label="Game mode" style="gap:8px"><button type="button" class="btn" id="modeFree" role="radio">Free sailing</button><button type="button" class="btn" id="modeCareer" role="radio">Career</button></div><p class="muted" id="modeNote" style="margin:0"></p><b id="freeHead" style="font-family:var(--f-display);font-weight:400;font-size:17px">Free roam: where do you weigh from?</b><div class="voylist" id="freePorts" style="grid-template-columns:repeat(auto-fill,minmax(130px,1fr))"></div><div><button class="btn" id="freeBack">Back</button></div>';
-  let gameMode="free";try{if(localStorage.getItem("drMode")==="career")gameMode="career";}catch(e){}
+  fp.innerHTML='<div class="row" role="radiogroup" aria-label="Game mode" style="gap:8px"><button type="button" class="btn" id="modeFree" role="radio">Free sailing</button><button type="button" class="btn" id="modeCareer" role="radio">Career</button><button type="button" class="btn" id="modeScn" role="radio">Scenario</button></div><p class="muted" id="modeNote" style="margin:0"></p><b id="freeHead" style="font-family:var(--f-display);font-weight:400;font-size:17px">Free roam: where do you weigh from?</b><div class="voylist" id="freePorts" style="grid-template-columns:repeat(auto-fill,minmax(130px,1fr))"></div><div><button class="btn" id="freeBack">Back</button></div><div id="scnSetup" hidden></div>';
+  let gameMode="free";try{{const dm=localStorage.getItem("drMode");if(dm==="career"||dm==="scenario")gameMode=dm;}}catch(e){}
   const setMode=m=>{gameMode=m;try{localStorage.setItem("drMode",m);}catch(e){}
     $("modeFree").setAttribute("aria-checked",String(m==="free"));$("modeCareer").setAttribute("aria-checked",String(m==="career"));$("modeFree").setAttribute("aria-pressed",String(m==="free"));$("modeCareer").setAttribute("aria-pressed",String(m==="career"));
-    document.querySelector(".shippick").hidden=m==="career";
+    document.querySelector(".shippick").hidden=m!=="free";
     $("modeNote").textContent=m==="career"?"Start in a small Cumberland cutter with £40 and a berth at the port you choose. Trade, take contracts, and save for bigger ships: the shipyard is in the Ship tab when you are docked. Your old ship goes in part exchange.":"Choose any of the ten ships and sail where you like. No goals, no end.";
-    $("freeHead").textContent=m==="career"?"Career: where do you start?":"Free roam: where do you weigh from?";};
-  $("modeFree").onclick=()=>setMode("free");$("modeCareer").onclick=()=>setMode("career");setMode(gameMode);
+    $("freeHead").textContent=m==="career"?"Career: where do you start?":"Free roam: where do you weigh from?";
+    $("modeScn").setAttribute("aria-checked",String(m==="scenario"));$("modeScn").setAttribute("aria-pressed",String(m==="scenario"));
+    $("freeHead").hidden=$("freePorts").hidden=m==="scenario";$("scnSetup").hidden=m!=="scenario";if(m==="scenario")$("modeNote").textContent="A sandbox for testing mechanics such as fishing, pirates, weather, trading, crew crises, navigation and tides. No goals and no end.";};
+  $("modeFree").onclick=()=>setMode("free");$("modeCareer").onclick=()=>setMode("career");$("modeScn").onclick=()=>setMode("scenario");scnBuildSetup($("scnSetup"));setMode(gameMode);
   $("freePorts").innerHTML=Object.keys(PORTS).map(k=>`<button class="voycard" data-p="${k}" style="padding:8px 10px"><b style="font-size:16px">${PORTS[k].name}</b></button>`).join("");
   $("voyList").hidden=true;fp.hidden=false;$("freeBack").parentNode.hidden=true;
   $("freePorts").querySelectorAll("button").forEach(b=>b.onclick=()=>{const k=b.dataset.p;
@@ -6942,14 +7112,14 @@ function jump(hh,month,day){const lh=localHours(S,S.t),di=dayIndex(S);let d;
   for(const k of["crNext","assistT","spotT","strikeUntil","lastFixT","leaveT","rumT","balT","breakersWarned"])if(S[k]>S.t)S[k]=S.t;
   S.squall=null;S.squallWarned=false;S.nextSquall=S.t+3+Math.random()*5;S.lastHalfHour=Math.floor(localHours(S,S.t)*2);S.lastHour=Math.floor(S.t);
   if(d>6){const X=S.wx,keep={rain:X.rain,cover:X.cover};genWx(S);S.wx.rain=keep.rain;S.wx.cover=keep.cover;}
-  snapWx();S.track.push({x:S.ship.x,y:S.ship.y});updateUI(true);}
+  scnSnap();S.track.push({x:S.ship.x,y:S.ship.y});updateUI(true);}
 function wire(){
   const on=(id,fn)=>{const e=$$(id);if(e)e.addEventListener("input",fn);};
   if($$("pvT")){const upd=()=>{$$("pvTo").textContent=hm(+$$("pvT").value);};upd();$$("pvT").oninput=upd;$$("pvT").onchange=()=>jump(+$$("pvT").value,+$$("pvM").value,+$$("pvD").value);fillDays();$$("pvM").onchange=()=>{fillDays();jump(+$$("pvT").value,+$$("pvM").value,+$$("pvD").value);};$$("pvD").onchange=()=>jump(+$$("pvT").value,+$$("pvM").value,+$$("pvD").value);
     
     body.querySelectorAll("[data-h]").forEach(b=>b.onclick=()=>{jump(+b.dataset.h);draw();});
     body.querySelectorAll("[data-sp]").forEach(b=>b.onclick=()=>{const v=+b.dataset.sp;if(!v){setPaused(true);}else{setPaused(false);setSpeed(v);}});}
-  if($$("pvC")){const sync=()=>{PV.wx={cover:+$$("pvC").value/100,rain:+$$("pvR").value/100};wxKey=null;snapWx();$$("pvCo").textContent=$$("pvC").value+"%";$$("pvRo").textContent=$$("pvR").value+"%";body.querySelectorAll("[data-w]").forEach(b=>b.setAttribute("aria-pressed","false"));};
+  if($$("pvC")){const sync=()=>{PV.wx={cover:+$$("pvC").value/100,rain:+$$("pvR").value/100};wxKey=null;scnSnap();$$("pvCo").textContent=$$("pvC").value+"%";$$("pvRo").textContent=$$("pvR").value+"%";body.querySelectorAll("[data-w]").forEach(b=>b.setAttribute("aria-pressed","false"));};
     $$("pvCo").textContent=$$("pvC").value+"%";$$("pvRo").textContent=$$("pvR").value+"%";
     on("pvC",sync);on("pvR",sync);
     const vs=()=>{PV.vis=+$$("pvV").value>=30?null:+$$("pvV").value;$$("pvVo").textContent=PV.vis==null?"auto":PV.vis.toFixed(1)+" nm";};vs();on("pvV",vs);
@@ -6958,7 +7128,7 @@ function wire(){
       if(!k){PV.wx=null;PV.vis=null;draw();return;}
       const p=WXP[k];PV.wx={cover:p.c,rain:p.r};PV.vis=k==="fog"?.4:null;
       if(k==="storm"){PV.wind={dir:live.wind().dir,kn:36};PV.sea={wind:6,swell:3.5,swDir:live.sea().swDir};}
-      snapWx();draw();});}
+      scnSnap();draw();});}
   if($$("pvWd")){const sync=()=>{PV.wind={dir:+$$("pvWd").value,kn:+$$("pvWk").value};const b=beaufort(PV.wind.kn);$$("pvWdo").textContent=PV.wind.dir+"° "+pointName(PV.wind.dir);$$("pvWko").textContent=PV.wind.kn+" kn";$$("pvWn").textContent="Force "+b+": "+BFN[b];$$("pvWa").setAttribute("aria-pressed","false");};
     const w=PV.wind||live.wind(),b=beaufort(w.kn);$$("pvWdo").textContent=w.dir+"° "+pointName(w.dir);$$("pvWko").textContent=w.kn+" kn";$$("pvWn").textContent="Force "+b+": "+BFN[b];
     on("pvWd",sync);on("pvWk",sync);$$("pvWa").onclick=()=>{PV.wind=null;draw();};}
