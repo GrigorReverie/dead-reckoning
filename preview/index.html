@@ -952,6 +952,7 @@ document.head.append(ui,st);apply();
 })();
 </script>
 <script src="three.min.js"></script>
+<script src="shipctl.js"></script>
 <script>
 (()=>{
 "use strict";
@@ -1246,49 +1247,12 @@ function glassInfo(s){const p=pressureAt(s,s.t),d=p-pressureAt(s,s.t-3),inHg=p*0
   const tr=d>1?"rising fast":d>.4?"rising":d<-1.6?"falling fast":d<-.5?"falling":"steady",tm=d>1?"clearing quickly":d>.4?"improving":d<-1.6?"foul weather coming":d<-.5?"worsening":"no change expected";
   const z=GL_Z.find(z=>inHg<z[1])||GL_Z[GL_Z.length-1];return{inHg,d,tr,tm,zone:z[2],zm:z[3],fall:d<-.5};}
 function glassText(s){const g=glassInfo(s);return{txt:`${g.inHg.toFixed(2)} in · ${g.zone} · ${g.tr}, ${g.tm}`,fall:g.fall};}
-let baroKey="";
-function drawBaro(){const c=$("baro");if(!c||!S)return;const g=glassInfo(S),key=g.inHg.toFixed(2)+g.tr+DARK+(c.clientWidth|0);if(key===baroKey)return;baroKey=key;
-  const x=c.getContext("2d"),cs=getComputedStyle(document.documentElement),ink=cs.getPropertyValue("--ink").trim()||"#2e2519",soft=cs.getPropertyValue("--ink-soft").trim()||"#7b6a55",och=cs.getPropertyValue("--ochre").trim()||"#b2452c";
-  const W=120,H=500,T=62,B=462,Y=v=>T+(GL_HI-Math.min(GL_HI,Math.max(GL_LO,v)))/(GL_HI-GL_LO)*(B-T),TX=58,TW=14;x.clearRect(0,0,W,H);x.lineCap="round";
-  x.fillStyle=soft;x.font="600 12px 'IBM Plex Mono',monospace";x.textAlign="center";x.fillText("THE GLASS",60,14);
-  x.fillStyle=ink;x.font="600 20px 'IBM Plex Mono',monospace";x.fillText(g.inHg.toFixed(2),48,40);
-  // trend arrow
-  {const up=g.d>0,fast=Math.abs(g.d)>1,fl=Math.abs(g.d)>.4,ax=100,ay=32;x.fillStyle=g.fall?och:ink;if(!fl){x.fillRect(ax-8,ay-1.5,16,3);}else{for(let k=0;k<(fast?2:1);k++){const yy=ay+(up?-k*7:k*7);x.beginPath();if(up){x.moveTo(ax-8,yy+4);x.lineTo(ax+8,yy+4);x.lineTo(ax,yy-6);}else{x.moveTo(ax-8,yy-4);x.lineTo(ax+8,yy-4);x.lineTo(ax,yy+6);}x.closePath();x.fill();}}}
-  // zone words and hairline boundaries
-  for(const z of GL_Z){const yc=(Y(z[0])+Y(z[1]))/2,on=z[2]===g.zone;x.font=(on?"600 ":"")+"italic 15px 'IM Fell English',Georgia,serif";x.textAlign="right";x.fillStyle=on?ink:soft;x.globalAlpha=on?1:.75;x.fillText(z[2],TX-8,yc+5);x.globalAlpha=1;
-    if(z[1]<GL_HI){x.strokeStyle=soft;x.lineWidth=.8;x.globalAlpha=.6;x.beginPath();x.moveTo(6,Y(z[1]));x.lineTo(TX-2,Y(z[1]));x.stroke();x.globalAlpha=1;}}
-  // the tube and the quicksilver
-  x.strokeStyle=ink;x.lineWidth=1.6;x.beginPath();x.moveTo(TX,T);x.lineTo(TX,B);x.moveTo(TX+TW,T);x.lineTo(TX+TW,B);x.stroke();x.beginPath();x.arc(TX+TW/2,T,TW/2,Math.PI,2*Math.PI);x.stroke();
-  const by=B+14;x.beginPath();x.arc(TX+TW/2,by,13,0,2*Math.PI);x.fillStyle=ink;x.globalAlpha=.82;x.fill();x.globalAlpha=1;x.stroke();
-  x.fillStyle=ink;x.globalAlpha=.82;x.fillRect(TX+3,Y(g.inHg),TW-6,B+14-Y(g.inHg));x.globalAlpha=1;
-  x.fillStyle="rgba(255,255,255,.35)";x.fillRect(TX+4,Y(g.inHg)+2,2,B-Y(g.inHg));
-  // pointer at the level
-  x.fillStyle=g.fall?och:ink;x.beginPath();x.moveTo(TX-3,Y(g.inHg));x.lineTo(TX-12,Y(g.inHg)-5);x.lineTo(TX-12,Y(g.inHg)+5);x.closePath();x.fill();
-  // scale: a tick every 0.1, a figure every half inch
-  x.strokeStyle=ink;x.fillStyle=soft;x.font="12px 'IBM Plex Mono',monospace";x.textAlign="left";
-  for(let v=Math.ceil(GL_LO*10)/10;v<=GL_HI+.001;v+=.1){const big=Math.abs(v*2-Math.round(v*2))<.01,yy=Y(v);x.lineWidth=big?1.2:.7;x.beginPath();x.moveTo(TX+TW+2,yy);x.lineTo(TX+TW+(big?10:6),yy);x.stroke();if(big)x.fillText(v.toFixed(1),TX+TW+13,yy+4);}
-}
-let sailgKey="";
-function drawSailGauge(sh){const c=$("sailSteps5");if(!c||c.hidden)return;
-  const top=Math.max(1,invEff(effOf(planOf(SAILS.length-1)))),lv=clamp(sh.sailSet/top,0,1),tg=clamp(invEff(effOf(planOf(sh.sail)))/top,0,1),mv=Math.abs(lv-tg)>.015,up=tg>lv,
-    key=lv.toFixed(3)+"|"+tg.toFixed(2)+"|"+DARK+"|"+SHIP.id+(c.clientWidth|0);if(key===sailgKey)return;sailgKey=key;
-  const x=c.getContext("2d"),cs=getComputedStyle(document.documentElement),ink=cs.getPropertyValue("--ink").trim()||"#2e2519",soft=cs.getPropertyValue("--ink-soft").trim()||"#7b6a55",br=cs.getPropertyValue("--brass").trim()||"#b8862a";
-  const W=120,H=500,T=62,B=462,Y=v=>B-v*(B-T),TX=58,TW=14,NM=["Bare","Reefed",SHIP.fa?"Reefed":"Courses","Plain","Full"];x.clearRect(0,0,W,H);x.lineCap="round";
-  x.fillStyle=soft;x.font="600 12px 'IBM Plex Mono',monospace";x.textAlign="center";x.fillText("SAILS",60,14);
-  x.fillStyle=ink;x.font="600 20px 'IBM Plex Mono',monospace";x.fillText(Math.round(lv*100)+"%",48,40);
-  if(mv){const ax=100,ay=32;x.fillStyle=ink;for(let k=0;k<1;k++){x.beginPath();if(up){x.moveTo(ax-8,ay+4);x.lineTo(ax+8,ay+4);x.lineTo(ax,ay-6);}else{x.moveTo(ax-8,ay-4);x.lineTo(ax+8,ay-4);x.lineTo(ax,ay+6);}x.closePath();x.fill();}}
-  const cur=Math.min(4,Math.floor(lv*5));
-  for(let k=0;k<5;k++){const y0=Y(k/5),y1=Y((k+1)/5),yc=(y0+y1)/2,on=k===cur;x.font=(on?"600 ":"")+"italic 15px 'IM Fell English',Georgia,serif";x.textAlign="right";x.fillStyle=on?ink:soft;x.globalAlpha=on?1:.75;x.fillText(NM[k],TX-8,yc+5);x.globalAlpha=1;
-    if(k<4){x.strokeStyle=soft;x.lineWidth=.8;x.globalAlpha=.6;x.beginPath();x.moveTo(6,y1);x.lineTo(TX-2,y1);x.stroke();x.globalAlpha=1;}}
-  x.strokeStyle=ink;x.lineWidth=1.6;x.beginPath();x.moveTo(TX,T);x.lineTo(TX,B);x.moveTo(TX+TW,T);x.lineTo(TX+TW,B);x.stroke();x.beginPath();x.arc(TX+TW/2,T,TW/2,Math.PI,2*Math.PI);x.stroke();
-  x.beginPath();x.moveTo(TX,B);x.lineTo(TX+TW,B);x.stroke();
-  if(lv>.005){x.fillStyle=ink;x.globalAlpha=.82;x.fillRect(TX+3,Y(lv),TW-6,B-Y(lv));x.globalAlpha=1;x.fillStyle="rgba(255,255,255,.35)";x.fillRect(TX+4,Y(lv)+2,2,B-Y(lv));}
-  x.fillStyle=ink;x.beginPath();x.moveTo(TX-3,Y(lv));x.lineTo(TX-12,Y(lv)-5);x.lineTo(TX-12,Y(lv)+5);x.closePath();x.fill();
-  // the stage ordered: a brass marker on the scale side
-  x.fillStyle=br;x.beginPath();x.moveTo(TX+TW+3,Y(tg));x.lineTo(TX+TW+13,Y(tg)-5);x.lineTo(TX+TW+13,Y(tg)+5);x.closePath();x.fill();
-  x.strokeStyle=ink;x.fillStyle=soft;x.font="12px 'IBM Plex Mono',monospace";x.textAlign="left";
-  for(let k=0;k<=4;k++){const yy=Y(k/4);x.lineWidth=1.2;x.beginPath();x.moveTo(TX+TW+2,yy);x.lineTo(TX+TW+8,yy);x.stroke();x.fillText(k*25+"",TX+TW+16,yy+4);}
-}
+/* Ship controls module (shipctl.js): it draws the glass, the sail bars and the compass dial, and owns the look of the Ship controls area.
+   The main script hands it live getters; the three draw functions below just call into it. */
+var SCX=window.DRShipCtlDraw?window.DRShipCtlDraw({get $(){return $},get S(){return S},get DARK(){return DARK},get SHIP(){return SHIP},get NOGO(){return NOGO},get BMAX(){return BMAX},get SAILS(){return SAILS},get PORTS(){return PORTS},get glassInfo(){return glassInfo},get GL_HI(){return GL_HI},get GL_LO(){return GL_LO},get GL_Z(){return GL_Z},get invEff(){return invEff},get effOf(){return effOf},get planOf(){return planOf},get clamp(){return clamp},get windAt(){return windAt},get optBrace(){return optBrace},get angDiff(){return angDiff},get dialShip(){return dialShip},get beaufort(){return beaufort},get currentAt(){return currentAt},get dl(){return dl},get dg(){return dg},get PI(){return PI},get D2R(){return D2R},get startVoyage(){return startVoyage}}):null;
+function drawBaro(){SCX&&SCX.drawBaro();}
+function drawSailGauge(sh){SCX&&SCX.drawSailGauge(sh);}
+function drawDial(){SCX&&SCX.drawDial();}
 function seaText(s){const X=s.wx,H=X.H,d=H<.5?"Calm":H<1.25?"Slight sea":H<2.5?"Moderate sea":H<4?"Rough sea":H<6?"Very rough sea":"High sea";return `${d} (${H.toFixed(1)} m) · swell from ${pointName(X.sea.swF)}`;}
 
 /* ---------- events & log ---------- */
@@ -2240,72 +2204,6 @@ function dialShip(Rs){const L=Rs*1.08;if(SHIP.id==="brig")return{L,B:Rs*.3,bs:Rs
     return{my:-m.z*ppm,half,boom,fwd};});
   const v={L,B:Rs*.3*(2*H.B/H.Lwl)/.315,bs:bp?(bp.len*(1-(bp.inboard??.3))+(bp.jib||0))*Math.cos(bp.steeve*D2R)*ppm*.8:0,qd:H.qd?clamp(-H.qd.z/(H.Lwl*1.08),.08,.4):0,masts};
   dialShip._id=SHIP.id;dialShip._rs=Rs;dialShip._v=v;return v;}
-function drawDial(){
-  const g=dg,W=dl.width,R=W/2-30;g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,W,W);g.translate(W/2,W/2);
-  if(!S)return;const sh=S.ship,w=windAt(S,sh.x,sh.y,S.t);
-  // card
-  g.fillStyle="#f7edc9";g.beginPath();g.arc(0,0,R,0,2*PI);g.fill();
-  const wf=w.from*D2R-PI/2;g.fillStyle="rgba(168,69,44,.16)";g.beginPath();g.moveTo(0,0);g.arc(0,0,R,wf-NOGO*D2R,wf+NOGO*D2R);g.closePath();g.fill();
-  g.strokeStyle="#2e2519";g.lineWidth=2.5;g.beginPath();g.arc(0,0,R,0,2*PI);g.stroke();
-  for(let i=0;i<32;i++){const a=i*11.25*D2R-PI/2,l=i%8===0?26:i%4===0?18:10;g.lineWidth=i%8===0?3:1.4;g.beginPath();g.moveTo(Math.cos(a)*R,Math.sin(a)*R);g.lineTo(Math.cos(a)*(R-l),Math.sin(a)*(R-l));g.stroke();}
-  g.font="34px 'IM Fell English SC',Georgia,serif";g.textAlign="center";g.textBaseline="middle";
-  [["N",0],["E",90],["S",180],["W",270]].forEach(([t,d])=>{const a=d*D2R-PI/2;g.fillStyle=t==="N"?"#a8452c":"#2e2519";g.fillText(t,Math.cos(a)*(R-48),Math.sin(a)*(R-48));});
-  // inner ring: where the sails face, in the ship's frame (0 is dead ahead, 50 degrees each way); one orange arrow
-  { const r0=R*.5,r1=R*.62,pt=(deg,r)=>[Math.sin(deg*D2R)*r,-Math.cos(deg*D2R)*r],optF=-optBrace(angDiff(sh.heading,w.from)),face=-sh.brace;
-    g.save();g.rotate(sh.heading*D2R);g.strokeStyle="#2e2519";g.lineWidth=1.6;g.beginPath();g.arc(0,0,r0,0,2*PI);g.stroke();g.beginPath();g.arc(0,0,r1,0,2*PI);g.stroke();
-    const BX=BMAX;for(const c of[0,180]){g.fillStyle="rgba(217,130,43,.14)";g.beginPath();g.arc(0,0,r1,(c-BX-90)*D2R,(c+BX-90)*D2R);g.arc(0,0,r0,(c+BX-90)*D2R,(c-BX-90)*D2R,true);g.closePath();g.fill();
-      g.strokeStyle="#2e2519";g.lineWidth=1.4;const KX=Math.floor(BX/10);for(let k=-KX;k<=KX;k++){const m=pt(c+k*10,r1),n=pt(c+k*10,r1-(k%5===0?14:7));g.beginPath();g.moveTo(m[0],m[1]);g.lineTo(n[0],n[1]);g.stroke();}
-      g.setLineDash([4,3]);g.strokeStyle="rgba(106,95,80,.9)";g.lineWidth=2.2;{const m=pt(c+optF,r0-3),n=pt(c+optF,r1+3);g.beginPath();g.moveTo(m[0],m[1]);g.lineTo(n[0],n[1]);g.stroke();}g.setLineDash([]);}
-    const OR="#d9822b";g.fillStyle=OR;
-    const tri=(deg,al)=>{g.save();g.globalAlpha=al;g.beginPath();const t=pt(deg,r1+3),l=pt(deg-6,r1-14),rr=pt(deg+6,r1-14);g.moveTo(t[0],t[1]);g.lineTo(l[0],l[1]);g.lineTo(rr[0],rr[1]);g.closePath();g.fill();g.restore();};
-    if(Math.abs(sh.braceCmd-sh.brace)>.5)tri(-sh.braceCmd,.45);
-    tri(face,1);
-    g.lineCap="butt";g.restore();
-    // heading mark on the outer card
-    g.save();g.rotate(sh.heading*D2R);g.strokeStyle="#2e2519";g.lineWidth=4;g.beginPath();g.moveTo(0,-R+16);g.lineTo(0,-R-8);g.stroke();g.restore(); }
-  // ordered course marker on the rim
-  g.save();g.rotate(sh.ordered*D2R);g.fillStyle="#a8452c";g.beginPath();g.moveTo(0,-R-3);g.lineTo(11,-R-20);g.lineTo(-11,-R-20);g.closePath();g.fill();g.restore();
-  // ship, drawn top-down in its own frame (bow up)
-  g.save();g.rotate(sh.heading*D2R);const Rs=164;g.scale(.62,.62);
-  const DM=dialShip(Rs),L=DM.L,B=DM.B; // hull length and beam in px
-  g.strokeStyle="#2e2519";g.lineWidth=2;
-  g.lineWidth=3;if(DM.bs){g.beginPath();g.moveTo(0,-L*.5-DM.bs);g.lineTo(0,-L*.5);g.stroke();}g.lineWidth=2; // bowsprit
-  g.beginPath();g.moveTo(0,-L*.5);g.bezierCurveTo(B*.62,-L*.36,B*.55,L*.2,B*.42,L*.48);g.lineTo(-B*.42,L*.48);g.bezierCurveTo(-B*.55,L*.2,-B*.62,-L*.36,0,-L*.5);g.closePath();
-  g.fillStyle="#e9d5a0";g.fill();g.stroke();
-  g.beginPath();g.moveTo(0,-L*.42);g.bezierCurveTo(B*.46,-L*.3,B*.42,L*.18,B*.32,L*.42);g.lineTo(-B*.32,L*.42);g.bezierCurveTo(-B*.42,L*.18,-B*.46,-L*.3,0,-L*.42);g.closePath();
-  g.fillStyle="#f5e9c3";g.fill();
-  g.strokeStyle="rgba(46,37,25,.25)";g.lineWidth=1;for(let y=-L*.3;y<L*.42;y+=12){g.beginPath();g.moveTo(-B*.4,y);g.lineTo(B*.4,y);g.stroke();}
-  if(DM.qd)g.fillStyle="#d8c28a",g.fillRect(-B*.3,L*DM.qd,B*.6,L*(.4-DM.qd)); // quarterdeck
-  // yards and sails; fore-and-aft sails swing on their booms (or lateen yards) to leeward, the same plane a yard braced as far would make
-  const opt=optBrace(angDiff(sh.heading,w.from));
-  const trimCol=S.trim>.93?"#3f7a4a":S.trim>.75?"#b8862a":"#a8452c";
-  const rel=angDiff(sh.heading,w.from);const lee=rel>=0?-1:1; // sails belly to leeward (x sign in ship frame)... belly is aft-ward
-  const sl=sh.sailSet,cs=Math.cos((rel+sh.brace)*D2R),nowT=performance.now(),kd=1-Math.exp(-Math.min((nowT-(drawDial._t||nowT))/1000,.1)*1.6);drawDial._t=nowT;drawDial._b=(drawDial._b||1)+((Math.sign(cs||1))-(drawDial._b||1))*kd;
-  const belly=sl<.05?0:drawDial._b*(10+sl*5)*Math.min(1,.25+Math.abs(cs)); // sail fills away from the wind
-  for(const mt of DM.masts){const my=mt.my,half=mt.half;
-    if(half){ // a yard and its square sail
-    g.save();g.translate(0,my);g.rotate(-sh.brace*D2R);
-    if(sl>.05){g.beginPath();g.moveTo(-half,0);g.quadraticCurveTo(0,belly*2,half,0);g.closePath();g.fillStyle=S.aback?"rgba(168,69,44,.55)":"rgba(239,233,218,.95)";g.fill();g.strokeStyle=trimCol;g.lineWidth=5;g.stroke();}
-    g.strokeStyle="#2e2519";g.lineWidth=7;g.lineCap="round";g.beginPath();g.moveTo(-half,0);g.lineTo(half,0);g.stroke();
-    g.restore();}
-    if(mt.boom){const sb=Math.abs(sh.brace)>1?Math.sign(sh.brace):(rel>=0?1:-1),phi=sb*(90-Math.abs(sh.brace))*D2R,fb=-sb*Math.min(1,Math.abs(belly)/12)*(10+sl*6)*(S.aback?-1:1);
-      g.save();g.translate(0,my);g.rotate(phi);
-      if(sl>.05){g.beginPath();g.moveTo(0,-mt.fwd);g.quadraticCurveTo(fb*2,(mt.boom-mt.fwd)/2,0,mt.boom);g.closePath();g.fillStyle=S.aback?"rgba(168,69,44,.55)":"rgba(239,233,218,.95)";g.fill();g.strokeStyle=trimCol;g.lineWidth=5;g.stroke();}
-      g.strokeStyle="#2e2519";g.lineWidth=6;g.lineCap="round";g.beginPath();g.moveTo(0,-mt.fwd);g.lineTo(0,mt.boom);g.stroke();g.restore();}
-    g.fillStyle="#2e2519";g.beginPath();g.arc(0,my,8,0,2*PI);g.fill(); // mast
-  }
-  g.restore();
-  // wind and current as the chart draws them: an arrow downwind with a feather per two Beaufort, and a teal arrow the way the water sets
-  { const arrow=(ang,r,L,lw,col,barbs)=>{const ux=Math.sin(ang),uy=-Math.cos(ang),px=ux*r,py=uy*r,ax=px-ux*L/2,ay=py-uy*L/2,bx=px+ux*L/2,by=py+uy*L/2;
-      g.strokeStyle=col;g.fillStyle=col;g.lineWidth=lw;g.lineCap="round";g.beginPath();g.moveTo(ax,ay);g.lineTo(bx,by);g.stroke();
-      g.beginPath();g.moveTo(bx,by);g.lineTo(bx-ux*14-uy*7,by-uy*14+ux*7);g.lineTo(bx-ux*14+uy*7,by-uy*14-ux*7);g.closePath();g.fill();
-      g.lineWidth=lw*.8;for(let k=0;k<barbs;k++){const q=L/2-k*7,fx=px-ux*q,fy=py-uy*q;g.beginPath();g.moveTo(fx,fy);g.lineTo(fx+uy*12,fy-ux*12);g.stroke();}};
-    g.save();arrow((w.from+180)*D2R,R*.84,60,3.5,"#b2452c",Math.floor(beaufort(w.kn)/2));
-    const cu=currentAt(sh.x,sh.y);if(cu&&cu.drift>.02)arrow(cu.set*D2R,-R*.8,56,3,"#1b3f6b",0);g.restore(); }
-  // a tiny key
-  g.font="bold 15px 'IBM Plex Mono',monospace";g.textAlign="left";g.textBaseline="middle";
-  g.fillStyle="#b2452c";g.fillText("→ wind",-W/2+8,W/2-26);g.fillStyle="#1b3f6b";g.fillText("→ current",-W/2+8,W/2-8);
-}
 
 /* ---------- noon sparkline ---------- */
 function drawSpark(){
