@@ -6183,16 +6183,37 @@ function pirMesh(){const g=new THREE.Group(),M=c=>new THREE.MeshBasicMaterial({c
   add(new THREE.PlaneGeometry(7,11),M(0xd8cfb4),0,9,.2,PI/2);add(new THREE.PlaneGeometry(5.5,8.5),M(0xd8cfb4),0,7.5,-4.8,PI/2);
   add(new THREE.PlaneGeometry(2.4,1.6),M(0x111111),0,18.8,2.2,PI/2);
   g.scale.setScalar(1.6);return g;}
+/* quay cargo: plain wooden crates (planked, braced, lit from above) standing on the quay slabs beside the berth */
+let CRATE_GEO=null;const CRATE_MAT={};
+function crateGeo(){if(CRATE_GEO)return CRATE_GEO;const g=new THREE.BoxGeometry(1,1,1),n=g.attributes.normal,c=new Float32Array(n.count*3);
+  for(let i=0;i<n.count;i++){const x=n.getX(i),y=n.getY(i),z=n.getZ(i),k=y>.5?1:y<-.5?.38:x>.5?.78:x<-.5?.6:z>.5?.7:.52;c[i*3]=c[i*3+1]=c[i*3+2]=k;}
+  g.setAttribute("color",new THREE.BufferAttribute(c,3));return CRATE_GEO=g;}
+function crateMat(g){if(CRATE_MAT[g])return CRATE_MAT[g];const cv=document.createElement("canvas");cv.width=cv.height=64;const x=cv.getContext("2d");
+  const h=(g.length*53)%5,base=["#a9783f","#b98a4c","#9a6c38","#c29a5e","#a07044"][h];x.fillStyle=base;x.fillRect(0,0,64,64);
+  for(let i=0;i<4;i++){x.fillStyle="rgba(60,35,12,.55)";x.fillRect(0,i*16-1,64,2);x.fillStyle="rgba(255,225,170,.18)";x.fillRect(0,i*16+2,64,3);}
+  for(let i=0;i<14;i++){x.fillStyle="rgba(70,42,16,"+(.1+((i*37)%10)/60)+")";x.fillRect((i*29)%60,(i*17)%60,2+(i%3),1);}
+  x.strokeStyle="rgba(58,34,12,.9)";x.lineWidth=5;x.strokeRect(2,2,60,60);x.lineWidth=3;x.beginPath();x.moveTo(5,5);x.lineTo(59,59);x.stroke();
+  const tx=new THREE.CanvasTexture(cv);tx.colorSpace=THREE.SRGBColorSpace||tx.colorSpace;tx.anisotropy=4;
+  return CRATE_MAT[g]=new THREE.MeshBasicMaterial({map:tx,vertexColors:true});}
 function updateQuay3D(R){if(!S||!R||!R.scene)return;const s=S,f=s.docked&&PF[s.docked];
   const q=s.quay||{},n=(f&&f.dock&&loadsByHand())?Object.keys(q).reduce((a,g)=>a+Math.ceil(q[g].n-1e-6),0):0;
   const sig=n+"|"+(f?f.k:"")+"|"+Object.keys(q).join();
   if(R.quaySig===sig){if(R.quayG&&f&&f.dock){const sh=s.ship;R.quayG.position.set((f.dock.x-sh.x)*NM,0,-(f.dock.y-sh.y)*NM);}return;}R.quaySig=sig;
   if(R.quayG){R.scene.remove(R.quayG);R.quayG=null;}
-  if(!n)return;const gr=new THREE.Group(),d=f.dock,b=(d.hdg+90)*D2R,hd=d.hdg*D2R,lx=Math.sin(hd),lz=-Math.cos(hd),ox=Math.sin(b),oz=-Math.cos(b);
-  let i=0;const COL={};for(const g in q){const m=GOODS[g];COL[g]=new THREE.MeshLambertMaterial({color:new THREE.Color().setHSL((g.length*37%360)/360,.35,.45)});
-    for(let k=0;k<Math.ceil(q[g].n-1e-6);k++,i++){const sz=.75+Math.min(.5,m.t*.5),col=i%8,row=(i/8|0),lay=0;
-      const a=(col-3.5)*1.15,off=6.5+row*1.2,mesh=new THREE.Mesh(BOX,COL[g]);mesh.scale.set(sz,sz,sz);
-      mesh.position.set(lx*a+ox*off,sz/2+.4,lz*a+oz*off);mesh.rotation.y=-hd;gr.add(mesh);if(i>=160)break;}}
+  if(!n)return;
+  const o=R.isl&&R.isl.find(i=>ISLPORT.get(i.isl)===s.docked),P0=f.G,Sc=o&&o.pf&&o.pf.S,Q=P0&&P0.quay;if(!Sc||!Q||Q.length<2)return;
+  const d=f.dock,gr=new THREE.Group(),loc=(u,v)=>{const m=toNm(f,u,v);return[(m[0]-d.x)*NM,-(m[1]-d.y)*NM];};
+  // the quay slabs run 0..13 m inland of the shore line: crates go in rows 2.5 to 10 m back, along the stretch of quay beside the berth
+  let bi=0,bd=1e9;const du=P0.dock?P0.dock.u:Q[0].u,dv=P0.dock?P0.dock.v:Q[0].v;for(let i=0;i<Q.length;i++){const dd=Math.hypot(Q[i].u-du,Q[i].v-dv);if(dd<bd){bd=dd;bi=i;}}
+  const a0=Q[Math.max(0,bi-1)],a1=Q[Math.min(Q.length-1,bi+1)];let tu=a1.u-a0.u,tv=a1.v-a0.v;const tl=Math.hypot(tu,tv)||1;tu/=tl;tv/=tl;const C=Q[bi];
+  const slots=[];for(const row of[3.2,4.7,6.2,7.7])for(let k=-6;k<=6;k++)slots.push([k*1.45+(row>5?.7:0),row]);
+  let i=0;const rnd=(k)=>{const x=Math.sin(k*127.1+311.7)*43758.5453;return x-Math.floor(x);};
+  for(const g in q){const m=GOODS[g],mat=crateMat(g);
+    for(let k=0;k<Math.ceil(q[g].n-1e-6);k++,i++){if(i>=slots.length*2)break;const sl=slots[i%slots.length],layer=i>=slots.length?1:0,sz=.82+Math.min(.28,m.t*.28)+rnd(i)*.08;
+      const au=C.u+tu*sl[0]/Sc+C.nu*sl[1]/Sc,av=C.v+tv*sl[0]/Sc+C.nv*sl[1]/Sc,p=loc(au,av);
+      const mesh=new THREE.Mesh(crateGeo(),mat);mesh.scale.set(sz,sz*.9,sz*1.12);
+      mesh.position.set(p[0],1.4+sz*.45+layer*sz*.9,p[1]);
+      const ang=Math.atan2(-(C.nv*0+tv),tu);mesh.rotation.y=ang+(rnd(i+9)-.5)*.35;gr.add(mesh);}}
   gr.position.set((d.x-s.ship.x)*NM,0,-(d.y-s.ship.y)*NM);R.scene.add(gr);R.quayG=gr;}
 function updatePirates3D(R){if(!S||!R||!R.scene)return;const L=R.pirL||(R.pirL=[]),P=S.pir||[],sh=S.ship,ax=sh.x*NM,az=-sh.y*NM;let i=0;
   for(const p of P){if(!p.seen)continue;let m=L[i];if(!m){m=pirMesh();R.scene.add(m);L[i]=m;}m.visible=true;
@@ -8592,7 +8613,13 @@ function leave(){const R=M.R||R3;M.on=false;window.CUTON=false;root.style.displa
 const back=document.createElement("button");back.hidden=true; // no Cutaway button: the Ship icon in the bottom bar goes back
 back.onclick=()=>{M.ledger=false;};window.__cutSheet=()=>!!(M.on&&!M.ledger&&M.sel>=0&&M.hi>=0&&matchMedia("(min-width:0px)").matches);window.__cutLedger=v=>{if(v!==undefined)M.ledger=!!v;return!!M.ledger;};
 function want(){return typeof SV!=="undefined"&&SV.open&&SHIP&&!!LAYOUT[SHIP.id]&&typeof R3!=="undefined"&&R3&&R3.shipId===SHIP.id&&R3.bob;}
-window.__DRHoldRefresh=function(){const R=R3;if(R&&M.on&&M.built&&M.cg!==cargoSig()){leave();teardown();build(R);if(M.built)enter();}};
+window.__DRHoldRefresh=function(){const R=R3;if(!(R&&M.on&&M.built&&M.cg!==cargoSig()))return;
+  // rebuild the hold in place: the view you are looking from, the chosen deck and the flip all stay exactly as they are
+  const keep={},ks=["sel","hi","man","cur","flip","hid"];for(const k of ks)keep[k]=M[k];const vis=new Map(M.vis),on=M.on;
+  M.on=false;teardown();M.on=on;
+  for(const[o,v]of vis)if(!M.vis.has(o))M.vis.set(o,v);
+  build(R);if(!M.built)return;
+  Object.assign(M,keep);M.dirty=true;if(M.G)M.G.visible=true;try{paint();}catch(_){}};
 function sync(){const w=want(),on=w&&!M.ledger;
   if(!w)M.ledger=false;
   if(on&&!M.on){build(R3);if(M.built)enter();}else if(!on&&M.on)leave();
