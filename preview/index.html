@@ -5528,9 +5528,15 @@ const holdUsed=s=>holdLoaded(s)+quayTons(s)+basketTons(s); // goods bought and w
 const cargoSpeedF=s=>1-.14*clamp(holdLoaded(s)/holdCap(),0,1.3);
 /* brig loading: purchases wait on the quay, then the hands carry them aboard over time (other ships still load instantly) */
 const loadsByHand=()=>SHIP.id==="brig";
-const loadRate=s=>{const h=s.crew?s.crew.filter(m=>m.mode==="duty").length:8;return 60*clamp(Math.max(h,4)/12,.35,2);}; // tons per game hour
+const loadRate=s=>{const h=s.crew?s.crew.filter(m=>m.mode==="duty").length:8;return 720*clamp(Math.max(h,4)/12,.35,2);}; // tons per game hour: a hand-carried ton every five seconds with a dozen hands
 const quayLeft=s=>quayTons(s);
+const fmtDur=h=>{const sec=Math.max(1,Math.round(h*3600));return sec>=3600?`${Math.floor(sec/3600)} h ${Math.round(sec%3600/60)} min`:sec>=60?`${Math.floor(sec/60)} min ${sec%60} s`:`${sec} s`;};
 const loadMinutes=s=>Math.max(1,Math.round(quayTons(s)/loadRate(s)*60));
+// the Ship view pauses the game, so loading keeps its own clock then and the hold is rebuilt as goods arrive
+let loadClock=performance.now();
+setInterval(()=>{const now=performance.now(),dt=Math.min(1,(now-loadClock)/1000);loadClock=now;const s=typeof S!=="undefined"?S:null;if(!s||!s.loading)return;
+  if(typeof paused!=="undefined"&&paused){loadStep(s,dt/3600);loadBadge(s);try{tradeUI();stkUI();}catch(_){}}
+  try{if(window.__DRHoldRefresh)window.__DRHoldRefresh();}catch(_){}},250);
 function loadStart(){const s=S;if(!s||!quayTons(s))return;s.loading=true;s.loadTotal=quayTons(s);say("Load! The hands begin carrying the goods from the quay.",{log:false});tradeUI(true);}
 function basketClear(){const s=S;if(!s||!s.basket)return;for(const g in s.basket){const pm=s.mk&&s.mk.ports[s.basketSite];if(pm)pm[g]+=s.basket[g].n;}s.basket={};tradeUI(true);}
 function basketConfirm(){const s=S;if(!s||!s.basket||!Object.keys(s.basket).length)return;const site=tradeSite(s);if(!site){say("You must be in port to pay for the goods.",{log:false});return;}
@@ -5809,7 +5815,7 @@ function tradeUI(force){const box=document.getElementById("svMktBody");if(!box||
   const rare=Object.keys(s.cargo).filter(g=>GOODS[g].tier===3);
   if(Object.keys(s.cargo).length){h+=`<h3 style="margin-top:10px">Cargo aboard</h3>`;
     for(const g of Object.keys(s.cargo)){const c=s.cargo[g],arm=s.jetArm===g;h+=`<div class="mkc">${gIcon(g,20)} ${fl(c.n)} ${GOODS[g].tier===3?"(consignment) ":""}${gPl(g)} of ${gName(g)}, ${fl(c.n*GOODS[g].t)} tons <button data-t="jet" data-g="${g}">${arm?"Tap again to throw it all over":"Jettison"}</button></div>`;}}
-  const estT=t=>{const mn=Math.max(1,Math.round(t/loadRate(s)*60));return mn>=60?`${Math.floor(mn/60)} h ${mn%60} min`:`${mn} min`;};
+  const estT=t=>fmtDur(t/loadRate(s));
   if(s.basket&&Object.keys(s.basket).length){let tot=0,tt=0;
     h+=`<h3 style="margin-top:10px">Receipt</h3><table class="mk">`;
     for(const g of Object.keys(s.basket)){const q=s.basket[g];tot+=q.cost;tt+=q.n*GOODS[g].t;h+=`<tr><td>${gIcon(g,18)} ${fl(q.n)} ${gPl(g)} of ${gName(g)}</td><td class="num">${fl(q.n*GOODS[g].t)} t</td><td class="num">${money(q.cost)}</td></tr>`;}
@@ -5905,14 +5911,14 @@ function pirMesh(){const g=new THREE.Group(),M=c=>new THREE.MeshBasicMaterial({c
 function updateQuay3D(R){if(!S||!R||!R.scene)return;const s=S,f=s.docked&&PF[s.docked];
   const q=s.quay||{},n=(f&&f.dock&&loadsByHand())?Object.keys(q).reduce((a,g)=>a+Math.ceil(q[g].n-1e-6),0):0;
   const sig=n+"|"+(f?f.k:"")+"|"+Object.keys(q).join();
-  if(R.quaySig===sig)return;R.quaySig=sig;
+  if(R.quaySig===sig){if(R.quayG&&f&&f.dock){const sh=s.ship;R.quayG.position.set((f.dock.x-sh.x)*NM,0,-(f.dock.y-sh.y)*NM);}return;}R.quaySig=sig;
   if(R.quayG){R.scene.remove(R.quayG);R.quayG=null;}
   if(!n)return;const gr=new THREE.Group(),d=f.dock,b=(d.hdg+90)*D2R,hd=d.hdg*D2R,lx=Math.sin(hd),lz=-Math.cos(hd),ox=Math.sin(b),oz=-Math.cos(b);
   let i=0;const COL={};for(const g in q){const m=GOODS[g];COL[g]=new THREE.MeshLambertMaterial({color:new THREE.Color().setHSL((g.length*37%360)/360,.35,.45)});
     for(let k=0;k<Math.ceil(q[g].n-1e-6);k++,i++){const sz=.75+Math.min(.5,m.t*.5),col=i%8,row=(i/8|0),lay=0;
       const a=(col-3.5)*1.15,off=6.5+row*1.2,mesh=new THREE.Mesh(BOX,COL[g]);mesh.scale.set(sz,sz,sz);
-      mesh.position.set(d.x*NM+lx*a+ox*off,sz/2+.4,-d.y*NM+lz*a+oz*off);mesh.rotation.y=-hd;gr.add(mesh);if(i>=160)break;}}
-  R.scene.add(gr);R.quayG=gr;}
+      mesh.position.set(lx*a+ox*off,sz/2+.4,lz*a+oz*off);mesh.rotation.y=-hd;gr.add(mesh);if(i>=160)break;}}
+  gr.position.set((d.x-s.ship.x)*NM,0,-(d.y-s.ship.y)*NM);R.scene.add(gr);R.quayG=gr;}
 function updatePirates3D(R){if(!S||!R||!R.scene)return;const L=R.pirL||(R.pirL=[]),P=S.pir||[],sh=S.ship,ax=sh.x*NM,az=-sh.y*NM;let i=0;
   for(const p of P){if(!p.seen)continue;let m=L[i];if(!m){m=pirMesh();R.scene.add(m);L[i]=m;}m.visible=true;
     const x=p.x*NM,z=-p.y*NM;m.position.set(x,waveH(R,x-ax,z-az)*.6,z);m.rotation.y=-p.h*D2R;i++;}
@@ -6581,7 +6587,7 @@ function stkUI(){if(!S||!S.crew||!$("stkBars"))return;const T=S.stores,n=S.crew.
   const pal=["#8a6a2e","#5b7f6a","#a8544a","#6a7da3","#9a8456","#7a5a86","#b07a3a","#4d7d86","#8c8c5a","#a36f8b","#6d8f4e","#a05a3a"];
   Object.keys(cg).forEach((g,i)=>{const t=Math.max(1,Math.round(cg[g].n*GOODS[g].t));for(let j=0;j<t&&used<cap2;j++,used++)cols.push([g,pal[i%pal.length]]);});
   let hh="";for(let i=0;i<cap2;i++){const c=cols[i];hh+=c?`<span class="stkc${c[0]===stkHold?" on":""}" data-g="${c[0]}" style="background:${c[1]}" title="${GOODS[c[0]].n}"></span>`:'<span class="stkc e"></span>';}
-  $("stkHold").innerHTML=vzHold(cap2,cg,used)+(S.loading&&S.loadTotal>0?`<p class="svhint"><b>Loading:</b> about ${Math.max(1,Math.round(quayTons(S)/loadRate(S)*60))} min left, ${Math.round(clamp(1-quayTons(S)/S.loadTotal,0,1)*100)}% loaded.</p>`:(quayTons(S)>0?`<p class="svhint">${Math.round(quayTons(S))} t waiting on the quay.</p>`:""));
+  $("stkHold").innerHTML=vzHold(cap2,cg,used)+(S.loading&&S.loadTotal>0?`<p class="svhint"><b>Loading:</b> about ${fmtDur(quayTons(S)/loadRate(S))} left, ${Math.round(clamp(1-quayTons(S)/S.loadTotal,0,1)*100)}% loaded.</p>`:(quayTons(S)>0?`<p class="svhint">${Math.round(quayTons(S))} t waiting on the quay.</p>`:""));
   const site=tradeSite(S),ha=$("stkHoldAct");
   if(stkHold&&cg[stkHold]){const c=cg[stkHold],G=GOODS[stkHold];ha.innerHTML=`<div class="stkh">${gIcon(stkHold,26)} ${Math.round(c.n*10)/10} ${gPl(stkHold)} of ${gName(stkHold)}, ${Math.round(c.n*G.t*10)/10} t. <button type="button" data-a="sell"${site&&G.tier<3?"":" disabled"}>${site?"Sell all here":"Not in port"}</button><button type="button" data-a="jet">${stkJet?"Tap again to throw it over":"Jettison"}</button></div>`;}
   else ha.innerHTML=`<p class="svhint">${Object.keys(cg).length?"Tap a square to see what it is and sell or jettison it.":"The hold is empty. Squares are one ton each."} ${Math.round(used)} of ${cap2} tons used.</p>`;
@@ -8183,6 +8189,7 @@ function leave(){const R=M.R||R3;M.on=false;window.CUTON=false;root.style.displa
 const back=document.createElement("button");back.hidden=true; // no Cutaway button: the Ship icon in the bottom bar goes back
 back.onclick=()=>{M.ledger=false;};window.__cutSheet=()=>!!(M.on&&!M.ledger&&M.sel>=0&&M.hi>=0&&matchMedia("(min-width:0px)").matches);window.__cutLedger=v=>{if(v!==undefined)M.ledger=!!v;return!!M.ledger;};
 function want(){return typeof SV!=="undefined"&&SV.open&&SHIP&&!!LAYOUT[SHIP.id]&&typeof R3!=="undefined"&&R3&&R3.shipId===SHIP.id&&R3.bob;}
+window.__DRHoldRefresh=function(){const R=R3;if(R&&M.on&&M.built&&M.cg!==cargoSig()){leave();teardown();build(R);if(M.built)enter();}};
 function sync(){const w=want(),on=w&&!M.ledger;
   if(!w)M.ledger=false;
   if(on&&!M.on){build(R3);if(M.built)enter();}else if(!on&&M.on)leave();
