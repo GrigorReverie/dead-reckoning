@@ -6183,19 +6183,15 @@ function pirMesh(){const g=new THREE.Group(),M=c=>new THREE.MeshBasicMaterial({c
   add(new THREE.PlaneGeometry(7,11),M(0xd8cfb4),0,9,.2,PI/2);add(new THREE.PlaneGeometry(5.5,8.5),M(0xd8cfb4),0,7.5,-4.8,PI/2);
   add(new THREE.PlaneGeometry(2.4,1.6),M(0x111111),0,18.8,2.2,PI/2);
   g.scale.setScalar(1.6);return g;}
-/* quay cargo: plain wooden crates (planked, braced, lit from above) standing on the quay slabs beside the berth */
-let CRATE_GEO=null;const CRATE_MAT={};
-function crateGeo(){if(CRATE_GEO)return CRATE_GEO;const g=new THREE.BoxGeometry(1,1,1),n=g.attributes.normal,c=new Float32Array(n.count*3);
-  for(let i=0;i<n.count;i++){const x=n.getX(i),y=n.getY(i),z=n.getZ(i),k=y>.5?1:y<-.5?.38:x>.5?.78:x<-.5?.6:z>.5?.7:.52;c[i*3]=c[i*3+1]=c[i*3+2]=k;}
-  g.setAttribute("color",new THREE.BufferAttribute(c,3));return CRATE_GEO=g;}
-function crateMat(g){if(CRATE_MAT[g])return CRATE_MAT[g];const cv=document.createElement("canvas");cv.width=cv.height=64;const x=cv.getContext("2d");
-  const h=(g.length*53)%5,base=["#a9783f","#b98a4c","#9a6c38","#c29a5e","#a07044"][h];x.fillStyle=base;x.fillRect(0,0,64,64);
-  for(let i=0;i<4;i++){x.fillStyle="rgba(60,35,12,.55)";x.fillRect(0,i*16-1,64,2);x.fillStyle="rgba(255,225,170,.18)";x.fillRect(0,i*16+2,64,3);}
-  for(let i=0;i<14;i++){x.fillStyle="rgba(70,42,16,"+(.1+((i*37)%10)/60)+")";x.fillRect((i*29)%60,(i*17)%60,2+(i%3),1);}
-  x.strokeStyle="rgba(58,34,12,.9)";x.lineWidth=5;x.strokeRect(2,2,60,60);x.lineWidth=3;x.beginPath();x.moveTo(5,5);x.lineTo(59,59);x.stroke();
-  const tx=new THREE.CanvasTexture(cv);tx.colorSpace=THREE.SRGBColorSpace||tx.colorSpace;tx.anisotropy=4;
-  return CRATE_MAT[g]=new THREE.MeshBasicMaterial({map:tx,vertexColors:true});}
-window.__crate={geo:()=>crateGeo(),mat:g=>crateMat(g)};
+/* cargo crates, drawn the way the Ship view draws everything: flat wood colour, the same top-lit shading, and the same thin sepia pen line on every edge */
+let CRATE_GEO=null,CRATE_EDG=null;const CRATE_MAT={},CRATE_PEN=new THREE.LineBasicMaterial({color:0x2e2519,transparent:true,opacity:.7});
+const CRATE_WOOD=[0x8a6234,0xa8763f,0x7a5a3a,0xb98a4c,0x9a6c38,0xc29a5e];
+function crateGeo(){if(CRATE_GEO)return CRATE_GEO;const g=new THREE.BoxGeometry(1,1,1),n=g.attributes.normal,c=new Float32Array(n.count*3),L=new THREE.Vector3(.35,.85,.4).normalize();
+  for(let i=0;i<n.count;i++){const d=n.getX(i)*L.x+n.getY(i)*L.y+n.getZ(i)*L.z,s=.66+.34*d;c[i*3]=c[i*3+1]=c[i*3+2]=s;}
+  g.setAttribute("color",new THREE.BufferAttribute(c,3));CRATE_EDG=new THREE.EdgesGeometry(g,35);return CRATE_GEO=g;}
+function crateMat(g){return CRATE_MAT[g]||(CRATE_MAT[g]=new THREE.MeshBasicMaterial({vertexColors:true,color:CRATE_WOOD[(g.length*53)%CRATE_WOOD.length],side:THREE.DoubleSide}));}
+function crateObj(g,pen){const o=new THREE.Group(),m=new THREE.Mesh(crateGeo(),crateMat(g)),l=new THREE.LineSegments(CRATE_EDG,pen||CRATE_PEN);o.add(m);o.add(l);o.userData.mesh=m;return o;}
+window.__crate={obj:(g,pen)=>crateObj(g,pen),mat:g=>crateMat(g)};
 function updateQuay3D(R){if(!S||!R||!R.scene)return;const s=S,f=s.docked&&PF[s.docked];
   const q=s.quay||{},n=(f&&f.dock&&loadsByHand())?Object.keys(q).reduce((a,g)=>a+Math.ceil(q[g].n-1e-6),0):0;
   const sig=n+"|"+(f?f.k:"")+"|"+Object.keys(q).join();
@@ -6209,10 +6205,10 @@ function updateQuay3D(R){if(!S||!R||!R.scene)return;const s=S,f=s.docked&&PF[s.d
   const a0=Q[Math.max(0,bi-1)],a1=Q[Math.min(Q.length-1,bi+1)];let tu=a1.u-a0.u,tv=a1.v-a0.v;const tl=Math.hypot(tu,tv)||1;tu/=tl;tv/=tl;const C=Q[bi];
   const slots=[];for(const row of[3.2,4.7,6.2,7.7])for(let k=-6;k<=6;k++)slots.push([k*1.45+(row>5?.7:0),row]);
   let i=0;const rnd=(k)=>{const x=Math.sin(k*127.1+311.7)*43758.5453;return x-Math.floor(x);};
-  for(const g in q){const m=GOODS[g],mat=crateMat(g);
+  for(const g in q){const m=GOODS[g];
     for(let k=0;k<Math.ceil(q[g].n-1e-6);k++,i++){if(i>=slots.length*2)break;const sl=slots[i%slots.length],layer=i>=slots.length?1:0,sz=.82+Math.min(.28,m.t*.28)+rnd(i)*.08;
       const au=C.u+tu*sl[0]/Sc+C.nu*sl[1]/Sc,av=C.v+tv*sl[0]/Sc+C.nv*sl[1]/Sc,p=loc(au,av);
-      const mesh=new THREE.Mesh(crateGeo(),mat);mesh.scale.set(sz,sz*.9,sz*1.12);
+      const mesh=crateObj(g);mesh.scale.set(sz,sz*.9,sz*1.12);
       mesh.position.set(p[0],1.4+sz*.45+layer*sz*.9,p[1]);
       const ang=Math.atan2(-(C.nv*0+tv),tu);mesh.rotation.y=ang+(rnd(i+9)-.5)*.35;gr.add(mesh);}}
   gr.position.set((d.x-s.ship.x)*NM,0,-(d.y-s.ship.y)*NM);R.scene.add(gr);R.quayG=gr;}
@@ -8042,7 +8038,7 @@ M.cgUpdate=function(force){const sl=M.cgSlots;if(!M.built||!sl||!M.cgG)return;co
     let sum=al.reduce((a,b)=>a+b,0);for(let i=0;sum<total;i=(i+1)%al.length){al[i]++;sum++;}
     while(sum>total){let m=0;for(let i=1;i<al.length;i++)if(al[i]>al[m])m=i;if(al[m]<=1)break;al[m]--;sum--;}
     let si=0;L.forEach((e,i)=>{for(let n=0;n<al[i]&&si<sl.length;n++,si++)kind[si]=e[0];});}
-  for(const g of gs)g.children.forEach((m,i)=>{const k=kind[i];m.userData.on=!!k;if(k)m.material=__crate.mat(k);});
+  for(const g of gs)g.children.forEach((m,i)=>{const k=kind[i];m.userData.on=!!k;if(k)m.userData.mesh.material=__crate.mat(k);});
   M.cgShow();};
 M.cgShow=function(){for(const g of[M.cgG,M.G2&&M.G2.children&&M.G2.children.find(o=>o.name==="holdcargo")])if(g)for(const m of g.children){const v=!!m.userData.on&&(M.sel<0||m.userData.lv===M.sel);if(m.visible!==v)m.visible=v;}};
 function build(R){
@@ -8291,7 +8287,7 @@ function build(R){
   /* the hold shows what is really aboard: wooden crates sit in the cargo spaces, lowest deck first. They are separate meshes that are
      simply switched on as goods come aboard (M.cgUpdate), so nothing is rebuilt and the view never moves. */
   { const sl=CSLOT.slice().sort((a,b)=>b[4]-a[4]),cg=new THREE.Group();cg.name="holdcargo";M.cgSlots=sl;M.cgSig="";
-    sl.forEach((q,i)=>{const sz=q[3]*.9,m=new THREE.Mesh(__crate.geo(),__crate.mat("cotton"));m.scale.set(sz,sz*.82,sz);m.position.set(q[0],q[1]+sz*.41,q[2]);m.visible=false;m.userData.lv=q[4];m.userData.i=i;cg.add(m);});
+    sl.forEach((q,i)=>{const sz=q[3]*.9,m=__crate.obj("cotton",M.pen);m.scale.set(sz,sz*.82,sz);m.position.set(q[0],q[1]+sz*.41,q[2]);m.visible=false;m.userData.lv=q[4];m.userData.i=i;cg.add(m);});
     G.add(cg);M.cgG=cg; }
   /* keep everything on a deck inside her: no prop, plank, cask or stack may poke out through the hull side or up through the deck above (squashed against the wall or ceiling instead) */
   { const skk=Math.max(.15,H.T/6.2);
