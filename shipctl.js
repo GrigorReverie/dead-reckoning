@@ -51,12 +51,13 @@ window.DRSC=(function(){
     hBg:"", hInk:"", hReadSize:null, hBtnBg:"", hBtnInk:"", hBtnBorder:"", hBtnRadius:null,
     hShowCourse:true, hShowWind:true, hShowAnchor:true, hShowHelmBtns:true, hShowRig:true, hShowLogRow:true,
     /* ---- extra elements added in the editor ---- */
+    sty:{},                  // per-part styling: {partKey:{hide,bg,ink,bd,bw,rad,w,h,fs,font,bold,ital,ls,ta,op,ord}}
     pos:{},                  // moved/resized parts: {partKey:{x,y,s,r}}  (px, scale %, degrees)
     extras:[]                // [{id,type:"readout"|"label"|"divider",field,text,at:"top"|"bottom"|"end",size,color,bold,align}]
   };
   const st={def:DEFAULTS,pub:null,live:null,rev:0,c:null};
   const clone=o=>JSON.parse(JSON.stringify(o));
-  function merge(){const c=clone(DEFAULTS);for(const src of[st.pub,st.live])if(src&&typeof src==="object")for(const k in src){if(!(k in DEFAULTS))continue;const v=src[k];if(v===null||v===undefined)continue;c[k]=k==="extras"?(Array.isArray(v)?v.slice(0,40):[]):k==="pos"?(v&&typeof v==="object"?v:{}):v;}
+  function merge(){const c=clone(DEFAULTS);for(const src of[st.pub,st.live])if(src&&typeof src==="object")for(const k in src){if(!(k in DEFAULTS))continue;const v=src[k];if(v===null||v===undefined)continue;c[k]=k==="extras"?(Array.isArray(v)?v.slice(0,40):[]):(k==="pos"||k==="sty")?(v&&typeof v==="object"?v:{}):v;}
     st.c=c;st.rev++;return c;}
   try{st.pub=DR_SHIPCTL_PUBLISHED&&(DR_SHIPCTL_PUBLISHED.c||DR_SHIPCTL_PUBLISHED);}catch(e){}
   merge();
@@ -110,6 +111,18 @@ window.DRSC=(function(){
       if(num(q.s)&&+q.s!==100)r.push(`scale:${Math.max(.2,Math.min(4,+q.s/100))}${I}`);
       if(num(q.r)&&+q.r)r.push(`rotate:${+q.r}deg${I}`);
       if(r.length)o.push(`${B}${sel}{${r.join(";")};transform-origin:50% 50%${I}}`);}}
+    // per-part styling: hide, colours, border, corners, size, text
+    {const Y=c.sty||{};for(const k in Y){const sel=partSel[k],q=Y[k];if(!sel||!q)continue;const r=[];
+      if(q.hide)r.push(`display:none${I}`);
+      if(has(q.bg))r.push(`background:${safe(q.bg)}${I}`);if(has(q.ink))r.push(`color:${safe(q.ink)}${I}`);
+      if(has(q.bd)||num(q.bw))r.push(`border:${num(q.bw)?+q.bw:1}px solid ${has(q.bd)?safe(q.bd):"currentColor"}${I}`);
+      if(num(q.rad))r.push(`border-radius:${+q.rad}px${I}`);
+      if(num(q.w)&&+q.w>0)r.push(`width:${+q.w}px${I};min-width:0${I}`);if(num(q.h)&&+q.h>0)r.push(`height:${+q.h}px${I};min-height:0${I}`);
+      if(num(q.fs)&&+q.fs>0)r.push(`font-size:${+q.fs}px${I}`);if(has(q.font))r.push(`font-family:${safe(q.font)}${I}`);
+      if(q.bold===true)r.push(`font-weight:700${I}`);if(q.bold===false)r.push(`font-weight:400${I}`);if(q.ital)r.push(`font-style:italic${I}`);
+      if(num(q.ls))r.push(`letter-spacing:${+q.ls}px${I}`);if(q.ta==="left"||q.ta==="center"||q.ta==="right")r.push(`text-align:${q.ta}${I}`);
+      if(num(q.op)&&+q.op<1)r.push(`opacity:${+q.op}${I}`);if(num(q.ord)&&+q.ord)r.push(`order:${+q.ord}${I}`);
+      if(r.length)o.push(`${B}${sel}{${r.join(";")}}`);}}
     // extras
     o.push(`.sc-x{display:flex;flex-wrap:wrap;gap:4px 10px;justify-content:center;align-items:baseline;width:100%;font-family:var(--f-data,'IBM Plex Mono',monospace);font-size:11px;line-height:1.3;color:var(--ink)}.sc-x:empty{display:none}.sc-x .sc-i{white-space:nowrap}.sc-x .sc-i i{font-style:normal;opacity:.7;margin-right:4px}.sc-x .sc-d{flex-basis:100%;height:0;border-top:1px dotted var(--rule,#b9a882);margin:2px 0}.sc-x .sc-full{flex-basis:100%}`);
     return o.join("\n");}
