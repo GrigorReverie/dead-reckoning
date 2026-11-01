@@ -6529,13 +6529,13 @@ function initShip(){svStkInit();svVizInit();svFolds();$("bShip").onclick=$("bShi
 
 /* ---------- input ---------- */
 let drag=null;const pts=new Map();
-cv.addEventListener("pointerdown",e=>{cv.setPointerCapture(e.pointerId);pts.set(e.pointerId,{x:e.offsetX,y:e.offsetY});if(pts.size===1){drag={x:e.offsetX,y:e.offsetY,cx:cam.x,cy:cam.y};cv.classList.add("drag");}});
+cv.addEventListener("pointerdown",e=>{cv.setPointerCapture(e.pointerId);pts.set(e.pointerId,{x:e.offsetX,y:e.offsetY});if(pts.size===1&&!follow){drag={x:e.offsetX,y:e.offsetY,cx:cam.x,cy:cam.y};cv.classList.add("drag");}});
 cv.addEventListener("pointermove",e=>{if(!pts.has(e.pointerId))return;const prev=pts.get(e.pointerId);pts.set(e.pointerId,{x:e.offsetX,y:e.offsetY});
   if(pts.size===2){const[a,b]=[...pts.values()];const pa=e.pointerId===[...pts.keys()][0]?prev:a,pb=e.pointerId===[...pts.keys()][1]?prev:b;const d0=Math.hypot(pa.x-pb.x,pa.y-pb.y),d1=Math.hypot(a.x-b.x,a.y-b.y);if(d0>0)zoomAt(d1/d0,(a.x+b.x)/2,(a.y+b.y)/2);return;}
   if(drag){const dx=e.offsetX-drag.x,dy=e.offsetY-drag.y;if(Math.abs(dx)+Math.abs(dy)>3){follow=false;$("follow").setAttribute("aria-pressed","false");}cam.x=drag.cx-dx/cam.zoom;cam.y=drag.cy+dy/cam.zoom;}});
 const endPtr=e=>{pts.delete(e.pointerId);if(!pts.size){drag=null;cv.classList.remove("drag");}};
 cv.addEventListener("pointerup",endPtr);cv.addEventListener("pointercancel",endPtr);
-function zoomAt(f,px,py){const bx=wx(px),by=wy(py);cam.zoom=clamp(cam.zoom*f,.8,6000);cam.x=bx-(px-CW/2)/cam.zoom;cam.y=by+(py-CYC)/cam.zoom;}
+function zoomAt(f,px,py){if(follow&&S){cam.zoom=clamp(cam.zoom*f,.8,6000);return;}const bx=wx(px),by=wy(py);cam.zoom=clamp(cam.zoom*f,.8,6000);cam.x=bx-(px-CW/2)/cam.zoom;cam.y=by+(py-CYC)/cam.zoom;}
 cv.addEventListener("wheel",e=>{e.preventDefault();zoomAt(Math.exp(-e.deltaY*.0015),e.offsetX,e.offsetY);},{passive:false});
 $("zIn").onclick=()=>zoomAt(1.4,CW/2,CYC);$("zOut").onclick=()=>zoomAt(1/1.4,CW/2,CYC);
 let showCur=false;try{showCur=localStorage.getItem("drCur")==="1";}catch(e){}
