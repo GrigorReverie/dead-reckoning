@@ -8111,9 +8111,9 @@ function enter(){const R=R3;M.on=true;window.CUTON=true;M.cur=null;M.sel=-1;M.pa
   try{if(!main3d)setMain(true);}catch(e){}
   try{setPaused(true);}catch(e){}
   { const sl=S&&S.ship&&S.ship.sls;M.sls=sl?Object.assign({},sl):null; }
-  root.style.display="";document.body.classList.add("cutmode");mkChips();paint();if(M.G)M.G.visible=true;
+  root.style.display="";document.body.classList.add("cutmode");document.documentElement.classList.add("cutlock");mkChips();paint();if(M.G)M.G.visible=true;
   if(!looping){looping=true;requestAnimationFrame(labels);}}
-function leave(){const R=M.R||R3;M.on=false;window.CUTON=false;root.style.display="none";document.body.classList.remove("cutmode");
+function leave(){const R=M.R||R3;M.on=false;window.CUTON=false;root.style.display="none";document.body.classList.remove("cutmode");document.documentElement.classList.remove("cutlock");
   if(R&&R.U&&R.U.uCutOn)R.U.uCutOn.value=0;
   if(M.G)M.G.visible=false;
   if(R&&R.ship)R.ship.traverse(o=>{const mt=o.material;if(mt&&mt.__cl){mt.clippingPlanes=null;mt.__cl=0;mt.needsUpdate=true;}});
@@ -8135,6 +8135,9 @@ function sync(){const w=want(),on=w&&!M.ledger;
 function boot(){
   setInterval(sync,120);
 }
+{const inPic=t=>t&&t.closest&&!t.closest("#cutCard,#cutChips,button,input,select,textarea");
+ document.addEventListener("touchmove",e=>{if(M.on&&inPic(e.target))e.preventDefault();},{passive:false});
+ document.addEventListener("wheel",e=>{if(M.on&&inPic(e.target))e.preventDefault();},{passive:false});}
 {const ptr=new Map();const two=()=>{const a=[...ptr.values()];return a.length===2?{d:Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y)||1,x:(a[0].x+a[1].x)/2,y:(a[0].y+a[1].y)/2}:null;};
  addEventListener("pointerdown",e=>{if(M.on&&e.target&&e.target.id==="view3d"){ptr.set(e.pointerId,{x:e.clientX,y:e.clientY,sx:e.clientX,sy:e.clientY,n:ptr.size});e.stopPropagation();}},true);
  addEventListener("pointermove",e=>{const p=ptr.get(e.pointerId);if(!M.on||!p)return;
@@ -8377,6 +8380,7 @@ body.cutmode #aboutBox,body.cutmode .dockwrap{}
 #cutChips button{padding:5px 6px}
 #cutChips.many button{padding:5px 3px}
 body.cutmode #shipView{display:none!important}
+html.cutlock,html.cutlock body{overflow:hidden!important;overscroll-behavior:none!important;height:100%}html.cutlock #cutUI,html.cutlock #view3d,html.cutlock #cutSvg{touch-action:none}html.cutlock #cutCard,html.cutlock #cutChips{touch-action:pan-y}
 #cutBack{position:fixed;right:10px;top:calc(var(--bar-h,56px) + 8px);z-index:40;border:1px solid #2e2519;border-radius:3px;background:rgba(246,238,217,.96);color:#2e2519;font:12px "IM Fell English SC",serif;padding:5px 9px}#cutBack[hidden]{display:none}
 #cutSvg text{font:12.5px Georgia,serif;font-style:normal;fill:#000;stroke:none;paint-order:normal}
 #cutSvg rect{fill:#fff;stroke:#000;stroke-width:1.2px}
