@@ -51,16 +51,29 @@ window.DRSC=(function(){
     hBg:"", hInk:"", hReadSize:null, hBtnBg:"", hBtnInk:"", hBtnBorder:"", hBtnRadius:null,
     hShowCourse:true, hShowWind:true, hShowAnchor:true, hShowHelmBtns:true, hShowRig:true, hShowLogRow:true,
     /* ---- extra elements added in the editor ---- */
+    pos:{},                  // moved/resized parts: {partKey:{x,y,s,r}}  (px, scale %, degrees)
     extras:[]                // [{id,type:"readout"|"label"|"divider",field,text,at:"top"|"bottom"|"end",size,color,bold,align}]
   };
   const st={def:DEFAULTS,pub:null,live:null,rev:0,c:null};
   const clone=o=>JSON.parse(JSON.stringify(o));
-  function merge(){const c=clone(DEFAULTS);for(const src of[st.pub,st.live])if(src&&typeof src==="object")for(const k in src){if(!(k in DEFAULTS))continue;const v=src[k];if(v===null||v===undefined)continue;c[k]=k==="extras"?(Array.isArray(v)?v.slice(0,40):[]):v;}
+  function merge(){const c=clone(DEFAULTS);for(const src of[st.pub,st.live])if(src&&typeof src==="object")for(const k in src){if(!(k in DEFAULTS))continue;const v=src[k];if(v===null||v===undefined)continue;c[k]=k==="extras"?(Array.isArray(v)?v.slice(0,40):[]):k==="pos"?(v&&typeof v==="object"?v:{}):v;}
     st.c=c;st.rev++;return c;}
   try{st.pub=DR_SHIPCTL_PUBLISHED&&(DR_SHIPCTL_PUBLISHED.c||DR_SHIPCTL_PUBLISHED);}catch(e){}
   merge();
 
   /* ---------- CSS for the compass box and the helm sheet ---------- */
+  /* parts the editor can move and resize: key, label, group, selector */
+  const PARTS=[
+    ["box","Whole gauge box","Gauges","#compassBox"],["dial","Compass","Gauges","#compassBox #dial"],["baro","Glass","Gauges","#compassBox #baro"],["sails","Sail bars","Gauges","#compassBox #sailSteps5"],
+    ["fold","Fold compass button","Gauges","#compassBox #cbBtn"],["scope","Telescope button","Gauges","#compassBox #cbScope"],["foot","Button row under gauges","Gauges",".compassbox .cbfoot"],["heave2","Heave log button (gauges)","Gauges","#bHeave2"],
+    ["course","Course and speed line","Text",".dock-all .dockctl .cspd"],["wind","Wind line","Text","#windSpd"],["current","Current line","Text","#curTxt"],["anchor","Anchor / docked line","Text","#anchTxt"],["rig","Yards and rigging line","Text","#rigTxt"],
+    ["xtop","Added elements above gauges","Text",".sc-x-top"],["xbot","Added elements below gauges","Text",".sc-x-bot"],["xend","Added elements at panel end","Text",".sc-x-end"],
+    ["cL5","Port 5° button","Buttons","#cL5"],["cR5","Starboard 5° button","Buttons","#cR5"],["drop","Anchor button","Buttons","#bDrop"],["fish","Fish button","Buttons","#bFish"],
+    ["sDn","Shorten sail button","Buttons","#sDn"],["sUp","Make sail button","Buttons","#sUp"],["sAll","Pick all sails","Buttons","#sailAll"],["sNone","Clear sails","Buttons","#sailNone"],
+    ["brL","Yards left button","Buttons","#brL"],["brR","Yards right button","Buttons","#brR"],["heave","Heave the log button","Buttons","#bHeave"],["helmbtns","Helm button row","Buttons",".dock-all .helmbtns"],
+    ["hdg","Heading slider","Buttons","#dockHdg"],["sheet","Whole helm panel","Panel",".dock-all .dockbody"]
+  ];
+  const partSel=Object.fromEntries(PARTS.map(p=>[p[0],p[3]]));
   const has=v=>v!==null&&v!==undefined&&v!=="";
   const num=v=>has(v)&&isFinite(+v);
   const safe=v=>String(v).replace(/[^#a-zA-Z0-9(),.%\s'-]/g,"");
@@ -91,6 +104,12 @@ window.DRSC=(function(){
     show(c.hShowCourse,".dock-all .dockctl .cspd");show(c.hShowWind,".dock-all .dockctl .winf");show(c.hShowAnchor,".dock-all #anchTxt");
     show(c.hShowHelmBtns,".dock-all .helmbtns");show(c.hShowRig,".dock-all .sub.subt .meter,.dock-all #strainTxt,.dock-all #hullTxt");
     show(c.hShowLogRow,".dock-all .row:has(#bHeave)");
+    // moved and resized parts (CSS translate/scale/rotate, so they stack on whatever the game already does)
+    {const P=c.pos||{};for(const k in P){const sel=partSel[k],q=P[k];if(!sel||!q)continue;const r=[];
+      const X=+q.x||0,Y=+q.y||0;if(X||Y)r.push(`translate:${X}px ${Y}px${I}`);
+      if(num(q.s)&&+q.s!==100)r.push(`scale:${Math.max(.2,Math.min(4,+q.s/100))}${I}`);
+      if(num(q.r)&&+q.r)r.push(`rotate:${+q.r}deg${I}`);
+      if(r.length)o.push(`${B}${sel}{${r.join(";")};transform-origin:50% 50%${I}}`);}}
     // extras
     o.push(`.sc-x{display:flex;flex-wrap:wrap;gap:4px 10px;justify-content:center;align-items:baseline;width:100%;font-family:var(--f-data,'IBM Plex Mono',monospace);font-size:11px;line-height:1.3;color:var(--ink)}.sc-x:empty{display:none}.sc-x .sc-i{white-space:nowrap}.sc-x .sc-i i{font-style:normal;opacity:.7;margin-right:4px}.sc-x .sc-d{flex-basis:100%;height:0;border-top:1px dotted var(--rule,#b9a882);margin:2px 0}.sc-x .sc-full{flex-basis:100%}`);
     return o.join("\n");}
@@ -134,14 +153,14 @@ window.DRSC=(function(){
   window.addEventListener("message",e=>{if(!inFrame||e.source!==window.parent)return;const d=e.data;if(!d||typeof d!=="object")return;
     if(d.drShipCtl&&typeof d.drShipCtl==="object"){st.live=d.drShipCtl;merge();apply();}
     if(d.drShipCtlHello)hello();
-    const SEL={compass:"#dial",glass:"#baro",sails:"#sailSteps5",box:"#compassBox",sheet:".dock-all .dockbody",extras:".sc-x:not(:empty)"};
+    const SEL=Object.assign({compass:"#dial",glass:"#baro",sails:"#sailSteps5",box:"#compassBox",sheet:".dock-all .dockbody",extras:".sc-x:not(:empty)"},partSel);
     if(d.drShipCtlRect){const key=typeof d.drShipCtlRect==="string"?d.drShipCtlRect:"sheet";
       const e=document.querySelector(SEL[key]||SEL.sheet)||document.getElementById("compassBox")||document.querySelector(SEL.sheet),r=e&&e.getBoundingClientRect();
       try{window.parent.postMessage({drShipCtlRectR:r&&r.width?{key,x:r.left,y:r.top,w:r.width,h:r.height,vw:innerWidth,vh:innerHeight}:null,drShipCtlRectKey:key},"*");}catch(err){}}
     if(typeof d.drShipCtlFlash==="string"){
       document.querySelectorAll(SEL[d.drShipCtlFlash]||"#none").forEach(el=>{el.style.outline="3px solid #d9822b";el.style.outlineOffset="2px";clearTimeout(el._scf);el._scf=setTimeout(()=>{el.style.outline="";el.style.outlineOffset="";},900);});}
   });
-  function hello(){try{window.parent.postMessage({drShipCtlReady:1,defaults:DEFAULTS,published:st.pub,fields:Object.keys(FIELDS)},"*");}catch(e){}}
+  function hello(){try{window.parent.postMessage({drShipCtlReady:1,defaults:DEFAULTS,published:st.pub,fields:Object.keys(FIELDS),parts:PARTS.map(p=>[p[0],p[1],p[2]])},"*");}catch(e){}}
   // ?scdemo=1 starts a free voyage straight away with the Ship controls open, for the editor
   if(inFrame&&/[?&]scdemo=1/.test(location.search)){
     window.addEventListener("load",()=>setTimeout(()=>{try{
