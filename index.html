@@ -8130,7 +8130,7 @@ function enter(){const R=R3;M.on=true;window.CUTON=true;M.cur=null;M.sel=-1;M.pa
   if(!looping){looping=true;requestAnimationFrame(labels);}}
 function leave(){const R=M.R||R3;M.on=false;window.CUTON=false;root.style.display="none";document.body.classList.remove("cutmode");document.documentElement.classList.remove("cutlock");
   if(R&&R.U&&R.U.uCutOn)R.U.uCutOn.value=0;
-  if(M.G)M.G.visible=false;
+  if(M.G)M.G.visible=false;if(M.G2)M.G2.visible=false;   // the flipped copy must go too, or its decks float about the ship in the 3D view
   if(R&&R.ship)R.ship.traverse(o=>{const mt=o.material;if(mt&&mt.__cl){mt.clippingPlanes=null;mt.__cl=0;mt.needsUpdate=true;}});
   if(R&&R.sea&&R.sea.material.transparent){R.sea.material.transparent=false;R.sea.material.needsUpdate=true;}
   if(R&&R.ship)R.ship.traverse(o=>{const mt=o.material;if(mt&&mt.__gu){mt.transparent=mt.__t;mt.needsUpdate=true;}});M.gA.value=1;
