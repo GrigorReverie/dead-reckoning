@@ -479,7 +479,7 @@ body.fs3d #fsBar{left:max(12px,env(safe-area-inset-left,0px));bottom:max(12px,en
         <b class="ah">Sky</b>
         <label class="chk"><input type="checkbox" id="aSky" checked> <span>Sky chart<small>Draws the altitude and bearing grid, the constellation lines and their names over the sky.</small></span></label>
       </div>
-      <div class="menupop" id="cheatPop" hidden><div class="ah" style="font-family:var(--f-display);font-variant:small-caps">Cheats</div><button class="tb" data-cheat="money">Add £1,000</button><button class="tb" data-cheat="hold">Fill the hold</button><button class="tb" data-cheat="daynight">Switch day / night</button><button class="tb" data-cheat="ships">Unlock all ships</button></div></div>
+      <div class="menupop" id="cheatPop" hidden><div class="ah" style="font-family:var(--f-display);font-variant:small-caps">Cheats</div><label style="display:block;margin:8px 0 2px;font-size:12px">Ship traffic: <b id="chTrV">normal</b><input id="chTr" type="range" min="0" max="3" step="0.5" value="1" style="width:100%"></label><button class="tb" data-cheat="money">Add £1,000</button><button class="tb" data-cheat="hold">Fill the hold</button><button class="tb" data-cheat="daynight">Switch day / night</button><button class="tb" data-cheat="ships">Unlock all ships</button></div></div>
   </div>
   <div class="infobar" aria-label="Date, wind and weather">
     <span class="when"><b id="clock">—</b><small id="watch">—</small></span>
@@ -1036,7 +1036,7 @@ const beaufort=kn=>{let i=0;while(i<BFT.length&&kn>=BFT[i])i++;return i;};
 const CURRENT={set:290,drift:.35};
 // Preview menu overrides (null = the game's own auto weather); see the Preview panel near the end of the script
 // Every game mechanic is listed here AND described in the Scenario registry (SCN_MECH). Add an id here and an entry there when you add a mechanic.
-const GAME_MECHANICS=["setup","weather","tides","fishing","pirates","crew","trade","navigation","damage"];
+const GAME_MECHANICS=["traffic","setup","weather","tides","fishing","pirates","crew","trade","navigation","damage"];
 const PV={wind:null,sea:null,cur:null,wx:null,vis:null,fauna:1,tide:1,shadows:true};
 // tides: semi-diurnal (12.42 h) with a fortnightly spring and neap swing; range in metres, ph the hour of high water in the lunar cycle
 const TIDEX={bridgetown:{r:.9,ph:3.1},castries:{r:.7,ph:4.0},stjohns:{r:1.0,ph:5.2,bar:3},kingstown:{r:.8,ph:3.7},basseterre:{r:.9,ph:5.9}};
@@ -2389,7 +2389,7 @@ function drawChart(){
     drawShip(sx(S.ship.x),sy(S.ship.y),S.ship.heading);
     drawPirates();
   }
-  drawCurrents();drawFish();drawRoute();drawProj();
+  drawLanes();drawTraffic();drawCurrents();drawFish();drawRoute();drawProj();
   // scale bar
   drawScale();
   // night wash
@@ -4956,7 +4956,7 @@ function update3D(dt,now){
   // world objects relative to ship
   for(const o of R.isl){const c=o.isl.c;o.grp.position.set((c.x-sh.x)*NM,0,-(c.y-sh.y)*NM);const dd=Math.hypot(c.x-sh.x,c.y-sh.y);const q=R.q||0;o.grp.visible=dd<QDIST[q]*R.dm;if(o.veg)o.veg.visible=dd-o.Rr<QVEG[q]*R.dm;}
   updateFauna(R,dt,gain,wdx,wdz,nightF);
-  updatePirates3D(R);
+  updatePirates3D(R);updateTraffic3D(R);
   const dest=R.towns[S.v.to];
   if(dest){R.beacon.position.set((dest.x-sh.x)*NM,0,-(dest.y-sh.y)*NM);R.beacon.visible=S.mode==="trial";}else R.beacon.visible=false;
   { const rl=R.routeLine,pts=S.route.pts,n=Math.min(pts.length,65);
@@ -5927,6 +5927,108 @@ function updatePirates3D(R){if(!S||!R||!R.scene)return;const L=R.pirL||(R.pirL=[
   for(const p of P){if(!p.seen)continue;let m=L[i];if(!m){m=pirMesh();R.scene.add(m);L[i]=m;}m.visible=true;
     const x=p.x*NM,z=-p.y*NM;m.position.set(x,waveH(R,x-ax,z-az)*.6,z);m.rotation.y=-p.h*D2R;i++;}
   for(;i<L.length;i++)L[i].visible=false;}
+/* ---------- shipping lanes and sea traffic ----------
+   Lanes are found once, by a search over a grid of the sea (land and reefs kept clear, the trade wind from about 82 degrees favoured),
+   then straightened. Every ship on a lane is a pure function of the game clock (out and back with a layover in port), so nothing is
+   stepped, saves are untouched and time jumps just work. Hull-only exteriors, no crew, shared geometry per ship type. */
+setTimeout(()=>{try{laneInit();}catch(e){}},2500);
+let TRAFDENS=1; // 0 none, 0.5 sparse, 1 normal, 2 busy, 3 crowded; Menu > Cheats and Scenario mode
+try{const v=localStorage.getItem("drTraf");if(v!=null&&v!=="")TRAFDENS=clamp(+v||0,0,3);}catch(e){}
+const TRAF={range3d:3.2,rangeChart:10,pool:6,grid:2.5,clear:1.6,wind:82,
+  lanes:[["bridgetown","castries"],["bridgetown","kingstown"],["kingstown","castries"],["castries","stjohns"],["kingstown","stjohns"],["castries","basseterre"],["stjohns","basseterre"]],
+  mix:{cutter:3,sultana:3,brig:5,caroline:.5,endeavour:2,xebec:1,gotheborg:1.5,constitution:.6,trinidad:.4},
+  name:{cutter:"Cutter",sultana:"Schooner",brig:"Brig",caroline:"Yacht",endeavour:"Bark",xebec:"Xebec",gotheborg:"East Indiaman",constitution:"Frigate",trinidad:"Ship of the line"}};
+const trafLabel=v=>v<=0?"none":v<=.5?"sparse":v<=1?"normal":v<=2?"busy":"crowded";
+// how well a heading sails in the trade: 0 head to wind .. 1 on the reach or running
+const TWF=[[0,0],[40,.1],[55,.45],[75,.8],[100,.95],[130,1],[160,.95],[180,.85]];
+function trafWF(h){let a=norm(h-TRAF.wind);if(a>180)a=360-a;for(let i=1;i<TWF.length;i++)if(a<=TWF[i][0]){const[p,fp]=TWF[i-1],[q,fq]=TWF[i];return fp+(fq-fp)*(a-p)/(q-p);}return TWF[TWF.length-1][1];}
+const trafEff=h=>.3+.7*(trafWF(h)+trafWF(h+180))/2;
+function seaClr(x,y){let c=coastNm(x,y);if(c>0&&typeof reefs!=="undefined")for(const r of reefs){if(inPoly({x,y},r.pts))return 0;c=Math.min(c,distPoly({x,y},r.pts));}return c;}
+let LANES=null;
+function laneInit(){if(LANES)return LANES;
+  const g=TRAF.grid,nx=Math.ceil(W_NM/g)+1,ny=Math.ceil(H_NM/g)+1,cl=new Float32Array(nx*ny);
+  for(let j=0;j<ny;j++)for(let i=0;i<nx;i++)cl[j*nx+i]=Math.min(seaClr(i*g,j*g),9);
+  const at=(x,y)=>{const i=Math.round(x/g),j=Math.round(y/g);return i<0||j<0||i>=nx||j>=ny?0:cl[j*nx+i];};
+  const MV=[[1,0],[0,1],[-1,0],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1],[2,1],[1,2],[-2,1],[-1,2],[2,-1],[1,-2],[-2,-1],[-1,-2]],CL=TRAF.clear;
+  const approach=k=>{const P=PORTS[k];let best=null,bd=1e9;for(let r=0;r<2&&!best;r++){const need=r?CL*.6:CL;
+      for(let j=0;j<ny;j++)for(let i=0;i<nx;i++){if(cl[j*nx+i]<need)continue;const d=Math.hypot(i*g-P.x,j*g-P.y);if(d<bd&&d<14){bd=d;best=[i,j];}}}return best;};
+  const search=(a,b)=>{const N=nx*ny,gs=new Float32Array(N).fill(1e9),par=new Int32Array(N).fill(-1),done=new Uint8Array(N),H=[];
+    const push=(f,n)=>{H.push([f,n]);let i=H.length-1;while(i>0){const p=(i-1)>>1;if(H[p][0]<=H[i][0])break;[H[p],H[i]]=[H[i],H[p]];i=p;}};
+    const pop=()=>{const t=H[0],l=H.pop();if(H.length){H[0]=l;let i=0;for(;;){let m=i;const L=2*i+1,Rr=L+1;if(L<H.length&&H[L][0]<H[m][0])m=L;if(Rr<H.length&&H[Rr][0]<H[m][0])m=Rr;if(m===i)break;[H[m],H[i]]=[H[i],H[m]];i=m;}}return t;};
+    const s=a[1]*nx+a[0],e=b[1]*nx+b[0];gs[s]=0;push(0,s);
+    while(H.length){const[,n]=pop();if(done[n])continue;done[n]=1;if(n===e)break;const ni=n%nx,nj=(n/nx)|0;
+      for(const[dx,dy]of MV){const i=ni+dx,j=nj+dy;if(i<0||j<0||i>=nx||j>=ny)continue;const m=j*nx+i;if(done[m]||cl[m]<CL)continue;
+        let ok=true;for(let q=1;q<3&&ok;q++)if(at((ni+dx*q/3)*g,(nj+dy*q/3)*g)<CL*.8)ok=false;if(!ok)continue;
+        const d=Math.hypot(dx,dy)*g,h=Math.atan2(dx,dy)/D2R,avoid=1+Math.max(0,3.5-(cl[n]+cl[m])/2)*.4,c=gs[n]+d/trafEff(h)*avoid;
+        if(c<gs[m]){gs[m]=c;par[m]=n;push(c+Math.hypot((b[0]-i)*g,(b[1]-j)*g),m);}}}
+    if(!done[e])return null;const out=[];for(let n=e;n!==-1;n=par[n])out.push({x:(n%nx)*g,y:((n/nx)|0)*g});return out.reverse();};
+  const clearSeg=(p,q)=>{const d=Math.hypot(q.x-p.x,q.y-p.y),n=Math.max(1,Math.ceil(d/.7));for(let i=0;i<=n;i++)if(seaClr(p.x+(q.x-p.x)*i/n,p.y+(q.y-p.y)*i/n)<CL*.85)return false;return true;};
+  const straighten=P=>{const out=[P[0]];let i=0;while(i<P.length-1){let j=P.length-1;while(j>i+1&&!clearSeg(P[i],P[j]))j--;out.push(P[j]);i=j;}return out;};
+  LANES=[];
+  for(const[ka,kb]of TRAF.lanes){const A=approach(ka),B=approach(kb);if(!A||!B)continue;const raw=search(A,B);if(!raw)continue;
+    const mid=straighten(raw),pa=PORTS[ka],pb=PORTS[kb],pts=[{x:pa.x,y:pa.y},...mid,{x:pb.x,y:pb.y}];
+    const a0=Math.hypot(mid[0].x-pa.x,mid[0].y-pa.y),a1=Math.hypot(mid[mid.length-1].x-pb.x,mid[mid.length-1].y-pb.y);
+    const mk=P=>{const cd=[0],tm=[0],hd=[];for(let i=1;i<P.length;i++){const dx=P[i].x-P[i-1].x,dy=P[i].y-P[i-1].y,d=Math.hypot(dx,dy),h=norm(Math.atan2(dx,dy)/D2R);hd.push(h);cd.push(cd[i-1]+d);tm.push(tm[i-1]+d/trafEff(h));}return{P,cd,tm,hd};};
+    const f=mk(pts),b=mk(pts.slice().reverse());
+    LANES.push({a:ka,b:kb,name:PORTS[ka].name+" – "+PORTS[kb].name,pts,len:f.cd[f.cd.length-1],a0,a1,dir:[f,b]});}
+  return LANES;}
+let TRAFSHIPS=null;
+function trafInit(){if(TRAFSHIPS)return TRAFSHIPS;const L=laneInit();TRAFSHIPS=[];
+  const ids=Object.keys(TRAF.mix),tot=ids.reduce((a,k)=>a+TRAF.mix[k],0);
+  L.forEach((lane,li)=>{const r=mulberry32(9100+li*131);
+    for(let k=0;k<TRAF.pool;k++){let x=r()*tot,id=ids[0];for(const q of ids){x-=TRAF.mix[q];if(x<=0){id=q;break;}}
+      const sp=SPEC[id],dir=k%2,cruise=clamp(3+sp.hull.Lwl*.07,3.2,7.2)*(.9+r()*.2),dd=lane.dir[dir],T=dd.tm[dd.tm.length-1]/cruise,lay=5+r()*16;
+      TRAFSHIPS.push({id:li+"-"+k,li,k,sp,dir,cruise,T,lay,cyc:T+lay,off:r()*(T+lay),kind:TRAF.name[id]||sp.name});}});
+  return TRAFSHIPS;}
+// where one traffic ship is at game time t (null while she lies in port or is still in the harbour mouth)
+function trafPos(ts,t){const lane=LANES[ts.li],dd=lane.dir[ts.dir],ph=(t+ts.off)%ts.cyc;if(ph>=ts.T)return null;const u=ph*ts.cruise,tm=dd.tm;
+  let lo=0,hi=tm.length-1;while(hi-lo>1){const m=(lo+hi)>>1;if(tm[m]<=u)lo=m;else hi=m;}
+  const f=(u-tm[lo])/Math.max(1e-6,tm[hi]-tm[lo]),p=dd.P[lo],q=dd.P[hi],d=dd.cd[lo]+(dd.cd[hi]-dd.cd[lo])*f,h=dd.hd[lo];
+  const lo2=ts.dir?lane.a1:lane.a0,hi2=lane.len-(ts.dir?lane.a0:lane.a1);if(d<lo2+.3||d>hi2-.3)return null;
+  const sh=.12; // each way keeps to its own side of the lane
+  return{x:p.x+(q.x-p.x)*f+Math.cos(h*D2R)*sh,y:p.y+(q.y-p.y)*f-Math.sin(h*D2R)*sh,h,kn:ts.cruise*trafEff(h)};}
+function trafVis(s){const night=isNight(s)?.5:1,rain=s.wx&&s.wx.rain>.4?.65:1;let v=night*rain;if(PV.vis!=null)v=Math.min(v,Math.max(.1,PV.vis/7));return v;}
+let TRAFMEMO=null;
+// every traffic ship the lookout could make out from here: {ts,x,y,h,kn,d,in3d}
+function trafNow(s){if(!s||!TRAFDENS)return[];const key=s.t+"|"+TRAFDENS+"|"+s.ship.x+"|"+s.ship.y;if(TRAFMEMO&&TRAFMEMO.key===key)return TRAFMEMO.v;
+  const all=trafInit(),n=Math.round(TRAFDENS*2),vf=trafVis(s),sh=s.ship,out=[];
+  for(const ts of all){if(ts.k>=n)continue;const p=trafPos(ts,s.t);if(!p)continue;const d=Math.hypot(p.x-sh.x,p.y-sh.y),sf=clamp(Math.pow(ts.sp.hull.Lwl/26,.35),.75,1.35);
+    if(d>TRAF.rangeChart*vf*sf)continue;out.push({ts,x:p.x,y:p.y,h:p.h,kn:p.kn,d,in3d:d<TRAF.range3d*vf*sf});}
+  TRAFMEMO={key,v:out};return out;}
+function drawLanes(){if(!S||!TRAFDENS)return;const L=laneInit();ctx.save();ctx.strokeStyle="rgba(46,37,25,.38)";ctx.lineWidth=1.2;ctx.setLineDash([2,6]);ctx.lineCap="round";
+  for(const l of L){ctx.beginPath();l.pts.forEach((p,i)=>i?ctx.lineTo(sx(p.x),sy(p.y)):ctx.moveTo(sx(p.x),sy(p.y)));ctx.stroke();}ctx.restore();}
+function drawTraffic(){if(!S||S.done||!TRAFDENS)return;const P=dPos(),sh=S.ship;ctx.save();
+  for(const it of trafNow(S)){const x=sx(P.x+(it.x-sh.x)),y=sy(P.y+(it.y-sh.y)),h=it.h*D2R,k=clamp(it.ts.sp.hull.Lwl/22,.7,1.5);
+    ctx.save();ctx.translate(x,y);ctx.rotate(h);ctx.fillStyle=it.in3d?"#2e2519":"rgba(46,37,25,.7)";ctx.strokeStyle="#f3ead2";ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(0,-8*k);ctx.quadraticCurveTo(3.6*k,-1*k,2.6*k,6*k);ctx.lineTo(-2.6*k,6*k);ctx.quadraticCurveTo(-3.6*k,-1*k,0,-8*k);ctx.closePath();ctx.fill();ctx.stroke();ctx.restore();
+    ctx.font="italic 11px 'IM Fell English',Georgia,serif";ctx.fillStyle="#2e2519";ctx.fillText(`${it.ts.kind} · ${it.kn.toFixed(1)} kn`,x+8,y+4);}
+  ctx.restore();}
+// hull-only exterior: lofted from the ship's own hull lines at low resolution, one shared geometry and material per type
+function trafHull(R,sp){const K=R.trafK||(R.trafK={});let c=K[sp.id];
+  if(!c){const Ls=linesOf(sp),{H,Lh,sheer,deckAt,railY,keelY,zF,zA,hx,shape}=Ls,NU=40,NT=18,pos=[],tone=[],idx=[],grid=[];
+    for(let k=0;k<=NU;k++){const u=.5-.5*Math.cos(PI*k/NU),col=[];
+      for(let j=0;j<=NT;j++){const t=j/NT;let z=-Lh+H.Lwl*u,y=0;for(let it=0;it<7;it++){const yt=railY(z),yk=keelY(z);y=yt-t*(yt-yk);z=zA(y)+u*(zF(y)-zA(y));}col.push([shape(u,y,z),y,z]);}grid.push(col);}
+    for(const sd of[1,-1]){const base=pos.length/3;
+      for(let k=0;k<=NU;k++)for(let j=0;j<=NT;j++){const p=grid[k][j];pos.push(sd*p[0],p[1],p[2]);tone.push(sheer(p[2]));}
+      for(let k=0;k<NU;k++)for(let j=0;j<NT;j++){const a=base+k*(NT+1)+j,b=a+1,cc=a+NT+1,d=cc+1;if(sd>0)idx.push(a,cc,b,b,cc,d);else idx.push(a,b,cc,b,d,cc);}}
+    for(const k of[0,NU]){const base=pos.length/3;for(let j=0;j<=NT;j++){const p=grid[k][j];pos.push(-p[0],p[1],p[2],p[0],p[1],p[2]);tone.push(sheer(p[2]),sheer(p[2]));}
+      for(let j=0;j<NT;j++){const a=base+j*2;idx.push(a,a+1,a+2,a+1,a+3,a+2);}}
+    const g=new THREE.BufferGeometry();g.setAttribute("position",new THREE.Float32BufferAttribute(pos,3));g.setAttribute("aTone",new THREE.Float32BufferAttribute(tone,1));g.setIndex(idx);g.computeVertexNormals();
+    const P=[],I=[],z0=zA(railY(-Lh))+.04,z1=zF(railY(Lh))-H.bwT*1.6;
+    for(let i=0;i<=40;i++){const z=z0+(z1-z0)*i/40,y=deckAt(z),w=Math.max(0,hx(z,y)-H.bwT);P.push(w,y,z,-w,y,z);if(i<40){const a=i*2;I.push(a,a+2,a+1,a+1,a+2,a+3);}}
+    const dg=new THREE.BufferGeometry();dg.setAttribute("position",new THREE.Float32BufferAttribute(P,3));dg.setAttribute("aTone",new THREE.Float32BufferAttribute(new Array(P.length/3).fill(.1),1));dg.setIndex(I);dg.computeVertexNormals();
+    c=K[sp.id]={g,dg,mat:hullMaterial(R.U,sp.paint)};}
+  const grp=new THREE.Group();grp.add(new THREE.Mesh(c.g,c.mat));if(!sp.hull.open)grp.add(new THREE.Mesh(c.dg,R.deckMat));return grp;}
+function updateTraffic3D(R){if(!S||!R||!R.scene)return;const L=R.trafL||(R.trafL=new Map()),sh=S.ship,items=S.done?[]:trafNow(S).filter(i=>i.in3d),seen=new Set();
+  for(const it of items){const id=it.ts.id;seen.add(id);let m=L.get(id);if(!m){m=trafHull(R,it.ts.sp);R.scene.add(m);L.set(id,m);}
+    const x=(it.x-sh.x)*NM,z=-(it.y-sh.y)*NM;m.visible=true;m.position.set(x,waveH(R,x,z)*.6,z);m.rotation.y=PI-it.h*D2R;}
+  for(const[id,m]of L)if(!seen.has(id)){m.visible=false;if(L.size>24){R.scene.remove(m);L.delete(id);}}}
+// Scenario trigger: sail the player in astern of the first ship under way
+function trafGoto(s){const all=trafInit(),n=Math.max(2,Math.round(TRAFDENS*2));for(const ts of all){if(ts.k>=n)continue;const p=trafPos(ts,s.t);if(!p)continue;
+    const x=p.x-Math.sin(p.h*D2R)*1.5,y=p.y-Math.cos(p.h*D2R)*1.5;if(seaClr(x,y)<.8)continue;const sh=s.ship;sh.x=x;sh.y=y;if(s.est){s.est.x=x;s.est.y=y;}sh.heading=sh.ordered=p.h;TRAFMEMO=null;
+    say(`Sail ho: ${ts.kind} ahead, ${LANES[ts.li].name} lane.`,{});return;}
+  say("No ship is under way on the lanes just now. Raise the traffic density, or skip some hours.",{});}
+
 function toggleFish(){if(!S||S.done)return;const sh=S.ship;
   if(S.fishing){S.fishing=false;say("Lines hauled in.",{});updateUI(true);return;}
   if(sh.anch.mode==="weighing"){return;}
@@ -6783,6 +6885,8 @@ $("cbBtn").onclick=()=>{const c=$("compassBox"),o=c.classList.toggle("collapsed"
     else if(k==="ships"){s.cheatShips=true;say(s.career?"Cheat: every ship is yours for nothing at the shipyard.":"Cheat set: ships are free in Career mode.",{log:false});}
     try{updateUI(true);tradeUI(true);careerUI(true);svBill();}catch(x){} cp.hidden=true;});
   }
+{const el=$("chTr");if(el){el.value=String(TRAFDENS);$("chTrV").textContent=trafLabel(TRAFDENS);
+  el.oninput=e=>{TRAFDENS=+e.target.value;TRAFMEMO=null;$("chTrV").textContent=trafLabel(TRAFDENS);try{localStorage.setItem("drTraf",String(TRAFDENS));}catch(x){}};}}
 $("bookBtn").onclick=()=>{const bx=$("bookBox"),o=!bx.classList.contains("open");bx.classList.toggle("open",o);$("bookBtn").setAttribute("aria-expanded",String(o));$("bookBtn").classList.remove("attn");setTimeout(()=>{resize();resize3D();},0);};
 {const dk=document.querySelector(".dock-all"),ci=document.createElement("button");ci.type="button";ci.id="ctlIcon";ci.className="tbicon";ci.title="Ship controls: helm, sails, log";ci.setAttribute("aria-label","Ship controls");ci.innerHTML=document.querySelector(".dockhead b.dh svg").outerHTML;document.body.append(ci);
   const sync=()=>ci.setAttribute("aria-pressed",String(!dk.classList.contains("collapsed")));sync();new MutationObserver(sync).observe(dk,{attributes:true,attributeFilter:["class"]});
@@ -7088,6 +7192,13 @@ const SCN_MECH=[
   triggers:[["Pirate sloop gives chase",s=>scnPirate(s,"chase")],["Pirate sloop prowling",s=>scnPirate(s,"prowl")],["Clear all pirates",s=>{s.pir=[];}]],
   readouts:[["Pirate sails",s=>{const P=s.pir||[];if(!P.length)return "none";const p=P.reduce((a,b)=>Math.hypot(a.x-s.ship.x,a.y-s.ship.y)<Math.hypot(b.x-s.ship.x,b.y-s.ship.y)?a:b);return P.length+", nearest "+Math.hypot(p.x-s.ship.x,p.y-s.ship.y).toFixed(1)+" nm ("+p.mode+")"}],
    ["Cargo worth",s=>money(cargoValue(s))]]},
+ {id:"traffic",name:"Shipping lanes and traffic",
+  dials:[{k:"dens",label:"Ship traffic",live:true,opts:()=>[["0","None"],["0.5","Sparse"],["1","Normal"],["2","Busy"],["3","Crowded"]],def:"1"}],
+  apply(s,g){TRAFDENS=+g("dens");TRAFMEMO=null;},
+  triggers:[["Sail in astern of a ship",s=>trafGoto(s)]],
+  readouts:[["Ships in 3D range",s=>trafNow(s).filter(i=>i.in3d).length],["Ships on the chart",s=>trafNow(s).length],
+   ["Nearest ship",s=>{const v=trafNow(s);if(!v.length)return "none in sight";const n=v.reduce((a,b)=>a.d<b.d?a:b);return n.ts.kind+", "+n.d.toFixed(1)+" nm"}],
+   ["Lanes",()=>laneInit().map(l=>l.name).join("; ")||"none"]]},
  {id:"crew",name:"Crew and crises",
   dials:[],apply(){},
   triggers:[["Man overboard",()=>scnCrisis("mob")],["Galley fire",()=>scnCrisis("fire")],["Mutiny brewing",()=>scnCrisis("mutiny")],["Crushed hand (surgery)",()=>scnCrisis("hurt")]],
@@ -8179,7 +8290,7 @@ window.addEventListener("load",()=>setTimeout(boot,400));
 window.__CUT=M;window.__CUTfast=()=>{M.fast=1;};
 })();
 
-window.__DR={exportChart,buildRelief,depthAt,drawChart,camC:cam,hour:()=>S&&!S.done?localHours(S,S.t):null,preview:PV,cam:()=>R3,footAt,PF,portGeom,openPortCard,openPortPlan,tideLvl,tideTable,tideStream,plotFix,LMS,currentAt,landInit,WINDK,CURK,dockAtPort,showCrisis,crisisKind,punish,loadState,packState,decS,toggleOars,setStroke,oarPivot,STROKES,pickShip,get SHIP(){return SHIP},SHIPDEFS,SPEC,useShip,applyShip,crewOf,rigOf,linesOf,get shipPick(){return shipPick},set shipPick(v){shipPick=v},svMove,svCtx,sx,sy,openPortCard,openPortPlan,get R3(){return R3},setMain,update3D,get S(){return S},VOYAGES,PORTS,islands,reefs,LMS,step,startVoyage,setCourse,tackOrWear,setSail,assistStep,noonAvailable,windAt:(x,y,t)=>windAt(S,x,y,t),inPoly,crossFix,plotFix,takeBearing,markNoon,startObserve,noonAvailable,endVoyage,toGeo,geo,atPort:()=>atPort(S),buyStore,sellFish,toggleFish,coastNm,fishStep,tradeBuy,tradeSell,tradeUI,tradeSite,tradeJettison,contractBoard,contractText,contractAccept,contractDeliver,mkInit,holdUsed,marketBlurb,tradeStep,buyNews};
+window.__DR={laneInit,trafNow,trafInit,trafPos,TRAF,get TRAFDENS(){return TRAFDENS},setTraf(v){TRAFDENS=v;TRAFMEMO=null;},exportChart,buildRelief,depthAt,drawChart,camC:cam,hour:()=>S&&!S.done?localHours(S,S.t):null,preview:PV,cam:()=>R3,footAt,PF,portGeom,openPortCard,openPortPlan,tideLvl,tideTable,tideStream,plotFix,LMS,currentAt,landInit,WINDK,CURK,dockAtPort,showCrisis,crisisKind,punish,loadState,packState,decS,toggleOars,setStroke,oarPivot,STROKES,pickShip,get SHIP(){return SHIP},SHIPDEFS,SPEC,useShip,applyShip,crewOf,rigOf,linesOf,get shipPick(){return shipPick},set shipPick(v){shipPick=v},svMove,svCtx,sx,sy,openPortCard,openPortPlan,get R3(){return R3},setMain,update3D,get S(){return S},VOYAGES,PORTS,islands,reefs,LMS,step,startVoyage,setCourse,tackOrWear,setSail,assistStep,noonAvailable,windAt:(x,y,t)=>windAt(S,x,y,t),inPoly,crossFix,plotFix,takeBearing,markNoon,startObserve,noonAvailable,endVoyage,toGeo,geo,atPort:()=>atPort(S),buyStore,sellFish,toggleFish,coastNm,fishStep,tradeBuy,tradeSell,tradeUI,tradeSite,tradeJettison,contractBoard,contractText,contractAccept,contractDeliver,mkInit,holdUsed,marketBlurb,tradeStep,buyNews};
 })();
 </script>
 <style>/* UI Layout Tuner settings (phone), 2026-10-29 */
