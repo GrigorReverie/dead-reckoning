@@ -2118,13 +2118,15 @@ function depthAt(x,y){const R=buildRelief(),u=x/R.g,v=y/R.g,i=Math.floor(u),j=Ma
 // contour lines are traced level by level the first time a zoom needs them
 function chainsOf(st,L){if(L>=st.max)return[];return st.cache[L]||(st.cache[L]=contourChains(st.Z,st.NX,st.NY,st.g,st.ox,st.oy,[L]));}
 function strokeChains(st,levels,style,label){
-  const z=cam.zoom,x0=cam.x-CW/2/z-2,x1=cam.x+CW/2/z+2,yT=cam.y+CYC/z+2,yB=cam.y-(CH-CYC)/z-2,labs=[];
+  const z=cam.zoom,x0=cam.x-CW/2/z-2,x1=cam.x+CW/2/z+2,yT=cam.y+CYC/z+2,yB=cam.y-(CH-CYC)/z-2,labs=[];const wsp=Math.pow(2,Math.ceil(Math.log2(320/z)));
   for(let li=0;li<levels.length;li++){const L=levels[li];style(L);ctx.beginPath();
-    for(const ch of chainsOf(st,L)){if(ch.x1<x0||ch.x0>x1||ch.y1<yB||ch.y0>yT)continue;const c=ch.c,n=c.length/2;let lx=0,ly=0,acc=0,first=true;
-      for(let k=0;k<n;k++){const X=sx(c[k*2]),Y=sy(c[k*2+1]);
+    for(const ch of chainsOf(st,L)){if(ch.x1<x0||ch.x0>x1||ch.y1<yB||ch.y0>yT)continue;const c=ch.c,n=c.length/2;let lx=0,ly=0,first=true,cum=0,wx=0,wy=0,lastB=-1;
+      for(let k=0;k<n;k++){const wX=c[k*2],wY=c[k*2+1],X=sx(wX),Y=sy(wY);
+        if(k){cum+=Math.hypot(wX-wx,wY-wy);}wx=wX;wy=wY;
+        // labels sit at fixed distances along the line in world space, so they stay put while zooming
+        if(label){const B=Math.floor(cum/wsp);if(B!==lastB){lastB=B;if(k&&X>30&&X<CW-30&&Y>30&&Y<CH-30)labs.push([X,Y,L]);}}
         if(first){ctx.moveTo(X,Y);lx=X;ly=Y;first=false;continue;}
-        const d=Math.hypot(X-lx,Y-ly);if(d<1.4&&k<n-1)continue;ctx.lineTo(X,Y);acc+=d;
-        if(label&&acc>300&&X>30&&X<CW-30&&Y>30&&Y<CH-30){acc=0;labs.push([X,Y,L]);}lx=X;ly=Y;}
+        const d=Math.hypot(X-lx,Y-ly);if(d<1.4&&k<n-1)continue;ctx.lineTo(X,Y);lx=X;ly=Y;}
       if(ch.closed)ctx.closePath();}
     ctx.stroke();}
   return labs;}
@@ -2139,9 +2141,10 @@ function drawReliefLines(){
   // soundings in metres where the water is shoal, laid on a lattice that thins out as you zoom away
   if(z>=1.6){const s=[1,2,4,8,16].find(n=>n*z>=48)||16,xa=cam.x-CW/2/z,xb=cam.x+CW/2/z,yt=cam.y+CYC/z,yb=cam.y-(CH-CYC)/z;
     ctx.fillStyle="rgba(60,50,35,.7)";ctx.font="9px 'IM Fell English',Georgia,serif";
+    // each sounding is fixed to its own 1-nm cell, so coarser zoom levels just show a subset of the same figures
     for(let gx=Math.floor(xa/s)*s;gx<=xb;gx+=s)for(let gy=Math.floor(yb/s)*s;gy<=yt;gy+=s){
       const hh=Math.sin(gx*12.9898+gy*78.233)*43758.5453,hr=hh-Math.floor(hh),hr2=(hh*7.13)-Math.floor(hh*7.13);
-      const x=gx+(hr-.5)*s*.7,y=gy+(hr2-.5)*s*.7,f=depthAt(x,y);if(f==null||f<=0.5||f>250||coastNm(x,y)>14)continue;
+      const x=gx+(hr-.5)*.7,y=gy+(hr2-.5)*.7,f=depthAt(x,y);if(f==null||f<=0.5||f>250||coastNm(x,y)>14)continue;
       const X=sx(x),Y=sy(y);if(X<0||X>CW||Y<0||Y>CH)continue;ctx.fillText(f<10?f.toFixed(1):String(Math.round(f)),X,Y);}}
   ctx.restore();}
 function drawReliefLand(){
