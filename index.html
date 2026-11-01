@@ -2339,7 +2339,7 @@ function drawChart(){
   for(const isl of islands){path(isl.pts);ctx.fillStyle=c17?"#efe2b8":"#d9d6a4";ctx.fill();ctx.strokeStyle=c17?INK17:"#2e2519";ctx.lineWidth=c17?1.5:1.2;ctx.stroke();}
   ctx.restore();
   drawReliefLand();
-  if(c17&&showLand)drawHachures();
+  
   // land hatching
   if(!showLand){ctx.save();for(const isl of islands){path(isl.pts);ctx.save();ctx.clip();ctx.strokeStyle="rgba(46,37,25,.12)";ctx.lineWidth=.6;const c=sx(isl.c.x),d=sy(isl.c.y),r=Math.max(40,30*cam.zoom);for(let k=-r;k<r;k+=4){ctx.beginPath();ctx.moveTo(c+k,d-r);ctx.lineTo(c+k+r*.6,d+r);ctx.stroke();}ctx.restore();}ctx.restore();}
   drawPorts();
