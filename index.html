@@ -2110,7 +2110,7 @@ function buildRelief(){
       const r=205-tt*95,gg=200-tt*70,b=140-tt*60;
       li.data[o]=clamp(r+sh*38,0,255);li.data[o+1]=clamp(gg+sh*34,0,255);li.data[o+2]=clamp(b+sh*28,0,255);li.data[o+3]=60+tt*80;}
     lx.putImageData(li,0,0);
-    lands.push({I,cv:lc,ox,oy,lg,w:w*lg,h:h*lg,chains:lch,H});}
+    lands.push({I,cv:lc,ox,oy,lg,w:w*lg,h:h*lg,chains:lch,H,E,Ew:w,Eh:h});}
   RELIEF={g,NX,NY,Z,land,chains,tint:cv,lands};return RELIEF;}
 function depthFmAt(x,y){const R=buildRelief(),u=x/R.g,v=y/R.g,i=Math.floor(u),j=Math.floor(v);if(i<0||j<0||i>=R.NX-1||j>=R.NY-1)return null;
   if(R.land[j*R.NX+i])return 0;const fu=u-i,fv=v-j,Z=R.Z,NX=R.NX;
@@ -2144,11 +2144,11 @@ function drawReliefLines(){
   ctx.restore();}
 function drawReliefLand(){
   if(!showLand)return;const R=buildRelief(),z=cam.zoom;
-  for(const L of R.lands){const I=L.I;path(I.pts);ctx.save();ctx.clip();ctx.imageSmoothingEnabled=true;ctx.translate(sx(L.ox-L.lg/2),sy(L.oy-L.lg/2));ctx.scale(1,-1);ctx.drawImage(L.cv,0,0,L.w*z,L.h*z);ctx.setTransform(DPR,0,0,DPR,0,0);
+  for(const L of R.lands){const I=L.I;path(I.pts);ctx.save();ctx.clip();const c17=chartStyle()!=="old";if(!c17){ctx.imageSmoothingEnabled=true;ctx.translate(sx(L.ox-L.lg/2),sy(L.oy-L.lg/2));ctx.scale(1,-1);ctx.drawImage(L.cv,0,0,L.w*z,L.h*z);ctx.setTransform(DPR,0,0,DPR,0,0);}
     ctx.lineJoin="round";ctx.lineCap="round";
-    strokeChains(L.chains,tierAt(LAND_TIERS,z),Lv=>{const idx=Lv===100||Lv===500||Lv===1000;ctx.strokeStyle=idx?"rgba(92,68,40,.75)":"rgba(112,86,52,.5)";ctx.lineWidth=idx?1:.55;});
+    strokeChains(L.chains,tierAt(LAND_TIERS,z),Lv=>{const idx=Lv===100||Lv===500||Lv===1000;ctx.strokeStyle=c17?(idx?"rgba(90,56,30,.5)":"rgba(90,56,30,.3)"):(idx?"rgba(92,68,40,.75)":"rgba(112,86,52,.5)");ctx.lineWidth=idx?1:.55;});
     ctx.restore();}
-  ctx.save();ctx.strokeStyle="#2e2519";ctx.lineWidth=1.2;for(const I of islands){path(I.pts);ctx.stroke();}ctx.restore();}
+  ctx.save();ctx.strokeStyle=chartStyle()!=="old"?"#3a2614":"#2e2519";ctx.lineWidth=chartStyle()!=="old"?1.5:1.2;for(const I of islands){path(I.pts);ctx.stroke();}ctx.restore();}
 function drawSpotHeights(){
   if(!showLand||cam.zoom<2.6)return;ctx.save();ctx.font="italic 10px 'IM Fell English',Georgia,serif";ctx.textAlign="left";
   for(const lm of LMS){const X=sx(lm.x),Y=sy(lm.y);if(X<-40||X>CW+40||Y<-20||Y>CH+20)continue;const t=lm.h+" m";ctx.fillStyle="rgba(246,238,217,.8)";const w=ctx.measureText(t).width;ctx.fillRect(X+6,Y-8,w+4,11);ctx.fillStyle="#6a2e1c";ctx.fillText(t,X+8,Y);}
@@ -2205,44 +2205,139 @@ function drawPorts(){
     if(z>=50){ctx.font="italic 11px 'IM Fell English',Georgia,serif";for(const fo of X.forts){const p=pt(fo[0],fo[1]);ctx.fillStyle="rgba(246,238,217,.8)";const tw=ctx.measureText(fo[2]).width;ctx.fillRect(p[0]-tw/2-2,p[1]-23,tw+4,13);ctx.fillStyle="#2e2519";ctx.fillText(fo[2],p[0],p[1]-13);}}
     ctx.restore();}
 }
+/* ---------- the 17th-century chart look (New UI) and the imported chart image (UI with images) ---------- */
+let forceStyle=null;
+function chartStyle(){if(forceStyle)return forceStyle;const m=window.drUiMode?window.drUiMode():"new";if(m==="old")return"old";if(m==="img"&&chartImg())return"img";return"c17";}
+let chartImgEl=null,chartImgSrc=null;
+// the whole chart as one flat picture (for the chart image dashboard): the 17th-century look at the given pixel width, no ship, wind or tracks
+function exportChart(wpx){const hpx=Math.round(wpx*H_NM/W_NM),o={w:cv.width,h:cv.height,dpr:DPR,cw:CW,ch:CH,cyc:CYC,cx:cam.x,cy:cam.y,cz:cam.zoom,s:S,f:follow,sw:showWind,sc:showCld,scu:showCur};
+  try{cv.width=wpx;cv.height=hpx;DPR=1;CW=wpx;CH=hpx;CYC=hpx/2;cam.x=W_NM/2;cam.y=H_NM/2;cam.zoom=wpx/W_NM;S=null;forceStyle="c17";drawChart();return cv.toDataURL("image/png");}
+  finally{forceStyle=null;S=o.s;cv.width=o.w;cv.height=o.h;DPR=o.dpr;CW=o.cw;CH=o.ch;CYC=o.cyc;cam.x=o.cx;cam.y=o.cy;cam.zoom=o.cz;}}
+function chartImg(){const s=window.DR_CHART_IMG;if(!s)return null;if(chartImgSrc!==s){chartImgSrc=s;chartImgEl=new Image();chartImgEl.src=s;}return chartImgEl.complete&&chartImgEl.naturalWidth?chartImgEl:null;}
+let vellumPat=null;
+function vellumTile(){if(vellumPat)return vellumPat;const c=document.createElement("canvas");c.width=c.height=256;const g=c.getContext("2d");let s=7;const r=()=>(s=(s*16807)%2147483647)/2147483647;
+  for(let i=0;i<26;i++){const x=r()*256,y=r()*256,rad=14+r()*46,gr=g.createRadialGradient(x,y,0,x,y,rad);gr.addColorStop(0,`rgba(${150+r()*40|0},${105+r()*30|0},50,${.05+r()*.07})`);gr.addColorStop(1,"rgba(150,105,50,0)");g.fillStyle=gr;
+    for(const ox of[-256,0,256])for(const oy of[-256,0,256]){g.save();g.translate(ox,oy);g.fillRect(x-rad,y-rad,rad*2,rad*2);g.restore();}}
+  for(let i=0;i<500;i++){g.fillStyle=`rgba(90,60,25,${.05+r()*.12})`;g.fillRect(r()*256,r()*256,1+r()*1.5,1+r()*1.5);}
+  g.strokeStyle="rgba(120,90,50,.07)";g.lineWidth=.5;for(let i=0;i<70;i++){const x=r()*256,y=r()*256,a=r()*PI;g.beginPath();g.moveTo(x,y);g.lineTo(x+Math.cos(a)*(6+r()*14),y+Math.sin(a)*(6+r()*14));g.stroke();}
+  return vellumPat=ctx.createPattern(c,"repeat");}
+function drawVellum(){ctx.fillStyle="#e7d6a6";ctx.fillRect(0,0,CW,CH);ctx.fillStyle="rgba(96,128,108,.20)";ctx.fillRect(0,0,CW,CH);
+  const p=vellumTile();ctx.save();ctx.fillStyle=p;ctx.translate((-cam.x*cam.zoom*.3)%256,(cam.y*cam.zoom*.3)%256);ctx.fillRect(-256,-256,CW+512,CH+512);ctx.restore();}
+function drawVignetteEdge(){const g=ctx.createRadialGradient(CW/2,CH/2,Math.min(CW,CH)*.35,CW/2,CH/2,Math.max(CW,CH)*.75);g.addColorStop(0,"rgba(110,70,25,0)");g.addColorStop(1,"rgba(110,70,25,.30)");ctx.fillStyle=g;ctx.fillRect(0,0,CW,CH);}
+function drawRose17(x,y,r){
+  const INKC="#3a2614",RED="#8f2f1f",GRN="#3d6b46";ctx.save();ctx.translate(x,y);ctx.lineJoin="round";
+  for(const k of[1,.9,.62]){ctx.strokeStyle=INKC;ctx.lineWidth=k===1?1.3:.7;ctx.beginPath();ctx.arc(0,0,r*k,0,2*PI);ctx.stroke();}
+  ctx.strokeStyle=INKC;for(let d=0;d<360;d+=5){const a=d*D2R,l=d%45===0?.1:d%15===0?.06:.035;ctx.lineWidth=d%45===0?1:.5;ctx.beginPath();ctx.moveTo(Math.sin(a)*r*.9,-Math.cos(a)*r*.9);ctx.lineTo(Math.sin(a)*r*(.9+l),-Math.cos(a)*r*(.9+l));ctx.stroke();}
+  for(let i=0;i<32;i++){const a=i*11.25*D2R,card=i%8===0,half=i%4===0&&!card,len=card?.88:half?.7:.5,w=card?.1:half?.07:.045;
+    const tip=[Math.sin(a)*r*len,-Math.cos(a)*r*len],l=[Math.sin(a-w*2)*r*.16,-Math.cos(a-w*2)*r*.16],rr=[Math.sin(a+w*2)*r*.16,-Math.cos(a+w*2)*r*.16];
+    ctx.beginPath();ctx.moveTo(tip[0],tip[1]);ctx.lineTo(l[0],l[1]);ctx.lineTo(0,0);ctx.closePath();ctx.fillStyle=card?INKC:half?GRN:RED;ctx.fill();ctx.strokeStyle=INKC;ctx.lineWidth=.6;ctx.stroke();
+    ctx.beginPath();ctx.moveTo(tip[0],tip[1]);ctx.lineTo(rr[0],rr[1]);ctx.lineTo(0,0);ctx.closePath();ctx.fillStyle="#efe2b8";ctx.fill();ctx.stroke();}
+  // fleur-de-lis at north
+  ctx.fillStyle=INKC;const fy=-r*1.04,fs=Math.max(4,r*.09);ctx.beginPath();ctx.ellipse(0,fy-fs*.5,fs*.45,fs*1.2,0,0,2*PI);ctx.fill();
+  for(const sd of[-1,1]){ctx.save();ctx.translate(sd*fs*.55,fy);ctx.rotate(sd*.7);ctx.beginPath();ctx.ellipse(0,0,fs*.35,fs*1,0,0,2*PI);ctx.fill();ctx.restore();}
+  ctx.fillRect(-fs*.7,fy+fs*.9,fs*1.4,fs*.28);
+  ctx.font=`italic ${Math.max(9,r*.14)}px 'IM Fell English',Georgia,serif`;ctx.textAlign="center";ctx.fillStyle=INKC;ctx.fillText("E",r*1.14,r*.04);ctx.fillText("S",0,r*1.2);ctx.fillText("W",-r*1.14,r*.04);
+  ctx.restore();}
+function vShip(x,y,s,flip){ // an engraved galleon in the open sea
+  ctx.save();ctx.translate(x,y);ctx.scale(flip?-s:s,s);ctx.lineJoin="round";ctx.lineCap="round";const INKC="#3a2614";ctx.strokeStyle=INKC;ctx.fillStyle="#efe2b8";ctx.lineWidth=1/s*1.1;
+  ctx.beginPath();ctx.moveTo(-26,0);ctx.quadraticCurveTo(-30,10,-18,13);ctx.lineTo(18,13);ctx.quadraticCurveTo(30,10,32,-6);ctx.lineTo(24,-2);ctx.lineTo(-20,-2);ctx.closePath();ctx.fill();ctx.stroke();
+  ctx.beginPath();ctx.moveTo(-22,5);ctx.lineTo(28,5);ctx.moveTo(-20,9);ctx.lineTo(24,9);ctx.stroke();
+  for(const[mx,h,w]of[[-12,-34,13],[4,-42,15],[18,-28,10]]){ctx.beginPath();ctx.moveTo(mx,-2);ctx.lineTo(mx,h);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(mx-w,h+5);ctx.quadraticCurveTo(mx,h+9,mx+w,h+5);ctx.lineTo(mx+w*.9,h+22);ctx.quadraticCurveTo(mx,h+27,mx-w*.9,h+22);ctx.closePath();ctx.fill();ctx.stroke();
+    ctx.beginPath();ctx.moveTo(mx-w*.7,h+13);ctx.lineTo(mx+w*.7,h+13);ctx.stroke();}
+  ctx.beginPath();ctx.moveTo(4,-42);ctx.lineTo(16,-46);ctx.lineTo(4,-48);ctx.stroke();
+  ctx.lineWidth=1/s*.8;for(let i=0;i<4;i++){ctx.beginPath();ctx.moveTo(-34+i*16,17+(i%2)*2);ctx.quadraticCurveTo(-30+i*16,13,-26+i*16,17+(i%2)*2);ctx.stroke();}
+  ctx.restore();}
+function vSerpent(x,y,s){ // a sea serpent
+  ctx.save();ctx.translate(x,y);ctx.scale(s,s);ctx.lineJoin="round";ctx.lineCap="round";const INKC="#3a2614";ctx.strokeStyle=INKC;ctx.fillStyle="#efe2b8";ctx.lineWidth=1.2/s;
+  for(let i=0;i<3;i++){const hx=-70+i*34;ctx.beginPath();ctx.moveTo(hx,0);ctx.bezierCurveTo(hx+2,-24,hx+28,-24,hx+30,0);ctx.bezierCurveTo(hx+26,-14,hx+8,-14,hx+4,0);ctx.closePath();ctx.fill();ctx.stroke();
+    ctx.beginPath();for(let k=0;k<5;k++){ctx.moveTo(hx+6+k*4,-9-Math.sin(k/4*PI)*6);ctx.lineTo(hx+7+k*4,-5);}ctx.stroke();}
+  ctx.beginPath();ctx.moveTo(32,0);ctx.bezierCurveTo(36,-18,50,-34,60,-36);ctx.bezierCurveTo(70,-38,76,-30,70,-26);ctx.lineTo(80,-24);ctx.bezierCurveTo(72,-18,62,-18,56,-14);ctx.bezierCurveTo(52,-8,50,-2,48,0);ctx.closePath();ctx.fill();ctx.stroke();
+  ctx.beginPath();ctx.arc(63,-31,1.6,0,2*PI);ctx.fillStyle=INKC;ctx.fill();
+  ctx.beginPath();ctx.moveTo(-72,0);ctx.bezierCurveTo(-84,-6,-92,4,-100,-2);ctx.stroke();
+  ctx.lineWidth=.9/s;for(let i=0;i<7;i++){ctx.beginPath();ctx.moveTo(-90+i*22,4);ctx.quadraticCurveTo(-84+i*22,0,-78+i*22,4);ctx.stroke();}
+  ctx.restore();}
+function vCartouche(x,y,w,h){ // title scroll
+  ctx.save();ctx.translate(x,y);ctx.lineJoin="round";const INKC="#3a2614";ctx.strokeStyle=INKC;ctx.fillStyle="#efe2b8";ctx.lineWidth=1.3;
+  ctx.beginPath();ctx.moveTo(-w/2,-h/2);ctx.lineTo(w/2,-h/2);ctx.lineTo(w/2,h/2);ctx.lineTo(-w/2,h/2);ctx.closePath();ctx.fill();ctx.stroke();
+  ctx.lineWidth=.6;ctx.strokeRect(-w/2+4,-h/2+4,w-8,h-8);
+  for(const sd of[-1,1]){ctx.lineWidth=1.3;ctx.beginPath();ctx.arc(sd*(w/2),-h/2+h*.22,h*.22,0,2*PI);ctx.fill();ctx.stroke();ctx.beginPath();ctx.arc(sd*(w/2),h/2-h*.22,h*.22,0,2*PI);ctx.fill();ctx.stroke();}
+  ctx.fillStyle=INKC;ctx.textAlign="center";ctx.font=`italic ${Math.round(h*.3)}px 'IM Fell English',Georgia,serif`;ctx.fillText("A Chart of the",0,-h*.12);
+  ctx.font=`${Math.round(h*.3)}px 'IM Fell English SC',Georgia,serif`;ctx.fillText("Caribbee Islands",0,h*.2);
+  ctx.font=`italic ${Math.round(h*.16)}px 'IM Fell English',Georgia,serif`;ctx.fillText("with the Soundings in Fathoms",0,h*.38);
+  ctx.restore();}
+function drawEngraved(){
+  const z=cam.zoom,L=sx(0),R=sx(W_NM),T=sy(H_NM),B=sy(0);
+  // neat double rule round the chart
+  ctx.save();ctx.strokeStyle="#3a2614";ctx.lineWidth=1.6;ctx.strokeRect(L,T,R-L,B-T);ctx.lineWidth=.6;ctx.strokeRect(L+5,T+5,R-L-10,B-T-10);ctx.restore();
+  if(z>5)return; // the vignettes live on the open sea of the whole chart
+  const f=z<3?1:Math.max(0,(5-z)/2);if(f<=0)return;
+  ctx.save();ctx.globalAlpha=f*.9;
+  const s=z/3.2; // vignette scale in px per drawing unit
+  let p=geo(15.1,-63.1);vShip(sx(p.x),sy(p.y),s*.9,false);
+  p=geo(11.9,-58.8);vShip(sx(p.x),sy(p.y),s*.8,true);
+  p=geo(16.5,-59.3);vSerpent(sx(p.x),sy(p.y),s*.9);
+  p=geo(11.55,-62.65);vCartouche(sx(p.x),sy(p.y),Math.min(300,s*190),Math.min(110,s*70));
+  ctx.restore();
+  const r2=geo(13.6,-58.6);drawRose17(sx(r2.x),sy(r2.y),Math.max(26,Math.min(80,z*12)));}
+function drawChartImage(){const im=chartImg();if(!im)return;const z=cam.zoom,a=z<=10?1:Math.max(0,1-(z-10)/14);if(a<=0)return;
+  ctx.save();ctx.globalAlpha=a;ctx.imageSmoothingEnabled=true;ctx.drawImage(im,sx(0),sy(H_NM),W_NM*z,H_NM*z);ctx.restore();}
+function drawHachures(){
+  const R=buildRelief(),z=cam.zoom,xa=cam.x-CW/2/z,xb=cam.x+CW/2/z,yt=cam.y+CYC/z,yb=cam.y-(CH-CYC)/z;
+  ctx.save();ctx.lineCap="round";ctx.strokeStyle="rgba(70,42,20,.62)";
+  for(const L of R.lands){const{E,Ew:w,Eh:h,lg,ox,oy,H}=L;if(!E)continue;const x0=Math.max(ox,xa),x1=Math.min(ox+w*lg,xb),y0=Math.max(oy,yb),y1=Math.min(oy+h*lg,yt);if(x1<=x0||y1<=y0)continue;
+    let st=7/z;st=Math.max(st,lg*.9);if(((x1-x0)/st)*((y1-y0)/st)>7000)st=Math.sqrt(((x1-x0)*(y1-y0))/7000);
+    for(let gy=Math.ceil(y0/st)*st;gy<y1;gy+=st)for(let gx=Math.ceil(x0/st)*st;gx<x1;gx+=st){
+      const hh=Math.sin(gx*127.1+gy*311.7)*43758.5453,j=hh-Math.floor(hh),x=gx+(j-.5)*st*.8,y=gy+((hh*7.7%1)-.5)*st*.8;
+      const i=Math.round((x-ox)/lg),k=Math.round((y-oy)/lg);if(i<1||k<1||i>=w-1||k>=h-1)continue;const e=E[k*w+i];if(e<18)continue;
+      const gxv=(E[k*w+i+1]-E[k*w+i-1])/(2*lg),gyv=(E[(k+1)*w+i]-E[(k-1)*w+i])/(2*lg),m=Math.hypot(gxv,gyv);if(m<3)continue;
+      const len=Math.min(11,2+m/Math.max(40,H*.08)*7),ux=-gxv/m,uy=gyv/m,X=sx(x),Y=sy(y);
+      ctx.lineWidth=m>H*.12?.9:.55;ctx.beginPath();ctx.moveTo(X,Y);ctx.lineTo(X+ux*len,Y+uy*len);ctx.stroke();}}
+  ctx.restore();}
+function drawGrat(){
+  const c17=chartStyle()!=="old",L=sx(0),R=sx(W_NM),T=sy(H_NM),B=sy(0);
+  ctx.save();ctx.strokeStyle=c17?"rgba(58,38,20,.30)":"rgba(46,37,25,.22)";ctx.lineWidth=.8;ctx.fillStyle=c17?"#5a3c22":"#7b6a55";ctx.font="11px 'IBM Plex Mono',monospace";
+  const minor=cam.zoom>80?1/60:cam.zoom>6?1/6:cam.zoom>2.5?.5:1;
+  for(let lat=Math.ceil(LAT0/minor)*minor;lat<=LAT1;lat+=minor){const y=sy((lat-LAT0)*60);const major=Math.abs(lat-Math.round(lat))<1e-6;ctx.globalAlpha=major?1:.45;ctx.beginPath();ctx.moveTo(Math.max(0,L),y);ctx.lineTo(Math.min(CW,R),y);ctx.stroke();if(major&&y>14&&y<CH-4)ctx.fillText(fmtLat(lat).replace("00′",""),Math.max(L,0)+6,y-4);}
+  for(let lon=Math.ceil(LON0/minor)*minor;lon<=LON1;lon+=minor){const x=sx((lon-LON0)*60*COSR);const major=Math.abs(lon-Math.round(lon))<1e-6;ctx.globalAlpha=major?1:.45;ctx.beginPath();ctx.moveTo(x,Math.max(0,T));ctx.lineTo(x,Math.min(CH,B));ctx.stroke();if(major&&x>4&&x<CW-50)ctx.fillText(fmtLon(lon).replace("00′",""),x+4,Math.max(T,0)+14);}
+  ctx.restore();
+}
 function drawChart(){
   if(CW<2||CH<2)return; // the chart pane is folded away, so there is nothing to draw
   ctx.setTransform(DPR,0,0,DPR,0,0);
-  ctx.fillStyle="#f6eed9";ctx.fillRect(0,0,CW,CH);
-  ctx.fillStyle="rgba(143,176,184,.26)";ctx.fillRect(0,0,CW,CH);
-  drawReliefWater();
-  if(paperPat){ctx.fillStyle=paperPat;ctx.fillRect(0,0,CW,CH);}
+  const ST=chartStyle(),c17=ST!=="old",INK17="#3a2614";
+  if(c17)drawVellum();else{ctx.fillStyle="#f6eed9";ctx.fillRect(0,0,CW,CH);
+  ctx.fillStyle="rgba(143,176,184,.26)";ctx.fillRect(0,0,CW,CH);}
+  if(c17)ctx.globalAlpha=.55;drawReliefWater();ctx.globalAlpha=1;
+  if(paperPat&&!c17){ctx.fillStyle=paperPat;ctx.fillRect(0,0,CW,CH);}
   // off-chart margins
   ctx.fillStyle="rgba(60,45,30,.10)";
   const L=sx(0),R=sx(W_NM),T=sy(H_NM),B=sy(0);
   if(L>0)ctx.fillRect(0,0,L,CH);if(R<CW)ctx.fillRect(R,0,CW-R,CH);if(T>0)ctx.fillRect(0,0,CW,T);if(B<CH)ctx.fillRect(0,B,CW,CH-B);
   // rhumb lines
   ctx.save();ctx.lineWidth=.7;
-  for(let i=0;i<32;i++){const a=i*11.25*D2R;ctx.strokeStyle=i%8===0?"rgba(168,69,44,.30)":i%4===0?"rgba(168,69,44,.20)":"rgba(168,69,44,.10)";
+  for(let i=0;i<32;i++){const a=i*11.25*D2R;ctx.strokeStyle=c17?(i%8===0?"rgba(58,38,20,.34)":i%4===0?(i%8===4?"rgba(143,47,31,.34)":"rgba(61,107,70,.34)"):"rgba(58,38,20,.14)"):(i%8===0?"rgba(168,69,44,.30)":i%4===0?"rgba(168,69,44,.20)":"rgba(168,69,44,.10)");
     ctx.beginPath();ctx.moveTo(sx(ROSE.x),sy(ROSE.y));ctx.lineTo(sx(ROSE.x+Math.sin(a)*900),sy(ROSE.y+Math.cos(a)*900));ctx.stroke();}
   ctx.restore();
-  // graticule
-  ctx.save();ctx.strokeStyle="rgba(46,37,25,.22)";ctx.lineWidth=.8;ctx.fillStyle="#7b6a55";ctx.font="11px 'IBM Plex Mono',monospace";
-  const minor=cam.zoom>80?1/60:cam.zoom>6?1/6:cam.zoom>2.5?.5:1;
-  for(let lat=Math.ceil(LAT0/minor)*minor;lat<=LAT1;lat+=minor){const y=sy((lat-LAT0)*60);const major=Math.abs(lat-Math.round(lat))<1e-6;ctx.globalAlpha=major?1:.45;ctx.beginPath();ctx.moveTo(Math.max(0,L),y);ctx.lineTo(Math.min(CW,R),y);ctx.stroke();if(major&&y>14&&y<CH-4)ctx.fillText(fmtLat(lat).replace("00′",""),Math.max(L,0)+6,y-4);}
-  for(let lon=Math.ceil(LON0/minor)*minor;lon<=LON1;lon+=minor){const x=sx((lon-LON0)*60*COSR);const major=Math.abs(lon-Math.round(lon))<1e-6;ctx.globalAlpha=major?1:.45;ctx.beginPath();ctx.moveTo(x,Math.max(0,T));ctx.lineTo(x,Math.min(CH,B));ctx.stroke();if(major&&x>4&&x<CW-50)ctx.fillText(fmtLon(lon).replace("00′",""),x+4,Math.max(T,0)+14);}
-  ctx.restore();
+  if(ST!=="img")drawGrat();
   // compass rose
-  drawRose(sx(ROSE.x),sy(ROSE.y),Math.max(26,Math.min(90,cam.zoom*14)));
+  if(c17){drawRose17(sx(ROSE.x),sy(ROSE.y),Math.max(26,Math.min(90,cam.zoom*14)));drawEngraved();}else drawRose(sx(ROSE.x),sy(ROSE.y),Math.max(26,Math.min(90,cam.zoom*14)));
   // shoals
   ctx.save();ctx.lineJoin="round";
-  for(const isl of islands){path(isl.pts);ctx.strokeStyle="rgba(74,110,140,.18)";ctx.lineWidth=Math.min(40,Math.max(2,4*cam.zoom));ctx.stroke();}
-  for(const isl of islands){if(isl.main)continue;for(const k of[1.08,1.17]){ctx.beginPath();isl.pts.forEach((p,i)=>{const x=sx(isl.c.x+(p.x-isl.c.x)*k),y=sy(isl.c.y+(p.y-isl.c.y)*k);i?ctx.lineTo(x,y):ctx.moveTo(x,y);});ctx.closePath();ctx.strokeStyle=`rgba(46,37,25,${k<1.1?.35:.18})`;ctx.lineWidth=.7;ctx.stroke();}}
+  for(const isl of islands){path(isl.pts);ctx.strokeStyle=c17?"rgba(70,100,80,.16)":"rgba(74,110,140,.18)";ctx.lineWidth=Math.min(40,Math.max(2,4*cam.zoom));ctx.stroke();}
+  for(const isl of islands){if(isl.main)continue;for(const k of[1.08,1.17]){ctx.beginPath();isl.pts.forEach((p,i)=>{const x=sx(isl.c.x+(p.x-isl.c.x)*k),y=sy(isl.c.y+(p.y-isl.c.y)*k);i?ctx.lineTo(x,y):ctx.moveTo(x,y);});ctx.closePath();ctx.strokeStyle=`rgba(${c17?"58,38,20":"46,37,25"},${k<1.1?.35:.18})`;ctx.lineWidth=.7;if(c17)ctx.setLineDash([1.5,3.5]);ctx.stroke();ctx.setLineDash([]);}}
   drawReliefLines();
   // reefs
   for(const r of reefs){ctx.strokeStyle="rgba(74,110,140,.75)";ctx.lineWidth=1;for(let i=0;i<r.pts.length;i++){const p=r.pts[i],x=sx(p.x),y=sy(p.y),s=Math.max(2,cam.zoom*.6);ctx.beginPath();ctx.moveTo(x-s,y);ctx.lineTo(x+s,y);ctx.moveTo(x,y-s);ctx.lineTo(x,y+s);ctx.stroke();}}
   // land
-  for(const isl of islands){path(isl.pts);ctx.fillStyle="#d9d6a4";ctx.fill();ctx.strokeStyle="#2e2519";ctx.lineWidth=1.2;ctx.stroke();}
+  for(const isl of islands){path(isl.pts);ctx.fillStyle=c17?"#efe2b8":"#d9d6a4";ctx.fill();ctx.strokeStyle=c17?INK17:"#2e2519";ctx.lineWidth=c17?1.5:1.2;ctx.stroke();}
   ctx.restore();
   drawReliefLand();
+  if(c17&&showLand)drawHachures();
   // land hatching
   if(!showLand){ctx.save();for(const isl of islands){path(isl.pts);ctx.save();ctx.clip();ctx.strokeStyle="rgba(46,37,25,.12)";ctx.lineWidth=.6;const c=sx(isl.c.x),d=sy(isl.c.y),r=Math.max(40,30*cam.zoom);for(let k=-r;k<r;k+=4){ctx.beginPath();ctx.moveTo(c+k,d-r);ctx.lineTo(c+k+r*.6,d+r);ctx.stroke();}ctx.restore();}ctx.restore();}
   drawPorts();
+  if(ST==="img"){drawChartImage();drawGrat();}
   // landmarks
   for(const lm of LMS){const x=sx(lm.x),y=sy(lm.y),s=Math.max(3,Math.min(7,cam.zoom*1.4));ctx.beginPath();ctx.moveTo(x,y-s);ctx.lineTo(x+s*.8,y+s*.6);ctx.lineTo(x-s*.8,y+s*.6);ctx.closePath();ctx.fillStyle=lm.vis?"#a8452c":"#7b6a55";ctx.fill();}
   drawSpotHeights();
@@ -2250,7 +2345,7 @@ function drawChart(){
   ctx.save();ctx.fillStyle="#2e2519";ctx.textAlign="center";
   for(const isl of islands){if(isl.small&&cam.zoom<2.2)continue;const fs=isl.main?14:isl.small?11:Math.max(11,Math.min(17,cam.zoom*4));ctx.font=`italic ${fs}px 'IM Fell English',Georgia,serif`;
     const lx=sx(isl.c.x),ly=sy(isl.c.y);const off=isl.small?14:0;
-    ctx.fillStyle="rgba(246,238,217,.75)";const w=ctx.measureText(isl.name).width;ctx.fillRect(lx+off-w/2-2,ly-fs*.8+off*0,w+4,fs*1.05);ctx.fillStyle="#2e2519";ctx.fillText(isl.name,lx+off,ly);}
+    ctx.fillStyle=c17?"rgba(231,214,166,.7)":"rgba(246,238,217,.75)";const w=ctx.measureText(isl.name).width;ctx.fillRect(lx+off-w/2-2,ly-fs*.8+off*0,w+4,fs*1.05);ctx.fillStyle="#2e2519";ctx.fillText(isl.name,lx+off,ly);}
   ctx.restore();
   // ports
   for(const k in PORTS){const p=PORTS[k];const x=sx(p.x),y=sy(p.y);const dest=S&&S.v.to===k,orig=S&&S.v.from===k;
@@ -7990,7 +8085,7 @@ window.addEventListener("load",()=>setTimeout(boot,400));
 window.__CUT=M;window.__CUTfast=()=>{M.fast=1;};
 })();
 
-window.__DR={buildRelief,depthFmAt,drawChart,camC:cam,hour:()=>S&&!S.done?localHours(S,S.t):null,preview:PV,cam:()=>R3,footAt,PF,portGeom,openPortCard,openPortPlan,tideLvl,tideTable,tideStream,plotFix,LMS,currentAt,landInit,WINDK,CURK,dockAtPort,showCrisis,crisisKind,punish,loadState,packState,decS,toggleOars,setStroke,oarPivot,STROKES,pickShip,get SHIP(){return SHIP},SHIPDEFS,SPEC,useShip,applyShip,crewOf,rigOf,linesOf,get shipPick(){return shipPick},set shipPick(v){shipPick=v},svMove,svCtx,sx,sy,openPortCard,openPortPlan,get R3(){return R3},setMain,update3D,get S(){return S},VOYAGES,PORTS,islands,reefs,LMS,step,startVoyage,setCourse,tackOrWear,setSail,assistStep,noonAvailable,windAt:(x,y,t)=>windAt(S,x,y,t),inPoly,crossFix,plotFix,takeBearing,markNoon,startObserve,noonAvailable,endVoyage,toGeo,geo,atPort:()=>atPort(S),buyStore,sellFish,toggleFish,coastNm,fishStep,tradeBuy,tradeSell,tradeUI,tradeSite,tradeJettison,contractBoard,contractText,contractAccept,contractDeliver,mkInit,holdUsed,marketBlurb,tradeStep,buyNews};
+window.__DR={exportChart,buildRelief,depthFmAt,drawChart,camC:cam,hour:()=>S&&!S.done?localHours(S,S.t):null,preview:PV,cam:()=>R3,footAt,PF,portGeom,openPortCard,openPortPlan,tideLvl,tideTable,tideStream,plotFix,LMS,currentAt,landInit,WINDK,CURK,dockAtPort,showCrisis,crisisKind,punish,loadState,packState,decS,toggleOars,setStroke,oarPivot,STROKES,pickShip,get SHIP(){return SHIP},SHIPDEFS,SPEC,useShip,applyShip,crewOf,rigOf,linesOf,get shipPick(){return shipPick},set shipPick(v){shipPick=v},svMove,svCtx,sx,sy,openPortCard,openPortPlan,get R3(){return R3},setMain,update3D,get S(){return S},VOYAGES,PORTS,islands,reefs,LMS,step,startVoyage,setCourse,tackOrWear,setSail,assistStep,noonAvailable,windAt:(x,y,t)=>windAt(S,x,y,t),inPoly,crossFix,plotFix,takeBearing,markNoon,startObserve,noonAvailable,endVoyage,toGeo,geo,atPort:()=>atPort(S),buyStore,sellFish,toggleFish,coastNm,fishStep,tradeBuy,tradeSell,tradeUI,tradeSite,tradeJettison,contractBoard,contractText,contractAccept,contractDeliver,mkInit,holdUsed,marketBlurb,tradeStep,buyNews};
 })();
 </script>
 <style>/* UI Layout Tuner settings (phone), 2026-10-29 */
