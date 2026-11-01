@@ -2023,22 +2023,27 @@ const ROSE=geo(12.1,-59.3);
 function path(pts){ctx.beginPath();pts.forEach((p,i)=>i?ctx.lineTo(sx(p.x),sy(p.y)):ctx.moveTo(sx(p.x),sy(p.y)));ctx.closePath();}
 /* ---------- chart relief: water depth lines (fathoms), seabed tint, soundings, land contours and hill shading ---------- */
 const FM=1.8288;
-const DEPTH_LV=[10,20,50,100,200,500,1000]; // fathoms; DEPTH_LV_ZOOM is the zoom below which that line is left off
-const DEPTH_LV_ZOOM=[1.6,2.4,.9,1.3,.8,.8,.8];
-const LAND_LV=[25,50,100,200,300,500,750,1000,1250], LAND_LV_ZOOM=[7,5,3,1.6,2.4,1.2,1.2,1.2,1.2];
+// line spacing scales with the zoom: a wide view shows a few index lines, and each step in brings in a finer interval
+// contour spacing follows the zoom: every 300 m when the whole chart is in view, then 200, 100 and finally 50 m. Closer lines than that only crowd the chart into dark shading.
+const IV_STEPS=[[1.2,300],[2.5,200],[5,100],[1e9,50]];
+const DEPTH_CAP={300:3600,200:3000,100:3000,50:1000}, LAND_CAP={300:1500,200:1500,100:1500,50:1500};
+const ivAt=z=>{for(const[zm,v]of IV_STEPS)if(z<zm)return v;return 50;};
+const lvSet=(cap)=>{const s=new Set();for(const[,iv]of IV_STEPS)for(let l=iv;l<=cap[iv];l+=iv)s.add(l);return[...s].sort((a,b)=>a-b);};
+const DEPTH_LV=lvSet(DEPTH_CAP), LAND_LV=lvSet(LAND_CAP); // metres
+const levelsAt=(all,cap,z)=>{const iv=ivAt(z);return all.filter(l=>l%iv===0&&l<=cap[iv]);};
 // hand-placed shelves and banks: centre, half-sizes in nm, depth on top in metres
 const BANKS=[
  [17.45,-61.80,20,26,34],[17.62,-63.32,22,9,28],[17.25,-62.68,16,10,26],[10.45,-62.15,28,22,26],[10.98,-60.95,26,12,48],
  [12.55,-61.5,9,38,40],[13.95,-60.99,8,15,60],[14.65,-61.02,7,16,70],[16.2,-61.5,18,16,45],[15.45,-61.35,5,16,80],[13.17,-59.55,9,12,45]
 ].map(([la,lo,rx,ry,m])=>({...geo(la,lo),rx,ry,m}));
-const PORT_APRON=()=>Object.values(PORTS);
+let PORT_AP=null;const PORT_APRON=()=>PORT_AP||(PORT_AP=Object.values(PORTS));
 let RELIEF=null;
-function edgeDist(P,x,y){let m=1e9;for(let i=0;i<P.length;i++){const q=closestOnSeg({x,y},P[i],P[(i+1)%P.length]);m=Math.min(m,Math.hypot(x-q.x,y-q.y));}return m;}
+function edgeDist(P,x,y){let m=1e18;for(let i=0,j=P.length-1;i<P.length;j=i++){const a=P[j],b=P[i],dx=b.x-a.x,dy=b.y-a.y,l=dx*dx+dy*dy;let u=l?((x-a.x)*dx+(y-a.y)*dy)/l:0;u=u<0?0:u>1?1:u;const ex=a.x+u*dx-x,ey=a.y+u*dy-y,d2=ex*ex+ey*ey;if(d2<m)m=d2;}return Math.sqrt(m);}
 function depthBase(x,y,d){
   let m=4+3000*(1-Math.exp(-Math.pow(d/11,1.3)));
   m*=1+.12*Math.sin(x/37+1.3)*Math.cos(y/29)+.06*Math.sin(x/11+y/13); // gentle undulation so the lines do not look machined
   m=Math.min(m,3200+x*2.5);
-  for(const b of BANKS){const rr=Math.hypot((x-b.x)/b.rx,(y-b.y)/b.ry);if(rr<1.6){const t=clamp((rr-1)/.6,0,1),s=t*t*(3-2*t);m=Math.min(m,b.m+(m-b.m)*s);}}
+  for(const b of BANKS){if(Math.abs(x-b.x)>b.rx*1.6||Math.abs(y-b.y)>b.ry*1.6)continue;const rr=Math.hypot((x-b.x)/b.rx,(y-b.y)/b.ry);if(rr<1.6){const t=clamp((rr-1)/.6,0,1),s=t*t*(3-2*t);m=Math.min(m,b.m+(m-b.m)*s);}}
   for(const p of PORT_APRON()){const dd=Math.hypot(x-p.x,y-p.y);if(dd<3)m=Math.min(m,6+dd*(m>40?9:3));}
   return m;}
 // contour chains by marching squares on a grid Z (value per node), levels lv; returns {level:[chain...]} chain = {c:[x,y,...],closed}
@@ -2069,12 +2074,11 @@ function contourChains(Z,NX,NY,g,ox,oy,lv){
   return out;}
 function buildRelief(){
   if(RELIEF)return RELIEF;
-  const g=.75,NX=Math.ceil(W_NM/g)+1,NY=Math.ceil(H_NM/g)+1,Z=new Float32Array(NX*NY),land=new Uint8Array(NX*NY);
-  const info=islands.map(I=>{let mr=0;for(const p of I.pts)mr=Math.max(mr,Math.hypot(p.x-I.c.x,p.y-I.c.y));return{I,mr};});
+  const g=1,NX=Math.ceil(W_NM/g)+1,NY=Math.ceil(H_NM/g)+1,Z=new Float32Array(NX*NY),land=new Uint8Array(NX*NY);
+  const info=islands.map(I=>{let mr=0,x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;for(const p of I.pts){mr=Math.max(mr,Math.hypot(p.x-I.c.x,p.y-I.c.y));x0=Math.min(x0,p.x);x1=Math.max(x1,p.x);y0=Math.min(y0,p.y);y1=Math.max(y1,p.y);}return{I,mr,x0,x1,y0,y1};});
   for(let j=0;j<NY;j++)for(let i=0;i<NX;i++){const x=i*g,y=j*g;let d=60,inside=false;
-    for(const o of info){const lb=Math.hypot(x-o.I.c.x,y-o.I.c.y)-o.mr;if(lb>=d)continue;if(lb<0&&inPoly({x,y},o.I.pts)){inside=true;break;}d=Math.min(d,edgeDist(o.I.pts,x,y));}
-    if(inside){Z[j*NX+i]=0;land[j*NX+i]=1;}else Z[j*NX+i]=depthBase(x,y,d)/FM;}
-  const chains=contourChains(Z,NX,NY,g,0,0,DEPTH_LV);
+    for(const o of info){const lb=Math.hypot(x-o.I.c.x,y-o.I.c.y)-o.mr;if(lb>=d)continue;if(lb<0&&x>=o.x0&&x<=o.x1&&y>=o.y0&&y<=o.y1&&inPoly({x,y},o.I.pts)){inside=true;break;}d=Math.min(d,edgeDist(o.I.pts,x,y));}
+    if(inside){Z[j*NX+i]=0;land[j*NX+i]=1;}else Z[j*NX+i]=depthBase(x,y,d);}
   // seabed tint raster: one pixel per node, shallow water washed out to cream, deep water a touch bluer
   const cv=document.createElement("canvas");cv.width=NX;cv.height=NY;const c2=cv.getContext("2d"),im=c2.createImageData(NX,NY);
   for(let k=0;k<NX*NY;k++){const f=Z[k],o=k*4;let r,gg,b,a;
@@ -2098,7 +2102,6 @@ function buildRelief(){
       const dc=edgeDist(I.pts,x,y),dp=Math.hypot(x-px,y-py),t=dc/(dc+dp*(I.main?.5:.8)+1e-6);
       let e=H*Math.pow(t,1.35)*(1+.18*Math.sin(x*1.7+y*.9)*Math.cos(y*1.3));e=Math.max(.5,e);E[j*w+i]=e;any=true;}
     if(!any)continue;
-    const lch=contourChains(E,w,h,lg,ox,oy,LAND_LV.filter(l=>l<H*.98));
     const lc=document.createElement("canvas");lc.width=w;lc.height=h;const lx=lc.getContext("2d"),li=lx.createImageData(w,h);
     for(let j=0;j<h;j++)for(let i=0;i<w;i++){const k=j*w+i,e=E[k],o=k*4;if(e<=0){li.data[o+3]=0;continue;}
       const ex=E[j*w+Math.min(w-1,i+1)]-E[j*w+Math.max(0,i-1)],ey=E[Math.min(h-1,j+1)*w+i]-E[Math.max(0,j-1)*w+i];
@@ -2107,19 +2110,23 @@ function buildRelief(){
       const r=205-tt*95,gg=200-tt*70,b=140-tt*60;
       li.data[o]=clamp(r+sh*38,0,255);li.data[o+1]=clamp(gg+sh*34,0,255);li.data[o+2]=clamp(b+sh*28,0,255);li.data[o+3]=60+tt*80;}
     lx.putImageData(li,0,0);
-    lands.push({I,cv:lc,ox,oy,lg,w:w*lg,h:h*lg,chains:lch,H});}
-  RELIEF={g,NX,NY,Z,land,chains,tint:cv,lands};return RELIEF;}
-function depthFmAt(x,y){const R=buildRelief(),u=x/R.g,v=y/R.g,i=Math.floor(u),j=Math.floor(v);if(i<0||j<0||i>=R.NX-1||j>=R.NY-1)return null;
+    lands.push({I,cv:lc,ox,oy,lg,w:w*lg,h:h*lg,H,E,Ew:w,Eh:h,Z:E,NX:w,NY:h,g:lg,max:H*.98,cache:{}});}
+  RELIEF={g,NX,NY,Z,land,ox:0,oy:0,max:1e9,cache:{},tint:cv,lands};return RELIEF;}
+function depthAt(x,y){const R=buildRelief(),u=x/R.g,v=y/R.g,i=Math.floor(u),j=Math.floor(v);if(i<0||j<0||i>=R.NX-1||j>=R.NY-1)return null;
   if(R.land[j*R.NX+i])return 0;const fu=u-i,fv=v-j,Z=R.Z,NX=R.NX;
   return (Z[j*NX+i]*(1-fu)+Z[j*NX+i+1]*fu)*(1-fv)+(Z[(j+1)*NX+i]*(1-fu)+Z[(j+1)*NX+i+1]*fu)*fv;}
-function strokeChains(chs,levels,zooms,style,label){
-  const z=cam.zoom,x0=cam.x-CW/2/z-2,x1=cam.x+CW/2/z+2,yT=cam.y+CYC/z+2,yB=cam.y-(CH-CYC)/z-2,labs=[];
-  for(let li=0;li<levels.length;li++){if(z<zooms[li])continue;const L=levels[li];style(L);ctx.beginPath();
-    for(const ch of chs){if(ch.lv!==L||ch.x1<x0||ch.x0>x1||ch.y1<yB||ch.y0>yT)continue;const c=ch.c,n=c.length/2;let lx=0,ly=0,acc=0,first=true;
-      for(let k=0;k<n;k++){const X=sx(c[k*2]),Y=sy(c[k*2+1]);
+// contour lines are traced level by level the first time a zoom needs them
+function chainsOf(st,L){if(L>=st.max)return[];return st.cache[L]||(st.cache[L]=contourChains(st.Z,st.NX,st.NY,st.g,st.ox,st.oy,[L]));}
+function strokeChains(st,levels,style,label){
+  const z=cam.zoom,x0=cam.x-CW/2/z-2,x1=cam.x+CW/2/z+2,yT=cam.y+CYC/z+2,yB=cam.y-(CH-CYC)/z-2,labs=[];const wsp=Math.pow(2,Math.ceil(Math.log2(320/z)));
+  for(let li=0;li<levels.length;li++){const L=levels[li];style(L);ctx.beginPath();
+    for(const ch of chainsOf(st,L)){if(ch.x1<x0||ch.x0>x1||ch.y1<yB||ch.y0>yT)continue;const c=ch.c,n=c.length/2;let lx=0,ly=0,first=true,cum=0,wx=0,wy=0,lastB=-1;
+      for(let k=0;k<n;k++){const wX=c[k*2],wY=c[k*2+1],X=sx(wX),Y=sy(wY);
+        if(k){cum+=Math.hypot(wX-wx,wY-wy);}wx=wX;wy=wY;
+        // labels sit at fixed distances along the line in world space, so they stay put while zooming
+        if(label){const B=Math.floor(cum/wsp);if(B!==lastB){lastB=B;if(k&&X>30&&X<CW-30&&Y>30&&Y<CH-30)labs.push([X,Y,L]);}}
         if(first){ctx.moveTo(X,Y);lx=X;ly=Y;first=false;continue;}
-        const d=Math.hypot(X-lx,Y-ly);if(d<1.4&&k<n-1)continue;ctx.lineTo(X,Y);acc+=d;
-        if(label&&acc>300&&X>30&&X<CW-30&&Y>30&&Y<CH-30){acc=0;labs.push([X,Y,L]);}lx=X;ly=Y;}
+        const d=Math.hypot(X-lx,Y-ly);if(d<1.4&&k<n-1)continue;ctx.lineTo(X,Y);lx=X;ly=Y;}
       if(ch.closed)ctx.closePath();}
     ctx.stroke();}
   return labs;}
@@ -2128,24 +2135,25 @@ function drawReliefWater(){
   ctx.save();ctx.imageSmoothingEnabled=true;ctx.translate(sx(-R.g/2),sy(-R.g/2));ctx.scale(1,-1);ctx.drawImage(R.tint,0,0,R.NX*R.g*z,R.NY*R.g*z);ctx.restore();}
 function drawReliefLines(){
   if(!showDepth)return;const R=buildRelief(),z=cam.zoom;ctx.save();ctx.lineJoin="round";ctx.lineCap="round";
-  const labs=strokeChains(R.chains,DEPTH_LV,DEPTH_LV_ZOOM,L=>{ctx.strokeStyle=L>=200?"rgba(52,86,120,.55)":"rgba(52,86,120,.42)";ctx.lineWidth=L%100===0||L===50?.9:.65;ctx.setLineDash(L<50?[1,2.5]:L>=500?[6,3]:[]);},true);
+  const labs=strokeChains(R,levelsAt(DEPTH_LV,DEPTH_CAP,z),L=>{const idx=L%100===0;ctx.strokeStyle=L>=200?"rgba(52,86,120,.55)":"rgba(52,86,120,.42)";ctx.lineWidth=idx?.95:.55;ctx.setLineDash(L<50?[1,2.5]:L>=1000?[6,3]:[]);},true);
   ctx.setLineDash([]);ctx.font="italic 10px 'IM Fell English',Georgia,serif";ctx.textAlign="center";ctx.textBaseline="middle";
   for(const[X,Y,L]of labs){const t=String(L);const w=ctx.measureText(t).width;ctx.fillStyle="rgba(246,238,217,.85)";ctx.fillRect(X-w/2-2,Y-6,w+4,12);ctx.fillStyle="rgba(40,70,104,.85)";ctx.fillText(t,X,Y);}
-  // soundings in fathoms where the water is shoal, laid on a lattice that thins out as you zoom away
+  // soundings in metres where the water is shoal, laid on a lattice that thins out as you zoom away
   if(z>=1.6){const s=[1,2,4,8,16].find(n=>n*z>=48)||16,xa=cam.x-CW/2/z,xb=cam.x+CW/2/z,yt=cam.y+CYC/z,yb=cam.y-(CH-CYC)/z;
     ctx.fillStyle="rgba(60,50,35,.7)";ctx.font="9px 'IM Fell English',Georgia,serif";
+    // each sounding is fixed to its own 1-nm cell, so coarser zoom levels just show a subset of the same figures
     for(let gx=Math.floor(xa/s)*s;gx<=xb;gx+=s)for(let gy=Math.floor(yb/s)*s;gy<=yt;gy+=s){
       const hh=Math.sin(gx*12.9898+gy*78.233)*43758.5453,hr=hh-Math.floor(hh),hr2=(hh*7.13)-Math.floor(hh*7.13);
-      const x=gx+(hr-.5)*s*.7,y=gy+(hr2-.5)*s*.7,f=depthFmAt(x,y);if(f==null||f<=0.2||f>150||coastNm(x,y)>14)continue;
-      const X=sx(x),Y=sy(y);if(X<0||X>CW||Y<0||Y>CH)continue;ctx.fillText(f<10?f.toFixed(f<5?1:0):String(Math.round(f)),X,Y);}}
+      const x=gx+(hr-.5)*.7,y=gy+(hr2-.5)*.7,f=depthAt(x,y);if(f==null||f<=0.5||f>250||coastNm(x,y)>14)continue;
+      const X=sx(x),Y=sy(y);if(X<0||X>CW||Y<0||Y>CH)continue;ctx.fillText(f<10?f.toFixed(1):String(Math.round(f)),X,Y);}}
   ctx.restore();}
 function drawReliefLand(){
   if(!showLand)return;const R=buildRelief(),z=cam.zoom;
-  for(const L of R.lands){const I=L.I;path(I.pts);ctx.save();ctx.clip();ctx.imageSmoothingEnabled=true;ctx.translate(sx(L.ox-L.lg/2),sy(L.oy-L.lg/2));ctx.scale(1,-1);ctx.drawImage(L.cv,0,0,L.w*z,L.h*z);ctx.setTransform(DPR,0,0,DPR,0,0);
+  for(const L of R.lands){const I=L.I;path(I.pts);ctx.save();ctx.clip();const c17=chartStyle()!=="old";if(!c17){ctx.imageSmoothingEnabled=true;ctx.translate(sx(L.ox-L.lg/2),sy(L.oy-L.lg/2));ctx.scale(1,-1);ctx.drawImage(L.cv,0,0,L.w*z,L.h*z);ctx.setTransform(DPR,0,0,DPR,0,0);}
     ctx.lineJoin="round";ctx.lineCap="round";
-    strokeChains(L.chains,LAND_LV,LAND_LV_ZOOM,Lv=>{ctx.strokeStyle=Lv%500===0?"rgba(92,68,40,.75)":"rgba(112,86,52,.5)";ctx.lineWidth=Lv%500===0?1:.6;});
+    strokeChains(L,levelsAt(LAND_LV,LAND_CAP,z),Lv=>{const idx=Lv%100===0;ctx.strokeStyle=c17?(idx?"rgba(90,56,30,.5)":"rgba(90,56,30,.3)"):(idx?"rgba(92,68,40,.75)":"rgba(112,86,52,.5)");ctx.lineWidth=idx?1:.55;});
     ctx.restore();}
-  ctx.save();ctx.strokeStyle="#2e2519";ctx.lineWidth=1.2;for(const I of islands){path(I.pts);ctx.stroke();}ctx.restore();}
+  ctx.save();ctx.strokeStyle=chartStyle()!=="old"?"#3a2614":"#2e2519";ctx.lineWidth=chartStyle()!=="old"?1.5:1.2;for(const I of islands){path(I.pts);ctx.stroke();}ctx.restore();}
 function drawSpotHeights(){
   if(!showLand||cam.zoom<2.6)return;ctx.save();ctx.font="italic 10px 'IM Fell English',Georgia,serif";ctx.textAlign="left";
   for(const lm of LMS){const X=sx(lm.x),Y=sy(lm.y);if(X<-40||X>CW+40||Y<-20||Y>CH+20)continue;const t=lm.h+" m";ctx.fillStyle="rgba(246,238,217,.8)";const w=ctx.measureText(t).width;ctx.fillRect(X+6,Y-8,w+4,11);ctx.fillStyle="#6a2e1c";ctx.fillText(t,X+8,Y);}
@@ -2153,43 +2161,189 @@ function drawSpotHeights(){
 let showDepth=true,showLand=true;try{showDepth=localStorage.getItem("drDepth")!=="0";showLand=localStorage.getItem("drLandH")!=="0";}catch(e){}
 function setDepth(v){showDepth=v;$("depTog").setAttribute("aria-pressed",String(v));const t=v?"Hide depth lines and soundings":"Show depth lines and soundings";$("depTog").title=t;$("depTog").setAttribute("aria-label",t);try{localStorage.setItem("drDepth",v?"1":"0");}catch(e){}}
 function setLandH(v){showLand=v;$("hgtTog").setAttribute("aria-pressed",String(v));const t=v?"Hide land heights (contours and shading)":"Show land heights (contours and shading)";$("hgtTog").title=t;$("hgtTog").setAttribute("aria-label",t);try{localStorage.setItem("drLandH",v?"1":"0");}catch(e){}}
+/* ---------- ports on the chart: the harbour plan drawn to true scale, fading in as you zoom ---------- */
+const PORT_ZOOM=[25,70]; // px per nautical mile where the harbour starts to show and where it is fully drawn
+function portPatch(k){const f=PF[k];if(!f)return null;if(f.patch)return f.patch;
+  const G=f.G3,R=2,u0=-PGU,v0=PGV0,w=(PGU*2)*R,h=(PGV1-PGV0)*R,cv=document.createElement("canvas");cv.width=w;cv.height=h;
+  const c2=cv.getContext("2d"),im=c2.createImageData(w,h),W=new Uint8Array(w*h);
+  for(let j=0;j<h;j++)for(let i=0;i<w;i++)W[j*w+i]=G.isWater(u0+(i+.5)/R,v0+(j+.5)/R)?1:0;
+  for(let j=0;j<h;j++)for(let i=0;i<w;i++){const u=u0+(i+.5)/R,v=v0+(j+.5)/R,o=(j*w+i)*4,water=W[j*w+i];
+    const ramp=Math.max(0,Math.min(1,(PGU-Math.abs(u))/9,(PGV1-v)/7,(v-PGV0)/7));let r,g,b;
+    if(water){const d=G.dist(u,v),q=Math.max(0,Math.min(1,d/16));r=243-q*30;g=234-q*10;b=208-q*2;}
+    else{r=217;g=214;b=164;
+      const edge=(i>0&&W[j*w+i-1])||(i<w-1&&W[j*w+i+1])||(j>0&&W[(j-1)*w+i])||(j<h-1&&W[(j+1)*w+i]);if(edge){r=46;g=37;b=25;}}
+    im.data[o]=r;im.data[o+1]=g;im.data[o+2]=b;im.data[o+3]=255*ramp;}
+  c2.putImageData(im,0,0);return f.patch={cv,R,u0,v0,w,h};}
+function drawPorts(){
+  const z=cam.zoom,a=Math.max(0,Math.min(1,(z-PORT_ZOOM[0])/(PORT_ZOOM[1]-PORT_ZOOM[0])));if(a<=0)return;
+  const xa=cam.x-CW/2/z-3,xb=cam.x+CW/2/z+3,yt=cam.y+CYC/z+3,yb=cam.y-(CH-CYC)/z-3;
+  for(const k in PF){const f=PF[k];if(f.bx<xa||f.bx>xb||f.by<yb||f.by>yt)continue;
+    const pa=portPatch(k),G=f.G3,X=PORTX[k],cd=Math.cos(f.d),sd=Math.sin(f.d),s=z*PUN;
+    ctx.save();ctx.globalAlpha=a;ctx.transform(-s*cd,-s*sd,s*sd,-s*cd,sx(f.bx),sy(f.by));
+    ctx.imageSmoothingEnabled=true;ctx.drawImage(pa.cv,pa.u0,pa.v0,pa.w/pa.R,pa.h/pa.R);
+    const px=n=>n/s; // n screen pixels, in plan units
+    ctx.lineJoin="round";ctx.lineCap="round";
+    // reefs
+    for(const r of X.reefs||[]){ctx.beginPath();ctx.ellipse(r[0],r[1],r[2],r[3],0,0,2*PI);ctx.fillStyle="rgba(168,69,44,.16)";ctx.fill();ctx.setLineDash([px(2),px(3)]);ctx.strokeStyle="rgba(168,69,44,.8)";ctx.lineWidth=px(1);ctx.stroke();ctx.setLineDash([]);}
+    // town blocks
+    ctx.fillStyle="rgba(176,112,78,.85)";ctx.strokeStyle="rgba(46,37,25,.8)";ctx.lineWidth=px(.7);
+    for(const hh of G.houses){if(hh===G.church)continue;ctx.beginPath();ctx.rect(hh.u,hh.v,1.9,1.5);ctx.fill();if(z>110)ctx.stroke();}
+    // quay and piers
+    ctx.strokeStyle="#2e2519";ctx.lineWidth=px(2.2);ctx.beginPath();let first=true;for(const q of G.quay){first?ctx.moveTo(q.u,q.v):ctx.lineTo(q.u,q.v);first=false;}ctx.stroke();
+    ctx.lineWidth=px(3);for(const pr of G.piers){ctx.beginPath();ctx.moveTo(pr.u,pr.v);ctx.lineTo(pr.u+pr.du*pr.len,pr.v+pr.dv*pr.len);ctx.stroke();}
+    // church and mills
+    if(G.church){const hh=G.church;ctx.fillStyle="#f6eed9";ctx.beginPath();ctx.rect(hh.u,hh.v,1.9,1.5);ctx.fill();ctx.strokeStyle="#2e2519";ctx.lineWidth=px(1);ctx.stroke();
+      const r=px(5);ctx.beginPath();ctx.moveTo(hh.u+.95,hh.v+.75-r);ctx.lineTo(hh.u+.95,hh.v+.75+r);ctx.moveTo(hh.u+.95-r*.6,hh.v+.75-r*.3);ctx.lineTo(hh.u+.95+r*.6,hh.v+.75-r*.3);ctx.stroke();}
+    for(const m of G.mills){const r=px(5);ctx.strokeStyle="#2e2519";ctx.lineWidth=px(1);ctx.beginPath();ctx.arc(m.u,m.v,r*.45,0,2*PI);ctx.fillStyle="#f6eed9";ctx.fill();ctx.stroke();ctx.beginPath();ctx.moveTo(m.u-r,m.v-r);ctx.lineTo(m.u+r,m.v+r);ctx.moveTo(m.u+r,m.v-r);ctx.lineTo(m.u-r,m.v+r);ctx.stroke();}
+    // anchorage ring
+    {const A=X.anch;ctx.setLineDash([px(6),px(4)]);ctx.strokeStyle="#2e2519";ctx.lineWidth=px(1.1);ctx.beginPath();ctx.ellipse(A[0],A[1],A[2],A[3],0,0,2*PI);ctx.stroke();ctx.setLineDash([]);}
+    // forts
+    for(const fo of X.forts){const r=px(5);ctx.fillStyle="#f6eed9";ctx.strokeStyle="#2e2519";ctx.lineWidth=px(1.2);ctx.beginPath();ctx.rect(fo[0]-r,fo[1]-r,2*r,2*r);ctx.fill();ctx.stroke();ctx.beginPath();ctx.moveTo(fo[0]-r,fo[1]);ctx.lineTo(fo[0]+r,fo[1]);ctx.moveTo(fo[0],fo[1]-r);ctx.lineTo(fo[0],fo[1]+r);ctx.stroke();}
+    ctx.restore();
+    // text stays upright: soundings, the anchorage name and the forts
+    const pt=(u,v)=>{const q=toNm(f,u,v);return[sx(q[0]),sy(q[1])];};
+    ctx.save();ctx.globalAlpha=a;ctx.textAlign="center";
+    if(z>=40){ctx.fillStyle="rgba(60,50,35,.78)";ctx.font="italic 10px 'IM Fell English',Georgia,serif";
+      const step=z>150?9:z>90?13:18;let seed=5;const rnd=()=>(seed=(seed*16807)%2147483647)/2147483647;
+      for(let u=-PGU+8;u<PGU-6;u+=step)for(let v=PGV0+10;v<PGV1-6;v+=step){const uu=u+(rnd()-.5)*step*.6,vv=v+(rnd()-.5)*step*.6;if(!G.isWater(uu,vv))continue;const d=G.dist(uu,vv);if(d<2.5)continue;const p=pt(uu,vv);if(p[0]<6||p[0]>CW-6||p[1]<10||p[1]>CH-6)continue;ctx.fillText(String(Math.max(2,Math.round(Math.sqrt(d)*X.dk*1.6*1.83))),p[0],p[1]);}}
+    {const A=X.anch,p=pt(A[0],A[1]);ctx.fillStyle="#2e2519";ctx.font="14px 'IM Fell English SC',Georgia,serif";ctx.fillText("⚓",p[0],p[1]+4);ctx.font="italic 11px 'IM Fell English',Georgia,serif";ctx.fillText(A[4],p[0],p[1]+19);}
+    if(z>=50){ctx.font="italic 11px 'IM Fell English',Georgia,serif";for(const fo of X.forts){const p=pt(fo[0],fo[1]);ctx.fillStyle="rgba(246,238,217,.8)";const tw=ctx.measureText(fo[2]).width;ctx.fillRect(p[0]-tw/2-2,p[1]-23,tw+4,13);ctx.fillStyle="#2e2519";ctx.fillText(fo[2],p[0],p[1]-13);}}
+    ctx.restore();}
+}
+/* ---------- the 17th-century chart look (New UI) and the imported chart image (UI with images) ---------- */
+let forceStyle=null;
+function chartStyle(){if(forceStyle)return forceStyle;const m=window.drUiMode?window.drUiMode():"new";if(m==="old")return"old";if(m==="img"&&chartImg())return"img";return"c17";}
+let chartImgEl=null,chartImgSrc=null;
+// the whole chart as one flat picture (for the chart image dashboard): the 17th-century look at the given pixel width, no ship, wind or tracks
+function exportChart(wpx){const hpx=Math.round(wpx*H_NM/W_NM),o={w:cv.width,h:cv.height,dpr:DPR,cw:CW,ch:CH,cyc:CYC,cx:cam.x,cy:cam.y,cz:cam.zoom,s:S,f:follow,sw:showWind,sc:showCld,scu:showCur};
+  try{cv.width=wpx;cv.height=hpx;DPR=1;CW=wpx;CH=hpx;CYC=hpx/2;cam.x=W_NM/2;cam.y=H_NM/2;cam.zoom=wpx/W_NM;S=null;forceStyle="c17";drawChart();return cv.toDataURL("image/png");}
+  finally{forceStyle=null;S=o.s;cv.width=o.w;cv.height=o.h;DPR=o.dpr;CW=o.cw;CH=o.ch;CYC=o.cyc;cam.x=o.cx;cam.y=o.cy;cam.zoom=o.cz;}}
+function chartImg(){const s=window.DR_CHART_IMG;if(!s)return null;if(chartImgSrc!==s){chartImgSrc=s;chartImgEl=new Image();chartImgEl.src=s;}return chartImgEl.complete&&chartImgEl.naturalWidth?chartImgEl:null;}
+let vellumPat=null;
+function vellumTile(){if(vellumPat)return vellumPat;const c=document.createElement("canvas");c.width=c.height=256;const g=c.getContext("2d");let s=7;const r=()=>(s=(s*16807)%2147483647)/2147483647;
+  for(let i=0;i<26;i++){const x=r()*256,y=r()*256,rad=14+r()*46,gr=g.createRadialGradient(x,y,0,x,y,rad);gr.addColorStop(0,`rgba(${150+r()*40|0},${105+r()*30|0},50,${.05+r()*.07})`);gr.addColorStop(1,"rgba(150,105,50,0)");g.fillStyle=gr;
+    for(const ox of[-256,0,256])for(const oy of[-256,0,256]){g.save();g.translate(ox,oy);g.fillRect(x-rad,y-rad,rad*2,rad*2);g.restore();}}
+  for(let i=0;i<500;i++){g.fillStyle=`rgba(90,60,25,${.05+r()*.12})`;g.fillRect(r()*256,r()*256,1+r()*1.5,1+r()*1.5);}
+  g.strokeStyle="rgba(120,90,50,.07)";g.lineWidth=.5;for(let i=0;i<70;i++){const x=r()*256,y=r()*256,a=r()*PI;g.beginPath();g.moveTo(x,y);g.lineTo(x+Math.cos(a)*(6+r()*14),y+Math.sin(a)*(6+r()*14));g.stroke();}
+  return vellumPat=ctx.createPattern(c,"repeat");}
+function drawVellum(){ctx.fillStyle="#e7d6a6";ctx.fillRect(0,0,CW,CH);ctx.fillStyle="rgba(96,128,108,.20)";ctx.fillRect(0,0,CW,CH);
+  const p=vellumTile();ctx.save();ctx.fillStyle=p;ctx.translate((-cam.x*cam.zoom*.3)%256,(cam.y*cam.zoom*.3)%256);ctx.fillRect(-256,-256,CW+512,CH+512);ctx.restore();}
+function drawVignetteEdge(){const g=ctx.createRadialGradient(CW/2,CH/2,Math.min(CW,CH)*.35,CW/2,CH/2,Math.max(CW,CH)*.75);g.addColorStop(0,"rgba(110,70,25,0)");g.addColorStop(1,"rgba(110,70,25,.30)");ctx.fillStyle=g;ctx.fillRect(0,0,CW,CH);}
+function drawRose17(x,y,r){
+  const INKC="#3a2614",RED="#8f2f1f",GRN="#3d6b46";ctx.save();ctx.translate(x,y);ctx.lineJoin="round";
+  for(const k of[1,.9,.62]){ctx.strokeStyle=INKC;ctx.lineWidth=k===1?1.3:.7;ctx.beginPath();ctx.arc(0,0,r*k,0,2*PI);ctx.stroke();}
+  ctx.strokeStyle=INKC;for(let d=0;d<360;d+=5){const a=d*D2R,l=d%45===0?.1:d%15===0?.06:.035;ctx.lineWidth=d%45===0?1:.5;ctx.beginPath();ctx.moveTo(Math.sin(a)*r*.9,-Math.cos(a)*r*.9);ctx.lineTo(Math.sin(a)*r*(.9+l),-Math.cos(a)*r*(.9+l));ctx.stroke();}
+  for(let i=0;i<32;i++){const a=i*11.25*D2R,card=i%8===0,half=i%4===0&&!card,len=card?.88:half?.7:.5,w=card?.1:half?.07:.045;
+    const tip=[Math.sin(a)*r*len,-Math.cos(a)*r*len],l=[Math.sin(a-w*2)*r*.16,-Math.cos(a-w*2)*r*.16],rr=[Math.sin(a+w*2)*r*.16,-Math.cos(a+w*2)*r*.16];
+    ctx.beginPath();ctx.moveTo(tip[0],tip[1]);ctx.lineTo(l[0],l[1]);ctx.lineTo(0,0);ctx.closePath();ctx.fillStyle=card?INKC:half?GRN:RED;ctx.fill();ctx.strokeStyle=INKC;ctx.lineWidth=.6;ctx.stroke();
+    ctx.beginPath();ctx.moveTo(tip[0],tip[1]);ctx.lineTo(rr[0],rr[1]);ctx.lineTo(0,0);ctx.closePath();ctx.fillStyle="#efe2b8";ctx.fill();ctx.stroke();}
+  // fleur-de-lis at north
+  ctx.fillStyle=INKC;const fy=-r*1.04,fs=Math.max(4,r*.09);ctx.beginPath();ctx.ellipse(0,fy-fs*.5,fs*.45,fs*1.2,0,0,2*PI);ctx.fill();
+  for(const sd of[-1,1]){ctx.save();ctx.translate(sd*fs*.55,fy);ctx.rotate(sd*.7);ctx.beginPath();ctx.ellipse(0,0,fs*.35,fs*1,0,0,2*PI);ctx.fill();ctx.restore();}
+  ctx.fillRect(-fs*.7,fy+fs*.9,fs*1.4,fs*.28);
+  ctx.font=`italic ${Math.max(9,r*.14)}px 'IM Fell English',Georgia,serif`;ctx.textAlign="center";ctx.fillStyle=INKC;ctx.fillText("E",r*1.14,r*.04);ctx.fillText("S",0,r*1.2);ctx.fillText("W",-r*1.14,r*.04);
+  ctx.restore();}
+function vShip(x,y,s,flip){ // an engraved galleon in the open sea
+  ctx.save();ctx.translate(x,y);ctx.scale(flip?-s:s,s);ctx.lineJoin="round";ctx.lineCap="round";const INKC="#3a2614";ctx.strokeStyle=INKC;ctx.fillStyle="#efe2b8";ctx.lineWidth=1/s*1.1;
+  ctx.beginPath();ctx.moveTo(-26,0);ctx.quadraticCurveTo(-30,10,-18,13);ctx.lineTo(18,13);ctx.quadraticCurveTo(30,10,32,-6);ctx.lineTo(24,-2);ctx.lineTo(-20,-2);ctx.closePath();ctx.fill();ctx.stroke();
+  ctx.beginPath();ctx.moveTo(-22,5);ctx.lineTo(28,5);ctx.moveTo(-20,9);ctx.lineTo(24,9);ctx.stroke();
+  for(const[mx,h,w]of[[-12,-34,13],[4,-42,15],[18,-28,10]]){ctx.beginPath();ctx.moveTo(mx,-2);ctx.lineTo(mx,h);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(mx-w,h+5);ctx.quadraticCurveTo(mx,h+9,mx+w,h+5);ctx.lineTo(mx+w*.9,h+22);ctx.quadraticCurveTo(mx,h+27,mx-w*.9,h+22);ctx.closePath();ctx.fill();ctx.stroke();
+    ctx.beginPath();ctx.moveTo(mx-w*.7,h+13);ctx.lineTo(mx+w*.7,h+13);ctx.stroke();}
+  ctx.beginPath();ctx.moveTo(4,-42);ctx.lineTo(16,-46);ctx.lineTo(4,-48);ctx.stroke();
+  ctx.lineWidth=1/s*.8;for(let i=0;i<4;i++){ctx.beginPath();ctx.moveTo(-34+i*16,17+(i%2)*2);ctx.quadraticCurveTo(-30+i*16,13,-26+i*16,17+(i%2)*2);ctx.stroke();}
+  ctx.restore();}
+function vSerpent(x,y,s){ // a sea serpent
+  ctx.save();ctx.translate(x,y);ctx.scale(s,s);ctx.lineJoin="round";ctx.lineCap="round";const INKC="#3a2614";ctx.strokeStyle=INKC;ctx.fillStyle="#efe2b8";ctx.lineWidth=1.2/s;
+  for(let i=0;i<3;i++){const hx=-70+i*34;ctx.beginPath();ctx.moveTo(hx,0);ctx.bezierCurveTo(hx+2,-24,hx+28,-24,hx+30,0);ctx.bezierCurveTo(hx+26,-14,hx+8,-14,hx+4,0);ctx.closePath();ctx.fill();ctx.stroke();
+    ctx.beginPath();for(let k=0;k<5;k++){ctx.moveTo(hx+6+k*4,-9-Math.sin(k/4*PI)*6);ctx.lineTo(hx+7+k*4,-5);}ctx.stroke();}
+  ctx.beginPath();ctx.moveTo(32,0);ctx.bezierCurveTo(36,-18,50,-34,60,-36);ctx.bezierCurveTo(70,-38,76,-30,70,-26);ctx.lineTo(80,-24);ctx.bezierCurveTo(72,-18,62,-18,56,-14);ctx.bezierCurveTo(52,-8,50,-2,48,0);ctx.closePath();ctx.fill();ctx.stroke();
+  ctx.beginPath();ctx.arc(63,-31,1.6,0,2*PI);ctx.fillStyle=INKC;ctx.fill();
+  ctx.beginPath();ctx.moveTo(-72,0);ctx.bezierCurveTo(-84,-6,-92,4,-100,-2);ctx.stroke();
+  ctx.lineWidth=.9/s;for(let i=0;i<7;i++){ctx.beginPath();ctx.moveTo(-90+i*22,4);ctx.quadraticCurveTo(-84+i*22,0,-78+i*22,4);ctx.stroke();}
+  ctx.restore();}
+function vCartouche(x,y,w,h){ // title scroll
+  ctx.save();ctx.translate(x,y);ctx.lineJoin="round";const INKC="#3a2614";ctx.strokeStyle=INKC;ctx.fillStyle="#efe2b8";ctx.lineWidth=1.3;
+  ctx.beginPath();ctx.moveTo(-w/2,-h/2);ctx.lineTo(w/2,-h/2);ctx.lineTo(w/2,h/2);ctx.lineTo(-w/2,h/2);ctx.closePath();ctx.fill();ctx.stroke();
+  ctx.lineWidth=.6;ctx.strokeRect(-w/2+4,-h/2+4,w-8,h-8);
+  for(const sd of[-1,1]){ctx.lineWidth=1.3;ctx.beginPath();ctx.arc(sd*(w/2),-h/2+h*.22,h*.22,0,2*PI);ctx.fill();ctx.stroke();ctx.beginPath();ctx.arc(sd*(w/2),h/2-h*.22,h*.22,0,2*PI);ctx.fill();ctx.stroke();}
+  ctx.fillStyle=INKC;ctx.textAlign="center";ctx.font=`italic ${Math.round(h*.3)}px 'IM Fell English',Georgia,serif`;ctx.fillText("A Chart of the",0,-h*.12);
+  ctx.font=`${Math.round(h*.3)}px 'IM Fell English SC',Georgia,serif`;ctx.fillText("Caribbee Islands",0,h*.2);
+  ctx.font=`italic ${Math.round(h*.16)}px 'IM Fell English',Georgia,serif`;ctx.fillText("with the Depths and Heights in Metres",0,h*.38);
+  ctx.restore();}
+function drawEngraved(){
+  const z=cam.zoom,L=sx(0),R=sx(W_NM),T=sy(H_NM),B=sy(0);
+  // neat double rule round the chart
+  ctx.save();ctx.strokeStyle="#3a2614";ctx.lineWidth=1.6;ctx.strokeRect(L,T,R-L,B-T);ctx.lineWidth=.6;ctx.strokeRect(L+5,T+5,R-L-10,B-T-10);ctx.restore();
+  if(z>5)return; // the vignettes live on the open sea of the whole chart
+  const f=z<3?1:Math.max(0,(5-z)/2);if(f<=0)return;
+  ctx.save();ctx.globalAlpha=f*.9;
+  const s=z/3.2; // vignette scale in px per drawing unit
+  let p=geo(15.1,-63.1);vShip(sx(p.x),sy(p.y),s*.9,false);
+  p=geo(11.9,-58.8);vShip(sx(p.x),sy(p.y),s*.8,true);
+  p=geo(16.5,-59.3);vSerpent(sx(p.x),sy(p.y),s*.9);
+  p=geo(11.55,-62.65);vCartouche(sx(p.x),sy(p.y),Math.min(300,s*190),Math.min(110,s*70));
+  ctx.restore();
+  const r2=geo(13.6,-58.6);drawRose17(sx(r2.x),sy(r2.y),Math.max(26,Math.min(80,z*12)));}
+function drawChartImage(){const im=chartImg();if(!im)return;const z=cam.zoom,a=z<=10?1:Math.max(0,1-(z-10)/14);if(a<=0)return;
+  ctx.save();ctx.globalAlpha=a;ctx.imageSmoothingEnabled=true;ctx.drawImage(im,sx(0),sy(H_NM),W_NM*z,H_NM*z);ctx.restore();}
+function drawHachures(){
+  if(cam.zoom>14)return; // up close the strokes would read as single marks, so the land is left to its contour lines
+  const R=buildRelief(),z=cam.zoom,xa=cam.x-CW/2/z,xb=cam.x+CW/2/z,yt=cam.y+CYC/z,yb=cam.y-(CH-CYC)/z;
+  ctx.save();ctx.lineCap="round";ctx.strokeStyle="rgba(70,42,20,.62)";
+  for(const L of R.lands){const{E,Ew:w,Eh:h,lg,ox,oy,H}=L;if(!E)continue;const x0=Math.max(ox,xa),x1=Math.min(ox+w*lg,xb),y0=Math.max(oy,yb),y1=Math.min(oy+h*lg,yt);if(x1<=x0||y1<=y0)continue;
+    let st=13/z;st=Math.max(st,lg*.9);if(((x1-x0)/st)*((y1-y0)/st)>7000)st=Math.sqrt(((x1-x0)*(y1-y0))/7000);
+    for(let gy=Math.ceil(y0/st)*st;gy<y1;gy+=st)for(let gx=Math.ceil(x0/st)*st;gx<x1;gx+=st){
+      const hh=Math.sin(gx*127.1+gy*311.7)*43758.5453,j=hh-Math.floor(hh),x=gx+(j-.5)*st*.8,y=gy+((hh*7.7%1)-.5)*st*.8;
+      const i=Math.round((x-ox)/lg),k=Math.round((y-oy)/lg);if(i<1||k<1||i>=w-1||k>=h-1)continue;const e=E[k*w+i];if(e<18)continue;
+      const gxv=(E[k*w+i+1]-E[k*w+i-1])/(2*lg),gyv=(E[(k+1)*w+i]-E[(k-1)*w+i])/(2*lg),m=Math.hypot(gxv,gyv);if(m<3)continue;
+      const len=Math.min(11,2+m/Math.max(40,H*.08)*7),ux=-gxv/m,uy=gyv/m,X=sx(x),Y=sy(y);
+      ctx.lineWidth=m>H*.12?.9:.55;ctx.beginPath();ctx.moveTo(X,Y);ctx.lineTo(X+ux*len,Y+uy*len);ctx.stroke();}}
+  ctx.restore();}
+function drawGrat(){
+  const c17=chartStyle()!=="old",L=sx(0),R=sx(W_NM),T=sy(H_NM),B=sy(0);
+  ctx.save();ctx.strokeStyle=c17?"rgba(58,38,20,.30)":"rgba(46,37,25,.22)";ctx.lineWidth=.8;ctx.fillStyle=c17?"#5a3c22":"#7b6a55";ctx.font="11px 'IBM Plex Mono',monospace";
+  const minor=cam.zoom>80?1/60:cam.zoom>6?1/6:cam.zoom>2.5?.5:1;
+  for(let lat=Math.ceil(LAT0/minor)*minor;lat<=LAT1;lat+=minor){const y=sy((lat-LAT0)*60);const major=Math.abs(lat-Math.round(lat))<1e-6;ctx.globalAlpha=major?1:.45;ctx.beginPath();ctx.moveTo(Math.max(0,L),y);ctx.lineTo(Math.min(CW,R),y);ctx.stroke();if(major&&y>14&&y<CH-4)ctx.fillText(fmtLat(lat).replace("00′",""),Math.max(L,0)+6,y-4);}
+  for(let lon=Math.ceil(LON0/minor)*minor;lon<=LON1;lon+=minor){const x=sx((lon-LON0)*60*COSR);const major=Math.abs(lon-Math.round(lon))<1e-6;ctx.globalAlpha=major?1:.45;ctx.beginPath();ctx.moveTo(x,Math.max(0,T));ctx.lineTo(x,Math.min(CH,B));ctx.stroke();if(major&&x>4&&x<CW-50)ctx.fillText(fmtLon(lon).replace("00′",""),x+4,Math.max(T,0)+14);}
+  ctx.restore();
+}
 function drawChart(){
   if(CW<2||CH<2)return; // the chart pane is folded away, so there is nothing to draw
   ctx.setTransform(DPR,0,0,DPR,0,0);
-  ctx.fillStyle="#f6eed9";ctx.fillRect(0,0,CW,CH);
-  ctx.fillStyle="rgba(143,176,184,.26)";ctx.fillRect(0,0,CW,CH);
-  drawReliefWater();
-  if(paperPat){ctx.fillStyle=paperPat;ctx.fillRect(0,0,CW,CH);}
+  const ST=chartStyle(),c17=ST!=="old",INK17="#3a2614";
+  if(c17)drawVellum();else{ctx.fillStyle="#f6eed9";ctx.fillRect(0,0,CW,CH);
+  ctx.fillStyle="rgba(143,176,184,.26)";ctx.fillRect(0,0,CW,CH);}
+  if(c17)ctx.globalAlpha=.55;drawReliefWater();ctx.globalAlpha=1;
+  if(paperPat&&!c17){ctx.fillStyle=paperPat;ctx.fillRect(0,0,CW,CH);}
   // off-chart margins
   ctx.fillStyle="rgba(60,45,30,.10)";
   const L=sx(0),R=sx(W_NM),T=sy(H_NM),B=sy(0);
   if(L>0)ctx.fillRect(0,0,L,CH);if(R<CW)ctx.fillRect(R,0,CW-R,CH);if(T>0)ctx.fillRect(0,0,CW,T);if(B<CH)ctx.fillRect(0,B,CW,CH-B);
   // rhumb lines
   ctx.save();ctx.lineWidth=.7;
-  for(let i=0;i<32;i++){const a=i*11.25*D2R;ctx.strokeStyle=i%8===0?"rgba(168,69,44,.30)":i%4===0?"rgba(168,69,44,.20)":"rgba(168,69,44,.10)";
+  for(let i=0;i<32;i++){const a=i*11.25*D2R;ctx.strokeStyle=c17?(i%8===0?"rgba(58,38,20,.34)":i%4===0?(i%8===4?"rgba(143,47,31,.34)":"rgba(61,107,70,.34)"):"rgba(58,38,20,.14)"):(i%8===0?"rgba(168,69,44,.30)":i%4===0?"rgba(168,69,44,.20)":"rgba(168,69,44,.10)");
     ctx.beginPath();ctx.moveTo(sx(ROSE.x),sy(ROSE.y));ctx.lineTo(sx(ROSE.x+Math.sin(a)*900),sy(ROSE.y+Math.cos(a)*900));ctx.stroke();}
   ctx.restore();
-  // graticule
-  ctx.save();ctx.strokeStyle="rgba(46,37,25,.22)";ctx.lineWidth=.8;ctx.fillStyle="#7b6a55";ctx.font="11px 'IBM Plex Mono',monospace";
-  const minor=cam.zoom>80?1/60:cam.zoom>6?1/6:cam.zoom>2.5?.5:1;
-  for(let lat=Math.ceil(LAT0/minor)*minor;lat<=LAT1;lat+=minor){const y=sy((lat-LAT0)*60);const major=Math.abs(lat-Math.round(lat))<1e-6;ctx.globalAlpha=major?1:.45;ctx.beginPath();ctx.moveTo(Math.max(0,L),y);ctx.lineTo(Math.min(CW,R),y);ctx.stroke();if(major&&y>14&&y<CH-4)ctx.fillText(fmtLat(lat).replace("00′",""),Math.max(L,0)+6,y-4);}
-  for(let lon=Math.ceil(LON0/minor)*minor;lon<=LON1;lon+=minor){const x=sx((lon-LON0)*60*COSR);const major=Math.abs(lon-Math.round(lon))<1e-6;ctx.globalAlpha=major?1:.45;ctx.beginPath();ctx.moveTo(x,Math.max(0,T));ctx.lineTo(x,Math.min(CH,B));ctx.stroke();if(major&&x>4&&x<CW-50)ctx.fillText(fmtLon(lon).replace("00′",""),x+4,Math.max(T,0)+14);}
-  ctx.restore();
+  if(ST!=="img")drawGrat();
   // compass rose
-  drawRose(sx(ROSE.x),sy(ROSE.y),Math.max(26,Math.min(90,cam.zoom*14)));
+  if(c17){drawRose17(sx(ROSE.x),sy(ROSE.y),Math.max(26,Math.min(90,cam.zoom*14)));drawEngraved();}else drawRose(sx(ROSE.x),sy(ROSE.y),Math.max(26,Math.min(90,cam.zoom*14)));
   // shoals
   ctx.save();ctx.lineJoin="round";
-  for(const isl of islands){path(isl.pts);ctx.strokeStyle="rgba(74,110,140,.18)";ctx.lineWidth=Math.min(40,Math.max(2,4*cam.zoom));ctx.stroke();}
-  for(const isl of islands){if(isl.main)continue;for(const k of[1.08,1.17]){ctx.beginPath();isl.pts.forEach((p,i)=>{const x=sx(isl.c.x+(p.x-isl.c.x)*k),y=sy(isl.c.y+(p.y-isl.c.y)*k);i?ctx.lineTo(x,y):ctx.moveTo(x,y);});ctx.closePath();ctx.strokeStyle=`rgba(46,37,25,${k<1.1?.35:.18})`;ctx.lineWidth=.7;ctx.stroke();}}
+  for(const isl of islands){path(isl.pts);ctx.strokeStyle=c17?"rgba(70,100,80,.16)":"rgba(74,110,140,.18)";ctx.lineWidth=Math.min(40,Math.max(2,4*cam.zoom));ctx.stroke();}
+  for(const isl of islands){if(isl.main)continue;for(const k of[1.08,1.17]){ctx.beginPath();isl.pts.forEach((p,i)=>{const x=sx(isl.c.x+(p.x-isl.c.x)*k),y=sy(isl.c.y+(p.y-isl.c.y)*k);i?ctx.lineTo(x,y):ctx.moveTo(x,y);});ctx.closePath();ctx.strokeStyle=`rgba(${c17?"58,38,20":"46,37,25"},${k<1.1?.35:.18})`;ctx.lineWidth=.7;if(c17)ctx.setLineDash([1.5,3.5]);ctx.stroke();ctx.setLineDash([]);}}
   drawReliefLines();
   // reefs
   for(const r of reefs){ctx.strokeStyle="rgba(74,110,140,.75)";ctx.lineWidth=1;for(let i=0;i<r.pts.length;i++){const p=r.pts[i],x=sx(p.x),y=sy(p.y),s=Math.max(2,cam.zoom*.6);ctx.beginPath();ctx.moveTo(x-s,y);ctx.lineTo(x+s,y);ctx.moveTo(x,y-s);ctx.lineTo(x,y+s);ctx.stroke();}}
   // land
-  for(const isl of islands){path(isl.pts);ctx.fillStyle="#d9d6a4";ctx.fill();ctx.strokeStyle="#2e2519";ctx.lineWidth=1.2;ctx.stroke();}
+  for(const isl of islands){path(isl.pts);ctx.fillStyle=c17?"#efe2b8":"#d9d6a4";ctx.fill();ctx.strokeStyle=c17?INK17:"#2e2519";ctx.lineWidth=c17?1.5:1.2;ctx.stroke();}
   ctx.restore();
   drawReliefLand();
+  
   // land hatching
   if(!showLand){ctx.save();for(const isl of islands){path(isl.pts);ctx.save();ctx.clip();ctx.strokeStyle="rgba(46,37,25,.12)";ctx.lineWidth=.6;const c=sx(isl.c.x),d=sy(isl.c.y),r=Math.max(40,30*cam.zoom);for(let k=-r;k<r;k+=4){ctx.beginPath();ctx.moveTo(c+k,d-r);ctx.lineTo(c+k+r*.6,d+r);ctx.stroke();}ctx.restore();}ctx.restore();}
+  drawPorts();
+  if(ST==="img"){drawChartImage();drawGrat();}
   // landmarks
   for(const lm of LMS){const x=sx(lm.x),y=sy(lm.y),s=Math.max(3,Math.min(7,cam.zoom*1.4));ctx.beginPath();ctx.moveTo(x,y-s);ctx.lineTo(x+s*.8,y+s*.6);ctx.lineTo(x-s*.8,y+s*.6);ctx.closePath();ctx.fillStyle=lm.vis?"#a8452c":"#7b6a55";ctx.fill();}
   drawSpotHeights();
@@ -2197,7 +2351,7 @@ function drawChart(){
   ctx.save();ctx.fillStyle="#2e2519";ctx.textAlign="center";
   for(const isl of islands){if(isl.small&&cam.zoom<2.2)continue;const fs=isl.main?14:isl.small?11:Math.max(11,Math.min(17,cam.zoom*4));ctx.font=`italic ${fs}px 'IM Fell English',Georgia,serif`;
     const lx=sx(isl.c.x),ly=sy(isl.c.y);const off=isl.small?14:0;
-    ctx.fillStyle="rgba(246,238,217,.75)";const w=ctx.measureText(isl.name).width;ctx.fillRect(lx+off-w/2-2,ly-fs*.8+off*0,w+4,fs*1.05);ctx.fillStyle="#2e2519";ctx.fillText(isl.name,lx+off,ly);}
+    ctx.fillStyle=c17?"rgba(231,214,166,.7)":"rgba(246,238,217,.75)";const w=ctx.measureText(isl.name).width;ctx.fillRect(lx+off-w/2-2,ly-fs*.8+off*0,w+4,fs*1.05);ctx.fillStyle="#2e2519";ctx.fillText(isl.name,lx+off,ly);}
   ctx.restore();
   // ports
   for(const k in PORTS){const p=PORTS[k];const x=sx(p.x),y=sy(p.y);const dest=S&&S.v.to===k,orig=S&&S.v.from===k;
@@ -6927,7 +7081,7 @@ const SCN_MECH=[
   dials:[{k:"dr",label:"Chart shows",live:true,opts:()=>[["true","True position"],["dr","Reckoning only"]],def:"true"}],
   apply(s,g){const lost=g("dr")==="dr";$("aDR").checked=lost;s.mode=lost?"lost":"trial";},
   triggers:[],
-  readouts:[["Reckoning error",s=>Math.hypot(s.est.x-s.ship.x,s.est.y-s.ship.y).toFixed(1)+" nm"],["Log heaves / fixes",s=>(s.heaves||0)+" / "+(s.fixes||0)],["Water under keel (chart)",s=>{const f=depthFmAt(s.ship.x,s.ship.y);return f==null?"-":f<=0?"aground (land)":Math.round(f)+" fathoms";}]]},
+  readouts:[["Reckoning error",s=>Math.hypot(s.est.x-s.ship.x,s.est.y-s.ship.y).toFixed(1)+" nm"],["Log heaves / fixes",s=>(s.heaves||0)+" / "+(s.fixes||0)],["Water under keel (chart)",s=>{const f=depthAt(s.ship.x,s.ship.y);return f==null?"-":f<=0?"aground (land)":Math.round(f)+" m";}]]},
  {id:"damage",name:"Hull and rigging",
   dials:[{k:"hull",label:"Hull at start",start:true,opts:()=>[["1","Sound"],["0.7","Damaged"],["0.4","Badly damaged"]],def:"1"}],
   apply(s,g,starting){if(starting)s.hull=+g("hull");},
@@ -7972,7 +8126,7 @@ window.addEventListener("load",()=>setTimeout(boot,400));
 window.__CUT=M;window.__CUTfast=()=>{M.fast=1;};
 })();
 
-window.__DR={buildRelief,depthFmAt,drawChart,cam,hour:()=>S&&!S.done?localHours(S,S.t):null,preview:PV,cam:()=>R3,footAt,PF,portGeom,openPortCard,openPortPlan,tideLvl,tideTable,tideStream,plotFix,LMS,currentAt,landInit,WINDK,CURK,dockAtPort,showCrisis,crisisKind,punish,loadState,packState,decS,toggleOars,setStroke,oarPivot,STROKES,pickShip,get SHIP(){return SHIP},SHIPDEFS,SPEC,useShip,applyShip,crewOf,rigOf,linesOf,get shipPick(){return shipPick},set shipPick(v){shipPick=v},svMove,svCtx,sx,sy,openPortCard,openPortPlan,get R3(){return R3},setMain,update3D,get S(){return S},VOYAGES,PORTS,islands,reefs,LMS,step,startVoyage,setCourse,tackOrWear,setSail,assistStep,noonAvailable,windAt:(x,y,t)=>windAt(S,x,y,t),inPoly,crossFix,plotFix,takeBearing,markNoon,startObserve,noonAvailable,endVoyage,toGeo,geo,atPort:()=>atPort(S),buyStore,sellFish,toggleFish,coastNm,fishStep,tradeBuy,tradeSell,tradeUI,tradeSite,tradeJettison,contractBoard,contractText,contractAccept,contractDeliver,mkInit,holdUsed,marketBlurb,tradeStep,buyNews};
+window.__DR={exportChart,buildRelief,depthAt,drawChart,camC:cam,hour:()=>S&&!S.done?localHours(S,S.t):null,preview:PV,cam:()=>R3,footAt,PF,portGeom,openPortCard,openPortPlan,tideLvl,tideTable,tideStream,plotFix,LMS,currentAt,landInit,WINDK,CURK,dockAtPort,showCrisis,crisisKind,punish,loadState,packState,decS,toggleOars,setStroke,oarPivot,STROKES,pickShip,get SHIP(){return SHIP},SHIPDEFS,SPEC,useShip,applyShip,crewOf,rigOf,linesOf,get shipPick(){return shipPick},set shipPick(v){shipPick=v},svMove,svCtx,sx,sy,openPortCard,openPortPlan,get R3(){return R3},setMain,update3D,get S(){return S},VOYAGES,PORTS,islands,reefs,LMS,step,startVoyage,setCourse,tackOrWear,setSail,assistStep,noonAvailable,windAt:(x,y,t)=>windAt(S,x,y,t),inPoly,crossFix,plotFix,takeBearing,markNoon,startObserve,noonAvailable,endVoyage,toGeo,geo,atPort:()=>atPort(S),buyStore,sellFish,toggleFish,coastNm,fishStep,tradeBuy,tradeSell,tradeUI,tradeSite,tradeJettison,contractBoard,contractText,contractAccept,contractDeliver,mkInit,holdUsed,marketBlurb,tradeStep,buyNews};
 })();
 </script>
 <style>/* UI Layout Tuner settings (phone), 2026-10-29 */
