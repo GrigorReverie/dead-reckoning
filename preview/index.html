@@ -1036,7 +1036,8 @@ const beaufort=kn=>{let i=0;while(i<BFT.length&&kn>=BFT[i])i++;return i;};
 const CURRENT={set:290,drift:.35};
 // Preview menu overrides (null = the game's own auto weather); see the Preview panel near the end of the script
 // Every game mechanic is listed here AND described in the Scenario registry (SCN_MECH). Add an id here and an entry there when you add a mechanic.
-const GAME_MECHANICS=["setup","weather","tides","fishing","pirates","crew","trade","loading","navigation","damage","events"];
+const GAME_MECHANICS=["setup","weather","tides","fishing","pirates","crew","trade","loading","navigation","damage","events","harbour"];
+let HARBOURK=1; // harbour traffic: 0 none, .45 light, 1 normal, 1.7 busy (Scenario)
 let EVFREQ=1; // sea events: 1 = natural pace, 0 = off, higher = more often (Cheats menu and Scenario)
 const PV={wind:null,sea:null,cur:null,wx:null,vis:null,fauna:1,tide:1,shadows:true};
 // tides: semi-diurnal (12.42 h) with a fortnightly spring and neap swing; range in metres, ph the hour of high water in the lunar cycle
@@ -1955,7 +1956,7 @@ function plotFix(){const f=crossFix();if(!f)return;
   updateUI(true);}
 
 /* ---------- voyages ---------- */
-function startVoyage(v){
+function startVoyage(v){HARBOURK=1;
   stopSkip();
   S=newState(v);applyShip();setPlotting(false);updateRoute();svNew();openShip(false);selSails.clear();$("sailSl").style.display="none";
   $("ovStart").hidden=true;$("ovEnd").hidden=true;modalOpen=false;
@@ -3278,6 +3279,104 @@ function buildForests(R){
   }
 }
 
+/* ---- harbour traffic: moored and anchored ships in every port ----
+   Each of the ten ship models is built once, outside only (hull, spars, furled sails, rigging; no lamps and no crew), merged into a handful of meshes
+   and cloned for every berth, so a ship in port costs a few draw calls and shares its geometry. A port's ships are made when you come within a few miles,
+   one model a frame, and hidden again when you leave or when they are far off. Density (Scenario > Harbour traffic) shows more or fewer of the same ships. */
+const HB_W={jolly:2,cutter:3,sultana:2.2,brig:3,caroline:1.8,endeavour:1.4,xebec:1.4,gotheborg:.6,constitution:.5,trinidad:.6};
+const HB_BIG=new Set(["endeavour","gotheborg","constitution","trinidad"]); // too deep for the quays and piers: these lie in the roads
+const HB_COUNT={bridgetown:14,stjohns:12,basseterre:12,castries:9,kingstown:7},HB_SIZE={bridgetown:1.3,stjohns:1,basseterre:1,castries:.8,kingstown:.5}; // ships at Normal; a bigger port sees more big ships
+const HB_NEAR=2.6,HB_SHOW=1.7; // nm: a port's ships exist within HB_NEAR, each is drawn within HB_SHOW
+function harbourMerge(root){
+  root.updateMatrixWorld(true);
+  const B=new Map(),walk=(o,vis)=>{vis=vis&&o.visible;
+    if(vis&&(o.isMesh||o.isLineSegments)&&o.geometry&&o.material&&o.geometry.attributes.position){
+      const key=o.material.uuid+(o.isLineSegments?"L":"M");let b=B.get(key);if(!b)B.set(key,b={mat:o.material,line:!!o.isLineSegments,P:[],N:[],U:[],T:[]});
+      const g=o.geometry.index?o.geometry.toNonIndexed():o.geometry.clone();if(!b.line&&!g.attributes.normal)g.computeVertexNormals();g.applyMatrix4(o.matrixWorld);
+      const n=g.attributes.position.count,A=g.attributes;
+      b.P.push(A.position.array);b.N.push(A.normal?A.normal.array:new Float32Array(n*3));b.U.push(A.uv?A.uv.array:new Float32Array(n*2));b.T.push(A.aTone?A.aTone.array:new Float32Array(n));}
+    for(const c of o.children)walk(c,vis);};
+  walk(root,true);
+  const cat=a=>{let n=0;for(const x of a)n+=x.length;const r=new Float32Array(n);let q=0;for(const x of a){r.set(x,q);q+=x.length;}return r;};
+  let z0=1e9,z1=-1e9,x1=0,y1=0;const parts=[];
+  for(const b of B.values()){const P=cat(b.P);for(let i=0;i<P.length;i+=3){z0=Math.min(z0,P[i+2]);z1=Math.max(z1,P[i+2]);x1=Math.max(x1,Math.abs(P[i]));y1=Math.max(y1,P[i+1]);}parts.push([b,P]);}
+  const zc=(z0+z1)/2,out=new THREE.Group();
+  for(const[b,P]of parts){for(let i=2;i<P.length;i+=3)P[i]-=zc;
+    const g=new THREE.BufferGeometry();g.setAttribute("position",new THREE.BufferAttribute(P,3));g.setAttribute("aTone",new THREE.BufferAttribute(cat(b.T),1));
+    if(!b.line){g.setAttribute("normal",new THREE.BufferAttribute(cat(b.N),3));g.setAttribute("uv",new THREE.BufferAttribute(cat(b.U),2));}
+    out.add(b.line?new THREE.LineSegments(g,b.mat):new THREE.Mesh(g,b.mat));}
+  out.userData={len:z1-z0,rad:Math.hypot(x1,(z1-z0)/2)};return out;
+}
+function harbourTemplate(R,id){
+  const T=R.hbT||(R.hbT={});if(T[id])return T[id];
+  fleetMats(R);const sc=Object.create(R);sc.scene=new THREE.Scene();sc.hullMatG=null; // a scratch copy, so the player's own ship fields are left alone
+  const sp=SPEC[id];buildVessel3D(sc,sp,true);
+  for(const sl of sc.gen.sails){sl.gs.mesh.visible=false;sl.gs.lines.visible=false;sl.bun.visible=true;} // sails furled on the yards
+  const t=harbourMerge(sc.ship);t.userData.beam=2*sp.hull.B;t.userData.draft=sp.hull.T;t.rotation.order="YXZ";
+  return T[id]=t;
+}
+function harbourPlan(F){ // which ships this port gets (deterministic per port)
+  const k=F.k,rnd=rng32(hashStr(k+"|ships")),n=Math.ceil((HB_COUNT[k]||8)*1.7),sz=HB_SIZE[k]||1,types=[];
+  for(let i=0;i<n;i++){let tot=0;const w=Object.keys(HB_W).map(id=>{const x=HB_W[id]*(HB_BIG.has(id)?sz:1);tot+=x;return[id,x];});let r=rnd()*tot;
+    let pick=w[0][0];for(const[id,x]of w){if((r-=x)<0){pick=id;break;}}types.push(pick);}
+  F.types=types;F.need=[...new Set(types)];F.rnd=rnd;
+}
+function harbourPlace(R,F){
+  const{o,k}=F,{f,G,lx,lz,S}=o.pf,P0=f.G,X=PORTX[k],rnd=F.rnd,cd=Math.cos(f.d),sd=Math.sin(f.d),placed=[],grp=new THREE.Group();
+  const dk=P0.dock;if(dk)placed.push({u:dk.u,v:dk.v,r:75/S}); // the player's berth
+  const free=(u,v,r)=>{for(const q of placed)if(Math.hypot(q.u-u,q.v-v)<q.r+r)return false;return true;};
+  const wet=(u,v,hu,hv,len,beam)=>{const a=len/2/S,b=beam/2/S;for(const t of[-1,-.5,0,.5,1])for(const s of[-1,0,1]){if(!G.isWater(u+hu*a*t-hv*b*s,v+hv*a*t+hu*b*s))return false;}return true;};
+  const toHead=(dx,dz)=>[-dx*cd-dz*sd,dx*sd-dz*cd]; // a heading on the water to the plan's own axes
+  const Q=P0.quay,ql=[0];for(let i=1;i<Q.length;i++)ql.push(ql[i-1]+Math.hypot(Q[i].u-Q[i-1].u,Q[i].v-Q[i-1].v));
+  const an=X.anch,half=X.shape==="harbour"?X.mouth/2:0;
+  const ships=[],modes=["anchor","quay","pier","anchor","quay","anchor"];
+  F.types.forEach((id,i)=>{
+    const tpl=R.hbT[id],U=tpl.userData,len=U.len,beam=U.beam,rr=(len/2+3)/S;let pose=null;
+    const tryAnchor=()=>{for(let a=0;a<50&&!pose;a++){
+        const u=-46+rnd()*92,v=-14+rnd()*42,b=(70+rnd()*40)*D2R,[hu,hv]=toHead(Math.sin(b),-Math.cos(b));
+        if(Math.pow((u-an[0])/(an[2]*1.35),2)+Math.pow((v-an[1])/(an[3]*1.35),2)<1)continue;
+        if(X.shape==="harbour"&&Math.abs(u)<half+5&&v>-X.ch-5)continue;
+        if(!wet(u,v,hu,hv,len,beam)||G.dist(u,v)*S<(U.draft+.5)/.06*.7+len*.3||!free(u,v,rr))continue;
+        pose={u,v,hu,hv,anch:1};}};
+    const tryQuay=()=>{if(Q.length<3)return;for(let a=0;a<40&&!pose;a++){
+        const s=rnd()*ql[ql.length-1];let j=1;while(j<ql.length-1&&ql[j]<s)j++;const t=(s-ql[j-1])/Math.max(1e-6,ql[j]-ql[j-1]),A=Q[j-1],Bq=Q[j];
+        let tu=Bq.u-A.u,tv=Bq.v-A.v;const tl=Math.hypot(tu,tv)||1;tu/=tl;tv/=tl;if(rnd()<.5){tu=-tu;tv=-tv;}
+        const nu=-(A.nu+(Bq.nu-A.nu)*t),nv=-(A.nv+(Bq.nv-A.nv)*t),off=(beam/2+5)/S,u=A.u+(Bq.u-A.u)*t+nu*off,v=A.v+(Bq.v-A.v)*t+nv*off;
+        if(!wet(u,v,tu,tv,len,beam)||!free(u,v,rr))continue;pose={u,v,hu:tu,hv:tv};}};
+    const tryPier=()=>{const Pp=P0.piers;if(!Pp.length)return;for(let a=0;a<30&&!pose;a++){
+        const p=Pp[(rnd()*Pp.length)|0],side=rnd()<.5?-1:1,t=(len/2/S)*.9+rnd()*Math.max(0,p.len-len/2/S*.5),lat=side*(2.75+beam/2+.5)/S,du=p.du,dv=p.dv;
+        const u=p.u+du*t-dv*lat,v=p.v+dv*t+du*lat,sg=rnd()<.5?1:-1;
+        if(!wet(u,v,du*sg,dv*sg,len,beam)||!free(u,v,rr))continue;pose={u,v,hu:du*sg,hv:dv*sg};}};
+    const order=HB_BIG.has(id)||U.draft>3.2?["anchor"]:modes[i%6]==="quay"?["quay","pier","anchor"]:modes[i%6]==="pier"?["pier","quay","anchor"]:["anchor","quay","pier"];
+    for(const m of order){if(pose)break;(m==="anchor"?tryAnchor:m==="quay"?tryQuay:tryPier)();}
+    if(!pose)return;
+    placed.push({u:pose.u,v:pose.v,r:rr});
+    const m=tpl.clone();m.position.set(lx(pose.u,pose.v),0,lz(pose.u,pose.v));
+    const dx=-pose.hu*cd+pose.hv*sd,dz=-(pose.hu*sd+pose.hv*cd);m.rotation.y=Math.atan2(dx,dz);m.visible=false;grp.add(m);
+    const nm=toNm(f,pose.u,pose.v);ships.push({m,rank:ships.length,x:nm[0],y:nm[1],anch:pose.anch,ph:rnd()*6.28,by:0});
+  });
+  F.ships=ships;F.grp=grp;o.grp.add(grp);
+}
+function updateHarbourFleet(R,dt,sh){
+  const H=R.hb||(R.hb={t:0,ports:{}});H.t+=dt;if(!R.isl)return;
+  for(const o of R.isl){const k=ISLPORT.get(o.isl);if(!k||!o.pf)continue;const f=o.pf.f,d=Math.hypot(f.bx-sh.x,f.by-sh.y);let F=H.ports[k];
+    if(HARBOURK<=0||d>HB_NEAR){if(F&&F.grp)F.grp.visible=false;continue;}
+    if(!F)F=H.ports[k]={o,k};
+    if(!F.grp){ // build one model a frame, then place the ships
+      if(!F.types)harbourPlan(F);
+      const miss=F.need.find(id=>!R.hbT||!R.hbT[id]);
+      if(miss){try{harbourTemplate(R,miss);}catch(e){console.warn("harbour ship",miss,e);F.need=F.need.filter(i=>i!==miss);F.types=F.types.filter(i=>i!==miss);}continue;}
+      try{harbourPlace(R,F);}catch(e){console.warn("harbour place",k,e);F.ships=[];F.grp=new THREE.Group();}
+      continue;}
+    F.grp.visible=true;const show=Math.round((HB_COUNT[k]||8)*HARBOURK);let nv=0;
+    for(const s of F.ships){const dd=Math.hypot(s.x-sh.x,s.y-sh.y),on=s.rank<show&&dd<HB_SHOW;s.m.visible=on;if(!on)continue;nv++;
+      if(dd<.45){const p=H.t*.7+s.ph,a=s.anch?1:.35;s.m.position.y=Math.sin(p)*.05*a;s.m.rotation.z=Math.sin(p*.8+1)*.012*a;s.m.rotation.x=Math.sin(p*.6)*.008*a;}}
+    F.nv=nv;}
+}
+function harbourReadout(s){const H=R3&&R3.hb;if(!H)return "none yet";let best=null,bd=1e9;
+  for(const k in H.ports){const F=H.ports[k],f=F.o.pf.f,d=Math.hypot(f.bx-s.ship.x,f.by-s.ship.y);if(d<bd){bd=d;best=F;}}
+  return best&&best.ships&&bd<HB_NEAR?PORTS[best.k].name+": "+(best.nv||0)+" ships":HARBOURK<=0?"off":"no port near";}
+
 /* the brig's hull lines, shared by the 3D model and the 2D cutaway so the two always agree (z along the keel, y above the water) */
 function brigLines(){
   const sstep=(a,b,v)=>{const t=clamp((v-a)/(b-a),0,1);return t*t*(3-2*t);};
@@ -3743,7 +3842,7 @@ function updateGSail(S,e,belly,flut,t){const{c,NU,NV}=S,p=S.geo.attributes.posit
   S.geo.attributes.position.needsUpdate=true;S.geo.computeVertexNormals();
   const lp=S.lines.geometry.attributes.position.array,pr=S.pairs;for(let i=0;i<pr.length;i++){const a=pr[i]*3;lp[i*3]=p[a];lp[i*3+1]=p[a+1];lp[i*3+2]=p[a+2];}
   S.lines.geometry.attributes.position.needsUpdate=true;}
-function buildVessel3D(R,sp){
+function buildVessel3D(R,sp,ext){ // ext: a harbour ship, outside only (no lamps, lantern, cable or crew)
   const M=fleetMats(R),group=new THREE.Group(),G=new THREE.Group();group.add(G);R.scene.add(group);
   const Ls=linesOf(sp),rig=rigOf(sp,Ls),H=Ls.H,Lh=Ls.Lh,segs=[];
   const {sheer,deck,deckAt,railY,keelY,zF,zS,zA,YW,hx,shape,onHull,zTop,chanAt,qd,fc,poop}=Ls;
@@ -3888,8 +3987,8 @@ function buildVessel3D(R,sp){
   const lg=new THREE.BufferGeometry();lg.setAttribute("position",new THREE.Float32BufferAttribute(segs,3));add(new THREE.LineSegments(lg,M.line)).frustumCulled=false;
   { const mh=masts[sp.pennantOn??0]||masts[0],top=mh.Mt.W([0,mh.Mt.truck,0]),fg=new THREE.Group(),sz=clamp(H.Lwl/24,.25,2.2);fg.position.set(top[0],top[1],top[2]);
     const pg=new THREE.BufferGeometry();pg.setAttribute("position",new THREE.Float32BufferAttribute([0,.45*sz,0,0,-.45*sz,0,1.9*sz*1.4,0,0],3));pg.setIndex([0,1,2]);fg.add(new THREE.Mesh(pg,M.red));G.add(fg);R.flag=fg; }
-  { const cg=new THREE.BufferGeometry();cg.setAttribute("position",new THREE.BufferAttribute(new Float32Array(14*6),3));const cl=new THREE.LineSegments(cg,M.line);cl.frustumCulled=false;cl.visible=false;G.add(cl);R.cable=cl; }
-  R.lantern=new THREE.PointLight(0xffd9a0,0,60);R.lantern.position.set(0,railY(-Lh)+1,-Lh*.85);G.add(R.lantern);
+  if(!ext){ const cg=new THREE.BufferGeometry();cg.setAttribute("position",new THREE.BufferAttribute(new Float32Array(14*6),3));const cl=new THREE.LineSegments(cg,M.line);cl.frustumCulled=false;cl.visible=false;G.add(cl);R.cable=cl;
+  R.lantern=new THREE.PointLight(0xffd9a0,0,60);R.lantern.position.set(0,railY(-Lh)+1,-Lh*.85);G.add(R.lantern); }
   // where things are, for the sea, the crew, the lamps and the camera
   const zw0=qd?qd.z+.7:(H.open?-Lh*.5:-Lh*.45),zw1=fc?fc.z-.7:Lh*.45,hw=z=>Math.max(.25,hx(z,deckAt(z))-H.bwT-.3),mz=masts.map(m=>m.m.z);
   const mainZ=masts.length>1?mz[1]:mz[0],foreZ=mz[0],helmZ=H.tiller?-Lh+H.tiller*.9:(qd?Math.max(-Lh*.7,qd.z-Lh*.12):-Lh*.6),capZ1=qd?qd.z-.6:-Lh*.35,capZ0=Math.max(zA(railY(-Lh))+1.2,helmZ-Lh*.25);
@@ -3913,9 +4012,9 @@ function buildVessel3D(R,sp){
   R.dk.footAt=z=>dy(z);
   if(isOpen)R.dk.thw=oars.length?oars.filter((o,i)=>i%2===0||oars.length<=4).map(o=>[-o.sd*.28,deck(o.z)-.33,o.z]):H.thwarts.map(f=>{const z=-Lh+H.Lwl*f;return[0,deck(z)-.33,z];});
   if(isOpen)R.lamps=R.lamps.slice(0,1);
-  R.lamps=lampSprites(R,G,R.lamps);
+  if(!ext)R.lamps=lampSprites(R,G,R.lamps);
   // the people: helmsman, captain, a lookout in the foretop and as many hands as the deck can show
-  { const mk=(x,y,z,role)=>figKit(R).mk(G,x,y,z,role),D=R.dk,X=SHIPX[sp.id];
+  if(!ext){ const mk=(x,y,z,role)=>figKit(R).mk(G,x,y,z,role),D=R.dk,X=SHIPX[sp.id];
     R.crew=[mk(D.helm[0],isOpen?deck(D.helm[2])-.33:D.helm[1],D.helm[2]+(isOpen?0:.8),"helm")];
     if(!isOpen)R.crew.push(mk(D.cap.x,dy(D.cap.gz),D.cap.gz,"cap"));
     const fm=rig.masts[0];if(!isOpen&&fm.m.top){const ty=fm.W([0,fm.m.h-fm.dbl*.85+.15,0]);R.crew.push(mk(.4,ty[1],ty[2],"look"));}
@@ -4781,7 +4880,7 @@ function update3D(dt,now){
   // world objects relative to ship
   for(const o of R.isl){const c=o.isl.c;o.grp.position.set((c.x-sh.x)*NM,0,-(c.y-sh.y)*NM);const dd=Math.hypot(c.x-sh.x,c.y-sh.y);const q=R.q||0;o.grp.visible=dd<QDIST[q]*R.dm;if(o.veg)o.veg.visible=dd-o.Rr<QVEG[q]*R.dm;}
   updateFauna(R,dt,gain,wdx,wdz,nightF);
-  updatePirates3D(R);updateQuay3D(R);updateEvents3D(R);
+  updatePirates3D(R);updateQuay3D(R);updateEvents3D(R);updateHarbourFleet(R,dt,sh);
   const dest=R.towns[S.v.to];
   if(dest){R.beacon.position.set((dest.x-sh.x)*NM,0,-(dest.y-sh.y)*NM);R.beacon.visible=S.mode==="trial";}else R.beacon.visible=false;
   { const rl=R.routeLine,pts=S.route.pts,n=Math.min(pts.length,65);
@@ -7118,6 +7217,11 @@ const SCN_MECH=[
   apply(s,g,starting){EVFREQ=+g("freq");if(starting){s.ev=[];const k=g("start");if(k&&k!=="none")evSpawn(s,k,true);}},
   triggers:[["Drifting derelict",s=>evTrigger(s,"derelict")],["Marooned castaway",s=>evTrigger(s,"castaway")],["Violent squall",s=>evTrigger(s,"squall")],["Clear all events",s=>{s.ev=[];}]],
   readouts:[["Events about",s=>{const E=s.ev||[];if(!E.length)return "none";const e=E.reduce((a,b)=>Math.hypot(a.x-s.ship.x,a.y-s.ship.y)<Math.hypot(b.x-s.ship.x,b.y-s.ship.y)?a:b);return E.length+", nearest "+EV_DEFS[e.id].name.toLowerCase()+" "+Math.hypot(e.x-s.ship.x,e.y-s.ship.y).toFixed(1)+" nm"}],["Next event in",s=>EVFREQ>0&&s.evNext!=null?Math.max(0,s.evNext-s.t).toFixed(0)+" h":"never"]]},
+ {id:"harbour",name:"Harbour traffic",
+  dials:[{k:"dens",label:"Ships in port",live:true,opts:()=>[["0","None"],["0.45","Light"],["1","Normal"],["1.7","Busy"]],def:"1"}],
+  apply(s,g,starting){HARBOURK=+g("dens");},
+  triggers:[],
+  readouts:[["Ships in the nearest port",s=>harbourReadout(s)]]},
  {id:"damage",name:"Hull and rigging",
   dials:[{k:"hull",label:"Hull at start",start:true,opts:()=>[["1","Sound"],["0.7","Damaged"],["0.4","Badly damaged"]],def:"1"}],
   apply(s,g,starting){if(starting)s.hull=+g("hull");},
