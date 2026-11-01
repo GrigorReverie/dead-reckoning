@@ -51,13 +51,14 @@ window.DRSC=(function(){
     hBg:"", hInk:"", hReadSize:null, hBtnBg:"", hBtnInk:"", hBtnBorder:"", hBtnRadius:null,
     hShowCourse:true, hShowWind:true, hShowAnchor:true, hShowHelmBtns:true, hShowRig:true, hShowLogRow:true,
     /* ---- extra elements added in the editor ---- */
+    vs:{},                   // how much of the view each page leaves, percent: {ctl,ship,stores,book}
     sty:{},                  // per-part styling: {partKey:{hide,bg,ink,bd,bw,rad,w,h,fs,font,bold,ital,ls,ta,op,ord}}
     pos:{},                  // moved/resized parts: {partKey:{x,y,s,r}}  (px, scale %, degrees)
     extras:[]                // [{id,type:"readout"|"label"|"divider",field,text,at:"top"|"bottom"|"end",size,color,bold,align}]
   };
   const st={def:DEFAULTS,pub:null,live:null,rev:0,c:null};
   const clone=o=>JSON.parse(JSON.stringify(o));
-  function merge(){const c=clone(DEFAULTS);for(const src of[st.pub,st.live])if(src&&typeof src==="object")for(const k in src){if(!(k in DEFAULTS))continue;const v=src[k];if(v===null||v===undefined)continue;c[k]=k==="extras"?(Array.isArray(v)?v.slice(0,40):[]):(k==="pos"||k==="sty")?(v&&typeof v==="object"?v:{}):v;}
+  function merge(){const c=clone(DEFAULTS);for(const src of[st.pub,st.live])if(src&&typeof src==="object")for(const k in src){if(!(k in DEFAULTS))continue;const v=src[k];if(v===null||v===undefined)continue;c[k]=k==="extras"?(Array.isArray(v)?v.slice(0,40):[]):(k==="pos"||k==="sty"||k==="vs")?(v&&typeof v==="object"?v:{}):v;}
     st.c=c;st.rev++;return c;}
   try{st.pub=DR_SHIPCTL_PUBLISHED&&(DR_SHIPCTL_PUBLISHED.c||DR_SHIPCTL_PUBLISHED);}catch(e){}
   merge();
@@ -75,6 +76,8 @@ window.DRSC=(function(){
     ["hdg","Heading slider","Buttons","#dockHdg"],["sheet","Whole helm panel","Panel",".dock-all .dockbody"]
   ];
   const partSel=Object.fromEntries(PARTS.map(p=>[p[0],p[3]]));
+  const VS_PAGES=["ctl","ship","stores","book"];
+  function viewShare(pg){const v=st.c&&st.c.vs&&st.c.vs[pg];return isFinite(+v)&&+v>=10&&+v<=90?+v/100:null;}
   const has=v=>v!==null&&v!==undefined&&v!=="";
   const num=v=>has(v)&&isFinite(+v);
   const safe=v=>String(v).replace(/[^#a-zA-Z0-9(),.%\s'-]/g,"");
@@ -157,6 +160,7 @@ window.DRSC=(function(){
   /* ---------- apply ---------- */
   function apply(){let s=document.getElementById("drShipCtlCss");if(!s){s=document.createElement("style");s.id="drShipCtlCss";(document.head||document.documentElement).append(s);}
     s.textContent=css();
+    try{if(window.__dtFit)window.__dtFit();}catch(e){}
     if(document.readyState!=="loading")renderExtras();}
   function start(){apply();renderExtras();setInterval(()=>{if((st.c.extras||[]).length)renderExtras();},500);}
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",start);else start();
@@ -166,6 +170,8 @@ window.DRSC=(function(){
   window.addEventListener("message",e=>{if(!inFrame||e.source!==window.parent)return;const d=e.data;if(!d||typeof d!=="object")return;
     if(d.drShipCtl&&typeof d.drShipCtl==="object"){st.live=d.drShipCtl;merge();apply();}
     if(d.drShipCtlHello)hello();
+    if(typeof d.drShipCtlOpen==="string"){const ids={ctl:"ctlIcon",ship:"tbShip",stores:"tbStores",book:"tbBook"},b=document.getElementById(ids[d.drShipCtlOpen]);
+      const dk=document.querySelector(".dock-all"),pressed=d.drShipCtlOpen==="ctl"?!(dk&&dk.classList.contains("collapsed")):b&&b.getAttribute("aria-pressed")==="true";if(b&&!pressed)b.click();}
     const SEL=Object.assign({compass:"#dial",glass:"#baro",sails:"#sailSteps5",box:"#compassBox",sheet:".dock-all .dockbody",extras:".sc-x:not(:empty)"},partSel);
     if(d.drShipCtlRect){const key=typeof d.drShipCtlRect==="string"?d.drShipCtlRect:"sheet";
       const e=document.querySelector(SEL[key]||SEL.sheet)||document.getElementById("compassBox")||document.querySelector(SEL.sheet),r=e&&e.getBoundingClientRect();
@@ -184,7 +190,7 @@ window.DRSC=(function(){
     }catch(err){console.warn("scdemo",err);hello();}},300));}
   else if(inFrame)window.addEventListener("load",hello);
 
-  return{get c(){return st.c},set _G(g){st.G=g},get _G(){return st.G},get rev(){return st.rev},DEFAULTS,FIELDS,
+  return{get c(){return st.c},viewShare,set _G(g){st.G=g},get _G(){return st.G},get rev(){return st.rev},DEFAULTS,FIELDS,
     set(p){st.live=Object.assign({},st.live||{},p||{});merge();apply();},reset(){st.live=null;merge();apply();},
     export(){const d={};for(const k in st.c)if(JSON.stringify(st.c[k])!==JSON.stringify(DEFAULTS[k]))d[k]=st.c[k];return d;}};
 })();
