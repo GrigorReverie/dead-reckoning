@@ -5000,14 +5000,19 @@ function update3D(dt,now){
   if(R.cover>2)R.camera.setViewOffset(R.W,R.H,0,R.cover*.3,R.W,R.H);else R.camera.clearViewOffset();
   R.camera.updateMatrixWorld();R.camera.updateProjectionMatrix();
   R.sea.position.set(0,0,0);
-  if(!R.hid&&main3d&&!(SV.open&&false&&!window.CUTON)){shadowPass(R);DRStyle.render(R);} // on a computer the ship page covers the 3D view, so skip drawing it
+  if(!R.hid&&main3d){
+    if(window.CUTON){ // Ship view: draw only the ship itself. No water, sky, sun, clouds, wildlife, islands, wake or shadows behind it; the sim keeps running, and everything comes back untouched on exit
+      const keep=new Set();for(let q=R.ship;q;q=q.parent)keep.add(q);const hid=[];
+      for(const o of R.scene.children)if(o.visible&&!keep.has(o)&&!o.isLight){o.visible=false;hid.push(o);}
+      try{DRStyle.render(R);}finally{for(const o of hid)o.visible=true;}
+    }else{shadowPass(R);DRStyle.render(R);}} // on a computer the ship page covers the 3D view, so skip drawing it
   drawHud(now,sq,w);
 }
 
 function drawHud(now,sq,w){
   const R=R3,c=hctx,W=R.W,H=R.H,sh=S.ship;
   c.setTransform(R.dpr,0,0,R.dpr,0,0);c.clearRect(0,0,W,H);
-  skyLabels(c,R,W,H);
+  if(!window.CUTON)skyLabels(c,R,W,H); // no sky lines behind the Ship view
   if(!$("paneV3").classList.contains("big"))return;
   const ink=(a)=>cssRGB(R.inkA,a),paper=(a)=>cssRGB(R.paperA,a);
   // lightning: a pale flash over the whole view and a forked bolt to the horizon
