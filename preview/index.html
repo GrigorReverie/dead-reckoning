@@ -479,7 +479,7 @@ body.fs3d #fsBar{left:max(12px,env(safe-area-inset-left,0px));bottom:max(12px,en
         <b class="ah">Sky</b>
         <label class="chk"><input type="checkbox" id="aSky" checked> <span>Sky chart<small>Draws the altitude and bearing grid, the constellation lines and their names over the sky.</small></span></label>
       </div>
-      <div class="menupop" id="cheatPop" hidden style="position:fixed;left:50%;top:50%;right:auto;bottom:auto;transform:translate(-50%,-50%);width:min(340px,92vw);max-height:86vh;overflow:auto;z-index:9999;padding:12px;box-shadow:0 8px 40px rgba(0,0,0,.5)"><div class="ah" style="font-family:var(--f-display);font-variant:small-caps;font-size:18px;display:flex;justify-content:space-between">Cheats<button class="tb" id="cheatX" style="width:auto">✕</button></div><label style="display:block;margin:8px 0 2px;font-size:12px">Fishing rate: <b id="chFishV">500</b>×<input id="chFish" type="range" min="1" max="5000" step="1" value="500" style="width:100%"></label><label style="display:block;margin:8px 0 2px;font-size:12px">Cargo loading rate: <b id="chLoadV">30</b> units a minute<input id="chLoad" type="range" min="1" max="200" step="1" value="30" style="width:100%"></label><div style="margin:8px 0 2px;font-size:12px">Order goods</div><div style="display:flex;gap:6px"><select id="chGood" style="flex:1;min-width:0"></select><input id="chQty" type="number" min="1" value="10" style="width:54px"><button class="tb" id="chAdd" style="width:auto;border:1px solid var(--ink)">Add</button></div><div id="chRcpt" style="margin:8px 0;padding:8px;border:1px dashed var(--ink)"></div><button class="tb" id="chBuy" style="border:1px solid var(--ink);text-align:center">Confirm and purchase</button><button class="tb" id="chGo" style="border:1px solid var(--ink);text-align:center;display:none">Load</button><button class="tb" data-cheat="money">Add £1,000</button><button class="tb" data-cheat="hold">Fill the hold</button><button class="tb" data-cheat="daynight">Switch day / night</button><button class="tb" data-cheat="ships">Unlock all ships</button></div></div>
+      <div class="menupop" id="cheatPop" hidden style="position:fixed;left:50%;top:50%;right:auto;bottom:auto;transform:translate(-50%,-50%);width:min(340px,92vw);max-height:86vh;overflow:auto;z-index:9999;padding:12px;box-shadow:0 8px 40px rgba(0,0,0,.5)"><div class="ah" style="font-family:var(--f-display);font-variant:small-caps;font-size:18px;display:flex;justify-content:space-between">Cheats<button class="tb" id="cheatX" style="width:auto">✕</button></div><label style="display:block;margin:8px 0 2px;font-size:12px">Sea events: <b id="chEvV">natural</b><input id="chEv" type="range" min="0" max="12" step="0.5" value="1" style="width:100%"></label><div style="display:flex;gap:6px;margin-bottom:4px"><select id="chEvSel" style="flex:1;min-width:0"><option value="derelict">Drifting derelict</option><option value="castaway">Marooned castaway</option><option value="squall">Violent squall</option></select><button class="tb" id="chEvGo" style="width:auto;border:1px solid var(--ink)">Spawn</button></div><label style="display:block;margin:8px 0 2px;font-size:12px">Fishing rate: <b id="chFishV">500</b>×<input id="chFish" type="range" min="1" max="5000" step="1" value="500" style="width:100%"></label><label style="display:block;margin:8px 0 2px;font-size:12px">Cargo loading rate: <b id="chLoadV">30</b> units a minute<input id="chLoad" type="range" min="1" max="200" step="1" value="30" style="width:100%"></label><div style="margin:8px 0 2px;font-size:12px">Order goods</div><div style="display:flex;gap:6px"><select id="chGood" style="flex:1;min-width:0"></select><input id="chQty" type="number" min="1" value="10" style="width:54px"><button class="tb" id="chAdd" style="width:auto;border:1px solid var(--ink)">Add</button></div><div id="chRcpt" style="margin:8px 0;padding:8px;border:1px dashed var(--ink)"></div><button class="tb" id="chBuy" style="border:1px solid var(--ink);text-align:center">Confirm and purchase</button><button class="tb" id="chGo" style="border:1px solid var(--ink);text-align:center;display:none">Load</button><button class="tb" data-cheat="money">Add £1,000</button><button class="tb" data-cheat="hold">Fill the hold</button><button class="tb" data-cheat="daynight">Switch day / night</button><button class="tb" data-cheat="ships">Unlock all ships</button></div></div>
   </div>
   <div class="infobar" aria-label="Date, wind and weather">
     <span class="when"><b id="clock">—</b><small id="watch">—</small></span>
@@ -1036,7 +1036,8 @@ const beaufort=kn=>{let i=0;while(i<BFT.length&&kn>=BFT[i])i++;return i;};
 const CURRENT={set:290,drift:.35};
 // Preview menu overrides (null = the game's own auto weather); see the Preview panel near the end of the script
 // Every game mechanic is listed here AND described in the Scenario registry (SCN_MECH). Add an id here and an entry there when you add a mechanic.
-const GAME_MECHANICS=["setup","weather","tides","fishing","pirates","crew","trade","navigation","damage"];
+const GAME_MECHANICS=["setup","weather","tides","fishing","pirates","crew","trade","navigation","damage","events"];
+let EVFREQ=1; // sea events: 1 = natural pace, 0 = off, higher = more often (Cheats menu and Scenario)
 const PV={wind:null,sea:null,cur:null,wx:null,vis:null,fauna:1,tide:1,shadows:true};
 // tides: semi-diurnal (12.42 h) with a fortnightly spring and neap swing; range in metres, ph the hour of high water in the lunar cycle
 const TIDEX={bridgetown:{r:.9,ph:3.1},castries:{r:.7,ph:4.0},stjohns:{r:1.0,ph:5.2,bar:3},kingstown:{r:.8,ph:3.7},basseterre:{r:.9,ph:5.9}};
@@ -2231,7 +2232,7 @@ function drawChart(){
   if(showTrue){
     ctx.save();ctx.strokeStyle=S.mode==="lost"?"#a8452c":"rgba(46,37,25,.55)";ctx.lineWidth=S.mode==="lost"?1.8:1.2;ctx.beginPath();S.track.forEach((p,i)=>i?ctx.lineTo(sx(p.x),sy(p.y)):ctx.moveTo(sx(p.x),sy(p.y)));ctx.lineTo(sx(S.ship.x),sy(S.ship.y));ctx.stroke();ctx.restore();
     drawShip(sx(S.ship.x),sy(S.ship.y),S.ship.heading);
-    drawPirates();
+    drawPirates();drawEvents();
   }
   drawCurrents();drawFish();drawRoute();drawProj();
   // scale bar
@@ -4780,7 +4781,7 @@ function update3D(dt,now){
   // world objects relative to ship
   for(const o of R.isl){const c=o.isl.c;o.grp.position.set((c.x-sh.x)*NM,0,-(c.y-sh.y)*NM);const dd=Math.hypot(c.x-sh.x,c.y-sh.y);const q=R.q||0;o.grp.visible=dd<QDIST[q]*R.dm;if(o.veg)o.veg.visible=dd-o.Rr<QVEG[q]*R.dm;}
   updateFauna(R,dt,gain,wdx,wdz,nightF);
-  updatePirates3D(R);
+  updatePirates3D(R);updateEvents3D(R);
   const dest=R.towns[S.v.to];
   if(dest){R.beacon.position.set((dest.x-sh.x)*NM,0,-(dest.y-sh.y)*NM);R.beacon.visible=S.mode==="trial";}else R.beacon.visible=false;
   { const rl=R.routeLine,pts=S.route.pts,n=Math.min(pts.length,65);
@@ -5613,7 +5614,7 @@ function tradeStep(s,dt,w){mkStep(s,dt);const day=dayIndex(s),d=dt/24;
     for(const c of s.contracts.slice())if(day>c.due+5){s.contracts=s.contracts.filter(x=>x!==c);s.cdone.push(c.id);addRep(s,-6);
       if(c.special&&s.cargo[c.g]){const cur=s.cargo[c.g];cur.n=Math.max(0,cur.n-c.n);if(cur.n<.01)delete s.cargo[c.g];}
       sayLog(`The ${PORTS[c.to].name} contract has lapsed. Your name suffers${c.special?" and the owners take back their consignment":""}.`,{});}}
-  pirStep(s,dt,w);}
+  pirStep(s,dt,w);evStep(s,dt,w);}
 
 const pirRange=s=>(isNight(s)?3:7)*(s.wx&&s.wx.rain>.4?.6:1);
 function pirStep(s,dt,w){const P=s.pir||(s.pir=[]),sh=s.ship;if(s.done)return;
@@ -5644,6 +5645,126 @@ function pirateCrisis(p){const s=S,done=()=>{s.pir=s.pir.filter(q=>q!==p);s.pirC
       const v=loseCargo(.6);s.hull=Math.max(.2,s.hull-.06);for(const m of s.crew)m.mo=Math.max(0,m.mo-.1);done();return `The sloop runs alongside and rakes the deck. They strip ${money(v)} of cargo, and the hands are shaken.`;}}];
   if(hasRum)opts.push({label:"Parley and offer rum",sub:"Give up the rum and a fifth of the cargo to be let alone.",fn:()=>{const v=loseCargo(.2);s.stores.rum=0;done();return `A cask of rum and ${money(v)} of cargo buy a handshake and a fair wind.`;}});
   return{title:"Pirates!",text:"The sloop has run up the black flag and lies across our bow with her gunports open. Her people crowd the rail with cutlasses and boarding pikes.",opts};}
+
+/* ---------- RANDOM SEA EVENTS: three kinds used as templates for any more ----------
+   An event is one entry in EV_DEFS. Its `kind` decides how it behaves (see EV_KINDS):
+     salvage  a wreck that sits and drifts; sail close and choose whether to board it
+     rescue   a person in need that sits where it is; sail close and choose whether to help
+     hazard   a weather cell that moves and bears down on the ship
+   To add an event: add an EV_DEFS entry (kind, name, chart icon, 3D `mesh` name in EV_MESH, sight range, card text, options with outcomes).
+   Each option has `out`: a list of {p (weight), text, fx}; one is picked by weight and its fx applied by evFx (purse in shillings, hull, rig, mo, hurt, rep, beer, bis, cargo, spares, squall). */
+const EV_DEFS={
+ derelict:{kind:"salvage",name:"Drifting derelict",icon:"wreck",mesh:"derelict",sight:6,life:40,w:3,
+  title:"A drifting derelict",
+  text:"A dismasted merchantman lies listing in the swell, no hand at her wheel and no answer to a hail. Her hatches are battened and her stern cabin shows no light.",
+  opts:[
+   {label:"Send a boarding party",sub:"Likely cargo or fittings worth taking, but the wreck is unsteady, there may be fire, and something below may be dangerous.",out:[
+     {p:5,text:"The party comes back low in the boat with a haul of cargo from her hold.",fx:{cargo:"rich"}},
+     {p:2,text:"They find her carpenter's store intact: spare timber and cordage, and a purse in the master's cabin.",fx:{spares:{timber:2.5,rope:2.5},purse:7*20}},
+     {p:2,text:"A beam gives way under the boarding party. They scramble back with a little salvage and a hand with a broken arm, and the wreck grinds against your hull.",fx:{purse:3*20,hurt:.35,hull:-.07}},
+     {p:1,text:"Smoke boils up from her lower deck. The party is dragged back in the boat, singed, with the fire barely kept off your own ship.",fx:{hurt:.25,hull:-.05,mo:-.06,rig:-.05}}]},
+   {label:"Hook off a few things from the boat",sub:"Safer: a small haul and no one goes aboard.",out:[
+     {p:3,text:"You fish out fittings, a bronze bell and a coil of good rope with grapnels.",fx:{purse:3*20,spares:{rope:1.5}}},
+     {p:1,text:"The wreck rolls and nothing comes loose but a splintered spar.",fx:{}}]},
+   {label:"Sail on",sub:"Leave her to the sea.",out:[{p:1,text:"You bear away and the derelict sinks astern.",fx:{}}]}]},
+ castaway:{kind:"rescue",name:"Marooned castaway",icon:"smoke",mesh:"castaway",sight:7,life:60,w:3,
+  title:"A marooned castaway",
+  text:"A thin thread of smoke rises from a bare spit of sand, and a lone figure is waving a shirt. He is gaunt and sunburned, and he has been here a long while.",
+  opts:[
+   {label:"Take him aboard",sub:"Costs beer and biscuit. He may repay it; he may not be what he says.",out:[
+     {p:3,text:"He is a master carpenter wrecked a month ago. He sets to work on your hull the same evening.",fx:{beer:-3,bis:-3,hull:.12,mo:.04}},
+     {p:3,text:"He is grateful, and talks of a hidden cove where a pirate captain buried his share. He presses a pearl and a few coins on you.",fx:{beer:-3,bis:-3,purse:9*20,rep:2}},
+     {p:2,text:"A weary navigator, thrown from his ship in a storm. He checks your reckoning and the hands feel steadier for it.",fx:{beer:-3,bis:-3,mo:.1}},
+     {p:1,text:"He turns out to be a man with a price on his head. The hands mutter, and word will get about.",fx:{beer:-3,bis:-3,mo:-.1,rep:-4}}]},
+   {label:"Send water and food by boat",sub:"Cheaper. He is cheered, and you owe nothing.",out:[{p:1,text:"You leave him a cask, a bag of biscuit and the promise to report him at the next port.",fx:{beer:-1,bis:-1.5,rep:1}}]},
+   {label:"Sail on",sub:"You cannot spare the stores.",out:[{p:1,text:"You bear away. The hands watch the little figure shrink to a speck and say nothing.",fx:{mo:-.04}}]}]},
+ squall:{kind:"hazard",name:"Violent squall",icon:"squall",mesh:"squall",sight:12,life:30,w:3,speed:5,range:1.1,
+  title:"A squall bears down!",
+  text:"The wind dropped to nothing a quarter hour ago, and now the horizon has gone black and the sea ahead is white with it. A squall is coming down on us, fast.",
+  opts:[
+   {label:"Reef down and head into the wind",sub:"Safe and sensible. You will not make much of it, but you should come through whole.",out:[
+     {p:9,text:"The topsails are clewed up and the helm put over. The squall screams past and you ride it out.",fx:{squall:7}},
+     {p:1,text:"A gust catches a half-reefed topsail and splits it before the squall passes.",fx:{squall:7,rig:-.06}}]},
+   {label:"Carry sail and ride it out",sub:"A race. If the hands are quick you gain a huge run before it passes; if not, you may lose spars.",out:[
+     {p:"skill",text:"Every hand to the braces and she heels and flies. You make a great run before the squall blows itself out.",fx:{squall:18,mo:.05}},
+     {p:"fail",text:"A great gust lays her on her beam ends and the foretopmast goes over the side. It takes the hands an hour to clear the wreck.",fx:{squall:15,rig:-.25,hull:-.08,hurt:.3,mo:-.08}}]}]}
+};
+const EV_KINDS={
+ salvage:{move:(e,s,dt)=>{const j=.35;e.x+=Math.sin(e.dr)*j*dt;e.y+=Math.cos(e.dr)*j*dt;},trig:.4},
+ rescue:{move:()=>{},trig:.4},
+ hazard:{move:(e,s,dt,w,D)=>{const a=(w.from+180)*D2R;e.x+=Math.sin(a)*D.speed*dt;e.y+=Math.cos(a)*D.speed*dt;},trig:null}
+};
+function evSpawn(s,id,near){const D=EV_DEFS[id],sh=s.ship;if(!D)return false;let x,y,k=0;
+  do{const d=near?(2+Math.random()*1.5):(D.kind==="hazard"?5+Math.random()*3:4+Math.random()*4),a=sh.heading*D2R+(Math.random()-.5)*2*(near?1.2:.9);
+    x=sh.x+Math.sin(a)*d;y=sh.y+Math.cos(a)*d;k++;}while(coastNm(x,y)<1.5&&k<24);
+  if(coastNm(x,y)<1.5)return false;
+  (s.ev||(s.ev=[])).push({id,x,y,dr:Math.random()*2*PI,seen:false,t0:s.t,h:Math.random()*2*PI});return true;}
+function evNextGap(){const g=Math.exp(Math.log(20)+1.05*(Math.random()+Math.random()+Math.random()-1.5)*1.7);return Math.max(2,g)/Math.max(.05,EVFREQ);} // hours; wide spread, median about 20 h at the natural pace
+const evSight=(s,D)=>D.sight*(D.kind==="hazard"?1:(isNight(s)?.4:1)*(s.wx&&s.wx.rain>.4?.6:1));
+function evFx(s,fx){fx=fx||{};const bits=[];
+  if(fx.purse){s.purse=Math.max(0,s.purse+fx.purse);}
+  if(fx.hull)s.hull=clamp(s.hull+fx.hull,.2,1);
+  if(fx.rig)s.ship.rig=clamp(s.ship.rig+fx.rig,.15,1);
+  if(fx.mo)for(const m of s.crew)if(m.mo!=null)m.mo=clamp(m.mo+fx.mo,0,1);
+  if(fx.hurt){const c=s.crew.filter(m=>m.hp!=null&&m.r!=="Captain");const m=c.length&&c[Math.floor(Math.random()*c.length)];if(m)m.hp=Math.max(.2,m.hp-fx.hurt);}
+  if(fx.rep)addRep(s,fx.rep);
+  if(fx.beer)s.stores.beer=Math.max(0,s.stores.beer+fx.beer);
+  if(fx.bis)s.stores.bis=Math.max(0,s.stores.bis+fx.bis);
+  if(fx.spares)for(const k in fx.spares)if(s.spares[k]!=null)s.spares[k]+=fx.spares[k];
+  if(fx.cargo==="rich"){mkInit(s);const gs=Object.keys(GOODS).filter(g=>GOODS[g].tier>=2);let n=0,left=3+Math.floor(Math.random()*3);
+    while(left>0&&n++<12){const g=gs[Math.floor(Math.random()*gs.length)];if(unitsFit(s,g)<1)continue;const c=s.cargo[g]||(s.cargo[g]={n:0,cost:0});c.n+=1;c.cost+=0;left--;}}
+  if(fx.squall&&!s.squall)s.squall={t0:s.t,dur:.3+Math.random()*.2,boost:fx.squall,shift:(Math.random()<.5?-1:1)*(10+Math.random()*15)};}
+function evCard(e){const s=S,D=EV_DEFS[e.id],done=()=>{s.ev=s.ev.filter(q=>q!==e);};
+  const duty=s.crew.filter(m=>m.mode==="duty"),sk=duty.length?duty.reduce((a,m)=>a+m.sk,0)/duty.length:.4;
+  return{title:D.title,text:D.text,opts:D.opts.map(o=>({label:o.label,sub:o.sub,fn:()=>{done();s.evCool=s.t+3;
+    const pw=x=>x.p==="skill"?clamp(.35+.6*sk+.1*(s.eff-1),.2,.9):x.p==="fail"?1-clamp(.35+.6*sk+.1*(s.eff-1),.2,.9):x.p;
+    let r=Math.random()*o.out.reduce((a,x)=>a+pw(x),0),pick=o.out[o.out.length-1];for(const x of o.out){r-=pw(x);if(r<=0){pick=x;break;}}
+    evFx(s,pick.fx);return pick.text;}}))};}
+function evStep(s,dt,w){if(s.done)return;const E=s.ev||(s.ev=[]),sh=s.ship;
+  const open=!atPort(s)&&coastNm(sh.x,sh.y)>3;
+  if(s.evNext==null)s.evNext=s.t+evNextGap()*Math.random();
+  if(EVFREQ>0&&open&&E.length<3&&s.t>=s.evNext){const ids=[];for(const id in EV_DEFS)for(let i=0;i<EV_DEFS[id].w;i++)ids.push(id);
+    const id=ids[Math.floor(Math.random()*ids.length)];s.evNext=s.t+(evSpawn(s,id)?evNextGap():.5);}
+  for(const e of E.slice()){const D=EV_DEFS[e.id],K=EV_KINDS[D.kind],d=Math.hypot(sh.x-e.x,sh.y-e.y);
+    K.move(e,s,dt,w,D);
+    const R=evSight(s,D);
+    if(!e.seen&&d<R){e.seen=true;const b=pointName(norm(Math.atan2(e.x-sh.x,e.y-sh.y)/D2R));
+      say(D.kind==="hazard"?`Lookout: a black squall line to the ${b}, ${d.toFixed(0)} miles off, and it is coming this way.`:D.kind==="rescue"?`Lookout: smoke and a figure waving, ${b}, about ${d.toFixed(0)} miles.`:`Lookout: a wreck low in the water, ${b}, about ${d.toFixed(0)} miles.`,{slow:true});}
+    else if(e.seen&&d>R*1.35)e.seen=false;
+    if(d>16||s.t-e.t0>D.life){s.ev=E.filter(q=>q!==e);continue;}
+    const tr=D.kind==="hazard"?D.range:K.trig;
+    if(d<tr&&!s.crisis&&!modalOpen&&s.t>(s.evCool||0)){showCrisis(evCard(e));}}}
+// the events on the chart (a small pen-and-ink sign where the lookout has seen one) and in the 3D view
+function evIcon(c,kind,x,y){c.save();c.translate(x,y);c.strokeStyle="#2e2519";c.fillStyle="#2e2519";c.lineWidth=1.5;c.lineCap="round";
+  if(kind==="wreck"){c.beginPath();c.moveTo(-8,3);c.lineTo(8,3);c.lineTo(5,7);c.lineTo(-5,7);c.closePath();c.stroke();c.beginPath();c.moveTo(-1,3);c.lineTo(-3,-8);c.moveTo(-3,-6);c.lineTo(4,-4);c.stroke();}
+  else if(kind==="smoke"){c.beginPath();c.arc(0,5,4,Math.PI,0);c.stroke();c.beginPath();c.moveTo(0,1);c.bezierCurveTo(-5,-3,5,-6,0,-10);c.stroke();c.beginPath();c.moveTo(-2,-7);c.lineTo(2,-13);c.stroke();}
+  else{c.beginPath();c.arc(-4,-2,4,Math.PI*.8,Math.PI*1.9);c.arc(2,-4,5,Math.PI,Math.PI*2);c.arc(8,-1,3.5,Math.PI*1.2,Math.PI*.5,true);c.lineTo(-6,2);c.stroke();for(const i of[-4,0,4]){c.beginPath();c.moveTo(i,5);c.lineTo(i-2,10);c.stroke();}}
+  c.restore();}
+function drawEvents(){if(!S||!S.ev)return;
+  for(const e of S.ev){if(!e.seen)continue;const D=EV_DEFS[e.id],x=sx(e.x),y=sy(e.y);
+    ctx.save();evIcon(ctx,D.icon,x,y);ctx.font="italic 12px 'IM Fell English',Georgia,serif";ctx.fillStyle="#2e2519";ctx.fillText(D.name,x+12,y+4);
+    if(D.kind==="hazard"){const a=(windAt(S,e.x,e.y,S.t).from+180)*D2R,ex=e.x+Math.sin(a)*D.speed,ey=e.y+Math.cos(a)*D.speed;ctx.strokeStyle="#4a4a58";ctx.setLineDash([6,4]);ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(sx(ex),sy(ey));ctx.stroke();ctx.setLineDash([]);ctx.fillText("in 1 hour",sx(ex)+6,sy(ey)+4);}
+    ctx.restore();}}
+const EV_MESH={
+ derelict(){const g=new THREE.Group(),M=c=>new THREE.MeshBasicMaterial({color:c,side:THREE.DoubleSide});
+  const h=new THREE.Mesh(new THREE.BoxGeometry(4,2.6,14),M(0x3a2c1e));h.position.set(0,.4,0);h.rotation.z=.32;g.add(h);
+  const m=new THREE.Mesh(new THREE.CylinderGeometry(.12,.2,9,6),M(0x4a3a28));m.position.set(.6,4.2,1);m.rotation.z=-.9;g.add(m);
+  const s=new THREE.Mesh(new THREE.PlaneGeometry(4,3),M(0xb8ae94));s.position.set(3,4,1);s.rotation.set(0,PI/2,-.9);g.add(s);g.scale.setScalar(1.4);return g;},
+ castaway(){const g=new THREE.Group(),M=c=>new THREE.MeshBasicMaterial({color:c,side:THREE.DoubleSide});
+  const i=new THREE.Mesh(new THREE.CylinderGeometry(5,8,1.6,12),M(0xc8b27a));i.position.y=-.2;g.add(i);
+  const f=new THREE.Mesh(new THREE.BoxGeometry(.5,1.7,.4),M(0x7a5a3a));f.position.set(1.5,1.4,0);g.add(f);
+  const a=new THREE.Mesh(new THREE.BoxGeometry(.2,1.4,.2),M(0xd8cfb4));a.position.set(1.5,2.9,0);a.rotation.z=.6;g.add(a);
+  const sm=new THREE.Mesh(new THREE.CylinderGeometry(.5,1.6,16,8,1,true),new THREE.MeshBasicMaterial({color:0x888888,transparent:true,opacity:.5,side:THREE.DoubleSide,depthWrite:false}));sm.position.set(-2,9,0);g.add(sm);return g;},
+ squall(){const g=new THREE.Group(),m=new THREE.MeshBasicMaterial({color:0x2c3140,transparent:true,opacity:.62,side:THREE.DoubleSide,depthWrite:false});
+  const c=new THREE.Mesh(new THREE.CylinderGeometry(900,1000,420,20,1,true),m);c.position.y=210;g.add(c);
+  const t=new THREE.Mesh(new THREE.CylinderGeometry(1000,900,120,20),new THREE.MeshBasicMaterial({color:0x1d212c,transparent:true,opacity:.8,depthWrite:false}));t.position.y=480;g.add(t);return g;}
+};
+function updateEvents3D(R){if(!S||!R||!R.scene)return;const L=R.evL||(R.evL={}),E=S.ev||[],sh=S.ship,ax=sh.x*NM,az=-sh.y*NM;const used=new Set();
+  for(const e of E){if(!e.seen)continue;const D=EV_DEFS[e.id];let m=L[e.id+e.t0];if(!m){m=EV_MESH[D.mesh]();R.scene.add(m);L[e.id+e.t0]=m;}used.add(m);m.visible=true;
+    const x=(e.x-sh.x)*NM,z=-(e.y-sh.y)*NM;m.position.set(x,D.kind==="hazard"?0:waveH(R,x,z)*.6,z);m.rotation.y=e.h;}
+  for(const k in L)if(!used.has(L[k]))L[k].visible=false;}
+function evTrigger(s,id){if(!s||s.done)return;if(!EV_DEFS[id])return;if(!evSpawn(s,id,true))say("No clear water for that here.",{log:false});}
+window.__EV={evTrigger,evStep,evCard,EV_DEFS,step:dt=>step(dt),get S(){return S},setFreq:v=>{EVFREQ=v},windAt:(s)=>windAt(s,s.ship.x,s.ship.y,s.t)};
 
 // trading page in the Ship panel
 const TS=document.createElement("style");TS.textContent=".mk{width:100%;border-collapse:collapse;font-size:12px}.mk th{font-weight:400;text-align:left;color:var(--ink-soft);border-bottom:1px solid var(--rule);padding:2px 3px}.mk td{padding:3px;border-bottom:1px dotted var(--rule);vertical-align:middle}.mk .num{font-family:var(--f-data);text-align:right;white-space:nowrap}.mk .dim td{color:var(--ink-soft);font-style:italic}.mk button{padding:3px 6px;font-size:11px;background:transparent;color:var(--ink);border:1px solid var(--ink);border-radius:3px;font-family:var(--f-data);margin:1px}.mk button:disabled{opacity:.35}.mkw{overflow-x:auto}.mkc{font-size:12.5px;padding:4px 0;border-bottom:1px dotted var(--rule)}.mkc button{padding:3px 8px;font-size:11px;background:transparent;color:var(--ink);border:1px solid var(--ink);border-radius:3px;font-family:var(--f-data);margin-top:3px}.mkn{font-size:12px;margin:3px 0;font-style:italic;color:var(--ink-soft)}";document.head.append(TS);
@@ -6609,6 +6730,8 @@ $("cbBtn").onclick=()=>{const c=$("compassBox"),o=c.classList.toggle("collapsed"
     chShow($("chBuy"),!ch.bought&&ch.lines.length>0);chShow($("chGo"),ch.bought&&!ch.ld);}
   $("chRcpt").onclick=e=>{const b=e.target.closest("[data-rm]");if(!b)return;e.stopPropagation();ch.lines.splice(+b.dataset.rm,1);chRender();};
   $("chFish").oninput=e=>{FISHX=+e.target.value;$("chFishV").textContent=FISHX;};
+  $("chEv").oninput=e=>{EVFREQ=+e.target.value;$("chEvV").textContent=EVFREQ===0?"off":EVFREQ===1?"natural":EVFREQ+"× as often";if(S&&S.evNext!=null)S.evNext=Math.min(S.evNext,S.t+evNextGap());};
+  $("chEvGo").onclick=e=>{e.stopPropagation();const s=S;if(!s||s.done){say("Start a voyage first.",{log:false});return;}evTrigger(s,$("chEvSel").value);cp.hidden=true;};
   $("chLoad").oninput=e=>{chLoad=+e.target.value;$("chLoadV").textContent=chLoad;chRender();};
   $("chAdd").onclick=e=>{e.stopPropagation();const s=S;if(!s||s.done){say("Start a voyage first.",{log:false});return;}if(ch.bought){say("Load the goods you have bought first.",{log:false});return;}
     const g=chG.value,n=Math.max(1,Math.floor(+$("chQty").value)||1),free=holdCap()-holdUsed(s)-chTot().t;if(n*GOODS[g].t>free+1e-9){say("That will not fit in the hold.",{log:false});return;}
@@ -6961,6 +7084,11 @@ const SCN_MECH=[
   apply(s,g){const lost=g("dr")==="dr";$("aDR").checked=lost;s.mode=lost?"lost":"trial";},
   triggers:[],
   readouts:[["Reckoning error",s=>Math.hypot(s.est.x-s.ship.x,s.est.y-s.ship.y).toFixed(1)+" nm"],["Log heaves / fixes",s=>(s.heaves||0)+" / "+(s.fixes||0)],["Water under keel (chart)",s=>{const f=depthFmAt(s.ship.x,s.ship.y);return f==null?"-":f<=0?"aground (land)":Math.round(f)+" fathoms";}]]},
+ {id:"events",name:"Sea events",
+  dials:[{k:"freq",label:"Event frequency",live:true,opts:()=>[["1","Natural"],["4","Often"],["12","Very often"],["0","Never"]],def:"1"}],
+  apply(s,g){EVFREQ=+g("freq");},
+  triggers:[["Drifting derelict",s=>evTrigger(s,"derelict")],["Marooned castaway",s=>evTrigger(s,"castaway")],["Violent squall",s=>evTrigger(s,"squall")],["Clear all events",s=>{s.ev=[];}]],
+  readouts:[["Events about",s=>{const E=s.ev||[];if(!E.length)return "none";const e=E.reduce((a,b)=>Math.hypot(a.x-s.ship.x,a.y-s.ship.y)<Math.hypot(b.x-s.ship.x,b.y-s.ship.y)?a:b);return E.length+", nearest "+EV_DEFS[e.id].name.toLowerCase()+" "+Math.hypot(e.x-s.ship.x,e.y-s.ship.y).toFixed(1)+" nm"}],["Next event in",s=>EVFREQ>0&&s.evNext!=null?Math.max(0,s.evNext-s.t).toFixed(0)+" h":"never"]]},
  {id:"damage",name:"Hull and rigging",
   dials:[{k:"hull",label:"Hull at start",start:true,opts:()=>[["1","Sound"],["0.7","Damaged"],["0.4","Badly damaged"]],def:"1"}],
   apply(s,g,starting){if(starting)s.hull=+g("hull");},
