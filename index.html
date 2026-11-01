@@ -7853,8 +7853,9 @@ function buildExplode(R,NL,vm,pen){
 function xApply(){ // lift each level (and the flipped copy) by its offset; the hull wall slices show only while it is exploded
   const on=M.xk>.02,L=M.LG;if(!L||!M.off)return;if(L[M.off.length])L[M.off.length].visible=!on;   // the loose ribs and keel stay out of the stack
   
-  for(let k=0;k<M.off.length;k++){const y=xo(k);if(L[k]){L[k].position.y=y;L[k].visible=true;}const g2=M.G2&&M.G2.children[k];if(g2)g2.position.y=y;
-    if(M.HW&&M.HW[k]){M.HW[k].visible=on;const c=M.G2&&M.G2.children[k]&&M.G2.children[k].children[M.G2.children[k].children.length-1];if(c)c.visible=on;}}
+  for(let k=0;k<M.off.length;k++){const y=xo(k);if(L[k]){L[k].position.y=y;L[k].visible=true;}const g2=M.G2&&M.G2.children[k];if(g2){g2.position.y=y;g2.visible=M.sel===k;}
+    if(M.HW&&M.HW[k]){M.HW[k].visible=on;const c=M.G2&&M.G2.children[k]&&M.G2.children[k].children[M.G2.children[k].children.length-1];if(c)c.visible=false;}}
+  if(M.G2&&M.G2.children[M.off.length])M.G2.children[M.off.length].visible=false;
 }
 /* ---------- labels: anchors from the room bands ---------- */
 function makeLabels(){const f=(y,a,b)=>M.fr(y,a,b),m=(y,a,b)=>(f(y,a,b)[0]+f(y,a,b)[1])/2;
@@ -7888,8 +7889,8 @@ window.CUTCAM=function(R){
   if(!M.on)return;build(R);if(!M.built||!M.on)return;
   R.ship.updateMatrixWorld(true);const m=R.bob.matrixWorld;
   _s.set(1,0,0).transformDirection(m);_b.set(0,0,1).transformDirection(m);_c.setFromMatrixPosition(m);
-  if(M.flip){_s.negate();_b.negate();}if(M.G)M.G.scale.x=M.flip?-1:1;if(M.G2){M.G2.scale.x=-M.G.scale.x;M.G2.visible=M.sel>=0&&!(M.xk>.02);}
-  const T=Object.assign({},M.ov||pose(R));{const tk=M.L.decks.length>1?1:0;if(M.sel>=0)M.sk=M.sel;{const ts=M.sel>=0?1:0;M.xs=M.fast?ts:(M.xs||0)+(ts-(M.xs||0))*.1;if(Math.abs(M.xs-ts)<.004)M.xs=ts;}M.xk=M.fast?tk:(M.xk||0)+(tk-(M.xk||0))*.09;if(Math.abs(M.xk-tk)<.004)M.xk=tk;xApply();const sp=(M.span||0)*M.xk;T.ly+=sp*.4;T.dist*=1+4.5*sp/(27*FIT);T.pt=T.pt+(Math.max(T.pt,30)-T.pt)*M.xk;}T.az+=M.uaz;T.pt=Math.max(3,Math.min(85,T.pt+M.upt));T.dist*=M.uz;T.ly+=M.uly;T.lz+=M.pan;if(!M.cur){M.cur={az:-100,pt:14,dist:T.dist*1.7,lx:0,ly:8*FIT/2.4,lz:0};}
+  if(M.flip){_s.negate();_b.negate();}if(M.G)M.G.scale.x=M.flip?-1:1;if(M.G2){M.G2.scale.x=-M.G.scale.x;M.G2.visible=M.sel>=0;}
+  const T=Object.assign({},M.ov||pose(R));{const tk=M.L.decks.length>1?1:0;if(M.sel>=0)M.sk=M.sel;{const ts=M.sel>=0?1:0;M.xs=M.fast?ts:(M.xs||0)+(ts-(M.xs||0))*.1;if(Math.abs(M.xs-ts)<.004)M.xs=ts;}M.xk=M.fast?tk:(M.xk||0)+(tk-(M.xk||0))*.09;if(Math.abs(M.xk-tk)<.004)M.xk=tk;xApply();const sp=(M.span||0)*M.xk;T.dist*=1+3*sp/(27*FIT);{const Dn=T.dist;T.ly+=sp*.4+.02*Dn*M.xk;if(M.sk!=null&&M.sk>=0&&M.xs>0){const dk=M.L.decks[M.sk],yk=(M.sk===0?deck(0)+1.6:dk.y+1.0)+xo(M.sk)-.068*Dn;T.ly+=(yk-T.ly)*M.xs;}}T.pt=T.pt+(Math.max(T.pt,30)-T.pt)*M.xk;}T.az+=M.uaz;T.pt=Math.max(3,Math.min(85,T.pt+M.upt));T.dist*=M.uz;T.ly+=M.uly;T.lz+=M.pan;if(!M.cur){M.cur={az:-100,pt:14,dist:T.dist*1.7,lx:0,ly:8*FIT/2.4,lz:0};}
   const e=M.fast?1:.045;for(const f of["az","pt","dist","lx","ly","lz"])M.cur[f]+=(T[f]-M.cur[f])*e;
   const c=M.cur,az=c.az*PI/180,pt=c.pt*PI/180;R.camera.fov=FOV;
   _v.set(c.lx,c.ly,c.lz).applyMatrix4(m);
@@ -8062,13 +8063,14 @@ function labels(){const R=M.R;if(!M.on){if(labelEls)labelEls.forEach(e=>e.g.styl
   const top=Math.max(rc.top,88)+6,bot=Math.min(rc.bottom,cardTop)-6;
   // where each room sits on screen; boxes go to the nearer side, ordered top to bottom so the lines never cross
   act.forEach(e=>{const l=e.l;_v.set(M.flip?-l[2][0]:l[2][0],l[2][1]+xo(l[0]),l[2][2]).applyMatrix4(R.bob.matrixWorld).project(R.camera);e.ax=rc.left+(_v.x*.5+.5)*rc.width;e.ay=rc.top+(1-(_v.y*.5+.5))*rc.height;e.vz=_v.z;});
-  const mid=rc.left+rc.width/2,sides=[act.filter(e=>e.ax<mid).sort((p,q)=>p.ay-q.ay),act.filter(e=>e.ax>=mid).sort((p,q)=>p.ay-q.ay)];
-  if(Math.abs(sides[0].length-sides[1].length)>Math.ceil(act.length/2)-1+2){const big=sides[0].length>sides[1].length?0:1,mv=sides[big].splice(sides[big].length>>1);sides[1-big]=sides[1-big].concat(mv);sides[1-big].sort((p,q)=>p.ay-q.ay);}
-  sides.forEach((arr,side)=>{const c=arr.length;if(!c)return;const slot=Math.min((bot-top)/c,26),mean=arr.reduce((t,e)=>t+e.ay,0)/c,y0=clamp(mean-slot*c/2,top,Math.max(top,bot-slot*c));
+  // static: the first half of the labels (upper decks first) stack down from the top left, the rest stack up from the bottom right, evenly spaced
+  act.sort((p,q)=>p.l[0]-q.l[0]||p.l[4]-q.l[4]);const nl=Math.ceil(act.length/2),sides=[act.slice(0,nl),act.slice(nl)];
+  const stepAll=Math.min(60,(bot-top-18)/Math.max(1,Math.max(sides[0].length,sides[1].length)-1||1));
+  sides.forEach((arr,side)=>{const c=arr.length;if(!c)return;
     arr.forEach((e,k)=>{const l=e.l,ax=e.ax,ay=e.ay;
       { const n=M.grp&&M.grp[l[0]*10+l[4]]?M.grp[l[0]*10+l[4]].length:0,t=e.base+(n?" "+n:"");if(e.tx.textContent!==t){e.tx.textContent=t;e.w=t.length*5.3+10;} }
       e.g.classList.toggle("sel",M.sel===l[0]&&M.hi===l[4]);
-      const ty=y0+(k+.5)*slot-8,bx=side?W-6-e.w:6;
+      const ty=side?bot-18-(c-1-k)*stepAll:top+k*stepAll,bx=side?W-6-e.w:6;
       e.rc.setAttribute("x",bx);e.rc.setAttribute("y",ty);e.rc.setAttribute("width",e.w);
       e.tx.setAttribute("x",bx+5);e.tx.setAttribute("y",ty+11.5);
       const ok=!(e.vz>1||ax<8||ax>W-8||ay<70||ay>cardTop-6);
@@ -8368,6 +8370,8 @@ body.cutmode #view3d{touch-action:none}
 
 #cutSvg .sel rect{fill:#000!important}#cutSvg rect{stroke-width:1.4px}#cutSvg text{font-weight:600}
 #cutSvg g.em rect{fill:#ffd400}#cutSvg g.em.sel rect{fill:#000!important}
+#cutSvg rect{fill:transparent!important;stroke:none!important}#cutSvg g.em rect{fill:rgba(255,212,0,.35)!important}#cutSvg .sel rect{fill:rgba(46,37,25,.18)!important}#cutSvg .sel text{fill:#000!important}
+#cutSvg text{stroke:#f2e7c4!important;stroke-width:3px!important;paint-order:stroke!important;stroke-linejoin:round}
 #cutCard .warn{margin-top:5px;padding:4px 6px;border:1px solid #000;border-radius:3px;background:#ffd400;color:#000;font:600 12px Georgia,serif}#cutCard .ra button.hot{background:#ffd400;border-color:#000}
 </style><script id="drUiImgHook">(function(){const D=window.DR_UI_IMAGES||{},L=D.icons||{},G=D.gem||{},K=D.dark||{},A={bShip:["bShip2","tbShip"],scopeBtn:["cbScope"],mapIcon:["tbChart"],bView:["tbView"],bHeave:["bHeave2"],bookBtn:["tbBook"],ctlIcon:[".dockhead b.dh"],"shot.deck":['#camPop button[data-shot="deck"]'],"shot.bow":['#camPop button[data-shot="bow"]'],"shot.stern":['#camPop button[data-shot="stern"]'],"shot.orbit":['#camPop button[data-shot="orbit"]'],"cut.a":['#cutChips button[data-s="-1"]'],"cut.0":['#cutChips button[data-ic="0"]'],"cut.1":['#cutChips button[data-ic="1"]'],"cut.2":['#cutChips button[data-ic="2"]'],"cut.3":['#cutChips button[data-ic="3"]'],"cut.4":['#cutChips button[data-ic="4"]'],"cut.r":["#cutRe"],"cut.f":["#cutFlip"],"cut.l":["#cutLed"],ciAll:['#cutChips button[data-s="-1"]'],ci0:['#cutChips button[data-ic="0"]'],ci1:['#cutChips button[data-ic="1"]'],ci2:['#cutChips button[data-ic="2"]'],ci3:['#cutChips button[data-ic="3"]'],ci4:['#cutChips button[data-ic="4"]'],ciReset:["#cutRe"],ciFlip:["#cutFlip"],ciStores:["#cutLed"],camDeck:['#camPop button[data-shot="deck"]'],camBow:['#camPop button[data-shot="bow"]'],camStern:['#camPop button[data-shot="stern"]'],camOrbit:['#camPop button[data-shot="orbit"]']};
 const MODE=()=>{try{const m=localStorage.getItem("drUiMode");if(m==="old"||m==="new"||m==="img")return m;return localStorage.getItem("drUiImg.on")==="0"?"old":"new";}catch(e){return "new";}};window.drUiMode=MODE;const ON=()=>MODE()!=="old";window.drUiImgOn=ON;const SRC=k=>MODE()==="img"?(G[k]||L[k]):L[k];window.drUiSrc=SRC;
