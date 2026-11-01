@@ -7851,30 +7851,33 @@ function build(R){
 function xo(k){const sk=M.sk==null?-1:M.sk,e=sk<0||k===sk?0:(k<sk?1:-1)*(M.sep||0)*(M.xs||0);return((M.off&&M.off[k]||0)*(M.xk||0))+e;}   // lifted into the stack; with a deck chosen, the others slide further away from it   // how far level k is lifted just now
 function buildExplode(R,NL,vm,pen){
   const L=M.L,Lh=LS.Lh,sk=Math.max(.15,H.T/6.2),G2=Math.max(1.5,H.B*.38);
-  M.off=[];for(let k=0;k<NL;k++)M.off.push((NL-1-k)*G2);M.span=(NL-1)*G2;M.sep=G2*1.7;M.xk=M.xk||0;M.HW=[];
-  const fl=k=>{const d=L.decks[k];return k===0?null:d.y;};
+  M.off=[];for(let k=0;k<NL;k++)M.off.push((NL-1-k)*G2);M.span=(NL-1)*G2;M.sep=G2*1.7;M.xk=M.xk||0;M.HW=[];M.HW2=[];
+  const fl=k=>L.decks[k].y;
   for(let k=0;k<NL;k++){
     const bot=z=>NL===1||k===NL-1?keelY(z)+.03:(k===0?deck(z):fl(k)-.3*sk);
     const top=z=>k===0?railY(z):(k===1?deck(z)-.3*sk:fl(k-1)-.3*sk);
-    const NZ=70,NY=5,P=[],C=[],I=[],LNs=[];const idx=new Int32Array((NZ+1)*(NY+1)).fill(-1);
-    for(let i=0;i<=NZ;i++){const z=-Lh*.985+i*(Lh*1.97/NZ);const b=bot(z),t=top(z);
-      if(!(t-b>.15))continue;
-      for(let j=0;j<=NY;j++){const y=b+(t-b)*j/NY,w=hx(z,y);if(w<.12)continue;
-        idx[i*(NY+1)+j]=P.length/3;P.push(-w,y,z);const pl=(j%2?1:0),sh=.9+.1*Math.sin(i*1.7+k);
-        C.push((.62+.06*pl)*sh,(.46+.05*pl)*sh,(.27+.04*pl)*sh);}}
-    for(let i=0;i<NZ;i++)for(let j=0;j<NY;j++){const a=idx[i*(NY+1)+j],b=idx[(i+1)*(NY+1)+j],c=idx[(i+1)*(NY+1)+j+1],d=idx[i*(NY+1)+j+1];
-      if(a<0||b<0||c<0||d<0)continue;I.push(a,b,c,a,c,d);}
-    for(let j=0;j<=NY;j++)for(let i=0;i<NZ;i++){const a=idx[i*(NY+1)+j],b=idx[(i+1)*(NY+1)+j];if(a<0||b<0)continue;LNs.push(P[a*3],P[a*3+1],P[a*3+2],P[b*3],P[b*3+1],P[b*3+2]);}
-    for(let i=0;i<=NZ;i+=2){let prev=-1;for(let j=0;j<=NY;j++){const a=idx[i*(NY+1)+j];if(a>=0&&prev>=0)LNs.push(P[prev*3],P[prev*3+1],P[prev*3+2],P[a*3],P[a*3+1],P[a*3+2]);prev=a;}}
-    const g=new THREE.BufferGeometry();g.setAttribute("position",new THREE.Float32BufferAttribute(P,3));g.setAttribute("color",new THREE.Float32BufferAttribute(C,3));g.setIndex(I);
-    const mesh=new THREE.Mesh(g,vm),lg=new THREE.BufferGeometry();lg.setAttribute("position",new THREE.Float32BufferAttribute(LNs,3));const ln=new THREE.LineSegments(lg,pen);
-    const grp=new THREE.Group();grp.add(mesh,ln);grp.visible=false;M.G.children[k].add(grp);M.HW[k]=grp;}
+    // wall(frac): the planked side of the hull for this deck, up to frac of its height (the far wall is full height, the near wall is low so it never hides the deck)
+    const wall=frac=>{
+      const NZ=70,NY=5,P=[],C=[],I=[],LNs=[];const idx=new Int32Array((NZ+1)*(NY+1)).fill(-1);
+      for(let i=0;i<=NZ;i++){const z=-Lh*.985+i*(Lh*1.97/NZ);const b=bot(z),t=b+(top(z)-b)*frac;
+        if(!(t-b>.1))continue;
+        for(let j=0;j<=NY;j++){const y=b+(t-b)*j/NY,w=hx(z,y);if(w<.12)continue;
+          idx[i*(NY+1)+j]=P.length/3;P.push(-w,y,z);const pl=(j%2?1:0),sh=.9+.1*Math.sin(i*1.7+k);
+          C.push((.62+.06*pl)*sh,(.46+.05*pl)*sh,(.27+.04*pl)*sh);}}
+      for(let i=0;i<NZ;i++)for(let j=0;j<NY;j++){const a=idx[i*(NY+1)+j],b=idx[(i+1)*(NY+1)+j],c=idx[(i+1)*(NY+1)+j+1],d=idx[i*(NY+1)+j+1];
+        if(a<0||b<0||c<0||d<0)continue;I.push(a,b,c,a,c,d);}
+      for(let j=0;j<=NY;j++)for(let i=0;i<NZ;i++){const a=idx[i*(NY+1)+j],b=idx[(i+1)*(NY+1)+j];if(a<0||b<0)continue;LNs.push(P[a*3],P[a*3+1],P[a*3+2],P[b*3],P[b*3+1],P[b*3+2]);}
+      for(let i=0;i<=NZ;i+=2){let prev=-1;for(let j=0;j<=NY;j++){const a=idx[i*(NY+1)+j];if(a>=0&&prev>=0)LNs.push(P[prev*3],P[prev*3+1],P[prev*3+2],P[a*3],P[a*3+1],P[a*3+2]);prev=a;}}
+      const g=new THREE.BufferGeometry();g.setAttribute("position",new THREE.Float32BufferAttribute(P,3));g.setAttribute("color",new THREE.Float32BufferAttribute(C,3));g.setIndex(I);
+      const lg=new THREE.BufferGeometry();lg.setAttribute("position",new THREE.Float32BufferAttribute(LNs,3));
+      const grp=new THREE.Group();grp.add(new THREE.Mesh(g,vm),new THREE.LineSegments(lg,pen));grp.visible=false;M.G.children[k].add(grp);return grp;};
+    M.HW[k]=wall(1);M.HW2[k]=wall(.4);}   // children of level k: ..., far wall, near wall (the flipped copy G2 shows the near one)
 }
 function xApply(){ // lift each level (and the flipped copy) by its offset; the hull wall slices show only while it is exploded
   const on=M.xk>.02,L=M.LG;if(!L||!M.off)return;if(L[M.off.length])L[M.off.length].visible=!on;   // the loose ribs and keel stay out of the stack
   
   for(let k=0;k<M.off.length;k++){const y=xo(k);if(L[k]){L[k].position.y=y;L[k].visible=true;}const g2=M.G2&&M.G2.children[k];if(g2){g2.position.y=y;g2.visible=M.sel===k;}
-    if(M.HW&&M.HW[k]){M.HW[k].visible=on;const c=M.G2&&M.G2.children[k]&&M.G2.children[k].children[M.G2.children[k].children.length-1];if(c)c.visible=false;}}
+    if(M.HW&&M.HW[k]){M.HW[k].visible=on;M.HW2[k].visible=false;const q=M.G2&&M.G2.children[k];if(q){const n=q.children.length;q.children[n-2].visible=false;q.children[n-1].visible=on&&M.sel===k;}}}
   if(M.G2&&M.G2.children[M.off.length])M.G2.children[M.off.length].visible=false;
 }
 /* ---------- labels: anchors from the room bands ---------- */
@@ -7910,12 +7913,13 @@ window.CUTCAM=function(R){
   R.ship.updateMatrixWorld(true);const m=R.bob.matrixWorld;
   _s.set(1,0,0).transformDirection(m);_b.set(0,0,1).transformDirection(m);_c.setFromMatrixPosition(m);
   if(M.flip){_s.negate();_b.negate();}if(M.G)M.G.scale.x=M.flip?-1:1;if(M.G2){M.G2.scale.x=-M.G.scale.x;M.G2.visible=M.sel>=0;}
-  const T=Object.assign({},M.ov||pose(R));{const tk=M.L.decks.length>1?1:0;if(M.sel>=0)M.sk=M.sel;{const ts=M.sel>=0?1:0;M.xs=M.fast?ts:(M.xs||0)+(ts-(M.xs||0))*.1;if(Math.abs(M.xs-ts)<.004)M.xs=ts;}M.xk=M.fast?tk:(M.xk||0)+(tk-(M.xk||0))*.09;if(Math.abs(M.xk-tk)<.004)M.xk=tk;xApply();const sp=(M.span||0)*M.xk;T.dist*=1+3*sp/(27*FIT);{const Dn=T.dist;T.ly+=sp*.4+.02*Dn*M.xk;if(M.sk!=null&&M.sk>=0&&M.xs>0){const dk=M.L.decks[M.sk],yk=(M.sk===0?deck(0)+1.6:dk.y+1.0)+xo(M.sk)-.068*Dn;T.ly+=(yk-T.ly)*M.xs;}}T.pt=T.pt+(Math.max(T.pt,30)-T.pt)*M.xk;}T.az+=M.uaz;T.pt=Math.max(3,Math.min(85,T.pt+M.upt));T.dist*=M.uz;T.ly+=M.uly;T.lz+=M.pan;if(!M.cur){M.cur={az:-100,pt:14,dist:T.dist*1.7,lx:0,ly:8*FIT/2.4,lz:0};}
+  const T=Object.assign({},M.ov||pose(R));{const tk=M.L.decks.length>1?1:0;if(M.sel>=0)M.sk=M.sel;{const ts=M.sel>=0?1:0;M.xs=M.fast?ts:(M.xs||0)+(ts-(M.xs||0))*.1;if(Math.abs(M.xs-ts)<.004)M.xs=ts;}M.xk=M.fast?tk:(M.xk||0)+(tk-(M.xk||0))*.09;if(Math.abs(M.xk-tk)<.004)M.xk=tk;xApply();const sp=(M.span||0)*M.xk;T.dist*=1+3*sp/(27*FIT);{T.ly+=sp*.5;if(M.sk!=null&&M.sk>=0&&M.xs>0){const dk=M.L.decks[M.sk],yk=(M.sk===0?deck(0)+1.6:dk.y+1.0)+xo(M.sk);T.ly+=(yk-T.ly)*M.xs;}}T.pt=T.pt+(Math.max(T.pt,30)-T.pt)*M.xk;}T.az+=M.uaz;T.pt=Math.max(3,Math.min(85,T.pt+M.upt));T.dist*=M.uz;T.ly+=M.uly;T.lz+=M.pan;if(!M.cur){M.cur={az:-100,pt:14,dist:T.dist*1.7,lx:0,ly:8*FIT/2.4,lz:0};}
   const e=M.fast?1:.045;for(const f of["az","pt","dist","lx","ly","lz"])M.cur[f]+=(T[f]-M.cur[f])*e;
   const c=M.cur,az=c.az*PI/180,pt=c.pt*PI/180;R.camera.fov=FOV;
   _v.set(c.lx,c.ly,c.lz).applyMatrix4(m);
   const cp=R.camera.position;cp.copy(_v).addScaledVector(_s,Math.cos(az)*Math.cos(pt)*c.dist).addScaledVector(_b,Math.sin(az)*Math.cos(pt)*c.dist);cp.y+=Math.sin(pt)*c.dist;
   R.camera.lookAt(_v);
+  { const rcv=R.renderer.domElement.getBoundingClientRect(),cr=card.getBoundingClientRect(),top=Math.max(rcv.top,88),bot=Math.min(rcv.bottom,cr.top>0?cr.top:rcv.bottom),shift=(rcv.top+rcv.height/2)-(top+bot)/2;R.cover=shift>2?shift/.3:0; }   // main's view offset moves the picture up by cover*.3 px, so the look-at point sits in the middle of what you can see
   const U=R.U;U.uCutOn.value=1;U.uCutSl.value=M.sel<0?1:0;U.uGhost.value=M.sel<0&&!(M.xk>.02)?1:0;U.uCutC.value.copy(_c);U.uCutN.value.copy(_s);U.uCutB.value.copy(_b);U.uCutR.value=90;U.uCutTop.value=TOP;const deckWet=M.sel>=0&&!!M.L.wet[M.sel],wet=M.sel<0||deckWet;if(M.sel<0)U.uCutBox.value.set(-(H.B*1.45),3.6*H.B,LS.Lh+H.B);else U.uCutBox.value.set(1000,1001,1);U.uCutE.value.set(H.B+1.4,LS.Lh+1.6,deckWet?1:0);if(M.seabed)M.seabed.visible=wet;
   if(R.seaU){R.seaU.uCutB.value.copy(_b);}
   if(R.sea&&!R.sea.material.transparent){R.sea.material.transparent=true;R.sea.material.needsUpdate=true;}
@@ -8085,7 +8089,7 @@ function labels(){const R=M.R;if(!M.on){if(labelEls)labelEls.forEach(e=>e.g.styl
   act.forEach(e=>{const l=e.l;_v.set(M.flip?-l[2][0]:l[2][0],l[2][1]+xo(l[0]),l[2][2]).applyMatrix4(R.bob.matrixWorld).project(R.camera);e.ax=rc.left+(_v.x*.5+.5)*rc.width;e.ay=rc.top+(1-(_v.y*.5+.5))*rc.height;e.vz=_v.z;});
   // static: the first half of the labels (upper decks first) stack down from the top left, the rest stack up from the bottom right, evenly spaced
   act.sort((p,q)=>p.l[0]-q.l[0]||p.l[4]-q.l[4]);const nl=Math.ceil(act.length/2),sides=[act.slice(0,nl),act.slice(nl)];
-  const stepAll=Math.min(60,(bot-top-18)/Math.max(1,Math.max(sides[0].length,sides[1].length)-1||1));
+  const stepAll=Math.min(20,(bot-top-18)/Math.max(1,Math.max(sides[0].length,sides[1].length)-1||1));
   sides.forEach((arr,side)=>{const c=arr.length;if(!c)return;
     arr.forEach((e,k)=>{const l=e.l,ax=e.ax,ay=e.ay;
       { const n=M.grp&&M.grp[l[0]*10+l[4]]?M.grp[l[0]*10+l[4]].length:0,t=e.base+(n?" "+n:"");if(e.tx.textContent!==t){e.tx.textContent=t;e.w=t.length*5.3+10;} }
