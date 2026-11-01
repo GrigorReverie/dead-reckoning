@@ -6518,7 +6518,7 @@ function svBill(){const wi=watchInfo(S),n=S.crew.filter(m=>m.mode==="duty").leng
 function svBalance(){const C=S.crew,OFF=["Lieutenant","Master","Mate","Midshipman","Coxswain"],MEN=["Seaman","Marine","Soldier"],keep=C.filter(m=>m.w<3||MEN.includes(m.r)||OFF.includes(m.r)||m.r==="Bosun");let i=0;
   for(const m of[...keep.filter(m=>OFF.includes(m.r)),...keep.filter(m=>m.r==="Bosun"),...keep.filter(m=>MEN.includes(m.r))]){m.w=i%3;i++;}if(SHIP.id!=="brig"&&S.crew.length>30)svBuild();
   const bos=C.find(m=>m.r==="Bosun");if(bos)bos.w=1;svRows();}
-function svFrame(dt,now){if(!S||!S.crew)return;if(SHIP.id==="brig"){const ctx=svCtx();S.crew.forEach((m,i)=>svMove(m,i,Math.min(dt,.1),ctx));}else for(const m of S.crew)if(!m.act||(SV.rowT===0))m.act=svAct(m);if(!window.CUTON)svDraw(now); // the painted page is hidden under the 3D cutaway
+function svFrame(dt,now){if(!S||!S.crew)return;if(SHIP.id==="brig"){const ctx=svCtx();S.crew.forEach((m,i)=>svMove(m,i,Math.min(dt,.1),ctx));}else for(const m of S.crew)if(!m.act||(SV.rowT===0))m.act=svAct(m);
   if(now-SV.rowT>250){SV.rowT=now;svRows();svBill();tradeUI();careerUI();}}
 function openShip(on){SV.open=on;$("shipView").hidden=!on;$("bShip").setAttribute("aria-pressed",String(on));$("bShip").title=on?"Back to the helm":"The ship: cutaway, crew quarters and watches";
   if(on){const b=document.querySelector(".bar");document.documentElement.style.setProperty("--bar-h",b.offsetHeight+"px");if(S){svBuildSel();svRows();}}}
@@ -7871,13 +7871,13 @@ function buildExplode(R,NL,vm,pen){
       const g=new THREE.BufferGeometry();g.setAttribute("position",new THREE.Float32BufferAttribute(P,3));g.setAttribute("color",new THREE.Float32BufferAttribute(C,3));g.setIndex(I);
       const lg=new THREE.BufferGeometry();lg.setAttribute("position",new THREE.Float32BufferAttribute(LNs,3));
       const grp=new THREE.Group();grp.add(new THREE.Mesh(g,vm),new THREE.LineSegments(lg,pen));grp.visible=false;M.G.children[k].add(grp);return grp;};
-    M.HW[k]=wall(1);M.HW2[k]=wall(.4);}   // children of level k: ..., far wall, near wall (the flipped copy G2 shows the near one)
+    M.HW[k]=wall(1);M.HW2[k]=wall(.3);}   // children of level k: ..., far wall, near wall (the flipped copy G2 shows the near one)
 }
 function xApply(){ // lift each level (and the flipped copy) by its offset; the hull wall slices show only while it is exploded
   const on=M.xk>.02,L=M.LG;if(!L||!M.off)return;if(L[M.off.length])L[M.off.length].visible=!on;   // the loose ribs and keel stay out of the stack
   
-  for(let k=0;k<M.off.length;k++){const y=xo(k);if(L[k]){L[k].position.y=y;L[k].visible=true;}const g2=M.G2&&M.G2.children[k];if(g2){g2.position.y=y;g2.visible=M.sel===k;}
-    if(M.HW&&M.HW[k]){M.HW[k].visible=on;M.HW2[k].visible=false;const q=M.G2&&M.G2.children[k];if(q){const n=q.children.length;q.children[n-2].visible=false;q.children[n-1].visible=on&&M.sel===k;}}}
+  for(let k=0;k<M.off.length;k++){const y=xo(k);if(L[k]){L[k].position.y=y;L[k].visible=true;}const g2=M.G2&&M.G2.children[k];if(g2){g2.position.y=y;g2.visible=M.sel<0||M.sel===k;}
+    if(M.HW&&M.HW[k]){M.HW[k].visible=on;M.HW2[k].visible=false;const q=M.G2&&M.G2.children[k];if(q){const n=q.children.length;q.children[n-2].visible=false;q.children[n-1].visible=on&&(M.sel<0||M.sel===k);}}}
   if(M.G2&&M.G2.children[M.off.length])M.G2.children[M.off.length].visible=false;
 }
 /* ---------- labels: anchors from the room bands ---------- */
@@ -7912,8 +7912,8 @@ window.CUTCAM=function(R){
   if(!M.on)return;build(R);if(!M.built||!M.on)return;
   R.ship.updateMatrixWorld(true);const m=R.bob.matrixWorld;
   _s.set(1,0,0).transformDirection(m);_b.set(0,0,1).transformDirection(m);_c.setFromMatrixPosition(m);
-  if(M.flip){_s.negate();_b.negate();}if(M.G)M.G.scale.x=M.flip?-1:1;if(M.G2){M.G2.scale.x=-M.G.scale.x;M.G2.visible=M.sel>=0;}
-  const T=Object.assign({},M.ov||pose(R));{const tk=M.L.decks.length>1?1:0;if(M.sel>=0)M.sk=M.sel;{const ts=M.sel>=0?1:0;M.xs=M.fast?ts:(M.xs||0)+(ts-(M.xs||0))*.1;if(Math.abs(M.xs-ts)<.004)M.xs=ts;}M.xk=M.fast?tk:(M.xk||0)+(tk-(M.xk||0))*.09;if(Math.abs(M.xk-tk)<.004)M.xk=tk;xApply();const sp=(M.span||0)*M.xk;T.dist*=1+3*sp/(27*FIT);{T.ly+=sp*.5;if(M.sk!=null&&M.sk>=0&&M.xs>0){const dk=M.L.decks[M.sk],yk=(M.sk===0?deck(0)+1.6:dk.y+1.0)+xo(M.sk);T.ly+=(yk-T.ly)*M.xs;}}T.pt=T.pt+(Math.max(T.pt,30)-T.pt)*M.xk;}T.az+=M.uaz;T.pt=Math.max(3,Math.min(85,T.pt+M.upt));T.dist*=M.uz;T.ly+=M.uly;T.lz+=M.pan;if(!M.cur){M.cur={az:-100,pt:14,dist:T.dist*1.7,lx:0,ly:8*FIT/2.4,lz:0};}
+  if(M.flip){_s.negate();_b.negate();}if(M.G)M.G.scale.x=M.flip?-1:1;if(M.G2){M.G2.scale.x=-M.G.scale.x;M.G2.visible=true;}
+  const T=Object.assign({},M.ov||pose(R));{const rc0=R.renderer.domElement.getBoundingClientRect(),cr0=card.getBoundingClientRect(),av=Math.min(rc0.bottom,cr0.top>0?cr0.top:rc0.bottom)-Math.max(rc0.top,88);T.dist*=Math.max(.9,Math.min(2,430/Math.max(200,av)));}{const tk=1;if(M.sel>=0)M.sk=M.sel;{const ts=M.sel>=0?1:0;M.xs=M.fast?ts:(M.xs||0)+(ts-(M.xs||0))*.1;if(Math.abs(M.xs-ts)<.004)M.xs=ts;}M.xk=M.fast?tk:(M.xk||0)+(tk-(M.xk||0))*.09;if(Math.abs(M.xk-tk)<.004)M.xk=tk;xApply();const sp=(M.span||0)*M.xk;T.dist*=1+1.7*sp/(27*FIT);{{const cy=(keelY(0)+deck(0)+2.2*Math.max(.6,SK)+xo(0))/2;T.ly+=(cy-T.ly)*M.xk;}if(M.sk!=null&&M.sk>=0&&M.xs>0){const dk=M.L.decks[M.sk],yk=(M.sk===0?deck(0)+1.6:dk.y+1.0)+xo(M.sk);T.ly+=(yk-T.ly)*M.xs;}}T.pt=T.pt+(Math.max(T.pt,30)-T.pt)*M.xk;}T.az+=M.uaz;T.pt=Math.max(3,Math.min(85,T.pt+M.upt));T.dist*=M.uz;T.ly+=M.uly;T.lz+=M.pan;if(!M.cur){M.cur={az:-100,pt:14,dist:T.dist*1.7,lx:0,ly:8*FIT/2.4,lz:0};}
   const e=M.fast?1:.045;for(const f of["az","pt","dist","lx","ly","lz"])M.cur[f]+=(T[f]-M.cur[f])*e;
   const c=M.cur,az=c.az*PI/180,pt=c.pt*PI/180;R.camera.fov=FOV;
   _v.set(c.lx,c.ly,c.lz).applyMatrix4(m);
@@ -8069,10 +8069,17 @@ function sheetSync(){card.classList.toggle("sh",!!window.__cutSheet());if(window
 {const p0=paint;paint=function(){p0();sheetSync();};}
 function sel(i){M.sel=(M.sel===i&&i>=0)?-1:i;M.hi=-1;M.man=-1;M.dirty=true;M.res="";M.pan=0;paint();}
 function paint(){chips.querySelectorAll("button[data-s]").forEach(b=>b.classList.toggle("on",+b.dataset.s===M.sel));
-  if(M.sel<0)card.innerHTML=`<h3>${SPc.name}</h3>${crewCard()}${(()=>{const E=emergencies(),k=Object.keys(E);return k.length?`<div class="warn">Needs attention: ${k.map(x=>M.L.decks[Math.floor(x/10)].rooms[x%10][0]).join(", ")}</div>`:""})()}<p>Tap a deck, a label or a man.</p>`;
+  if(M.sel<0)card.innerHTML=`<h3>${SPc.name}</h3>${shipFacts()}${crewCard()}${(()=>{const E=emergencies(),k=Object.keys(E);return k.length?`<div class="warn">Needs attention: ${k.map(x=>M.L.decks[Math.floor(x/10)].rooms[x%10][0]).join(", ")}</div>`:""})()}<p>Tap a deck, a label or a man.</p>`;
   else{const d=M.L.decks[M.sel];card.innerHTML=`<h3>${d.name}${M.hi>=0?'<button type="button" class="shx" aria-label="Close the room">\u00d7</button>':""}</h3>${M.hi>=0?`<div class="rd">${d.rooms[M.hi][1]}</div>${crewCard()}${(()=>{const e=emergencies()[M.sel*10+M.hi];return e?`<div class="warn">Needs attention: ${e.why}</div>`:""})()}${M.job&&M.job.lv===M.sel&&M.job.rm===M.hi?`<div class="jb"><div class="jn"><b>${ACTK[M.job.i]}</b><span class="an">${M.job.name}</span></div><div class="jbar"><i id="jbFill" style="width:${Math.round(M.job.p*100)}%"></i></div><div class="jm"><span id="jbTxt"></span><button type="button" data-j="pause">${M.job.paused?"Resume":"Pause"}</button><button type="button" data-j="stop">Stop</button></div></div>`:`${(()=>{const pool=watchHands().length,pk=M.pct||100;return`<div class="hn">Hands on watch: <b>${pool}</b></div><div class="hp">${[25,50,75,100].map(v=>`<button type="button" data-p="${v}" aria-pressed="${pk===v}"${M.job?" disabled":""}>${v}%<small>${pool?Math.max(1,Math.min(pool,Math.ceil(pool*v/100))):0}</small></button>`).join("")}</div>`;})()}<div class="ra">${M.L.act[M.sel][M.hi].map((t,i)=>`<button type="button" data-a="${i}"${M.job?" disabled":""} class="${i===3?"risk ":""}${(emergencies()[M.sel*10+M.hi]||{}).act===i?"hot":""}"><b>${ACTK[i]}</b><span class="an">${t}</span><em>${(()=>{const pool=watchHands().length,h=pool?ACTH[i]*pool/handsPick(pool):ACTH[i];return(+h.toFixed(1))+" h";})()}</em></button>`).join("")}</div>`}${M.res?`<div class="rr">${M.res}</div>`:""}`:""}`;
     card.querySelectorAll(".ra button").forEach(b=>b.onclick=()=>doAct(M.sel,M.hi,+b.dataset.a));card.querySelectorAll(".shx").forEach(b=>b.onclick=()=>{M.hi=-1;M.man=-1;M.dirty=true;paint();});card.querySelectorAll(".hp button").forEach(b=>b.onclick=()=>{M.pct=+b.dataset.p;M.dirty=true;paint();});card.querySelectorAll(".jb [data-j]").forEach(b=>b.onclick=()=>{if(!M.job)return;if(b.dataset.j==="stop")endJob(true);else{M.job.paused=!M.job.paused;b.textContent=M.job.paused?"Resume":"Pause";actShow();}});actShow();crewBind();}
   card.classList.toggle("tall",M.sel>=0);}
+function shipFacts(){try{const sp=SPc||{},X=[],n=S&&S.crew?S.crew.length:0,t=typeof CARGOT!=="undefined"?CARGOT[SHIP.id]:null,v=SHIP&&SHIP.hullMax;
+  X.push(["Type",(sp.role||"").split(" · ")[0]+(sp.year?" · "+sp.year:(sp.sub&&sp.sub.match(/1[67]\d\d/)?" · "+sp.sub.match(/1[67]\d\d/)[0]:""))]);
+  if(sp.info&&sp.info[0])X.push(["Size",sp.info[0].replace(/^About /,"").split(",")[0]]);if(sp.info&&sp.info[1])X.push(["Rig",sp.info[1].replace(/^[^:]*: ?/,"").split(",")[0]]);
+  if(v)X.push(["Top speed",(+v).toFixed(1)+" knots"]);
+  X.push(["Crew",n+" aboard, up to "+maxCrew()]);
+  if(t!=null)X.push(["Hold",t+" tons"]);
+  return'<div class="sfx">'+X.map(r=>`<div><b>${r[0]}</b><span>${r[1]}</span></div>`).join("")+"</div>";}catch(e){return"";}}
 let labelEls=null;
 function labels(){const R=M.R;if(!M.on){if(labelEls)labelEls.forEach(e=>e.g.style.display="none");looping=false;return;} // stop until the cutaway opens again
   if(!R||!M.built){requestAnimationFrame(labels);return;}
@@ -8094,7 +8101,7 @@ function labels(){const R=M.R;if(!M.on){if(labelEls)labelEls.forEach(e=>e.g.styl
     arr.forEach((e,k)=>{const l=e.l,ax=e.ax,ay=e.ay;
       { const n=M.grp&&M.grp[l[0]*10+l[4]]?M.grp[l[0]*10+l[4]].length:0,t=e.base+(n?" "+n:"");if(e.tx.textContent!==t){e.tx.textContent=t;e.w=t.length*5.3+10;} }
       e.g.classList.toggle("sel",M.sel===l[0]&&M.hi===l[4]);
-      const ty=side?bot-18-(c-1-k)*stepAll:top+k*stepAll,bx=side?W-6-e.w:6;
+      const vi=(bot-top)*.08,hi=Math.round(W*.08),ty=side?bot-18-vi-(c-1-k)*stepAll:top+vi+k*stepAll,bx=side?W-hi-e.w:hi;
       e.rc.setAttribute("x",bx);e.rc.setAttribute("y",ty);e.rc.setAttribute("width",e.w);
       e.tx.setAttribute("x",bx+5);e.tx.setAttribute("y",ty+11.5);
       const ok=!(e.vz>1||ax<8||ax>W-8||ay<70||ay>cardTop-6);
@@ -8380,6 +8387,7 @@ body.cutmode #aboutBox,body.cutmode .dockwrap{}
 #cutChips button{padding:5px 6px}
 #cutChips.many button{padding:5px 3px}
 body.cutmode #shipView{display:none!important}
+#shipView .sv-cv,#shipView .svrooms,#shipView .plate,#shipView .sv-top h2,#shipView p.svhint{display:none!important}
 html.cutlock,html.cutlock body{overflow:hidden!important;overscroll-behavior:none!important;height:100%}html.cutlock #cutUI,html.cutlock #view3d,html.cutlock #cutSvg{touch-action:none}html.cutlock #cutCard,html.cutlock #cutChips{touch-action:pan-y}
 #cutBack{position:fixed;right:10px;top:calc(var(--bar-h,56px) + 8px);z-index:40;border:1px solid #2e2519;border-radius:3px;background:rgba(246,238,217,.96);color:#2e2519;font:12px "IM Fell English SC",serif;padding:5px 9px}#cutBack[hidden]{display:none}
 #cutSvg text{font:12.5px Georgia,serif;font-style:normal;fill:#000;stroke:none;paint-order:normal}
@@ -8393,6 +8401,7 @@ body.cutmode #view3d{touch-action:none}
 #cutSvg polyline{stroke-width:.5px}#cutSvg circle{stroke-width:.8px}
 #cutCard .ra{list-style:none;margin:4px 0 0;padding:0}#cutCard .ra li{font:12px Georgia,serif;line-height:1.3;padding:2px 0;border-top:1px dotted #cbbd98}#cutCard .ra b{font:10px "IBM Plex Mono",monospace;text-transform:uppercase;letter-spacing:.06em;color:#7b6a55;margin-right:5px}#cutCard .ra .risk b{color:#a83b2f}
 #cutCard .ra{display:flex;flex-direction:column;gap:4px;margin-top:5px}#cutCard .ra button{display:grid;grid-template-columns:54px 1fr 30px;align-items:center;gap:6px;width:100%;text-align:left;font:12px Georgia,serif;line-height:1.3;padding:6px 8px;min-height:34px;border:1px solid #2e2519;border-radius:3px;background:#fff;color:#000}#cutCard .ra button.risk{border-color:#a83b2f}#cutCard .ra button b{font:10px "IBM Plex Mono",monospace;text-transform:uppercase;letter-spacing:.06em;color:#7b6a55;margin-right:0}#cutCard .ra button em{font:normal 10.5px "IBM Plex Mono",monospace;color:#7b6a55;text-align:right}#cutCard .ra button:disabled{opacity:.45}#cutCard .shx{float:right;width:30px;height:30px;font:20px/1 Georgia,serif;border:1px solid #2e2519;border-radius:3px;background:#fff;color:#000;padding:0;cursor:pointer}@media (min-width:0px){#cutCard.sh{left:0;right:0;top:auto;bottom:var(--pbot,72px);height:var(--smin,200px);max-height:none;width:auto;border-width:2px 0 0;overflow:auto;padding:10px 14px 14px;background:var(--paper,#f6eed9);color:var(--ink,#2e2519)}#cutChips{bottom:calc(var(--pbot,72px) + var(--smin,0px) + 3px)!important}}#cutCard .hn{margin-top:6px;font:12px Georgia,serif}#cutCard .hp{display:flex;gap:4px;margin-top:3px}#cutCard .hp button{flex:1;display:flex;flex-direction:column;align-items:center;padding:3px 0;font:12px Georgia,serif;border:1px solid #2e2519;border-radius:3px;background:#fff;color:#000}#cutCard .hp button small{font:9.5px "IBM Plex Mono",monospace;color:#7b6a55}#cutCard .hp button[aria-pressed="true"]{background:#2e2519;color:#f6eed9}#cutCard .hp button[aria-pressed="true"] small{color:#d8ccaf}#cutCard .hp button:disabled{opacity:.5}#cutCard .jb{margin-top:6px;border:1px solid #2e2519;border-radius:3px;background:#fff;color:#000;padding:6px 8px}#cutCard .jn{display:grid;grid-template-columns:54px 1fr;gap:6px;font:12px Georgia,serif;align-items:center}#cutCard .jn b{font:10px "IBM Plex Mono",monospace;text-transform:uppercase;letter-spacing:.06em;color:#7b6a55}#cutCard .jbar{height:10px;border:1px solid #2e2519;border-radius:2px;margin:6px 0;overflow:hidden;background:#f6eed9}#cutCard .jbar i{display:block;height:100%;background:#2e2519}#cutCard .jm{display:flex;align-items:center;gap:6px}#cutCard .jm span{flex:1;font:11px "IBM Plex Mono",monospace;color:#4a3f30}#cutCard .jm button{font:12px Georgia,serif;padding:5px 12px;border:1px solid #000;border-radius:3px;background:#fff;color:#000}#cutCard .ra button.risk b{color:#a83b2f}#cutCard .rr{margin-top:5px;font:italic 12.5px Georgia,serif;color:#2e2519}
+#cutCard .sfx{display:grid;grid-template-columns:1fr 1fr;gap:2px 14px;margin:4px 0 6px;font:12px Georgia,serif}#cutCard .sfx b{font-weight:600;margin-right:6px}#cutCard .sfx span{color:#4a3a22}
 #cutCard{max-height:46vh;overflow:auto}#cutCard .mc{margin-top:6px;border-top:1px dotted #cbbd98;padding-top:5px;font:12.5px Georgia,serif}#cutCard .mc .svhint{font:11.5px Georgia,serif;color:#4a3f30;margin-top:2px}#cutCard .mb{display:flex;gap:5px;margin-top:5px}#cutCard .mb button{font:12px Georgia,serif;padding:4px 8px;border:1px solid #000;border-radius:3px;background:#fff;color:#000}
 #cutChips{justify-content:space-between;gap:6px}#cutChips button{flex:1 1 0;max-width:38px;min-width:0;height:42px;padding:0;display:flex;flex-direction:column;align-items:center;justify-content:center;border:0;border-radius:3px;background:var(--paper,#f6eed9);color:var(--ink,#2e2519)}#cutChips button svg{width:21px;height:21px}#cutChips button span{display:block;font:6.5px/1 "IBM Plex Mono",monospace;letter-spacing:0;text-transform:uppercase;margin-top:3px;max-width:100%;overflow:hidden;white-space:nowrap}#cutChips button.on,#cutChips button:active{background:var(--ink,#2e2519);color:var(--paper,#f6eed9)}#cutChips #cutRe{margin-left:0}#cutChips #cutLed{border-style:solid}@media (min-width:0px){#cutChips{left:12px;right:12px;bottom:calc(var(--pbot,72px) + 3px)}}
 
