@@ -5802,7 +5802,7 @@ const basketCost=s=>{let t=0;if(s.basket)for(const g in s.basket)t+=s.basket[g].
 const holdUsed=s=>holdLoaded(s)+quayTons(s)+basketTons(s); // goods bought and waiting on the quay count against the hold at once
 const cargoSpeedF=s=>1-.14*clamp(holdLoaded(s)/holdCap(),0,1.3);
 /* brig loading: purchases wait on the quay, then the hands carry them aboard over time (other ships still load instantly) */
-const loadsByHand=()=>SHIP.id==="brig";
+const loadsByHand=()=>true; // every ship loads from the quay by hand
 let LOADX=1; // Cheats: loading speed multiplier for goods bought at the market
 const loadRate=s=>{const h=s.crew?s.crew.filter(m=>m.mode==="duty").length:8;return 180*LOADX*clamp(Math.max(h,4)/12,.35,2);}; // tons per game hour: a hand-carried ton every five seconds with a dozen hands
 const quayLeft=s=>quayTons(s);
