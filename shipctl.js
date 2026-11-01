@@ -108,6 +108,8 @@ window.DRSC=(function(){
     show(c.hShowCourse,".dock-all .dockctl .cspd");show(c.hShowWind,".dock-all .dockctl .winf");show(c.hShowAnchor,".dock-all #anchTxt");
     show(c.hShowHelmBtns,".dock-all .helmbtns");show(c.hShowRig,".dock-all .sub.subt .meter,.dock-all #strainTxt,.dock-all #hullTxt");
     show(c.hShowLogRow,".dock-all .row:has(#bHeave)");
+    // the Ship controls panel follows its own view split (the game fixes its top padding at 250px otherwise)
+    if(viewShare("ctl"))o.push(`html body .side .dock-all:not(.collapsed){padding-top:calc(var(--vh,280px) - 30px)${I}}`);
     // moved and resized parts (CSS translate/scale/rotate, so they stack on whatever the game already does)
     {const P=c.pos||{};for(const k in P){const sel=partSel[k],q=P[k];if(!sel||!q)continue;const r=[];
       const X=+q.x||0,Y=+q.y||0;if(X||Y)r.push(`translate:${X}px ${Y}px${I}`);
