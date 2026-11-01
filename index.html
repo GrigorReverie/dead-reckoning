@@ -2023,9 +2023,12 @@ const ROSE=geo(12.1,-59.3);
 function path(pts){ctx.beginPath();pts.forEach((p,i)=>i?ctx.lineTo(sx(p.x),sy(p.y)):ctx.moveTo(sx(p.x),sy(p.y)));ctx.closePath();}
 /* ---------- chart relief: water depth lines (fathoms), seabed tint, soundings, land contours and hill shading ---------- */
 const FM=1.8288;
-const DEPTH_LV=[10,20,50,100,200,500,1000]; // fathoms; DEPTH_LV_ZOOM is the zoom below which that line is left off
-const DEPTH_LV_ZOOM=[1.6,2.4,.9,1.3,.8,.8,.8];
-const LAND_LV=[25,50,100,200,300,500,750,1000,1250], LAND_LV_ZOOM=[7,5,3,1.6,2.4,1.2,1.2,1.2,1.2];
+// line spacing scales with the zoom: a wide view shows a few index lines, and each step in brings in a finer interval
+const DEPTH_LV=[2,3,5,10,15,20,30,40,50,75,100,150,200,300,500,750,1000,1500]; // fathoms
+const DEPTH_TIERS=[[1.2,[50,200,1000]],[2.5,[20,50,100,200,500,1000]],[6,[10,20,30,50,100,200,300,500,1000]],[20,[5,10,15,20,30,40,50,75,100,150,200,300,500,1000]],[1e9,DEPTH_LV]];
+const LAND_LV=[10,25,50,75,100,150,200,250,300,400,500,600,750,900,1000,1250,1400]; // metres
+const LAND_TIERS=[[1.5,[200,500,1000]],[3,[100,200,500,1000]],[8,[50,100,200,300,500,750,1000]],[25,[25,50,100,150,200,300,400,500,750,1000,1250]],[1e9,LAND_LV]];
+const tierAt=(T,z)=>{for(const[zm,l]of T)if(z<zm)return l;return T[T.length-1][1];};
 // hand-placed shelves and banks: centre, half-sizes in nm, depth on top in metres
 const BANKS=[
  [17.45,-61.80,20,26,34],[17.62,-63.32,22,9,28],[17.25,-62.68,16,10,26],[10.45,-62.15,28,22,26],[10.98,-60.95,26,12,48],
@@ -2112,9 +2115,9 @@ function buildRelief(){
 function depthFmAt(x,y){const R=buildRelief(),u=x/R.g,v=y/R.g,i=Math.floor(u),j=Math.floor(v);if(i<0||j<0||i>=R.NX-1||j>=R.NY-1)return null;
   if(R.land[j*R.NX+i])return 0;const fu=u-i,fv=v-j,Z=R.Z,NX=R.NX;
   return (Z[j*NX+i]*(1-fu)+Z[j*NX+i+1]*fu)*(1-fv)+(Z[(j+1)*NX+i]*(1-fu)+Z[(j+1)*NX+i+1]*fu)*fv;}
-function strokeChains(chs,levels,zooms,style,label){
+function strokeChains(chs,levels,style,label){
   const z=cam.zoom,x0=cam.x-CW/2/z-2,x1=cam.x+CW/2/z+2,yT=cam.y+CYC/z+2,yB=cam.y-(CH-CYC)/z-2,labs=[];
-  for(let li=0;li<levels.length;li++){if(z<zooms[li])continue;const L=levels[li];style(L);ctx.beginPath();
+  for(let li=0;li<levels.length;li++){const L=levels[li];style(L);ctx.beginPath();
     for(const ch of chs){if(ch.lv!==L||ch.x1<x0||ch.x0>x1||ch.y1<yB||ch.y0>yT)continue;const c=ch.c,n=c.length/2;let lx=0,ly=0,acc=0,first=true;
       for(let k=0;k<n;k++){const X=sx(c[k*2]),Y=sy(c[k*2+1]);
         if(first){ctx.moveTo(X,Y);lx=X;ly=Y;first=false;continue;}
@@ -2128,7 +2131,7 @@ function drawReliefWater(){
   ctx.save();ctx.imageSmoothingEnabled=true;ctx.translate(sx(-R.g/2),sy(-R.g/2));ctx.scale(1,-1);ctx.drawImage(R.tint,0,0,R.NX*R.g*z,R.NY*R.g*z);ctx.restore();}
 function drawReliefLines(){
   if(!showDepth)return;const R=buildRelief(),z=cam.zoom;ctx.save();ctx.lineJoin="round";ctx.lineCap="round";
-  const labs=strokeChains(R.chains,DEPTH_LV,DEPTH_LV_ZOOM,L=>{ctx.strokeStyle=L>=200?"rgba(52,86,120,.55)":"rgba(52,86,120,.42)";ctx.lineWidth=L%100===0||L===50?.9:.65;ctx.setLineDash(L<50?[1,2.5]:L>=500?[6,3]:[]);},true);
+  const labs=strokeChains(R.chains,tierAt(DEPTH_TIERS,z),L=>{const idx=L===10||L===50||L===100||L===200||L===500||L===1000;ctx.strokeStyle=L>=200?"rgba(52,86,120,.55)":"rgba(52,86,120,.42)";ctx.lineWidth=idx?.95:.55;ctx.setLineDash(L<10?[1,2.5]:L>=500?[6,3]:[]);},true);
   ctx.setLineDash([]);ctx.font="italic 10px 'IM Fell English',Georgia,serif";ctx.textAlign="center";ctx.textBaseline="middle";
   for(const[X,Y,L]of labs){const t=String(L);const w=ctx.measureText(t).width;ctx.fillStyle="rgba(246,238,217,.85)";ctx.fillRect(X-w/2-2,Y-6,w+4,12);ctx.fillStyle="rgba(40,70,104,.85)";ctx.fillText(t,X,Y);}
   // soundings in fathoms where the water is shoal, laid on a lattice that thins out as you zoom away
@@ -2143,7 +2146,7 @@ function drawReliefLand(){
   if(!showLand)return;const R=buildRelief(),z=cam.zoom;
   for(const L of R.lands){const I=L.I;path(I.pts);ctx.save();ctx.clip();ctx.imageSmoothingEnabled=true;ctx.translate(sx(L.ox-L.lg/2),sy(L.oy-L.lg/2));ctx.scale(1,-1);ctx.drawImage(L.cv,0,0,L.w*z,L.h*z);ctx.setTransform(DPR,0,0,DPR,0,0);
     ctx.lineJoin="round";ctx.lineCap="round";
-    strokeChains(L.chains,LAND_LV,LAND_LV_ZOOM,Lv=>{ctx.strokeStyle=Lv%500===0?"rgba(92,68,40,.75)":"rgba(112,86,52,.5)";ctx.lineWidth=Lv%500===0?1:.6;});
+    strokeChains(L.chains,tierAt(LAND_TIERS,z),Lv=>{const idx=Lv===100||Lv===500||Lv===1000;ctx.strokeStyle=idx?"rgba(92,68,40,.75)":"rgba(112,86,52,.5)";ctx.lineWidth=idx?1:.55;});
     ctx.restore();}
   ctx.save();ctx.strokeStyle="#2e2519";ctx.lineWidth=1.2;for(const I of islands){path(I.pts);ctx.stroke();}ctx.restore();}
 function drawSpotHeights(){
@@ -2153,6 +2156,55 @@ function drawSpotHeights(){
 let showDepth=true,showLand=true;try{showDepth=localStorage.getItem("drDepth")!=="0";showLand=localStorage.getItem("drLandH")!=="0";}catch(e){}
 function setDepth(v){showDepth=v;$("depTog").setAttribute("aria-pressed",String(v));const t=v?"Hide depth lines and soundings":"Show depth lines and soundings";$("depTog").title=t;$("depTog").setAttribute("aria-label",t);try{localStorage.setItem("drDepth",v?"1":"0");}catch(e){}}
 function setLandH(v){showLand=v;$("hgtTog").setAttribute("aria-pressed",String(v));const t=v?"Hide land heights (contours and shading)":"Show land heights (contours and shading)";$("hgtTog").title=t;$("hgtTog").setAttribute("aria-label",t);try{localStorage.setItem("drLandH",v?"1":"0");}catch(e){}}
+/* ---------- ports on the chart: the harbour plan drawn to true scale, fading in as you zoom ---------- */
+const PORT_ZOOM=[25,70]; // px per nautical mile where the harbour starts to show and where it is fully drawn
+function portPatch(k){const f=PF[k];if(!f)return null;if(f.patch)return f.patch;
+  const G=f.G3,R=2,u0=-PGU,v0=PGV0,w=(PGU*2)*R,h=(PGV1-PGV0)*R,cv=document.createElement("canvas");cv.width=w;cv.height=h;
+  const c2=cv.getContext("2d"),im=c2.createImageData(w,h),W=new Uint8Array(w*h);
+  for(let j=0;j<h;j++)for(let i=0;i<w;i++)W[j*w+i]=G.isWater(u0+(i+.5)/R,v0+(j+.5)/R)?1:0;
+  for(let j=0;j<h;j++)for(let i=0;i<w;i++){const u=u0+(i+.5)/R,v=v0+(j+.5)/R,o=(j*w+i)*4,water=W[j*w+i];
+    const ramp=Math.max(0,Math.min(1,(PGU-Math.abs(u))/9,(PGV1-v)/7,(v-PGV0)/7));let r,g,b;
+    if(water){const d=G.dist(u,v),q=Math.max(0,Math.min(1,d/16));r=243-q*30;g=234-q*10;b=208-q*2;}
+    else{r=217;g=214;b=164;
+      const edge=(i>0&&W[j*w+i-1])||(i<w-1&&W[j*w+i+1])||(j>0&&W[(j-1)*w+i])||(j<h-1&&W[(j+1)*w+i]);if(edge){r=46;g=37;b=25;}}
+    im.data[o]=r;im.data[o+1]=g;im.data[o+2]=b;im.data[o+3]=255*ramp;}
+  c2.putImageData(im,0,0);return f.patch={cv,R,u0,v0,w,h};}
+function drawPorts(){
+  const z=cam.zoom,a=Math.max(0,Math.min(1,(z-PORT_ZOOM[0])/(PORT_ZOOM[1]-PORT_ZOOM[0])));if(a<=0)return;
+  const xa=cam.x-CW/2/z-3,xb=cam.x+CW/2/z+3,yt=cam.y+CYC/z+3,yb=cam.y-(CH-CYC)/z-3;
+  for(const k in PF){const f=PF[k];if(f.bx<xa||f.bx>xb||f.by<yb||f.by>yt)continue;
+    const pa=portPatch(k),G=f.G3,X=PORTX[k],cd=Math.cos(f.d),sd=Math.sin(f.d),s=z*PUN;
+    ctx.save();ctx.globalAlpha=a;ctx.transform(-s*cd,-s*sd,s*sd,-s*cd,sx(f.bx),sy(f.by));
+    ctx.imageSmoothingEnabled=true;ctx.drawImage(pa.cv,pa.u0,pa.v0,pa.w/pa.R,pa.h/pa.R);
+    const px=n=>n/s; // n screen pixels, in plan units
+    ctx.lineJoin="round";ctx.lineCap="round";
+    // reefs
+    for(const r of X.reefs||[]){ctx.beginPath();ctx.ellipse(r[0],r[1],r[2],r[3],0,0,2*PI);ctx.fillStyle="rgba(168,69,44,.16)";ctx.fill();ctx.setLineDash([px(2),px(3)]);ctx.strokeStyle="rgba(168,69,44,.8)";ctx.lineWidth=px(1);ctx.stroke();ctx.setLineDash([]);}
+    // town blocks
+    ctx.fillStyle="rgba(176,112,78,.85)";ctx.strokeStyle="rgba(46,37,25,.8)";ctx.lineWidth=px(.7);
+    for(const hh of G.houses){if(hh===G.church)continue;ctx.beginPath();ctx.rect(hh.u,hh.v,1.9,1.5);ctx.fill();if(z>110)ctx.stroke();}
+    // quay and piers
+    ctx.strokeStyle="#2e2519";ctx.lineWidth=px(2.2);ctx.beginPath();let first=true;for(const q of G.quay){first?ctx.moveTo(q.u,q.v):ctx.lineTo(q.u,q.v);first=false;}ctx.stroke();
+    ctx.lineWidth=px(3);for(const pr of G.piers){ctx.beginPath();ctx.moveTo(pr.u,pr.v);ctx.lineTo(pr.u+pr.du*pr.len,pr.v+pr.dv*pr.len);ctx.stroke();}
+    // church and mills
+    if(G.church){const hh=G.church;ctx.fillStyle="#f6eed9";ctx.beginPath();ctx.rect(hh.u,hh.v,1.9,1.5);ctx.fill();ctx.strokeStyle="#2e2519";ctx.lineWidth=px(1);ctx.stroke();
+      const r=px(5);ctx.beginPath();ctx.moveTo(hh.u+.95,hh.v+.75-r);ctx.lineTo(hh.u+.95,hh.v+.75+r);ctx.moveTo(hh.u+.95-r*.6,hh.v+.75-r*.3);ctx.lineTo(hh.u+.95+r*.6,hh.v+.75-r*.3);ctx.stroke();}
+    for(const m of G.mills){const r=px(5);ctx.strokeStyle="#2e2519";ctx.lineWidth=px(1);ctx.beginPath();ctx.arc(m.u,m.v,r*.45,0,2*PI);ctx.fillStyle="#f6eed9";ctx.fill();ctx.stroke();ctx.beginPath();ctx.moveTo(m.u-r,m.v-r);ctx.lineTo(m.u+r,m.v+r);ctx.moveTo(m.u+r,m.v-r);ctx.lineTo(m.u-r,m.v+r);ctx.stroke();}
+    // anchorage ring
+    {const A=X.anch;ctx.setLineDash([px(6),px(4)]);ctx.strokeStyle="#2e2519";ctx.lineWidth=px(1.1);ctx.beginPath();ctx.ellipse(A[0],A[1],A[2],A[3],0,0,2*PI);ctx.stroke();ctx.setLineDash([]);}
+    // forts
+    for(const fo of X.forts){const r=px(5);ctx.fillStyle="#f6eed9";ctx.strokeStyle="#2e2519";ctx.lineWidth=px(1.2);ctx.beginPath();ctx.rect(fo[0]-r,fo[1]-r,2*r,2*r);ctx.fill();ctx.stroke();ctx.beginPath();ctx.moveTo(fo[0]-r,fo[1]);ctx.lineTo(fo[0]+r,fo[1]);ctx.moveTo(fo[0],fo[1]-r);ctx.lineTo(fo[0],fo[1]+r);ctx.stroke();}
+    ctx.restore();
+    // text stays upright: soundings, the anchorage name and the forts
+    const pt=(u,v)=>{const q=toNm(f,u,v);return[sx(q[0]),sy(q[1])];};
+    ctx.save();ctx.globalAlpha=a;ctx.textAlign="center";
+    if(z>=40){ctx.fillStyle="rgba(60,50,35,.78)";ctx.font="italic 10px 'IM Fell English',Georgia,serif";
+      const step=z>150?9:z>90?13:18;let seed=5;const rnd=()=>(seed=(seed*16807)%2147483647)/2147483647;
+      for(let u=-PGU+8;u<PGU-6;u+=step)for(let v=PGV0+10;v<PGV1-6;v+=step){const uu=u+(rnd()-.5)*step*.6,vv=v+(rnd()-.5)*step*.6;if(!G.isWater(uu,vv))continue;const d=G.dist(uu,vv);if(d<2.5)continue;const p=pt(uu,vv);if(p[0]<6||p[0]>CW-6||p[1]<10||p[1]>CH-6)continue;ctx.fillText(String(Math.max(1,Math.round(Math.sqrt(d)*X.dk*1.6))),p[0],p[1]);}}
+    {const A=X.anch,p=pt(A[0],A[1]);ctx.fillStyle="#2e2519";ctx.font="14px 'IM Fell English SC',Georgia,serif";ctx.fillText("⚓",p[0],p[1]+4);ctx.font="italic 11px 'IM Fell English',Georgia,serif";ctx.fillText(A[4],p[0],p[1]+19);}
+    if(z>=50){ctx.font="italic 11px 'IM Fell English',Georgia,serif";for(const fo of X.forts){const p=pt(fo[0],fo[1]);ctx.fillStyle="rgba(246,238,217,.8)";const tw=ctx.measureText(fo[2]).width;ctx.fillRect(p[0]-tw/2-2,p[1]-23,tw+4,13);ctx.fillStyle="#2e2519";ctx.fillText(fo[2],p[0],p[1]-13);}}
+    ctx.restore();}
+}
 function drawChart(){
   if(CW<2||CH<2)return; // the chart pane is folded away, so there is nothing to draw
   ctx.setTransform(DPR,0,0,DPR,0,0);
@@ -2190,6 +2242,7 @@ function drawChart(){
   drawReliefLand();
   // land hatching
   if(!showLand){ctx.save();for(const isl of islands){path(isl.pts);ctx.save();ctx.clip();ctx.strokeStyle="rgba(46,37,25,.12)";ctx.lineWidth=.6;const c=sx(isl.c.x),d=sy(isl.c.y),r=Math.max(40,30*cam.zoom);for(let k=-r;k<r;k+=4){ctx.beginPath();ctx.moveTo(c+k,d-r);ctx.lineTo(c+k+r*.6,d+r);ctx.stroke();}ctx.restore();}ctx.restore();}
+  drawPorts();
   // landmarks
   for(const lm of LMS){const x=sx(lm.x),y=sy(lm.y),s=Math.max(3,Math.min(7,cam.zoom*1.4));ctx.beginPath();ctx.moveTo(x,y-s);ctx.lineTo(x+s*.8,y+s*.6);ctx.lineTo(x-s*.8,y+s*.6);ctx.closePath();ctx.fillStyle=lm.vis?"#a8452c":"#7b6a55";ctx.fill();}
   drawSpotHeights();
@@ -7937,7 +7990,7 @@ window.addEventListener("load",()=>setTimeout(boot,400));
 window.__CUT=M;window.__CUTfast=()=>{M.fast=1;};
 })();
 
-window.__DR={buildRelief,depthFmAt,drawChart,cam,hour:()=>S&&!S.done?localHours(S,S.t):null,preview:PV,cam:()=>R3,footAt,PF,portGeom,openPortCard,openPortPlan,tideLvl,tideTable,tideStream,plotFix,LMS,currentAt,landInit,WINDK,CURK,dockAtPort,showCrisis,crisisKind,punish,loadState,packState,decS,toggleOars,setStroke,oarPivot,STROKES,pickShip,get SHIP(){return SHIP},SHIPDEFS,SPEC,useShip,applyShip,crewOf,rigOf,linesOf,get shipPick(){return shipPick},set shipPick(v){shipPick=v},svMove,svCtx,sx,sy,openPortCard,openPortPlan,get R3(){return R3},setMain,update3D,get S(){return S},VOYAGES,PORTS,islands,reefs,LMS,step,startVoyage,setCourse,tackOrWear,setSail,assistStep,noonAvailable,windAt:(x,y,t)=>windAt(S,x,y,t),inPoly,crossFix,plotFix,takeBearing,markNoon,startObserve,noonAvailable,endVoyage,toGeo,geo,atPort:()=>atPort(S),buyStore,sellFish,toggleFish,coastNm,fishStep,tradeBuy,tradeSell,tradeUI,tradeSite,tradeJettison,contractBoard,contractText,contractAccept,contractDeliver,mkInit,holdUsed,marketBlurb,tradeStep,buyNews};
+window.__DR={buildRelief,depthFmAt,drawChart,camC:cam,hour:()=>S&&!S.done?localHours(S,S.t):null,preview:PV,cam:()=>R3,footAt,PF,portGeom,openPortCard,openPortPlan,tideLvl,tideTable,tideStream,plotFix,LMS,currentAt,landInit,WINDK,CURK,dockAtPort,showCrisis,crisisKind,punish,loadState,packState,decS,toggleOars,setStroke,oarPivot,STROKES,pickShip,get SHIP(){return SHIP},SHIPDEFS,SPEC,useShip,applyShip,crewOf,rigOf,linesOf,get shipPick(){return shipPick},set shipPick(v){shipPick=v},svMove,svCtx,sx,sy,openPortCard,openPortPlan,get R3(){return R3},setMain,update3D,get S(){return S},VOYAGES,PORTS,islands,reefs,LMS,step,startVoyage,setCourse,tackOrWear,setSail,assistStep,noonAvailable,windAt:(x,y,t)=>windAt(S,x,y,t),inPoly,crossFix,plotFix,takeBearing,markNoon,startObserve,noonAvailable,endVoyage,toGeo,geo,atPort:()=>atPort(S),buyStore,sellFish,toggleFish,coastNm,fishStep,tradeBuy,tradeSell,tradeUI,tradeSite,tradeJettison,contractBoard,contractText,contractAccept,contractDeliver,mkInit,holdUsed,marketBlurb,tradeStep,buyNews};
 })();
 </script>
 <style>/* UI Layout Tuner settings (phone), 2026-10-29 */
