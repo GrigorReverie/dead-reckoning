@@ -479,7 +479,7 @@ body.fs3d #fsBar{left:max(12px,env(safe-area-inset-left,0px));bottom:max(12px,en
         <b class="ah">Sky</b>
         <label class="chk"><input type="checkbox" id="aSky" checked> <span>Sky chart<small>Draws the altitude and bearing grid, the constellation lines and their names over the sky.</small></span></label>
       </div>
-      <div class="menupop" id="cheatPop" hidden style="position:fixed;left:50%;top:50%;right:auto;bottom:auto;transform:translate(-50%,-50%);width:min(340px,92vw);max-height:86vh;overflow:auto;z-index:9999;padding:12px;box-shadow:0 8px 40px rgba(0,0,0,.5)"><div class="ah" style="font-family:var(--f-display);font-variant:small-caps;font-size:18px;display:flex;justify-content:space-between">Cheats<button class="tb" id="cheatX" style="width:auto">✕</button></div><label style="display:block;margin:8px 0 2px;font-size:12px">Fishing rate: <b id="chFishV">500</b>×<input id="chFish" type="range" min="1" max="5000" step="1" value="500" style="width:100%"></label><label style="display:block;margin:8px 0 2px;font-size:12px">Cargo loading rate (units per tap): <b id="chLoadV">10</b><input id="chLoad" type="range" min="1" max="200" step="1" value="10" style="width:100%"></label><div style="margin:8px 0 2px;font-size:12px">Add goods to the hold</div><div style="display:flex;gap:6px"><select id="chGood" style="flex:1;min-width:0"></select><button class="tb" id="chAdd" style="width:auto;border:1px solid var(--ink)">Add</button></div><button class="tb" data-cheat="money">Add £1,000</button><button class="tb" data-cheat="hold">Fill the hold</button><button class="tb" data-cheat="daynight">Switch day / night</button><button class="tb" data-cheat="ships">Unlock all ships</button></div></div>
+      <div class="menupop" id="cheatPop" hidden style="position:fixed;left:50%;top:50%;right:auto;bottom:auto;transform:translate(-50%,-50%);width:min(340px,92vw);max-height:86vh;overflow:auto;z-index:9999;padding:12px;box-shadow:0 8px 40px rgba(0,0,0,.5)"><div class="ah" style="font-family:var(--f-display);font-variant:small-caps;font-size:18px;display:flex;justify-content:space-between">Cheats<button class="tb" id="cheatX" style="width:auto">✕</button></div><label style="display:block;margin:8px 0 2px;font-size:12px">Fishing rate: <b id="chFishV">500</b>×<input id="chFish" type="range" min="1" max="5000" step="1" value="500" style="width:100%"></label><label style="display:block;margin:8px 0 2px;font-size:12px">Cargo loading rate: <b id="chLoadV">30</b> units a minute<input id="chLoad" type="range" min="1" max="200" step="1" value="30" style="width:100%"></label><div style="margin:8px 0 2px;font-size:12px">Order goods</div><div style="display:flex;gap:6px"><select id="chGood" style="flex:1;min-width:0"></select><input id="chQty" type="number" min="1" value="10" style="width:54px"><button class="tb" id="chAdd" style="width:auto;border:1px solid var(--ink)">Add</button></div><div id="chRcpt" style="margin:8px 0;padding:8px;border:1px dashed var(--ink)"></div><button class="tb" id="chBuy" style="border:1px solid var(--ink);text-align:center">Confirm and purchase</button><button class="tb" id="chGo" style="border:1px solid var(--ink);text-align:center;display:none">Load</button><button class="tb" data-cheat="money">Add £1,000</button><button class="tb" data-cheat="hold">Fill the hold</button><button class="tb" data-cheat="daynight">Switch day / night</button><button class="tb" data-cheat="ships">Unlock all ships</button></div></div>
   </div>
   <div class="infobar" aria-label="Date, wind and weather">
     <span class="when"><b id="clock">—</b><small id="watch">—</small></span>
@@ -6776,10 +6776,38 @@ $("cbBtn").onclick=()=>{const c=$("compassBox"),o=c.classList.toggle("collapsed"
   $("bCheat").onclick=e=>{e.stopPropagation();cp.hidden=false;};
   $("cheatX").onclick=e=>{e.stopPropagation();cp.hidden=true;};
   document.addEventListener("click",e=>{if(!cp.hidden&&!e.target.closest("#cheatPop,#bCheat"))cp.hidden=true;});
-  let chLoad=10;const chG=$("chGood");chG.innerHTML=Object.keys(GOODS).map(g=>`<option value="${g}">${GOODS[g].n}</option>`).join("");
+  let chLoad=30;const chG=$("chGood");chG.innerHTML=Object.keys(GOODS).map(g=>`<option value="${g}">${GOODS[g].n}</option>`).join("");
+  const ch={lines:[],bought:false,ld:null,grp:null,meshes:null};
+  const chTot=()=>{let n=0,t=0,p=0;for(const l of ch.lines){n+=l.n;t+=l.n*GOODS[l.g].t;p+=l.n*GOODS[l.g].p;}return{n,t,p};};
+  const chShow=(el,on)=>{el.style.display=on?"":"none";};
+  function chRender(){const T=chTot(),mins=T.n/chLoad;
+    $("chRcpt").innerHTML=ch.lines.length?ch.lines.map((l,i)=>`<div style="display:flex;justify-content:space-between;font-size:12px"><span>${l.n} × ${GOODS[l.g].n}</span><span>${money(l.n*GOODS[l.g].p)}${ch.bought?"":` <button class="tb" data-rm="${i}" style="width:auto;display:inline;padding:0 4px">✕</button>`}</span></div>`).join("")+`<hr><div style="font-size:12px"><b>Total ${money(T.p)}</b><br>${T.n} items, ${T.t.toFixed(1)} tons<br>Estimated loading time ${mins<1?Math.max(1,Math.round(mins*60))+" seconds":mins.toFixed(1)+" minutes"}${ch.bought?"<br><i>Paid. Tap Load.</i>":""}</div>`:`<div style="font-size:12px;opacity:.7">The receipt is empty.</div>`;
+    chShow($("chBuy"),!ch.bought&&ch.lines.length>0);chShow($("chGo"),ch.bought&&!ch.ld);}
+  $("chRcpt").onclick=e=>{const b=e.target.closest("[data-rm]");if(!b)return;e.stopPropagation();ch.lines.splice(+b.dataset.rm,1);chRender();};
   $("chFish").oninput=e=>{FISHX=+e.target.value;$("chFishV").textContent=FISHX;};
-  $("chLoad").oninput=e=>{chLoad=+e.target.value;$("chLoadV").textContent=chLoad;};
-  $("chAdd").onclick=e=>{e.stopPropagation();const s=S;if(!s||s.done){say("Start a voyage first.",{log:false});return;}mkInit(s);const g=chG.value,n=Math.min(chLoad,Math.floor(unitsFit(s,g)));if(n<1){say("The hold is full.",{log:false});return;}const c=s.cargo[g]||(s.cargo[g]={n:0,cost:0});c.n+=n;c.cost+=n*GOODS[g].p;say(`Cheat: ${n} ${GOODS[g].n} added to the hold.`,{log:false});try{tradeUI(true);}catch(_){}};
+  $("chLoad").oninput=e=>{chLoad=+e.target.value;$("chLoadV").textContent=chLoad;chRender();};
+  $("chAdd").onclick=e=>{e.stopPropagation();const s=S;if(!s||s.done){say("Start a voyage first.",{log:false});return;}if(ch.bought){say("Load the goods you have bought first.",{log:false});return;}
+    const g=chG.value,n=Math.max(1,Math.floor(+$("chQty").value)||1),free=holdCap()-holdUsed(s)-chTot().t;if(n*GOODS[g].t>free+1e-9){say("That will not fit in the hold.",{log:false});return;}
+    const ex=ch.lines.find(l=>l.g===g);if(ex)ex.n+=n;else ch.lines.push({g,n});chRender();};
+  $("chBuy").onclick=e=>{e.stopPropagation();const s=S;if(!s||s.done){say("Start a voyage first.",{log:false});return;}if(!s.docked){say("Dock at a port to buy and load cargo.",{log:false});return;}
+    const T=chTot();if(T.p>s.purse){say("The purse is too light for that.",{log:false});return;}if(T.t>holdCap()-holdUsed(s)+1e-9){say("That will not fit in the hold.",{log:false});return;}
+    s.purse-=T.p;ch.bought=true;say(`Cheat: bought ${T.n} items for ${money(T.p)}. Tap Load.`,{log:false});chRender();};
+  const chCol=g=>{let h=0;for(const c of g)h=(h*31+c.charCodeAt(0))%360;return new THREE.Color().setHSL(h/360,.45,.5);};
+  function chClear(){if(ch.grp){ch.grp.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.material)o.material.dispose();});if(ch.grp.parent)ch.grp.parent.remove(ch.grp);}ch.grp=null;ch.meshes=null;}
+  $("chGo").onclick=e=>{e.stopPropagation();const s=S;if(!s||!ch.bought||ch.ld)return;if(!s.docked){say("Dock at a port to load cargo.",{log:false});return;}
+    const bx=[];for(const l of ch.lines){const nb=Math.min(6,Math.ceil(l.n/10));let left=l.n;for(let i=0;i<nb;i++){const u=Math.ceil(left/(nb-i));bx.push({g:l.g,u});left-=u;}}
+    let cum=0;for(const b of bx){b.st=cum;cum+=b.u/chLoad*60;b.done=false;}
+    ch.ld={s,bx,t0:performance.now()};chShow($("chGo"),false);say("Cheat: the goods are stacked on the quay. Loading begins.",{log:false});};
+  setInterval(()=>{const ld=ch.ld;if(!ld)return;const s=ld.s;if(S!==s){ch.ld=null;ch.bought=false;ch.lines=[];chClear();chRender();return;}
+    const now=(performance.now()-ld.t0)/1000,R=R3,H=R&&R.gen&&R.gen.Ls&&R.gen.Ls.H,FLY=1.6;
+    if(R&&H&&R.ship){if(!ch.grp||ch.grp.parent!==R.ship){chClear();ch.grp=new THREE.Group();R.ship.add(ch.grp);}
+      if(!ch.meshes){const sz=Math.max(.5,H.B*.4);ch.sz=sz;ch.meshes=ld.bx.map((b,k)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(sz,sz,sz),new THREE.MeshLambertMaterial({color:chCol(b.g)}));
+        m.userData.p0=new THREE.Vector3(-(H.B+sz*1.6+Math.floor(k/4)*sz*1.3),H.F*.9+sz/2,((k%4)-1.5)*sz*1.4);m.position.copy(m.userData.p0);ch.grp.add(m);return m;});}}
+    let all=true;ld.bx.forEach((b,k)=>{const p=now-b.st;if(!b.done&&p>=FLY){b.done=true;const c=s.cargo[b.g]||(s.cargo[b.g]={n:0,cost:0});c.n+=b.u;c.cost+=b.u*GOODS[b.g].p;try{tradeUI(true);}catch(_){}}
+      if(!b.done)all=false;const m=ch.meshes&&ch.meshes[k];if(!m)return;if(b.done){m.visible=false;return;}
+      if(p>0){const f=p/FLY,e=new THREE.Vector3(0,H.F*1.1,0);m.position.lerpVectors(m.userData.p0,e,f);m.position.y+=Math.sin(f*PI)*H.B*1.2;}});
+    if(all){ch.ld=null;ch.bought=false;ch.lines=[];chClear();chRender();say("Cheat: loading is finished. The goods are stowed in the hold.",{log:false});}},50);
+  chRender();
   cp.addEventListener("click",e=>{const b=e.target.closest("button[data-cheat]");if(!b)return;e.stopPropagation();const s=S;if(!s||s.done){say("Start a voyage first.",{log:false});return;}
     const k=b.dataset.cheat;
     if(k==="money"){s.purse+=20000;say("Cheat: £1,000 added to the purse.",{log:false});}
