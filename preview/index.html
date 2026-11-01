@@ -479,7 +479,7 @@ body.fs3d #fsBar{left:max(12px,env(safe-area-inset-left,0px));bottom:max(12px,en
         <b class="ah">Sky</b>
         <label class="chk"><input type="checkbox" id="aSky" checked> <span>Sky chart<small>Draws the altitude and bearing grid, the constellation lines and their names over the sky.</small></span></label>
       </div>
-      <div class="menupop" id="cheatPop" hidden style="position:fixed;left:50%;top:50%;right:auto;bottom:auto;transform:translate(-50%,-50%);width:min(340px,92vw);max-height:86vh;overflow:auto;z-index:9999;padding:12px;box-shadow:0 8px 40px rgba(0,0,0,.5)"><div class="ah" style="font-family:var(--f-display);font-variant:small-caps;font-size:18px;display:flex;justify-content:space-between">Cheats<button class="tb" id="cheatX" style="width:auto">✕</button></div><label style="display:block;margin:8px 0 2px;font-size:12px">Fishing rate: <b id="chFishV">500</b>×<input id="chFish" type="range" min="1" max="5000" step="1" value="500" style="width:100%"></label><label style="display:block;margin:8px 0 2px;font-size:12px">Cargo loading rate (units per tap): <b id="chLoadV">10</b><input id="chLoad" type="range" min="1" max="200" step="1" value="10" style="width:100%"></label><div style="margin:8px 0 2px;font-size:12px">Add goods to the hold</div><div style="display:flex;gap:6px"><select id="chGood" style="flex:1;min-width:0"></select><button class="tb" id="chAdd" style="width:auto;border:1px solid var(--ink)">Add</button></div><button class="tb" data-cheat="money">Add £1,000</button><button class="tb" data-cheat="hold">Fill the hold</button><button class="tb" data-cheat="daynight">Switch day / night</button><button class="tb" data-cheat="ships">Unlock all ships</button></div></div>
+      <div class="menupop" id="cheatPop" hidden style="position:fixed;left:50%;top:50%;right:auto;bottom:auto;transform:translate(-50%,-50%);width:min(340px,92vw);max-height:86vh;overflow:auto;z-index:9999;padding:12px;box-shadow:0 8px 40px rgba(0,0,0,.5)"><div class="ah" style="font-family:var(--f-display);font-variant:small-caps;font-size:18px;display:flex;justify-content:space-between">Cheats<button class="tb" id="cheatX" style="width:auto">✕</button></div><label style="display:block;margin:8px 0 2px;font-size:12px">Fishing rate: <b id="chFishV">500</b>×<input id="chFish" type="range" min="1" max="5000" step="1" value="500" style="width:100%"></label><label style="display:block;margin:8px 0 2px;font-size:12px">Cargo loading rate: <b id="chLoadV">30</b> units a minute<input id="chLoad" type="range" min="1" max="200" step="1" value="30" style="width:100%"></label><div style="margin:8px 0 2px;font-size:12px">Order goods</div><div style="display:flex;gap:6px"><select id="chGood" style="flex:1;min-width:0"></select><input id="chQty" type="number" min="1" value="10" style="width:54px"><button class="tb" id="chAdd" style="width:auto;border:1px solid var(--ink)">Add</button></div><div id="chRcpt" style="margin:8px 0;padding:8px;border:1px dashed var(--ink)"></div><button class="tb" id="chBuy" style="border:1px solid var(--ink);text-align:center">Confirm and purchase</button><button class="tb" id="chGo" style="border:1px solid var(--ink);text-align:center;display:none">Load</button><button class="tb" data-cheat="money">Add £1,000</button><button class="tb" data-cheat="hold">Fill the hold</button><button class="tb" data-cheat="daynight">Switch day / night</button><button class="tb" data-cheat="ships">Unlock all ships</button></div></div>
   </div>
   <div class="infobar" aria-label="Date, wind and weather">
     <span class="when"><b id="clock">—</b><small id="watch">—</small></span>
@@ -1036,7 +1036,7 @@ const beaufort=kn=>{let i=0;while(i<BFT.length&&kn>=BFT[i])i++;return i;};
 const CURRENT={set:290,drift:.35};
 // Preview menu overrides (null = the game's own auto weather); see the Preview panel near the end of the script
 // Every game mechanic is listed here AND described in the Scenario registry (SCN_MECH). Add an id here and an entry there when you add a mechanic.
-const GAME_MECHANICS=["setup","weather","tides","fishing","pirates","crew","trade","loading","navigation","damage"];
+const GAME_MECHANICS=["setup","weather","tides","fishing","pirates","crew","trade","navigation","damage"];
 const PV={wind:null,sea:null,cur:null,wx:null,vis:null,fauna:1,tide:1,shadows:true};
 // tides: semi-diurnal (12.42 h) with a fortnightly spring and neap swing; range in metres, ph the hour of high water in the lunar cycle
 const TIDEX={bridgetown:{r:.9,ph:3.1},castries:{r:.7,ph:4.0},stjohns:{r:1.0,ph:5.2,bar:3},kingstown:{r:.8,ph:3.7},basseterre:{r:.9,ph:5.9}};
@@ -1473,7 +1473,7 @@ async function dockAtPort(){if(!S||S.done||S.docking)return;S.docking=true;const
   S.docking=false;if(mission)$("ovEnd").hidden=false;else{modalOpen=false;stopSkip();say(`Made fast alongside the quay at ${P.name}. Sails furled and the anchor down.`,{});}
   updateUI(true);}
 function dropAnchor(){if(!S||S.done)return;const sh=S.ship,A=sh.anch;
-  if(A.mode==="holding"||A.mode==="trailing"){if(A.low!=null&&S.t-A.low<20/3600){say("The anchor is still going down. Wait for it to bite.",{log:false});return;}if(loadsByHand()&&quayTons(S)>0){say("Goods are still on the quay. Load them (or clear the purchase) before casting off.",{});return;}S.docked=null;A.mode="weighing";A.t0=S.t;say("Cast off! Heave round, lads, weighing anchor.",{});updateUI();return;}
+  if(A.mode==="holding"||A.mode==="trailing"){if(A.low!=null&&S.t-A.low<20/3600){say("The anchor is still going down. Wait for it to bite.",{log:false});return;}S.docked=null;A.mode="weighing";A.t0=S.t;say("Cast off! Heave round, lads, weighing anchor.",{});updateUI();return;}
   if(A.mode==="weighing")return;
   if(sh.v>3.5){say("She is making too much way to let go the anchor. Shorten sail and slow to under 3 knots first.",{});return;}
   const d=depthFm(sh.x,sh.y);A.depth=d;A.t0=S.t;A.low=S.t;A.drag=0;A.dragWarned=false;
@@ -4780,7 +4780,7 @@ function update3D(dt,now){
   // world objects relative to ship
   for(const o of R.isl){const c=o.isl.c;o.grp.position.set((c.x-sh.x)*NM,0,-(c.y-sh.y)*NM);const dd=Math.hypot(c.x-sh.x,c.y-sh.y);const q=R.q||0;o.grp.visible=dd<QDIST[q]*R.dm;if(o.veg)o.veg.visible=dd-o.Rr<QVEG[q]*R.dm;}
   updateFauna(R,dt,gain,wdx,wdz,nightF);
-  updatePirates3D(R);updateQuay3D(R);
+  updatePirates3D(R);
   const dest=R.towns[S.v.to];
   if(dest){R.beacon.position.set((dest.x-sh.x)*NM,0,-(dest.y-sh.y)*NM);R.beacon.visible=S.mode==="trial";}else R.beacon.visible=false;
   { const rl=R.routeLine,pts=S.route.pts,n=Math.min(pts.length,65);
@@ -5519,22 +5519,8 @@ const CARGOT={jolly:.5,cutter:6,sultana:12,brig:90,caroline:14,endeavour:260,xeb
 const REPN=[[0,"Unknown"],[15,"Known"],[40,"Trusted"],[70,"Eminent"]],REP2=15,REP3=40;
 const repName=r=>{let n="Unknown";for(const [v,m] of REPN)if(r>=v)n=m;return n;};
 const holdCap=()=>CARGOT[SHIP.id]??40;
-const quayTons=s=>{let t=0;if(s.quay)for(const g in s.quay)t+=s.quay[g].n*GOODS[g].t;return t;};
-const holdLoaded=s=>{let t=0;if(s.cargo)for(const g in s.cargo)t+=s.cargo[g].n*GOODS[g].t;return t;};
-const holdUsed=s=>holdLoaded(s)+quayTons(s); // goods bought and waiting on the quay count against the hold at once
-const cargoSpeedF=s=>1-.14*clamp(holdLoaded(s)/holdCap(),0,1.3);
-/* brig loading: purchases wait on the quay, then the hands carry them aboard over time (other ships still load instantly) */
-const loadsByHand=()=>SHIP.id==="brig";
-const loadRate=s=>{const h=s.crew?s.crew.filter(m=>m.mode==="duty").length:8;return 60*clamp(Math.max(h,4)/12,.35,2);}; // tons per game hour
-const quayLeft=s=>quayTons(s);
-const loadMinutes=s=>Math.max(1,Math.round(quayTons(s)/loadRate(s)*60));
-function loadStart(){const s=S;if(!s||!quayTons(s))return;s.loading=true;say("Load! The hands begin carrying the goods from the quay.",{log:false});tradeUI(true);}
-function quayClear(){const s=S;if(!s||!s.quay)return;let back=0;const site=tradeSite(s);for(const g in s.quay){const q=s.quay[g];back+=q.cost;if(site&&s.mk&&s.mk.ports[site.k])s.mk.ports[site.k][g]+=q.n;}s.purse+=back;s.quay={};s.loading=false;say("Purchases returned to the merchants and refunded.",{log:false});tradeUI(true);}
-function loadStep(s,dt){if(!s.quay)return;
-  if(!loadsByHand()){let any=false;for(const g in s.quay){const q=s.quay[g],c=s.cargo[g]||(s.cargo[g]={n:0,cost:0});c.n+=q.n;c.cost+=q.cost;any=true;}if(any)s.quay={};s.loading=false;return;}
-  if(!s.loading||!s.docked)return;let ton=loadRate(s)*dt;
-  for(const g in s.quay){if(ton<=0)break;const q=s.quay[g],G=GOODS[g],u=Math.min(q.n,ton/G.t),f=q.n>0?u/q.n:1,cost=q.cost*f;q.n-=u;q.cost-=cost;ton-=u*G.t;const c=s.cargo[g]||(s.cargo[g]={n:0,cost:0});c.n+=u;c.cost+=cost;if(q.n<1e-6){c.n+=q.n;c.cost+=q.cost;delete s.quay[g];}}
-  if(!Object.keys(s.quay).length){s.loading=false;say("The last of the goods is stowed in the hold.",{log:false});}}
+const holdUsed=s=>{let t=0;if(s.cargo)for(const g in s.cargo)t+=s.cargo[g].n*GOODS[g].t;return t;};
+const cargoSpeedF=s=>1-.14*clamp(holdUsed(s)/holdCap(),0,1.3);
 const cargoValue=s=>{let v=0;if(s.cargo)for(const g in s.cargo)v+=s.cargo[g].n*GOODS[g].p;return v;};
 const unitsFit=(s,g)=>Math.floor((holdCap()-holdUsed(s))/GOODS[g].t+1e-9);
 const portDist=(a,b)=>Math.hypot(PORTS[a].x-PORTS[b].x,PORTS[a].y-PORTS[b].y);
@@ -5577,7 +5563,7 @@ function tradeBuy(g,n){const s=S;if(!s||s.done)return;mkInit(s);const site=trade
   const fee=payFee(s,site);while(n>0&&buyQuote(s,site.k,g,n,site.smug)+fee>s.purse)n--;
   if(n<1){say("The purse is too light for that.",{log:false});return;}
   const c=buyQuote(s,site.k,g,n,site.smug);s.purse-=c+fee;if(fee)s.fees[site.k]=dayIndex(s);
-  s.mk.ports[site.k][g]-=n;const cur=loadsByHand()?((s.quay||(s.quay={}))[g]||(s.quay[g]={n:0,cost:0})):(s.cargo[g]||(s.cargo[g]={n:0,cost:0}));cur.n+=n;cur.cost+=c;
+  s.mk.ports[site.k][g]-=n;const cur=s.cargo[g]||(s.cargo[g]={n:0,cost:0});cur.n+=n;cur.cost+=c;
   sayLog(`Bought ${n} ${n===1?G.u:gPl(g)} of ${gName(g)} at ${site.name} for ${money(c)}${fee?`, and ${fee}s harbour dues`:""}.`,{});
   if(site.smug)smuggleRisk(s,c);tradeUI(true);svBill();}
 function tradeSell(g,n){const s=S;if(!s||s.done)return;mkInit(s);const site=tradeSite(s);if(!site){say("You must be in port, or at anchor in a quiet cove after dark, to trade.",{log:false});return;}
@@ -5615,7 +5601,7 @@ function buyNews(){const s=S;if(!s)return;const p=atPort(s);if(!p||s.purse<8)ret
   sayLog("A coaster's master tells you what he saw in every port this week, for eight shillings. Your price list is up to date.",{});tradeUI(true);svBill();}
 
 // the hold at sea: damp and heat spoil, a heavy sea works the casks, an overloaded ship strains in a gale; and pirates
-function tradeStep(s,dt,w){mkStep(s,dt);loadStep(s,dt);const day=dayIndex(s),d=dt/24;
+function tradeStep(s,dt,w){mkStep(s,dt);const day=dayIndex(s),d=dt/24;
   if(s.cargo){const wet=clamp(s.water/12,0,1)+clamp((s.wx.H-4)/3,0,1),rough=clamp((s.wx.H-3)/3,0,1);
     for(const g in s.cargo){const G=GOODS[g],cur=s.cargo[g],rate=G.spoil+G.wet*wet+(G.rough||0)*rough,loss=cur.n*rate*d;
       if(loss>0){cur.cost*=1-loss/cur.n;cur.n-=loss;s.spoilAcc=(s.spoilAcc||{});s.spoilAcc[g]=(s.spoilAcc[g]||0)+loss;
@@ -5665,7 +5651,7 @@ const ageD=(s,t)=>Math.max(0,Math.round((s.t-t)/24));
 function tradeUI(force){const box=document.getElementById("svMktBody");if(!box||!S||!S.crew)return;const s=S;mkInit(s);
   const site=tradeSite(s),rep=s.rep||0,used=holdUsed(s),cap=holdCap(),day=dayIndex(s),smug=!!(site&&site.smug);
   const board=site&&!smug?contractBoard(s,site.k):[];
-  const sig=[site&&site.k+site.smug,Math.round(s.purse),Object.keys(s.cargo).map(g=>g+Math.round(s.cargo[g].n*10)).join(),Object.keys(s.quay||{}).map(g=>g+Math.round(s.quay[g].n*10)).join(),s.loading?1:0,Math.round(rep),site?MKT_IDS.map(g=>Math.round(s.mk.ports[site.k][g])).join():"",s.contracts.map(c=>c.id).join(),board.map(c=>c.id).join(),s.jetArm||"",day,s.news.length,s.paidNews||0,cap,Object.keys(s.seen).length].join("|");
+  const sig=[site&&site.k+site.smug,Math.round(s.purse),Object.keys(s.cargo).map(g=>g+Math.round(s.cargo[g].n*10)).join(),Math.round(rep),site?MKT_IDS.map(g=>Math.round(s.mk.ports[site.k][g])).join():"",s.contracts.map(c=>c.id).join(),board.map(c=>c.id).join(),s.jetArm||"",day,s.news.length,s.paidNews||0,cap,Object.keys(s.seen).length].join("|");
   if(!force&&box._sig===sig)return;box._sig=sig;
   const fl=(v)=>Math.round(v*10)/10;
   let h=`<div class="sveff"><div><span>Hold</span><b>${fl(used)} of ${cap} tons</b></div><div><span>Standing</span><b>${repName(rep)} (${Math.round(rep)})</b></div><div><span>Load slows her by</span><b>${Math.round((1-cargoSpeedF(s))*100)}%</b></div></div>`;
@@ -5679,12 +5665,6 @@ function tradeUI(force){const box=document.getElementById("svMktBody");if(!box||
   const rare=Object.keys(s.cargo).filter(g=>GOODS[g].tier===3);
   if(Object.keys(s.cargo).length){h+=`<h3 style="margin-top:10px">Cargo aboard</h3>`;
     for(const g of Object.keys(s.cargo)){const c=s.cargo[g],arm=s.jetArm===g;h+=`<div class="mkc">${gIcon(g,20)} ${fl(c.n)} ${GOODS[g].tier===3?"(consignment) ":""}${gPl(g)} of ${gName(g)}, ${fl(c.n*GOODS[g].t)} tons <button data-t="jet" data-g="${g}">${arm?"Tap again to throw it all over":"Jettison"}</button></div>`;}}
-  if(s.quay&&Object.keys(s.quay).length){const ks=Object.keys(s.quay);let tot=0,tt=0;
-    h+=`<h3 style="margin-top:10px">Receipt, on the quay</h3><table class="mk">`;
-    for(const g of ks){const q=s.quay[g];tot+=q.cost;tt+=q.n*GOODS[g].t;h+=`<tr><td>${gIcon(g,18)} ${fl(q.n)} ${gPl(g)} of ${gName(g)}</td><td class="num">${fl(q.n*GOODS[g].t)} t</td><td class="num">${money(q.cost)}</td></tr>`;}
-    h+=`<tr><td><b>Total</b></td><td class="num"><b>${fl(tt)} t</b></td><td class="num"><b>${money(tot)}</b></td></tr></table>`;
-    const mn=loadMinutes(s),est=mn>=60?`${Math.floor(mn/60)} h ${mn%60} min`:`${mn} min`;
-    h+=`<p class="svhint">${s.loading?`The hands are carrying it aboard. About ${est} left.`:`Estimated loading time: ${est} with the hands on duty.`}</p><p class="svbtns">${s.loading?"":`<button type="button" data-t="load">Load</button><button type="button" data-t="qclear">Clear purchase</button>`}</p>`;}
   h+=`<h3 style="margin-top:10px">Prices as last seen</h3><div class="mkw"><table class="mk"><tr><th></th>${Object.keys(PORTS).map(k=>`<th class="num">${PORTS[k].name.split(" ")[0]}</th>`).join("")}</tr>`;
   for(const g of MKT_IDS){if(GOODS[g].tier>1&&rep<REP2)continue;h+=`<tr><td>${GOODS[g].n}</td>${Object.keys(PORTS).map(k=>{const e=s.seen[k]&&s.seen[k][g];return `<td class="num">${e?e.p+"s<br><small>"+(ageD(s,e.t)?ageD(s,e.t)+" d ago":"now")+"</small>":"-"}</td>`;}).join("")}</tr>`;}
   h+=`</table></div>`;
@@ -5699,7 +5679,7 @@ function tradeUI(force){const box=document.getElementById("svMktBody");if(!box||
   box.innerHTML=h;}
 { const mb=document.getElementById("svMktBody");
   if(mb)mb.addEventListener("click",e=>{const b=e.target.closest("button[data-t]");if(!b||!S)return;const t=b.dataset.t,g=b.dataset.g,n=b.dataset.n==="all"?"all":+b.dataset.n;
-    if(t==="buy")tradeBuy(g,n);else if(t==="sell")tradeSell(g,n);else if(t==="news")buyNews();else if(t==="load")loadStart();else if(t==="qclear")quayClear();else if(t==="acc")contractAccept(b.dataset.id);else if(t==="del")contractDeliver(b.dataset.id);
+    if(t==="buy")tradeBuy(g,n);else if(t==="sell")tradeSell(g,n);else if(t==="news")buyNews();else if(t==="acc")contractAccept(b.dataset.id);else if(t==="del")contractDeliver(b.dataset.id);
     else if(t==="jet"){if(S.jetArm===g){S.jetArm=null;tradeJettison(g,"all");}else{S.jetArm=g;tradeUI(true);}}}); }
 /* ---------- career: start in a small cutter with a little cash, trade, and buy bigger ships at the quay ---------- */
 // price in shillings; the old ship goes in part exchange at TRADEIN of her price
@@ -5767,17 +5747,6 @@ function pirMesh(){const g=new THREE.Group(),M=c=>new THREE.MeshBasicMaterial({c
   add(new THREE.PlaneGeometry(7,11),M(0xd8cfb4),0,9,.2,PI/2);add(new THREE.PlaneGeometry(5.5,8.5),M(0xd8cfb4),0,7.5,-4.8,PI/2);
   add(new THREE.PlaneGeometry(2.4,1.6),M(0x111111),0,18.8,2.2,PI/2);
   g.scale.setScalar(1.6);return g;}
-function updateQuay3D(R){if(!S||!R||!R.scene)return;const s=S,f=s.docked&&PF[s.docked];
-  const q=s.quay||{},n=(f&&f.dock&&loadsByHand())?Object.keys(q).reduce((a,g)=>a+Math.ceil(q[g].n-1e-6),0):0;
-  const sig=n+"|"+(f?f.k:"")+"|"+Object.keys(q).join();
-  if(R.quaySig===sig)return;R.quaySig=sig;
-  if(R.quayG){R.scene.remove(R.quayG);R.quayG=null;}
-  if(!n)return;const gr=new THREE.Group(),d=f.dock,b=(d.hdg+90)*D2R,hd=d.hdg*D2R,lx=Math.sin(hd),lz=-Math.cos(hd),ox=Math.sin(b),oz=-Math.cos(b);
-  let i=0;const COL={};for(const g in q){const m=GOODS[g];COL[g]=new THREE.MeshLambertMaterial({color:new THREE.Color().setHSL((g.length*37%360)/360,.35,.45)});
-    for(let k=0;k<Math.ceil(q[g].n-1e-6);k++,i++){const sz=.75+Math.min(.5,m.t*.5),col=i%8,row=(i/8|0),lay=0;
-      const a=(col-3.5)*1.15,off=6.5+row*1.2,mesh=new THREE.Mesh(BOX,COL[g]);mesh.scale.set(sz,sz,sz);
-      mesh.position.set(d.x*NM+lx*a+ox*off,sz/2+.4,-d.y*NM+lz*a+oz*off);mesh.rotation.y=-hd;gr.add(mesh);if(i>=160)break;}}
-  R.scene.add(gr);R.quayG=gr;}
 function updatePirates3D(R){if(!S||!R||!R.scene)return;const L=R.pirL||(R.pirL=[]),P=S.pir||[],sh=S.ship,ax=sh.x*NM,az=-sh.y*NM;let i=0;
   for(const p of P){if(!p.seen)continue;let m=L[i];if(!m){m=pirMesh();R.scene.add(m);L[i]=m;}m.visible=true;
     const x=p.x*NM,z=-p.y*NM;m.position.set(x,waveH(R,x-ax,z-az)*.6,z);m.rotation.y=-p.h*D2R;i++;}
@@ -6631,10 +6600,38 @@ $("cbBtn").onclick=()=>{const c=$("compassBox"),o=c.classList.toggle("collapsed"
   $("bCheat").onclick=e=>{e.stopPropagation();cp.hidden=false;};
   $("cheatX").onclick=e=>{e.stopPropagation();cp.hidden=true;};
   document.addEventListener("click",e=>{if(!cp.hidden&&!e.target.closest("#cheatPop,#bCheat"))cp.hidden=true;});
-  let chLoad=10;const chG=$("chGood");chG.innerHTML=Object.keys(GOODS).map(g=>`<option value="${g}">${GOODS[g].n}</option>`).join("");
+  let chLoad=30;const chG=$("chGood");chG.innerHTML=Object.keys(GOODS).map(g=>`<option value="${g}">${GOODS[g].n}</option>`).join("");
+  const ch={lines:[],bought:false,ld:null,grp:null,meshes:null};
+  const chTot=()=>{let n=0,t=0,p=0;for(const l of ch.lines){n+=l.n;t+=l.n*GOODS[l.g].t;p+=l.n*GOODS[l.g].p;}return{n,t,p};};
+  const chShow=(el,on)=>{el.style.display=on?"":"none";};
+  function chRender(){const T=chTot(),mins=T.n/chLoad;
+    $("chRcpt").innerHTML=ch.lines.length?ch.lines.map((l,i)=>`<div style="display:flex;justify-content:space-between;font-size:12px"><span>${l.n} × ${GOODS[l.g].n}</span><span>${money(l.n*GOODS[l.g].p)}${ch.bought?"":` <button class="tb" data-rm="${i}" style="width:auto;display:inline;padding:0 4px">✕</button>`}</span></div>`).join("")+`<hr><div style="font-size:12px"><b>Total ${money(T.p)}</b><br>${T.n} items, ${T.t.toFixed(1)} tons<br>Estimated loading time ${mins<1?Math.max(1,Math.round(mins*60))+" seconds":mins.toFixed(1)+" minutes"}${ch.bought?"<br><i>Paid. Tap Load.</i>":""}</div>`:`<div style="font-size:12px;opacity:.7">The receipt is empty.</div>`;
+    chShow($("chBuy"),!ch.bought&&ch.lines.length>0);chShow($("chGo"),ch.bought&&!ch.ld);}
+  $("chRcpt").onclick=e=>{const b=e.target.closest("[data-rm]");if(!b)return;e.stopPropagation();ch.lines.splice(+b.dataset.rm,1);chRender();};
   $("chFish").oninput=e=>{FISHX=+e.target.value;$("chFishV").textContent=FISHX;};
-  $("chLoad").oninput=e=>{chLoad=+e.target.value;$("chLoadV").textContent=chLoad;};
-  $("chAdd").onclick=e=>{e.stopPropagation();const s=S;if(!s||s.done){say("Start a voyage first.",{log:false});return;}mkInit(s);const g=chG.value,n=Math.min(chLoad,Math.floor(unitsFit(s,g)));if(n<1){say("The hold is full.",{log:false});return;}const c=s.cargo[g]||(s.cargo[g]={n:0,cost:0});c.n+=n;c.cost+=n*GOODS[g].p;say(`Cheat: ${n} ${GOODS[g].n} added to the hold.`,{log:false});try{tradeUI(true);}catch(_){}};
+  $("chLoad").oninput=e=>{chLoad=+e.target.value;$("chLoadV").textContent=chLoad;chRender();};
+  $("chAdd").onclick=e=>{e.stopPropagation();const s=S;if(!s||s.done){say("Start a voyage first.",{log:false});return;}if(ch.bought){say("Load the goods you have bought first.",{log:false});return;}
+    const g=chG.value,n=Math.max(1,Math.floor(+$("chQty").value)||1),free=holdCap()-holdUsed(s)-chTot().t;if(n*GOODS[g].t>free+1e-9){say("That will not fit in the hold.",{log:false});return;}
+    const ex=ch.lines.find(l=>l.g===g);if(ex)ex.n+=n;else ch.lines.push({g,n});chRender();};
+  $("chBuy").onclick=e=>{e.stopPropagation();const s=S;if(!s||s.done){say("Start a voyage first.",{log:false});return;}if(!s.docked){say("Dock at a port to buy and load cargo.",{log:false});return;}
+    const T=chTot();if(T.p>s.purse){say("The purse is too light for that.",{log:false});return;}if(T.t>holdCap()-holdUsed(s)+1e-9){say("That will not fit in the hold.",{log:false});return;}
+    s.purse-=T.p;ch.bought=true;say(`Cheat: bought ${T.n} items for ${money(T.p)}. Tap Load.`,{log:false});chRender();};
+  const chCol=g=>{let h=0;for(const c of g)h=(h*31+c.charCodeAt(0))%360;return new THREE.Color().setHSL(h/360,.45,.5);};
+  function chClear(){if(ch.grp){ch.grp.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.material)o.material.dispose();});if(ch.grp.parent)ch.grp.parent.remove(ch.grp);}ch.grp=null;ch.meshes=null;}
+  $("chGo").onclick=e=>{e.stopPropagation();const s=S;if(!s||!ch.bought||ch.ld)return;if(!s.docked){say("Dock at a port to load cargo.",{log:false});return;}
+    const bx=[];for(const l of ch.lines){const nb=Math.min(6,Math.ceil(l.n/10));let left=l.n;for(let i=0;i<nb;i++){const u=Math.ceil(left/(nb-i));bx.push({g:l.g,u});left-=u;}}
+    let cum=0;for(const b of bx){b.st=cum;cum+=b.u/chLoad*60;b.done=false;}
+    ch.ld={s,bx,t0:performance.now()};chShow($("chGo"),false);say("Cheat: the goods are stacked on the quay. Loading begins.",{log:false});};
+  setInterval(()=>{const ld=ch.ld;if(!ld)return;const s=ld.s;if(S!==s){ch.ld=null;ch.bought=false;ch.lines=[];chClear();chRender();return;}
+    const now=(performance.now()-ld.t0)/1000,R=R3,H=R&&R.gen&&R.gen.Ls&&R.gen.Ls.H,FLY=1.6;
+    if(R&&H&&R.ship){if(!ch.grp||ch.grp.parent!==R.ship){chClear();ch.grp=new THREE.Group();R.ship.add(ch.grp);}
+      if(!ch.meshes){const sz=Math.max(.5,H.B*.4);ch.sz=sz;ch.meshes=ld.bx.map((b,k)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(sz,sz,sz),new THREE.MeshLambertMaterial({color:chCol(b.g)}));
+        m.userData.p0=new THREE.Vector3(-(H.B+sz*1.6+Math.floor(k/4)*sz*1.3),H.F*.9+sz/2,((k%4)-1.5)*sz*1.4);m.position.copy(m.userData.p0);ch.grp.add(m);return m;});}}
+    let all=true;ld.bx.forEach((b,k)=>{const p=now-b.st;if(!b.done&&p>=FLY){b.done=true;const c=s.cargo[b.g]||(s.cargo[b.g]={n:0,cost:0});c.n+=b.u;c.cost+=b.u*GOODS[b.g].p;try{tradeUI(true);}catch(_){}}
+      if(!b.done)all=false;const m=ch.meshes&&ch.meshes[k];if(!m)return;if(b.done){m.visible=false;return;}
+      if(p>0){const f=p/FLY,e=new THREE.Vector3(0,H.F*1.1,0);m.position.lerpVectors(m.userData.p0,e,f);m.position.y+=Math.sin(f*PI)*H.B*1.2;}});
+    if(all){ch.ld=null;ch.bought=false;ch.lines=[];chClear();chRender();say("Cheat: loading is finished. The goods are stowed in the hold.",{log:false});}},50);
+  chRender();
   cp.addEventListener("click",e=>{const b=e.target.closest("button[data-cheat]");if(!b)return;e.stopPropagation();const s=S;if(!s||s.done){say("Start a voyage first.",{log:false});return;}
     const k=b.dataset.cheat;
     if(k==="money"){s.purse+=20000;say("Cheat: £1,000 added to the purse.",{log:false});}
@@ -6959,10 +6956,6 @@ const SCN_MECH=[
   apply(s,g,starting){if(starting&&g("cargo")==="full")scnFillHold(s);},
   triggers:[["Add 10 sugar",s=>{mkInit(s);const n=Math.min(10,Math.floor(unitsFit(s,"sugar")));if(n>=1){const c=s.cargo.sugar||(s.cargo.sugar={n:0,cost:0});c.n+=n;c.cost+=n*GOODS.sugar.p;}}],["Add £1,000",s=>{s.purse+=20000;}],["Fill the hold",s=>scnFillHold(s)],["Empty the hold",s=>{s.cargo={};}]],
   readouts:[["Purse",s=>money(s.purse)],["Hold",s=>holdUsed(s).toFixed(1)+" / "+holdCap()+" t"],["Cargo worth",s=>money(cargoValue(s))]]},
- {id:"loading",name:"Quay loading (brig)",
-  dials:[],
-  triggers:[["Put 10 t on the quay",s=>{mkInit(s);const q=s.quay||(s.quay={}),c=q.flour||(q.flour={n:0,cost:0});c.n+=Math.min(100,Math.max(0,Math.floor((holdCap()-holdUsed(s))/GOODS.flour.t)));c.cost+=c.n*GOODS.flour.p;}],["Start loading",s=>{if(quayTons(s))s.loading=true;}],["Clear quay",s=>{s.quay={};s.loading=false;}]],
-  readouts:[["On quay",s=>quayTons(s).toFixed(1)+" t"],["Loaded",s=>holdLoaded(s).toFixed(1)+" t"],["Loading",s=>s.loading?"yes, "+loadMinutes(s)+" min left":"no"]]},
  {id:"navigation",name:"Navigation",
   dials:[{k:"dr",label:"Chart shows",live:true,opts:()=>[["true","True position"],["dr","Reckoning only"]],def:"true"}],
   apply(s,g){const lost=g("dr")==="dr";$("aDR").checked=lost;s.mode=lost?"lost":"trial";},
