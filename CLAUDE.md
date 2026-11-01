@@ -8,4 +8,6 @@ Scenario mode (the third start option, next to Free and Career) builds its setup
 
 When you add or change a mechanic (fishing, pirates, weather, tides, crew crises, trading, navigation, damage and so on), update both places in the same change.
 
+**Mechanics catalogue rule.** Every mechanic must also be described in `docs/mechanics.md`: what it does, state/inputs/outputs, tunables, what a game's visual layer must supply, and which mechanics it pairs with. Keep logic separate from UI there. It is how Grigor picks mechanics for other games (e.g. a Zeppelin game), so when you add or change a mechanic update the catalogue in the same change.
+
 Publish to `main` only when Grigor says "publish".
