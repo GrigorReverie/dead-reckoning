@@ -2026,7 +2026,7 @@ const FM=1.8288;
 // line spacing scales with the zoom: a wide view shows a few index lines, and each step in brings in a finer interval
 // contour spacing follows the zoom: every 300 m when the whole chart is in view, then 200, 100 and finally 50 m. Closer lines than that only crowd the chart into dark shading.
 const IV_STEPS=[[1.2,300],[2.5,200],[5,100],[1e9,50]];
-const DEPTH_CAP={300:3600,200:3000,100:3000,50:1000}, LAND_CAP={300:1500,200:1500,100:1500,50:1500};
+const DEPTH_CAP={300:300,200:300,100:300,50:300}, LAND_CAP={300:1500,200:1500,100:1500,50:1500};
 const ivAt=z=>{for(const[zm,v]of IV_STEPS)if(z<zm)return v;return 50;};
 const lvSet=(cap)=>{const s=new Set();for(const[,iv]of IV_STEPS)for(let l=iv;l<=cap[iv];l+=iv)s.add(l);return[...s].sort((a,b)=>a-b);};
 const DEPTH_LV=lvSet(DEPTH_CAP), LAND_LV=lvSet(LAND_CAP); // metres
@@ -2148,11 +2148,14 @@ function drawReliefLines(){
       const X=sx(x),Y=sy(y);if(X<0||X>CW||Y<0||Y>CH)continue;ctx.fillText(f<10?f.toFixed(1):String(Math.round(f)),X,Y);}}
   ctx.restore();}
 function drawReliefLand(){
-  if(!showLand)return;const R=buildRelief(),z=cam.zoom;
+  if(!showLand)return;const R=buildRelief(),z=cam.zoom,landLabs=[];
   for(const L of R.lands){const I=L.I;path(I.pts);ctx.save();ctx.clip();const c17=chartStyle()!=="old";if(!c17){ctx.imageSmoothingEnabled=true;ctx.translate(sx(L.ox-L.lg/2),sy(L.oy-L.lg/2));ctx.scale(1,-1);ctx.drawImage(L.cv,0,0,L.w*z,L.h*z);ctx.setTransform(DPR,0,0,DPR,0,0);}
     ctx.lineJoin="round";ctx.lineCap="round";
-    strokeChains(L,levelsAt(LAND_LV,LAND_CAP,z),Lv=>{const idx=Lv%100===0;ctx.strokeStyle=c17?(idx?"rgba(90,56,30,.5)":"rgba(90,56,30,.3)"):(idx?"rgba(92,68,40,.75)":"rgba(112,86,52,.5)");ctx.lineWidth=idx?1:.55;});
-    ctx.restore();}
+    const labs=strokeChains(L,levelsAt(LAND_LV,LAND_CAP,z),Lv=>{const idx=Lv%100===0;ctx.strokeStyle=c17?(idx?"rgba(90,56,30,.5)":"rgba(90,56,30,.3)"):(idx?"rgba(92,68,40,.75)":"rgba(112,86,52,.5)");ctx.lineWidth=idx?1:.55;},true);
+    ctx.restore();landLabs.push(...labs);}
+  ctx.save();ctx.font="italic 10px 'IM Fell English',Georgia,serif";ctx.textAlign="center";ctx.textBaseline="middle";
+  for(const[X,Y,Lv]of landLabs){const t=String(Lv),w=ctx.measureText(t).width;ctx.fillStyle="rgba(246,238,217,.85)";ctx.fillRect(X-w/2-2,Y-6,w+4,12);ctx.fillStyle="rgba(110,60,30,.9)";ctx.fillText(t,X,Y);}
+  ctx.restore();
   ctx.save();ctx.strokeStyle=chartStyle()!=="old"?"#3a2614":"#2e2519";ctx.lineWidth=chartStyle()!=="old"?1.5:1.2;for(const I of islands){path(I.pts);ctx.stroke();}ctx.restore();}
 function drawSpotHeights(){
   if(!showLand||cam.zoom<2.6)return;ctx.save();ctx.font="italic 10px 'IM Fell English',Georgia,serif";ctx.textAlign="left";
@@ -2226,8 +2229,7 @@ function vellumTile(){if(vellumPat)return vellumPat;const c=document.createEleme
   for(let i=0;i<500;i++){g.fillStyle=`rgba(90,60,25,${.05+r()*.12})`;g.fillRect(r()*256,r()*256,1+r()*1.5,1+r()*1.5);}
   g.strokeStyle="rgba(120,90,50,.07)";g.lineWidth=.5;for(let i=0;i<70;i++){const x=r()*256,y=r()*256,a=r()*PI;g.beginPath();g.moveTo(x,y);g.lineTo(x+Math.cos(a)*(6+r()*14),y+Math.sin(a)*(6+r()*14));g.stroke();}
   return vellumPat=ctx.createPattern(c,"repeat");}
-function drawVellum(){ctx.fillStyle="#e7d6a6";ctx.fillRect(0,0,CW,CH);ctx.fillStyle="rgba(96,128,108,.20)";ctx.fillRect(0,0,CW,CH);
-  const p=vellumTile();ctx.save();ctx.fillStyle=p;ctx.translate((-cam.x*cam.zoom*.3)%256,(cam.y*cam.zoom*.3)%256);ctx.fillRect(-256,-256,CW+512,CH+512);ctx.restore();}
+function drawVellum(){ctx.fillStyle="#efe3c0";ctx.fillRect(0,0,CW,CH);}
 function drawVignetteEdge(){const g=ctx.createRadialGradient(CW/2,CH/2,Math.min(CW,CH)*.35,CW/2,CH/2,Math.max(CW,CH)*.75);g.addColorStop(0,"rgba(110,70,25,0)");g.addColorStop(1,"rgba(110,70,25,.30)");ctx.fillStyle=g;ctx.fillRect(0,0,CW,CH);}
 function drawRose17(x,y,r){
   const INKC="#3a2614",RED="#8f2f1f",GRN="#3d6b46";ctx.save();ctx.translate(x,y);ctx.lineJoin="round";
