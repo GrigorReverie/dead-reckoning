@@ -7849,8 +7849,9 @@ function buildExplode(R,NL,vm,pen){
     const grp=new THREE.Group();grp.add(mesh,ln);grp.visible=false;M.G.children[k].add(grp);M.HW[k]=grp;}
 }
 function xApply(){ // lift each level (and the flipped copy) by its offset; the hull wall slices show only while it is exploded
-  const on=M.xk>.02,L=M.LG;if(!L||!M.off)return;
-  for(let k=0;k<M.off.length;k++){const y=xo(k);if(L[k])L[k].position.y=y;const g2=M.G2&&M.G2.children[k];if(g2)g2.position.y=y;
+  const on=M.xk>.02,L=M.LG;if(!L||!M.off)return;if(L[M.off.length])L[M.off.length].visible=!(on&&M.sel>=0);   // the loose ribs and keel stay out of a single-deck view
+  
+  for(let k=0;k<M.off.length;k++){const y=xo(k);if(L[k]){L[k].position.y=y;L[k].visible=!(on&&M.sel>=0)||k===M.sel;}const g2=M.G2&&M.G2.children[k];if(g2)g2.position.y=y;
     if(M.HW&&M.HW[k]){M.HW[k].visible=on;const c=M.G2&&M.G2.children[k]&&M.G2.children[k].children[M.G2.children[k].children.length-1];if(c)c.visible=on;}}
 }
 /* ---------- labels: anchors from the room bands ---------- */
@@ -7875,9 +7876,9 @@ function genLabels(){const L=M.L,out=[];M.bands=L.bands;
 /* ---------- camera ---------- */
 const FOV=28;
 const _v=new THREE.Vector3(),_s=new THREE.Vector3(),_b=new THREE.Vector3(),_c=new THREE.Vector3(),_pl=new THREE.Plane(),_pt=new THREE.Plane();
-function pose(R){const asp=R.W/Math.max(1,R.H);const port=asp<1;
-  const hf=2*Math.atan(Math.tan(FOV*PI/360)*asp),fit=(port?25.5:27)*FIT*(M.sel>=0?(port?1.0:1.1):(port?1.3:1.1));
-  const deck=M.sel>=0;
+function pose(R){const asp=R.W/Math.max(1,R.H);const port=asp<1;const ex=M.L.decks.length>1;
+  const hf=2*Math.atan(Math.tan(FOV*PI/360)*asp),fit=(port?25.5:27)*FIT*(M.sel>=0&&!ex?(port?1.0:1.1):(port?1.3:1.1));
+  const deck=M.sel>=0&&!ex;
   return{az:deck?(port?66:18):(port?38:22),pt:deck?(port?32:22):(port?17:18),dist:fit/(2*Math.tan(hf/2)),lx:0,ly:-8.6*FIT/2.4,lz:0};}
 const hide=o=>{if(!M.vis.has(o))M.vis.set(o,o.visible);o.visible=false;};
 const ing=o=>{for(let q=o;q;q=q.parent)if(q===M.G||q===M.G2)return true;return false;};
@@ -7885,18 +7886,18 @@ window.CUTCAM=function(R){
   if(!M.on)return;build(R);if(!M.built||!M.on)return;
   R.ship.updateMatrixWorld(true);const m=R.bob.matrixWorld;
   _s.set(1,0,0).transformDirection(m);_b.set(0,0,1).transformDirection(m);_c.setFromMatrixPosition(m);
-  if(M.flip){_s.negate();_b.negate();}if(M.G)M.G.scale.x=M.flip?-1:1;if(M.G2){M.G2.scale.x=-M.G.scale.x;M.G2.visible=M.sel>=0;}
-  const T=Object.assign({},M.ov||pose(R));{const tk=M.sel<0&&M.L.decks.length>1?1:0;M.xk=M.fast?tk:(M.xk||0)+(tk-(M.xk||0))*.09;if(Math.abs(M.xk-tk)<.004)M.xk=tk;xApply();const sp=(M.span||0)*M.xk;T.ly+=sp*.4;T.dist*=1+4.5*sp/(27*FIT);T.pt=T.pt+(Math.max(T.pt,30)-T.pt)*M.xk;}T.az+=M.uaz;T.pt=Math.max(3,Math.min(85,T.pt+M.upt));T.dist*=M.uz;T.ly+=M.uly;T.lz+=M.pan;if(!M.cur){M.cur={az:-100,pt:14,dist:T.dist*1.7,lx:0,ly:8*FIT/2.4,lz:0};}
+  if(M.flip){_s.negate();_b.negate();}if(M.G)M.G.scale.x=M.flip?-1:1;if(M.G2){M.G2.scale.x=-M.G.scale.x;M.G2.visible=M.sel>=0&&!(M.xk>.02);}
+  const T=Object.assign({},M.ov||pose(R));{const tk=M.L.decks.length>1?1:0;M.xk=M.fast?tk:(M.xk||0)+(tk-(M.xk||0))*.09;if(Math.abs(M.xk-tk)<.004)M.xk=tk;xApply();const sp=(M.span||0)*M.xk;T.ly+=sp*.4;T.dist*=1+4.5*sp/(27*FIT);T.pt=T.pt+(Math.max(T.pt,30)-T.pt)*M.xk;}T.az+=M.uaz;T.pt=Math.max(3,Math.min(85,T.pt+M.upt));T.dist*=M.uz;T.ly+=M.uly;T.lz+=M.pan;if(!M.cur){M.cur={az:-100,pt:14,dist:T.dist*1.7,lx:0,ly:8*FIT/2.4,lz:0};}
   const e=M.fast?1:.045;for(const f of["az","pt","dist","lx","ly","lz"])M.cur[f]+=(T[f]-M.cur[f])*e;
   const c=M.cur,az=c.az*PI/180,pt=c.pt*PI/180;R.camera.fov=FOV;
   _v.set(c.lx,c.ly,c.lz).applyMatrix4(m);
   const cp=R.camera.position;cp.copy(_v).addScaledVector(_s,Math.cos(az)*Math.cos(pt)*c.dist).addScaledVector(_b,Math.sin(az)*Math.cos(pt)*c.dist);cp.y+=Math.sin(pt)*c.dist;
   R.camera.lookAt(_v);
-  const U=R.U;U.uCutOn.value=1;U.uCutSl.value=M.sel<0?1:0;U.uGhost.value=M.sel<0&&M.xk<=.02?1:0;U.uCutC.value.copy(_c);U.uCutN.value.copy(_s);U.uCutB.value.copy(_b);U.uCutR.value=90;U.uCutTop.value=TOP;const deckWet=M.sel>=0&&!!M.L.wet[M.sel],wet=M.sel<0||deckWet;if(M.sel<0)U.uCutBox.value.set(-(H.B*1.45),3.6*H.B,LS.Lh+H.B);else U.uCutBox.value.set(1000,1001,1);U.uCutE.value.set(H.B+1.4,LS.Lh+1.6,deckWet?1:0);if(M.seabed)M.seabed.visible=wet;
+  const U=R.U;U.uCutOn.value=1;U.uCutSl.value=M.sel<0?1:0;U.uGhost.value=M.sel<0&&!(M.xk>.02)?1:0;U.uCutC.value.copy(_c);U.uCutN.value.copy(_s);U.uCutB.value.copy(_b);U.uCutR.value=90;U.uCutTop.value=TOP;const deckWet=M.sel>=0&&!!M.L.wet[M.sel],wet=M.sel<0||deckWet;if(M.sel<0)U.uCutBox.value.set(-(H.B*1.45),3.6*H.B,LS.Lh+H.B);else U.uCutBox.value.set(1000,1001,1);U.uCutE.value.set(H.B+1.4,LS.Lh+1.6,deckWet?1:0);if(M.seabed)M.seabed.visible=wet;
   if(R.seaU){R.seaU.uCutB.value.copy(_b);}
   if(R.sea&&!R.sea.material.transparent){R.sea.material.transparent=true;R.sea.material.needsUpdate=true;}
   _pl.setFromNormalAndCoplanarPoint(_s.clone().negate(),_c);_pt.set(new THREE.Vector3(0,-1,0),_c.y+TOP);
-  const gh=M.sel>=0,cm=gh?1:2;M.gA.value=M.sel<0&&M.xk>.02?0:(gh?.35:1);
+  const gh=M.sel>=0,cm=gh?1:2;M.gA.value=M.xk>.02?0:(gh?.35:1);
   R.ship.traverse(o=>{const mt=o.material;if(!mt)return;
     if(mt.isLineBasicMaterial&&mt!==M.pen&&!M.PN.includes(mt)){if(mt.__cl!==cm){mt.clippingPlanes=gh?[_pt]:[_pl,_pt];mt.__cl=cm;mt.needsUpdate=true;}
       if(!mt.__gu){mt.__gu=1;mt.__t=mt.transparent;const pv=mt.onBeforeCompile;mt.onBeforeCompile=(sh,r)=>{if(pv)pv.call(mt,sh,r);sh.uniforms.uGhostA=M.gA;sh.fragmentShader="uniform float uGhostA;\n"+sh.fragmentShader.replace("#include <dithering_fragment>","#include <dithering_fragment>\ngl_FragColor.a*=uGhostA;");};mt.transparent=true;mt.needsUpdate=true;}else if(!mt.transparent){mt.transparent=true;mt.needsUpdate=true;}}
