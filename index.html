@@ -7662,6 +7662,7 @@ function build(R){
   }
   for(let k=0;k<=NL;k++){if(AP[k].length){const mg=new THREE.BufferGeometry();mg.setAttribute("position",new THREE.Float32BufferAttribute(AP[k],3));mg.setAttribute("color",new THREE.Float32BufferAttribute(AC[k],3));const vk=vm.clone(),pk=pen.clone();bandify(vk);bandify(pk);M.VM[k]=vk;M.PN[k]=pk;LG[k].add(new THREE.Mesh(mg,vk));LG[k].userData.pk=pk;}
     const lg=new THREE.BufferGeometry();lg.setAttribute("position",new THREE.Float32BufferAttribute(AL[k].concat(SG[k]),3));LG[k].add(new THREE.LineSegments(lg,LG[k].userData.pk||pen));}
+  buildExplode(R,NL,vm,pen);
   G.traverse(o=>{o.frustumCulled=false;});
   /* seabed under the see-through water */
   { const zl=LS.Lh+10*SK,g=new THREE.PlaneGeometry(Math.max(6,36*SK),zl*2+4*SK);g.rotateX(-PI/2);g.translate(6*SK,-H.T-Math.max(.3,1.6*SK),0);const pm=new THREE.Mesh(g,new THREE.MeshBasicMaterial({color:0x6e93a8,fog:false}));pm.frustumCulled=false;R.ship.add(pm);M.seabed=pm; }
@@ -7669,6 +7670,34 @@ function build(R){
   { const G2=G.clone();G2.scale.x=-1;G2.visible=false;R.bob.add(G2);M.G2=G2; }
   M.labels=SPc.id==="constitution"?makeLabels():genLabels();makeFig(R);
 
+}
+/* ---------- exploded view: in the All view every deck is lifted apart from the one below, each inside its own slice of the hull wall ---------- */
+function xo(k){return(M.off&&M.off[k]||0)*(M.xk||0);}   // how far level k is lifted just now
+function buildExplode(R,NL,vm,pen){
+  const L=M.L,Lh=LS.Lh,sk=Math.max(.15,H.T/6.2),G2=Math.max(1.5,H.B*.38);
+  M.off=[];for(let k=0;k<NL;k++)M.off.push((NL-1-k)*G2);M.span=(NL-1)*G2;M.xk=M.xk||0;M.HW=[];
+  const fl=k=>{const d=L.decks[k];return k===0?null:d.y;};
+  for(let k=0;k<NL;k++){
+    const bot=z=>NL===1||k===NL-1?keelY(z)+.03:(k===0?deck(z):fl(k)-.3*sk);
+    const top=z=>k===0?railY(z):(k===1?deck(z)-.3*sk:fl(k-1)-.3*sk);
+    const NZ=70,NY=5,P=[],C=[],I=[],LNs=[];const idx=new Int32Array((NZ+1)*(NY+1)).fill(-1);
+    for(let i=0;i<=NZ;i++){const z=-Lh*.985+i*(Lh*1.97/NZ);const b=bot(z),t=top(z);
+      if(!(t-b>.15))continue;
+      for(let j=0;j<=NY;j++){const y=b+(t-b)*j/NY,w=hx(z,y);if(w<.12)continue;
+        idx[i*(NY+1)+j]=P.length/3;P.push(-w,y,z);const pl=(j%2?1:0),sh=.9+.1*Math.sin(i*1.7+k);
+        C.push((.62+.06*pl)*sh,(.46+.05*pl)*sh,(.27+.04*pl)*sh);}}
+    for(let i=0;i<NZ;i++)for(let j=0;j<NY;j++){const a=idx[i*(NY+1)+j],b=idx[(i+1)*(NY+1)+j],c=idx[(i+1)*(NY+1)+j+1],d=idx[i*(NY+1)+j+1];
+      if(a<0||b<0||c<0||d<0)continue;I.push(a,b,c,a,c,d);}
+    for(let j=0;j<=NY;j++)for(let i=0;i<NZ;i++){const a=idx[i*(NY+1)+j],b=idx[(i+1)*(NY+1)+j];if(a<0||b<0)continue;LNs.push(P[a*3],P[a*3+1],P[a*3+2],P[b*3],P[b*3+1],P[b*3+2]);}
+    for(let i=0;i<=NZ;i+=2){let prev=-1;for(let j=0;j<=NY;j++){const a=idx[i*(NY+1)+j];if(a>=0&&prev>=0)LNs.push(P[prev*3],P[prev*3+1],P[prev*3+2],P[a*3],P[a*3+1],P[a*3+2]);prev=a;}}
+    const g=new THREE.BufferGeometry();g.setAttribute("position",new THREE.Float32BufferAttribute(P,3));g.setAttribute("color",new THREE.Float32BufferAttribute(C,3));g.setIndex(I);
+    const mesh=new THREE.Mesh(g,vm),lg=new THREE.BufferGeometry();lg.setAttribute("position",new THREE.Float32BufferAttribute(LNs,3));const ln=new THREE.LineSegments(lg,pen);
+    const grp=new THREE.Group();grp.add(mesh,ln);grp.visible=false;M.G.children[k].add(grp);M.HW[k]=grp;}
+}
+function xApply(){ // lift each level (and the flipped copy) by its offset; the hull wall slices show only while it is exploded
+  const on=M.xk>.02,L=M.LG;if(!L||!M.off)return;
+  for(let k=0;k<M.off.length;k++){const y=xo(k);if(L[k])L[k].position.y=y;const g2=M.G2&&M.G2.children[k];if(g2)g2.position.y=y;
+    if(M.HW&&M.HW[k]){M.HW[k].visible=on;const c=M.G2&&M.G2.children[k]&&M.G2.children[k].children[M.G2.children[k].children.length-1];if(c)c.visible=on;}}
 }
 /* ---------- labels: anchors from the room bands ---------- */
 function makeLabels(){const f=(y,a,b)=>M.fr(y,a,b),m=(y,a,b)=>(f(y,a,b)[0]+f(y,a,b)[1])/2;
@@ -7697,26 +7726,27 @@ function pose(R){const asp=R.W/Math.max(1,R.H);const port=asp<1;
   const deck=M.sel>=0;
   return{az:deck?(port?66:18):(port?38:22),pt:deck?(port?32:22):(port?17:18),dist:fit/(2*Math.tan(hf/2)),lx:0,ly:-8.6*FIT/2.4,lz:0};}
 const hide=o=>{if(!M.vis.has(o))M.vis.set(o,o.visible);o.visible=false;};
+const ing=o=>{for(let q=o;q;q=q.parent)if(q===M.G||q===M.G2)return true;return false;};
 window.CUTCAM=function(R){
   if(!M.on)return;build(R);if(!M.built||!M.on)return;
   R.ship.updateMatrixWorld(true);const m=R.bob.matrixWorld;
   _s.set(1,0,0).transformDirection(m);_b.set(0,0,1).transformDirection(m);_c.setFromMatrixPosition(m);
   if(M.flip){_s.negate();_b.negate();}if(M.G)M.G.scale.x=M.flip?-1:1;if(M.G2){M.G2.scale.x=-M.G.scale.x;M.G2.visible=M.sel>=0;}
-  const T=M.ov||pose(R);T.az+=M.uaz;T.pt=Math.max(3,Math.min(85,T.pt+M.upt));T.dist*=M.uz;T.ly+=M.uly;T.lz+=M.pan;if(!M.cur){M.cur={az:-100,pt:14,dist:T.dist*1.7,lx:0,ly:8*FIT/2.4,lz:0};}
+  const T=Object.assign({},M.ov||pose(R));{const tk=M.sel<0&&M.L.decks.length>1?1:0;M.xk=M.fast?tk:(M.xk||0)+(tk-(M.xk||0))*.09;if(Math.abs(M.xk-tk)<.004)M.xk=tk;xApply();const sp=(M.span||0)*M.xk;T.ly+=sp*.4;T.dist*=1+4.5*sp/(27*FIT);T.pt=T.pt+(Math.max(T.pt,30)-T.pt)*M.xk;}T.az+=M.uaz;T.pt=Math.max(3,Math.min(85,T.pt+M.upt));T.dist*=M.uz;T.ly+=M.uly;T.lz+=M.pan;if(!M.cur){M.cur={az:-100,pt:14,dist:T.dist*1.7,lx:0,ly:8*FIT/2.4,lz:0};}
   const e=M.fast?1:.045;for(const f of["az","pt","dist","lx","ly","lz"])M.cur[f]+=(T[f]-M.cur[f])*e;
   const c=M.cur,az=c.az*PI/180,pt=c.pt*PI/180;R.camera.fov=FOV;
   _v.set(c.lx,c.ly,c.lz).applyMatrix4(m);
   const cp=R.camera.position;cp.copy(_v).addScaledVector(_s,Math.cos(az)*Math.cos(pt)*c.dist).addScaledVector(_b,Math.sin(az)*Math.cos(pt)*c.dist);cp.y+=Math.sin(pt)*c.dist;
   R.camera.lookAt(_v);
-  const U=R.U;U.uCutOn.value=1;U.uCutSl.value=M.sel<0?1:0;U.uGhost.value=M.sel<0?1:0;U.uCutC.value.copy(_c);U.uCutN.value.copy(_s);U.uCutB.value.copy(_b);U.uCutR.value=90;U.uCutTop.value=TOP;const deckWet=M.sel>=0&&!!M.L.wet[M.sel],wet=M.sel<0||deckWet;if(M.sel<0)U.uCutBox.value.set(-(H.B*1.45),3.6*H.B,LS.Lh+H.B);else U.uCutBox.value.set(1000,1001,1);U.uCutE.value.set(H.B+1.4,LS.Lh+1.6,deckWet?1:0);if(M.seabed)M.seabed.visible=wet;
+  const U=R.U;U.uCutOn.value=1;U.uCutSl.value=M.sel<0?1:0;U.uGhost.value=M.sel<0&&M.xk<=.02?1:0;U.uCutC.value.copy(_c);U.uCutN.value.copy(_s);U.uCutB.value.copy(_b);U.uCutR.value=90;U.uCutTop.value=TOP;const deckWet=M.sel>=0&&!!M.L.wet[M.sel],wet=M.sel<0||deckWet;if(M.sel<0)U.uCutBox.value.set(-(H.B*1.45),3.6*H.B,LS.Lh+H.B);else U.uCutBox.value.set(1000,1001,1);U.uCutE.value.set(H.B+1.4,LS.Lh+1.6,deckWet?1:0);if(M.seabed)M.seabed.visible=wet;
   if(R.seaU){R.seaU.uCutB.value.copy(_b);}
   if(R.sea&&!R.sea.material.transparent){R.sea.material.transparent=true;R.sea.material.needsUpdate=true;}
   _pl.setFromNormalAndCoplanarPoint(_s.clone().negate(),_c);_pt.set(new THREE.Vector3(0,-1,0),_c.y+TOP);
-  const gh=M.sel>=0,cm=gh?1:2;M.gA.value=gh?.35:1;
+  const gh=M.sel>=0,cm=gh?1:2;M.gA.value=M.sel<0&&M.xk>.02?0:(gh?.35:1);
   R.ship.traverse(o=>{const mt=o.material;if(!mt)return;
     if(mt.isLineBasicMaterial&&mt!==M.pen&&!M.PN.includes(mt)){if(mt.__cl!==cm){mt.clippingPlanes=gh?[_pt]:[_pl,_pt];mt.__cl=cm;mt.needsUpdate=true;}
       if(!mt.__gu){mt.__gu=1;mt.__t=mt.transparent;const pv=mt.onBeforeCompile;mt.onBeforeCompile=(sh,r)=>{if(pv)pv.call(mt,sh,r);sh.uniforms.uGhostA=M.gA;sh.fragmentShader="uniform float uGhostA;\n"+sh.fragmentShader.replace("#include <dithering_fragment>","#include <dithering_fragment>\ngl_FragColor.a*=uGhostA;");};mt.transparent=true;mt.needsUpdate=true;}else if(!mt.transparent){mt.transparent=true;mt.needsUpdate=true;}}
-    else if(o.isMesh&&mt.isMeshBasicMaterial&&mt.vertexColors!==true){const h=mt.color.getHex();if(h===0x221a13||h===0x3a3a40)hide(o);}});
+    else if(o.isMesh&&mt.isMeshBasicMaterial&&mt.vertexColors!==true){const h=mt.color.getHex();if(h===0x221a13||h===0x3a3a40||(M.xk>.02&&!ing(o)))hide(o);}});if(M.seabed)hide(M.seabed);
   if(R.gen)for(const o of R.gen.sails){if(o.s&&o.s.yard&&o.s.yard.y>TOP-1&&o.piv)hide(o.piv);}
   { const sl=S&&S.ship&&S.ship.sls;if(sl)for(const k in sl)sl[k]=0; }
   if(R.crew)for(const c of R.crew)hide(c.m);
@@ -7818,7 +7848,7 @@ function crewAnim(){const C=S.crew,P=M.P,n=Math.min(1200,C.length),now=performan
     else{lie=true;}
     if(lie){const sw=C[i].sick?0:.12*Math.sin(t*.8);_e.set(-PI/2,0,0);_q.setFromEuler(_e);_q2.setFromAxisAngle(_ax,sw);_q.premultiply(_q2);y+=.32+(C[i].sick?0:.4);}
     else{_e.set(0,yaw,0);_q.setFromEuler(_e);}
-    _p.set(pl[0],y,z);_sc.set(s,s,s);_F.compose(_p,_q,_sc);
+    _p.set(pl[0],y+xo(zb[0]),z);_sc.set(s,s,s);_F.compose(_p,_q,_sc);
     for(const k of["body","hip","head","hair"])P[k].setMatrixAt(i,_F);
     P.tail.setMatrixAt(i,a.look&&a.look.long?_F:_Z);
     for(const k of["tri","round","knit","cap"])P[k].setMatrixAt(i,!lie&&a.look&&a.look.hat===k?_F:_Z);
@@ -7874,7 +7904,7 @@ function labels(){const R=M.R;if(!M.on){if(labelEls)labelEls.forEach(e=>e.g.styl
   const act=labelEls.filter(e=>{const l=e.l;const em=EM[l[0]*10+l[4]],show=M.sel<0?(l[3]===1||!!em):l[0]===M.sel;e.g.style.display=show?"":"none";e.g.classList.toggle("em",!!em);return show;});
   const top=Math.max(rc.top,88)+6,bot=Math.min(rc.bottom,cardTop)-6;
   // where each room sits on screen; boxes go to the nearer side, ordered top to bottom so the lines never cross
-  act.forEach(e=>{const l=e.l;_v.set(M.flip?-l[2][0]:l[2][0],l[2][1],l[2][2]).applyMatrix4(R.bob.matrixWorld).project(R.camera);e.ax=rc.left+(_v.x*.5+.5)*rc.width;e.ay=rc.top+(1-(_v.y*.5+.5))*rc.height;e.vz=_v.z;});
+  act.forEach(e=>{const l=e.l;_v.set(M.flip?-l[2][0]:l[2][0],l[2][1]+xo(l[0]),l[2][2]).applyMatrix4(R.bob.matrixWorld).project(R.camera);e.ax=rc.left+(_v.x*.5+.5)*rc.width;e.ay=rc.top+(1-(_v.y*.5+.5))*rc.height;e.vz=_v.z;});
   const mid=rc.left+rc.width/2,sides=[act.filter(e=>e.ax<mid).sort((p,q)=>p.ay-q.ay),act.filter(e=>e.ax>=mid).sort((p,q)=>p.ay-q.ay)];
   if(Math.abs(sides[0].length-sides[1].length)>Math.ceil(act.length/2)-1+2){const big=sides[0].length>sides[1].length?0:1,mv=sides[big].splice(sides[big].length>>1);sides[1-big]=sides[1-big].concat(mv);sides[1-big].sort((p,q)=>p.ay-q.ay);}
   sides.forEach((arr,side)=>{const c=arr.length;if(!c)return;const slot=Math.min((bot-top)/c,26),mean=arr.reduce((t,e)=>t+e.ay,0)/c,y0=clamp(mean-slot*c/2,top,Math.max(top,bot-slot*c));
