@@ -479,7 +479,7 @@ body.fs3d #fsBar{left:max(12px,env(safe-area-inset-left,0px));bottom:max(12px,en
         <b class="ah">Sky</b>
         <label class="chk"><input type="checkbox" id="aSky" checked> <span>Sky chart<small>Draws the altitude and bearing grid, the constellation lines and their names over the sky.</small></span></label>
       </div>
-      <div class="menupop" id="cheatPop" hidden><div class="ah" style="font-family:var(--f-display);font-variant:small-caps">Cheats</div><button class="tb" data-cheat="money">Add £1,000</button><button class="tb" data-cheat="hold">Fill the hold</button><button class="tb" data-cheat="daynight">Switch day / night</button><button class="tb" data-cheat="ships">Unlock all ships</button></div></div>
+      <div class="menupop" id="cheatPop" hidden style="position:fixed;left:50%;top:50%;right:auto;bottom:auto;transform:translate(-50%,-50%);width:min(340px,92vw);max-height:86vh;overflow:auto;z-index:9999;padding:12px;box-shadow:0 8px 40px rgba(0,0,0,.5)"><div class="ah" style="font-family:var(--f-display);font-variant:small-caps;font-size:18px;display:flex;justify-content:space-between">Cheats<button class="tb" id="cheatX" style="width:auto">✕</button></div><label style="display:block;margin:8px 0 2px;font-size:12px">Fishing rate: <b id="chFishV">500</b>×<input id="chFish" type="range" min="1" max="5000" step="1" value="500" style="width:100%"></label><label style="display:block;margin:8px 0 2px;font-size:12px">Cargo loading rate (units per tap): <b id="chLoadV">10</b><input id="chLoad" type="range" min="1" max="200" step="1" value="10" style="width:100%"></label><div style="margin:8px 0 2px;font-size:12px">Add goods to the hold</div><div style="display:flex;gap:6px"><select id="chGood" style="flex:1;min-width:0"></select><button class="tb" id="chAdd" style="width:auto;border:1px solid var(--ink)">Add</button></div><button class="tb" data-cheat="money">Add £1,000</button><button class="tb" data-cheat="hold">Fill the hold</button><button class="tb" data-cheat="daynight">Switch day / night</button><button class="tb" data-cheat="ships">Unlock all ships</button></div></div>
   </div>
   <div class="infobar" aria-label="Date, wind and weather">
     <span class="when"><b id="clock">—</b><small id="watch">—</small></span>
@@ -5639,7 +5639,7 @@ function damageStep(s,dt,w){const sh=s.ship,H=s.wx.H;
 const PRICE0={bis:18,meat:34,beer:22,fish:.24,lime:28,rum:190,med:300}; // shillings per 100 lb or gallons; salt fish per lb (Newfoundland cod fetched about 2.5d a pound in the islands)
 const PORTF={bridgetown:.9,castries:1.1,stjohns:1,kingstown:1.05,basseterre:1.15},STORECAP=1500;
 const storeCap=()=>S&&S.crew?Math.max(300,75*S.crew.length):STORECAP; // casks for about two and a half months
-const FISHX=500; // catch speed multiplier
+let FISHX=500; // catch speed multiplier
 const FISHN={bank:"snapper and grouper from the bank",dolphinfish:"dolphinfish",bonito:"bonito",tuna:"tunny"};
 const FISHSIGN={bank:"Gannets and boobies diving over a bank",dolphinfish:"Dolphinfish leaping, with birds working above them",bonito:"A bonito school breaking the surface, terns working over it",tuna:"Water boiling where a school of tunny is feeding"};
 const money=sh=>{sh=Math.round(sh);return `£${Math.floor(sh/20)} ${sh%20}s`;};
@@ -6773,8 +6773,13 @@ $("cbBtn").onclick=()=>{const c=$("compassBox"),o=c.classList.toggle("collapsed"
   document.addEventListener("click",e=>{if(!mp.hidden&&!e.target.closest(".menuwrap"))shut();});
   window.addEventListener("keydown",e=>{if(e.key==="Escape")shut();}); }
 { const cp=$("cheatPop"),mpw=$("menuPop");
-  $("bCheat").onclick=()=>{cp.hidden=false;};
+  $("bCheat").onclick=e=>{e.stopPropagation();cp.hidden=false;};
+  $("cheatX").onclick=e=>{e.stopPropagation();cp.hidden=true;};
   document.addEventListener("click",e=>{if(!cp.hidden&&!e.target.closest("#cheatPop,#bCheat"))cp.hidden=true;});
+  let chLoad=10;const chG=$("chGood");chG.innerHTML=Object.keys(GOODS).map(g=>`<option value="${g}">${GOODS[g].n}</option>`).join("");
+  $("chFish").oninput=e=>{FISHX=+e.target.value;$("chFishV").textContent=FISHX;};
+  $("chLoad").oninput=e=>{chLoad=+e.target.value;$("chLoadV").textContent=chLoad;};
+  $("chAdd").onclick=e=>{e.stopPropagation();const s=S;if(!s||s.done){say("Start a voyage first.",{log:false});return;}mkInit(s);const g=chG.value,n=Math.min(chLoad,Math.floor(unitsFit(s,g)));if(n<1){say("The hold is full.",{log:false});return;}const c=s.cargo[g]||(s.cargo[g]={n:0,cost:0});c.n+=n;c.cost+=n*GOODS[g].p;say(`Cheat: ${n} ${GOODS[g].n} added to the hold.`,{log:false});try{tradeUI(true);}catch(_){}};
   cp.addEventListener("click",e=>{const b=e.target.closest("button[data-cheat]");if(!b)return;e.stopPropagation();const s=S;if(!s||s.done){say("Start a voyage first.",{log:false});return;}
     const k=b.dataset.cheat;
     if(k==="money"){s.purse+=20000;say("Cheat: £1,000 added to the purse.",{log:false});}
@@ -7077,8 +7082,8 @@ const SCN_MECH=[
   readouts:[["Current",s=>CURRENT.drift.toFixed(2)+" kn towards "+Math.round((CURRENT.set+180)%360)+"°"],
    ["Tide at nearest port",s=>{try{const p=portsNear(s);return p.name+" "+tideLvl(p.k,s.t).toFixed(2)+" m"}catch(e){return "—"}}]]},
  {id:"fishing",name:"Fishing",
-  dials:[{k:"fish",label:"Fish",start:true,opts:()=>[["normal","Natural patches"],["rich","School beside the ship"],["none","None"]],def:"normal"}],
-  apply(s,g,starting){if(!starting)return;const f=g("fish");if(f==="rich")scnSchool(s,"bonito");else if(f==="none"){s.fish=[];s.grounds=[];}},
+  dials:[{k:"fish",label:"Fish",start:true,opts:()=>[["normal","Natural patches"],["rich","School beside the ship"],["none","None"]],def:"normal"},{k:"fishx",label:"Fishing rate (cheat)",live:true,opts:()=>[["500","Normal (500×)"],["1500","Fast"],["5000","Very fast"],["50","Slow"]],def:"500"}],
+  apply(s,g,starting){FISHX=+g("fishx");if(!starting)return;const f=g("fish");if(f==="rich")scnSchool(s,"bonito");else if(f==="none"){s.fish=[];s.grounds=[];}},
   triggers:[["Bonito school",s=>scnSchool(s,"bonito")],["Tuna school",s=>scnSchool(s,"tuna")],["Dolphinfish school",s=>scnSchool(s,"dolphinfish")],["Lines out / in",()=>toggleFish()]],
   readouts:[["Lines",s=>s.fishing?"out":"in"],["Nearest school",s=>{let b=null;for(const f of s.fish||[]){const d=Math.hypot(f.x-s.ship.x,f.y-s.ship.y);if(!b||d<b.d)b={d,k:f.kind};}return b?b.k+", "+b.d.toFixed(1)+" nm":"none"}],
    ["Fish in stores",s=>String(Math.round(s.stores.fish||0))]]},
@@ -7097,7 +7102,7 @@ const SCN_MECH=[
  {id:"trade",name:"Trading and cargo",
   dials:[{k:"cargo",label:"Hold at start",start:true,opts:()=>[["none","Empty"],["full","Full of goods"]],def:"none"}],
   apply(s,g,starting){if(starting&&g("cargo")==="full")scnFillHold(s);},
-  triggers:[["Add £1,000",s=>{s.purse+=20000;}],["Fill the hold",s=>scnFillHold(s)],["Empty the hold",s=>{s.cargo={};}]],
+  triggers:[["Add 10 sugar",s=>{mkInit(s);const n=Math.min(10,Math.floor(unitsFit(s,"sugar")));if(n>=1){const c=s.cargo.sugar||(s.cargo.sugar={n:0,cost:0});c.n+=n;c.cost+=n*GOODS.sugar.p;}}],["Add £1,000",s=>{s.purse+=20000;}],["Fill the hold",s=>scnFillHold(s)],["Empty the hold",s=>{s.cargo={};}]],
   readouts:[["Purse",s=>money(s.purse)],["Hold",s=>holdUsed(s).toFixed(1)+" / "+holdCap()+" t"],["Cargo worth",s=>money(cargoValue(s))]]},
  {id:"navigation",name:"Navigation",
   dials:[{k:"dr",label:"Chart shows",live:true,opts:()=>[["true","True position"],["dr","Reckoning only"]],def:"true"}],
