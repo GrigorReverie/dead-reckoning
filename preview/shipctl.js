@@ -17,7 +17,7 @@
    ===================================================================== */
 
 /* PUBLISHED SHIP CONTROLS LOOK: replaced by the push script. null = game default. */
-const DR_SHIPCTL_PUBLISHED=null;
+const DR_SHIPCTL_PUBLISHED={"v":1,"c":{"vs":{"ctl":44},"sty":{"box":{"ord":-2},"ctl":{"ord":-1},"oars":{"ord":1},"logb":{"ord":2},"riggrp":{"ord":0}},"sWordFont":"'IM Fell English SC',Georgia,serif","sNumFont":"system-ui,sans-serif","gTubeW":20,"gFluidA":0.84,"gWordFont":"'IM Fell English SC',Georgia,serif","gNumFont":"system-ui,sans-serif","cRimW":3,"cPoints":8,"gStyle":"bar"}};
 
 window.DRSC=(function(){
   const DEFAULTS={
