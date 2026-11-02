@@ -17,7 +17,7 @@
    ===================================================================== */
 
 /* PUBLISHED SHIP CONTROLS LOOK: replaced by the push script. null = game default. */
-const DR_SHIPCTL_PUBLISHED={"v":1,"c":{"cPoints":8,"cLetterSize":30,"cShipScale":0.88,"gTubeW":20,"gStyle":"bar","gFluidA":0.8,"gWordFont":"'IM Fell English SC',Georgia,serif","gNumFont":"'IM Fell English SC',Georgia,serif","sStyle":"blocks","sNumFont":"'IM Fell English SC',Georgia,serif","sWordFont":"'IM Fell English SC',Georgia,serif","bDial":246,"bGap":30,"extras":[{"type":"readout","field":"anchor","at":"top","size":13,"bold":true,"full":true}],"bShadow":true,"bPad":11,"hReadSize":12,"pos":{"box":{"x":0,"y":-112,"s":70,"r":0},"sheet":{"x":0,"y":46,"s":100,"r":0},"cL5":{"x":0,"y":-3,"s":100,"r":0},"course":{"x":1,"y":-153,"s":101,"r":0},"wind":{"x":2,"y":-157,"s":100,"r":0},"helmbtns":{"x":0,"y":2,"s":141,"r":0},"hdg":{"x":0,"y":0,"s":99,"r":0},"xend":{"x":0,"y":2,"s":100,"r":0},"current":{"x":0,"y":-162,"s":100,"r":0},"anchor":{"x":0,"y":-166,"s":99,"r":0}},"sty":{"dial":{"bw":0,"fs":7,"op":1,"ta":"center"},"wind":{"bold":false,"ord":0,"font":"'IBM Plex Mono',monospace","ta":"left"},"anchor":{"bold":true,"fs":14}},"vs":{"ship":88,"ctl":60,"stores":70,"book":70},"hShowAnchor":false,"cBraceFill":"rgba(0,236,237,.14)","hShowRig":false}};
+const DR_SHIPCTL_PUBLISHED={"v":1,"c":{"cPoints":8,"cLetterSize":30,"cShipScale":0.88,"gTubeW":20,"gStyle":"bar","gFluidA":0.8,"gWordFont":"'IM Fell English SC',Georgia,serif","gNumFont":"'IM Fell English SC',Georgia,serif","sStyle":"blocks","sNumFont":"'IM Fell English SC',Georgia,serif","sWordFont":"'IM Fell English SC',Georgia,serif","bDial":246,"bGap":30,"extras":[{"type":"readout","field":"anchor","at":"top","size":13,"bold":true,"full":true}],"bShadow":true,"bPad":11,"hReadSize":12,"pos":{"box":{"x":0,"y":-112,"s":70,"r":0},"sheet":{"x":0,"y":46,"s":100,"r":0},"cL5":{"x":0,"y":-3,"s":100,"r":0},"course":{"x":1,"y":-13,"s":101,"r":0},"wind":{"x":2,"y":-17,"s":100,"r":0},"yards":{"x":0,"y":-22,"s":100,"r":0},"helmbtns":{"x":0,"y":-18,"s":141,"r":0},"hdg":{"x":0,"y":0,"s":99,"r":0},"xend":{"x":0,"y":2,"s":100,"r":0},"current":{"x":0,"y":-22,"s":100,"r":0},"anchor":{"x":0,"y":-26,"s":99,"r":0}},"sty":{"ctl":{"mt":-140},"dial":{"bw":0,"fs":7,"op":1,"ta":"center"},"wind":{"bold":false,"ord":0,"font":"'IBM Plex Mono',monospace","ta":"left"},"anchor":{"bold":true,"fs":14}},"vs":{"ship":88,"ctl":60,"stores":70,"book":70},"hShowAnchor":false,"cBraceFill":"rgba(0,236,237,.14)","hShowRig":false}};
 
 window.DRSC=(function(){
   const DEFAULTS={
@@ -68,12 +68,12 @@ window.DRSC=(function(){
   const PARTS=[
     ["box","Whole gauge box","Gauges","#compassBox"],["dial","Compass","Gauges","#compassBox #dial"],["baro","Glass","Gauges","#compassBox #baro"],["sails","Sail bars","Gauges","#compassBox #sailSteps5"],
     ["fold","Fold compass button","Gauges","#compassBox #cbBtn"],["scope","Telescope button","Gauges","#compassBox #cbScope"],["foot","Button row under gauges","Gauges",".compassbox .cbfoot"],["heave2","Heave log button (gauges)","Gauges","#bHeave2"],
-    ["course","Course and speed line","Text",".dock-all .dockctl .cspd"],["wind","Wind line","Text","#windSpd"],["current","Current line","Text","#curTxt"],["anchor","Anchor / docked line","Text","#anchTxt"],["rig","Yards and rigging line","Text","#rigTxt"],
+    ["course","Course and speed line","Text",".dock-all .dockctl .cspd"],["wind","Wind line","Text","#windSpd"],["current","Current line","Text","#curTxt"],["anchor","Anchor / docked line","Text","#anchTxt"],["rig","Yards and rigging line","Text","#rigTxt"],["yards","Yards status line","Text",".dock-all .dockctl .setrows"],
     ["xtop","Added elements above gauges","Text",".sc-x-top"],["xbot","Added elements below gauges","Text",".sc-x-bot"],["xend","Added elements at panel end","Text",".sc-x-end"],
     ["cL5","Port 5° button","Buttons","#cL5"],["cR5","Starboard 5° button","Buttons","#cR5"],["drop","Anchor button","Buttons","#bDrop"],["fish","Fish button","Buttons","#bFish"],
     ["sDn","Shorten sail button","Buttons","#sDn"],["sUp","Make sail button","Buttons","#sUp"],["sAll","Pick all sails","Buttons","#sailAll"],["sNone","Clear sails","Buttons","#sailNone"],
     ["brL","Yards left button","Buttons","#brL"],["brR","Yards right button","Buttons","#brR"],["heave","Heave the log button","Buttons","#bHeave"],["helmbtns","Helm button row","Buttons",".dock-all .helmbtns"],
-    ["hdg","Heading slider","Buttons","#dockHdg"],["sheet","Whole helm panel","Panel",".dock-all .dockbody"]
+    ["hdg","Heading slider","Buttons","#dockHdg"],["sheet","Whole helm panel","Panel",".dock-all .dockbody"],["ctl","Helm readout block","Panel",".dock-all .dockctl"]
   ];
   const partSel=Object.fromEntries(PARTS.map(p=>[p[0],p[3]]));
   const VS_PAGES=["ctl","ship","stores","book"];
@@ -126,7 +126,7 @@ window.DRSC=(function(){
       if(num(q.fs)&&+q.fs>0)r.push(`font-size:${+q.fs}px${I}`);if(has(q.font))r.push(`font-family:${safe(q.font)}${I}`);
       if(q.bold===true)r.push(`font-weight:700${I}`);if(q.bold===false)r.push(`font-weight:400${I}`);if(q.ital)r.push(`font-style:italic${I}`);
       if(num(q.ls))r.push(`letter-spacing:${+q.ls}px${I}`);if(q.ta==="left"||q.ta==="center"||q.ta==="right")r.push(`text-align:${q.ta}${I}`);
-      if(num(q.op)&&+q.op<1)r.push(`opacity:${+q.op}${I}`);if(num(q.ord)&&+q.ord)r.push(`order:${+q.ord}${I}`);
+      if(num(q.mt))r.push(`margin-top:${+q.mt}px${I}`);if(num(q.mb))r.push(`margin-bottom:${+q.mb}px${I}`);if(num(q.op)&&+q.op<1)r.push(`opacity:${+q.op}${I}`);if(num(q.ord)&&+q.ord)r.push(`order:${+q.ord}${I}`);
       if(r.length)o.push(`${B}${sel}{${r.join(";")}}`);}}
     // extras
     o.push(`.sc-x{display:flex;flex-wrap:wrap;gap:4px 10px;justify-content:center;align-items:baseline;width:100%;font-family:var(--f-data,'IBM Plex Mono',monospace);font-size:11px;line-height:1.3;color:var(--ink)}.sc-x:empty{display:none}.sc-x .sc-i{white-space:nowrap}.sc-x .sc-i i{font-style:normal;opacity:.7;margin-right:4px}.sc-x .sc-d{flex-basis:100%;height:0;border-top:1px dotted var(--rule,#b9a882);margin:2px 0}.sc-x .sc-full{flex-basis:100%}`);
