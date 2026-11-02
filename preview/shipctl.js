@@ -74,6 +74,7 @@ window.DRSC=(function(){
     ["cL5","Port 5° button","Buttons","#cL5"],["cR5","Starboard 5° button","Buttons","#cR5"],["drop","Anchor button","Buttons","#bDrop"],["fish","Fish button","Buttons","#bFish"],
     ["sDn","Shorten sail button","Buttons","#sDn"],["sUp","Make sail button","Buttons","#sUp"],["sAll","Pick all sails","Buttons","#sailAll"],["sNone","Clear sails","Buttons","#sailNone"],
     ["brL","Yards left button","Buttons","#brL"],["brR","Yards right button","Buttons","#brR"],["heave","Heave the log button","Buttons","#bHeave"],["helmbtns","Helm button row","Buttons",".dock-all .helmbtns"],
+    ["oars","Oars section","Page groups","#oarSec"],["logb","Log book section","Page groups",".dock-all .sub.subl>.oarsec:not(#oarSec)"],["riggrp","Rigging and log row","Page groups",".dock-all .sub.subt"],
     ["hdg","Heading slider","Buttons","#dockHdg"],["sheet","Whole helm panel","Panel",".dock-all .dockbody"],["ctl","Helm readout block","Panel",".dock-all .dockctl"]
   ];
   const partSel=Object.fromEntries(PARTS.map(p=>[p[0],p[3]]));
