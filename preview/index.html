@@ -7155,8 +7155,9 @@ $("cL5").onclick=()=>turn(-5);$("cR5").onclick=()=>turn(5);
 $("dhSl").oninput=e=>setCourse(+e.target.value);
 { const jb=document.createElement("button");jb.type="button";jb.id="cbJib";jb.className="btn sm ico cbjib";jb.setAttribute("aria-label","Back the jib");jb.title="Back the jib: set the heading you want on the compass, then tap";
   jb.innerHTML='<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v17M8 4.500c5 3.500 8 8 9 14.500H8M4 21h16"/></svg>';
-  document.getElementById("compassBox").append(jb);jb.onclick=()=>backJib();
-  const st=document.createElement("style");st.textContent=".compassbox .cbjib{position:absolute;right:8px;bottom:7px;z-index:2;display:none}.compassbox .cbjib.on{display:flex}.compassbox .cbjib.armed{background:var(--ink);color:var(--paper)}.compassbox.collapsed .cbjib{display:none!important}@media (min-width:0px){.compassbox .cbjib{right:0;bottom:0}}";document.head.append(st);
+  (document.querySelector("#compassBox .cbfoot")||document.getElementById("compassBox")).append(jb);jb.onclick=()=>backJib();
+  const toFoot=()=>{const f=document.querySelector("#compassBox .cbfoot");if(f&&jb.parentElement!==f)f.append(jb);};toFoot();setTimeout(toFoot,0);addEventListener("load",toFoot); // it lives in the icon row with the other buttons
+  const st=document.createElement("style");st.textContent=".compassbox .cbjib{position:static;flex:none;display:none}.compassbox .cbjib.on{display:flex}.compassbox .cbjib.armed{background:var(--ink);color:var(--paper)}.compassbox.collapsed .cbjib{display:none!important}";document.head.append(st);
 }
 $("sUp").onclick=()=>setSail(S.ship.sail+1);
 { const sd=$("sailDiag"),pick=$("sailPick");
