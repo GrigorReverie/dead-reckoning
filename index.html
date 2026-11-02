@@ -1108,7 +1108,7 @@ const SKIPS=[["bSkip",3,"Skip"]];
 const SPEEDS=[1,2,4,8,15,30,60],SKIPHS=[1,2,3,6,9,12,18,24,36,48];let skipH=3;
 function spdIdx(){let b=0;SPEEDS.forEach((v,i)=>{if(Math.abs(v-speedMult)<Math.abs(SPEEDS[b]-speedMult))b=i;});return b;}
 let tgtSpeed=2;
-function stepSpeed(d){const old=tgtSpeed;let b=0;SPEEDS.forEach((v,i)=>{if(Math.abs(v-tgtSpeed)<Math.abs(SPEEDS[b]-tgtSpeed))b=i;});tgtSpeed=SPEEDS[Math.max(0,Math.min(SPEEDS.length-1,b+d))];if(!paused&&speedMult===old)speedMult=tgtSpeed;setSpeed(speedMult);}
+function stepSpeed(d){let b=0;SPEEDS.forEach((v,i)=>{if(Math.abs(v-tgtSpeed)<Math.abs(SPEEDS[b]-tgtSpeed))b=i;});tgtSpeed=SPEEDS[Math.max(0,Math.min(SPEEDS.length-1,b+d))];setSpeed(speedMult);}
 function stepSkipH(d){const i=SKIPHS.indexOf(skipH),j=Math.max(0,Math.min(SKIPHS.length-1,i+d));skipH=SKIPHS[j];$("skVal").textContent=skipH+" h";if(skipPrev)previewSkip(skipH);}
 function startSkip(h){h=h||3;if(!S||S.done||modalOpen||skipBusy)return;setPaused(true);skipBusy=true;skipLeft=skipTotal=h;skipCdEnd=performance.now()+Math.max(1,Math.ceil(h-1e-9))*1000;skipCdShow();for(const[id]of SKIPS)$(id).disabled=true;$("bSkip").textContent="…";say(h+(h===1?" hour passes":" hours pass")+". The watches change and the log is kept.",{log:false,toast:false});}
 function skipCdShow(){const e=$("skipCount");if(!e)return;if(!skipBusy){e.classList.remove("on");return;}const n=Math.max(1,Math.ceil((skipCdEnd-performance.now())/1000-1e-9));e.innerHTML=`<small>Time passes</small><b>${n} h</b>`;e.classList.add("on");}
