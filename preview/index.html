@@ -73,6 +73,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-
 @media (min-width:0px){.cbtog{display:none!important}.cbtop{margin-bottom:-26px}}
 .winf{font-size:12px;white-space:nowrap}.winf b{font-weight:600}
 .cbfoot{flex-wrap:wrap;justify-content:center!important;gap:8px 10px}.cbfoot:has(#logbox:not([hidden])){flex-wrap:nowrap!important;gap:4px!important;column-gap:4px!important}.cbfoot:has(#logbox:not([hidden])) .btn.ico{width:28px!important;height:28px!important;flex:0 1 auto}.cbfoot #logbox{flex:0 1 auto!important;gap:4px!important;padding:0!important}.cbfoot #logbox #glass{width:14px!important;height:22px!important}.cbfoot #logbox .mono{font-size:11px!important}.cbfoot #bNip{width:30px!important;height:30px!important}.cbfoot #bNip svg{width:18px!important;height:18px!important}
+.anchwrap{position:relative;display:inline-flex;flex:none}#anchPct{position:absolute;top:100%;left:50%;transform:translateX(-50%);font:600 10px/1 var(--mono,monospace);white-space:nowrap;pointer-events:none;color:inherit;margin-top:1px}
 .cbfoot-l{display:flex;gap:4px;flex:none}.cbfoot .ws{flex:1;min-width:0;text-align:center}.cbfoot .btn.ico{flex:none;width:var(--stW);height:var(--stW);min-height:0;padding:0;display:flex;align-items:center;justify-content:center}
 .compassbox .cbtog{position:absolute;left:4px;top:4px;z-index:2;width:26px;height:26px;padding:0;display:flex;align-items:center;justify-content:center;background:var(--paper);color:var(--ink);border:1px solid var(--ink);border-radius:50%;cursor:pointer}
 .compassbox.collapsed{padding:0;border:0;background:none;box-shadow:none}.compassbox.collapsed .cbrow,.compassbox.collapsed .ws{display:none}
@@ -1307,7 +1308,7 @@ function step(dt){
   }
   const rate=(s.docked?6000:8000+800*sh.v+(rw?(rw.pivot?9000:2500):0))*dt*SHIP.turnK; // degrees per hour: the brig tacks in about half a minute, a boat spins round, a first rate takes her time
   let diff=s.docked?(s.dockHold?0:angDiff(sh.heading,sh.ordered)):angDiff(sh.heading,target);
-  if(s.irons){diff=0;sh.turnDir=0;}
+  if(s.irons||sh.anch.mode==="weighing"){diff=0;sh.turnDir=0;} // no turning until the anchor is fully up
   else if(sh.turnDir){ // forced direction for tack/wear
     let d=sh.turnDir>0?norm(target-sh.heading):-norm(sh.heading-target);
     if(Math.abs(d)<6){sh.turnDir=0;}else diff=d;
@@ -2538,7 +2539,7 @@ function updateUI(force){
   $("wxTxt").textContent=wxText(S,w);{const g=glassText(S);$("glassTxt").innerHTML=g.fall?`<span class="warn">${g.txt}</span>`:g.txt;}$("seaTxt").textContent=seaText(S);drawBaro();
   $("ordTxt").textContent=`${Math.round(sh.ordered)}° ${pointName(sh.ordered)}`;
   { const fb=$("bFish");{const t=S.fishing?`Stop fishing · ${Math.round(S.catchTotal)} lb (F)`:"Put hand-lines over the side (F)";fb.title=t;fb.setAttribute("aria-label",t);}fb.setAttribute("aria-pressed",String(!!S.fishing)); }
-  { const A=sh.anch,b=$("bDrop");{const t=A.mode==="up"?"Drop anchor (X)":A.mode==="weighing"?"Weighing anchor…":"Weigh anchor (X)";b.title=t;b.setAttribute("aria-label",t);b.setAttribute("aria-pressed",String(A.mode!=="up"));}b.disabled=A.mode==="weighing";
+  { const A=sh.anch,b=$("bDrop");{const t=A.mode==="up"?"Drop anchor (X)":A.mode==="weighing"?"Weighing anchor…":"Weigh anchor (X)";b.title=t;b.setAttribute("aria-label",t);b.setAttribute("aria-pressed",String(A.mode!=="up"));}b.disabled=A.mode==="weighing";{const ap=$("anchPct");if(ap){const pc=A.mode==="weighing"?Math.max(0,Math.min(99,Math.floor((S.t-A.t0)*3600/60*100)))+"%":"";if(ap.textContent!==pc)ap.textContent=pc;}}
     $("anchTxt").textContent=(A.mode==="holding"||A.mode==="trailing")&&A.low!=null&&S.t-A.low<20/3600?`Lowering the anchor… ${Math.max(0,Math.min(99,Math.floor((S.t-A.low)*3600/20*100)))}%`:S.docked&&A.mode==="holding"?`Docked at ${PORTS[S.docked].name}`:A.mode==="holding"?`At anchor in ${A.depth} fathoms${A.drag>0?" · dragging":""}`:A.mode==="trailing"?`Anchor trailing: no bottom (${A.depth} fathoms)`:A.mode==="weighing"?`Heaving up the anchor… ${Math.max(0,Math.min(99,Math.floor((S.t-A.t0)*3600/60*100)))}%`:sh.row&&sh.row.on?`Under ${SHIP.oars&&SHIP.oars.sweeps?"sweeps":"oars"}`:sh.sailSet<.5&&sh.v>.3?"Bare poles: drifting before the wind":""; }
   {
     const moving=SAILIDS.some(k=>Math.abs(sh.sl[k]-sh.sls[k])>.03);
@@ -7326,7 +7327,7 @@ $("bVoy").onclick=()=>{$("ovStart").hidden=false;modalOpen=true;};
   const bb=document.createElement("button");bb.className="btn sm ico";bb.id="bBrg";bb.title="Take bearings of the land in sight";bb.setAttribute("aria-label","Take bearing");
   bb.innerHTML='<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5v3M12 17.5v3M3.5 12h3M17.5 12h3"/><path d="M12 12l4.5-6"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg>';
   bb.onclick=takeBearings;
-  ft.append(bb,$("bDrop"),$("bFish"),hb,$("logbox"));$("bHeave").hidden=true;$("bHeave").style.display="none"; // the heave button now sits between anchor and fishing; the old one stays hidden as the state holder
+  const aw=document.createElement("span");aw.className="anchwrap";const ap=document.createElement("span");ap.id="anchPct";aw.append($("bDrop"),ap);ft.append(bb,aw,$("bFish"),hb,$("logbox"));$("bHeave").hidden=true;$("bHeave").style.display="none"; // the heave button now sits between anchor and fishing; the old one stays hidden as the state holder
   $("cL5").hidden=$("cR5").hidden=true; // the 5° buttons are gone; A and D still turn her
   $("logbox").style.cssText+=";flex:1;min-width:0;padding:0 4px;gap:6px;border:0;justify-content:center;";} // the log-heaving panel opens under the compass // anchor and fishing sit at the bottom left and right of the compass
 {const cl=document.createElement("div");cl.className="chartlog";cl.hidden=true;$("paneChart").append(cl);const lb=$("logbox"),home=lb.parentNode;
