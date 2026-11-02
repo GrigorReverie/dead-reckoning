@@ -1265,6 +1265,7 @@ var SCX=window.DRShipCtlDraw?window.DRShipCtlDraw({get $(){return $},get S(){ret
 function drawBaro(){SCX&&SCX.drawBaro();}
 function drawSailGauge(sh){SCX&&SCX.drawSailGauge(sh);}
 function drawDial(){SCX&&SCX.drawDial();}
+let _dialT=0,_dialEl=null;function dialDue(now){if(!_dialEl)_dialEl=document.getElementById("compassBox");if(!_dialEl||_dialEl.offsetParent===null||_dialEl.classList.contains("collapsed"))return false;if(now-_dialT<33)return false;_dialT=now;return true;}
 function seaText(s){const X=s.wx,H=X.H,d=H<.5?"Calm":H<1.25?"Slight sea":H<2.5?"Moderate sea":H<4?"Rough sea":H<6?"Very rough sea":"High sea";return `${d} (${H.toFixed(1)} m) · swell from ${pointName(X.sea.swF)}`;}
 
 /* ---------- events & log ---------- */
@@ -5481,7 +5482,7 @@ function frame(now){
   }else acc=0;
   if(S&&follow&&!(S.mode==="lost"&&!$("peek").checked&&!S.done)){const tgt=S.ship;cam.x+=(tgt.x-cam.x)*.15;cam.y+=(tgt.y-cam.y)*.15;}
   if((frameN++&31)===0)measureDocks();
-  drawChart();drawDial();update3D(dtR,now);updateUI();if(SV.open)svFrame(dtR,now);
+  drawChart();if(dialDue(now))drawDial();update3D(dtR,now);updateUI();if(SV.open)svFrame(dtR,now);
   if(soundOn&&windGain&&S){const w=windAt(S,S.ship.x,S.ship.y,S.t);windGain.gain.value=paused?0:Math.min(.5,.04+w.kn/80);}
   requestAnimationFrame(frame);
 }
@@ -8659,6 +8660,29 @@ window.__DR={laneInit,trafNow,trafInit,trafPos,TRAF,get TRAFDENS(){return TRAFDE
 </style>
 <style>/* UI Layout Tuner settings round 2 (phone), 2026-10-30 */
 @media (min-width:0px){html #baro{width:49px!important}html #sailSteps5{width:74px!important}html .cbrow{column-gap:0px!important}html .cbfoot .btn.ico{height:26px!important}html .cbfoot{column-gap:18px!important}html .dockctl .mono{font-size:10px!important}html .dockctl{row-gap:0px!important}html .dockctl .setrows{font-size:9.5px!important}html .side .dock-all:not(.collapsed){padding-top:250px!important}html .sheet{padding-left:13px!important;padding-right:13px!important}html .dockgrid{row-gap:0px!important}html .dockbody{row-gap:0px!important;column-gap:0px!important}html .dockhead b.dh{font-size:15px!important}html .subhead{font-size:16.5px!important}html .sheet .btn.sm{min-height:27px!important}html .sheet .btn.sm{font-size:10px!important}html #fsBtn{width:50px!important;height:50px!important}html .mapctl{row-gap:10px!important}html #routePanel{font-size:10px!important}html #paneV3.pane.small{width:60px!important}html #paneV3.pane.small{height:50px!important}html #cutCard .rd{font-size:12px!important}html #cutCard{left:9px!important;right:9px!important}html #bookBody{font-size:12px!important}}
+</style>
+<style id="shipctlV3">/* Ship controls v3 "fixed helm deck" (2026-11-02): readouts on top, glass | compass | sail bar, one fixed-size icon row; supersedes the stacked tuner overrides above */
+@media (min-width:0px){
+html body .side .dock-all:not(.collapsed){padding-top:var(--vh,200px)!important}
+html body .dock-all .dockgrid{row-gap:6px!important}
+html body .dock-all .sub.subl>.dockbody{display:flex!important;flex-direction:column!important;align-items:center!important;gap:8px!important;row-gap:8px!important;column-gap:0!important;padding:4px 0 6px!important}
+html body .dock-all .dockctl{order:0!important;width:100%!important;max-width:380px;display:grid!important;grid-template-columns:1fr;gap:2px!important;row-gap:2px!important;translate:none!important;margin:0!important}
+html body .dock-all .dockctl .mono,html body .dock-all .dockctl .winf{font-size:12px!important;white-space:normal!important;line-height:1.3}
+html body .dock-all .dockctl .cspd{display:flex;justify-content:space-between;gap:12px;font-size:13px!important}
+html body .dock-all .helmbtns:empty,html body .dock-all .helmbtns{margin:0!important}
+html body .dock-all #compassBox{order:1!important;position:relative!important;inset:auto!important;translate:none!important;scale:none!important;width:100%!important;max-width:380px!important;margin:0 auto!important;padding:0!important;background:none!important;border:0!important;box-shadow:none!important;display:flex!important;flex-direction:column!important;align-items:center!important;gap:10px!important}
+html body .dock-all #compassBox .cbrow{display:flex!important;justify-content:center!important;align-items:flex-end!important;gap:12px!important;column-gap:12px!important;width:100%!important}
+html body .dock-all #compassBox .sc-x{width:100%!important;text-align:center!important;justify-content:center!important;display:flex;flex-wrap:wrap;gap:4px 12px;margin:0!important}
+html body .dock-all #compassBox .sc-x[hidden],html body .dock-all #compassBox .sc-x:empty{display:none!important}
+html body .dock-all #compassBox #dial{position:static!important;width:200px!important;height:200px!important;flex:none}
+html body .dock-all #compassBox #baro,html body .dock-all #compassBox #sailSteps5{width:56px!important;height:180px!important;flex:none;align-self:flex-end}
+html body .dock-all #compassBox .cbfoot{display:grid!important;grid-template-columns:repeat(6,44px)!important;justify-content:center!important;align-items:start!important;gap:6px 8px!important;column-gap:8px!important;row-gap:6px!important;padding:0 0 12px!important;height:auto!important;width:auto!important;flex-wrap:nowrap!important;align-self:center!important}
+html body .dock-all #compassBox .cbfoot .btn.ico,html body .dock-all #compassBox .cbfoot .btn.ico.btn,html body .dock-all #compassBox .cbfoot #bNip{width:44px!important;height:44px!important;min-height:0!important;flex:none!important;padding:0!important}
+html body .dock-all #compassBox .cbfoot .anchwrap{width:44px!important;height:44px!important}
+html body .dock-all #compassBox .cbfoot .btn.ico svg,html body .dock-all #compassBox .cbfoot .btn.ico img{width:30px!important;height:30px!important}
+html body .dock-all #compassBox .cbfoot #logbox:not([hidden]){order:20!important;grid-column:1/-1!important;display:flex!important;align-items:center!important;justify-content:center!important;gap:10px!important;padding:0!important;flex:none!important}
+html body .dock-all #compassBox .cbfoot #logbox #glass{width:22px!important;height:34px!important;position:static!important}
+}
 </style>
 <script>
 /* Layout editor: Menu > Edit layout. Moves/resizes the real controls with CSS translate/scale, saved on this device. */
