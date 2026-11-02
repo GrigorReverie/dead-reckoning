@@ -45,6 +45,7 @@ window.DRSC=(function(){
     sNumFont:"'IBM Plex Mono',monospace", sWordFont:"'IM Fell English',Georgia,serif",
     /* ---- the compass box (glass, compass, sail bars in a row) ---- */
     bOrder:"glass,compass,sails", bShowGlass:true, bShowCompass:true, bShowSails:true, bShowFoot:true, bShowScope:true,
+    fBtn:44, fIcon:28, fGap:12, fAlign:"evenly",   // the icon row under the compass: button size, icon size, gap (px), spread (evenly | centre | start)
     bDial:null, bGlassW:null, bSailsW:null, bBarsH:null, bGap:null,
     bBg:"", bBorder:"", bBorderW:null, bRadius:null, bPad:null, bShadow:null,
     /* ---- the helm sheet (Ship controls panel) ---- */
@@ -92,6 +93,10 @@ window.DRSC=(function(){
     if(num(c.bGlassW))o.push(`${B}#baro{width:${+c.bGlassW}px${I}}`);
     if(num(c.bSailsW))o.push(`${B}#sailSteps5{width:${+c.bSailsW}px${I}}`);
     if(num(c.bBarsH))o.push(`${B}#baro,${B}#sailSteps5{height:${+c.bBarsH}px${I}}`);
+    {const jc=c.fAlign==="start"?"flex-start":c.fAlign==="centre"?"center":"space-evenly";
+      o.push(`${B}.compassbox .cbfoot:not(:has(#logbox:not([hidden]))){justify-content:${jc}${I};flex-wrap:nowrap${I};padding-left:4px${I};padding-right:4px${I};gap:${num(c.fGap)?+c.fGap:12}px${I};column-gap:${num(c.fGap)?+c.fGap:12}px${I};align-items:center${I};width:100%${I};box-sizing:border-box${I}}`);
+      if(num(c.fBtn))o.push(`${B}.compassbox .cbfoot:not(:has(#logbox:not([hidden]))) .btn.ico,${B}.compassbox .cbfoot:not(:has(#logbox:not([hidden]))) .anchwrap .btn.ico{width:${+c.fBtn}px${I};height:${+c.fBtn}px${I};flex:none${I}}`);
+      if(num(c.fIcon))o.push(`${B}.compassbox .cbfoot .btn.ico svg{width:${+c.fIcon}px${I};height:${+c.fIcon}px${I}}${B}.compassbox .cbfoot .btn.ico img{width:${+c.fIcon}px${I};height:${+c.fIcon}px${I}}`);}
     if(num(c.bGap))o.push(`${B}.cbrow{gap:${+c.bGap}px${I};column-gap:${+c.bGap}px${I}}`);
     const L=":root:not([data-theme=dark]) body ";
     {const r=[];if(has(c.bBg))r.push(`background:${safe(c.bBg)}${I}`);if(has(c.bBorder)||num(c.bBorderW))r.push(`border:${num(c.bBorderW)?+c.bBorderW:1}px solid ${has(c.bBorder)?safe(c.bBorder):"var(--ink)"}${I}`);
