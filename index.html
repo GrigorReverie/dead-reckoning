@@ -73,6 +73,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-
 @media (min-width:0px){.cbtog{display:none!important}.cbtop{margin-bottom:-26px}}
 .winf{font-size:12px;white-space:nowrap}.winf b{font-weight:600}
 .cbfoot{flex-wrap:wrap;justify-content:center!important;gap:8px 10px}.cbfoot:has(#logbox:not([hidden])){flex-wrap:nowrap!important;gap:4px!important;column-gap:4px!important}.cbfoot:has(#logbox:not([hidden])) .btn.ico{width:28px!important;height:28px!important;flex:0 1 auto}.cbfoot #logbox{flex:0 1 auto!important;gap:4px!important;padding:0!important}.cbfoot #logbox #glass{width:14px!important;height:22px!important}.cbfoot #logbox .mono{font-size:11px!important}.cbfoot #bNip{width:30px!important;height:30px!important}.cbfoot #bNip svg{width:18px!important;height:18px!important}
+.anchwrap{position:relative;display:inline-flex;flex:none}#anchPct{position:absolute;top:100%;left:50%;transform:translateX(-50%);font:600 10px/1 var(--mono,monospace);white-space:nowrap;pointer-events:none;color:inherit;margin-top:1px}
 .cbfoot-l{display:flex;gap:4px;flex:none}.cbfoot .ws{flex:1;min-width:0;text-align:center}.cbfoot .btn.ico{flex:none;width:var(--stW);height:var(--stW);min-height:0;padding:0;display:flex;align-items:center;justify-content:center}
 .compassbox .cbtog{position:absolute;left:4px;top:4px;z-index:2;width:26px;height:26px;padding:0;display:flex;align-items:center;justify-content:center;background:var(--paper);color:var(--ink);border:1px solid var(--ink);border-radius:50%;cursor:pointer}
 .compassbox.collapsed{padding:0;border:0;background:none;box-shadow:none}.compassbox.collapsed .cbrow,.compassbox.collapsed .ws{display:none}
@@ -479,7 +480,7 @@ body.fs3d #fsBar{left:max(12px,env(safe-area-inset-left,0px));bottom:max(12px,en
         <b class="ah">Sky</b>
         <label class="chk"><input type="checkbox" id="aSky" checked> <span>Sky chart<small>Draws the altitude and bearing grid, the constellation lines and their names over the sky.</small></span></label>
       </div>
-      <div class="menupop" id="cheatPop" hidden><div class="ah" style="font-family:var(--f-display);font-variant:small-caps">Cheats</div><button class="tb" data-cheat="money">Add £1,000</button><button class="tb" data-cheat="hold">Fill the hold</button><button class="tb" data-cheat="daynight">Switch day / night</button><button class="tb" data-cheat="ships">Unlock all ships</button></div></div>
+      <div class="menupop" id="cheatPop" hidden style="position:fixed;left:50%;top:50%;right:auto;bottom:auto;transform:translate(-50%,-50%);width:min(340px,92vw);max-height:86vh;overflow:auto;z-index:9999;padding:12px;box-shadow:0 8px 40px rgba(0,0,0,.5)"><div class="ah" style="font-family:var(--f-display);font-variant:small-caps;font-size:18px;display:flex;justify-content:space-between">Cheats<button class="tb" id="cheatX" style="width:auto">✕</button></div><label style="display:block;margin:8px 0 2px;font-size:12px">Sea events: <b id="chEvV">natural</b><input id="chEv" type="range" min="0" max="12" step="0.5" value="1" style="width:100%"></label><div style="display:flex;gap:6px;margin-bottom:4px"><select id="chEvSel" style="flex:1;min-width:0"><option value="derelict">Drifting derelict</option><option value="castaway">Marooned castaway</option><option value="squall">Violent squall</option></select><button class="tb" id="chEvGo" style="width:auto;border:1px solid var(--ink)">Spawn</button></div><label style="display:block;margin:8px 0 2px;font-size:12px">Fishing rate: <b id="chFishV">500</b>×<input id="chFish" type="range" min="1" max="5000" step="1" value="500" style="width:100%"></label><label style="display:block;margin:8px 0 2px;font-size:12px">Market loading speed: <b id="chLXV">1.0</b>×<input id="chLX" type="range" min="0" max="100" step="1" value="50" style="width:100%"></label><label style="display:block;margin:8px 0 2px;font-size:12px">Cargo loading rate (units per tap): <b id="chLoadV">10</b><input id="chLoad" type="range" min="1" max="200" step="1" value="10" style="width:100%"></label><div style="margin:8px 0 2px;font-size:12px">Add goods to the hold</div><div style="display:flex;gap:6px"><select id="chGood" style="flex:1;min-width:0"></select><button class="tb" id="chAdd" style="width:auto;border:1px solid var(--ink)">Add</button></div><label style="display:block;margin:8px 0 2px;font-size:12px">Ship traffic: <b id="chTrV">normal</b><input id="chTr" type="range" min="0" max="3" step="0.5" value="1" style="width:100%"></label><button class="tb" data-cheat="money">Add £1,000</button><button class="tb" data-cheat="hold">Fill the hold</button><button class="tb" data-cheat="daynight">Switch day / night</button><button class="tb" data-cheat="ships">Unlock all ships</button></div></div>
   </div>
   <div class="infobar" aria-label="Date, wind and weather">
     <span class="when"><b id="clock">—</b><small id="watch">—</small></span>
@@ -578,7 +579,7 @@ body.fs3d #fsBar{left:max(12px,env(safe-area-inset-left,0px));bottom:max(12px,en
             <div class="mono winf" id="windSpd" style="color:#b2452c">—</div>
             <div class="mono winf" id="curTxt" style="color:#1b3f6b">—</div>
             <div class="muted" id="anchTxt"></div>
-            <div class="setrows">
+            <div class="setrows" hidden style="display:none">
               <div><span class="k">Yards</span><span class="pips"><i class="yd" id="brOrdPip"></i></span><span id="brOrd">—</span></div>
             </div>
             <div id="dockHdg" hidden style="display:none;align-items:center;gap:6px;font-size:12px"><span>Heading <b id="dhTxt" class="mono"></b></span><input type="range" id="dhSl" min="0" max="355" step="5" style="flex:1;min-width:80px" aria-label="Heading alongside the quay"></div>
@@ -1036,7 +1037,9 @@ const beaufort=kn=>{let i=0;while(i<BFT.length&&kn>=BFT[i])i++;return i;};
 const CURRENT={set:290,drift:.35};
 // Preview menu overrides (null = the game's own auto weather); see the Preview panel near the end of the script
 // Every game mechanic is listed here AND described in the Scenario registry (SCN_MECH). Add an id here and an entry there when you add a mechanic.
-const GAME_MECHANICS=["setup","weather","tides","fishing","pirates","crew","trade","navigation","damage"];
+const GAME_MECHANICS=["traffic","setup","weather","tides","fishing","pirates","crew","trade","loading","navigation","damage","events","harbour"];
+let HARBOURK=1; // harbour traffic: 0 none, .45 light, 1 normal, 1.7 busy (Scenario)
+let EVFREQ=1; // sea events: 1 = natural pace, 0 = off, higher = more often (Cheats menu and Scenario)
 const PV={wind:null,sea:null,cur:null,wx:null,vis:null,fauna:1,tide:1,shadows:true};
 // tides: semi-diurnal (12.42 h) with a fortnightly spring and neap swing; range in metres, ph the hour of high water in the lunar cycle
 const TIDEX={bridgetown:{r:.9,ph:3.1},castries:{r:.7,ph:4.0},stjohns:{r:1.0,ph:5.2,bar:3},kingstown:{r:.8,ph:3.7},basseterre:{r:.9,ph:5.9}};
@@ -1305,7 +1308,7 @@ function step(dt){
   }
   const rate=(s.docked?6000:8000+800*sh.v+(rw?(rw.pivot?9000:2500):0))*dt*SHIP.turnK; // degrees per hour: the brig tacks in about half a minute, a boat spins round, a first rate takes her time
   let diff=s.docked?(s.dockHold?0:angDiff(sh.heading,sh.ordered)):angDiff(sh.heading,target);
-  if(s.irons){diff=0;sh.turnDir=0;}
+  if(s.irons||sh.anch.mode==="weighing"){diff=0;sh.turnDir=0;} // no turning until the anchor is fully up
   else if(sh.turnDir){ // forced direction for tack/wear
     let d=sh.turnDir>0?norm(target-sh.heading):-norm(sh.heading-target);
     if(Math.abs(d)<6){sh.turnDir=0;}else diff=d;
@@ -1473,7 +1476,7 @@ async function dockAtPort(){if(!S||S.done||S.docking)return;S.docking=true;const
   S.docking=false;if(mission)$("ovEnd").hidden=false;else{modalOpen=false;stopSkip();say(`Made fast alongside the quay at ${P.name}. Sails furled and the anchor down.`,{});}
   updateUI(true);}
 function dropAnchor(){if(!S||S.done)return;const sh=S.ship,A=sh.anch;
-  if(A.mode==="holding"||A.mode==="trailing"){if(A.low!=null&&S.t-A.low<20/3600){say("The anchor is still going down. Wait for it to bite.",{log:false});return;}S.docked=null;A.mode="weighing";A.t0=S.t;say("Cast off! Heave round, lads, weighing anchor.",{});updateUI();return;}
+  if(A.mode==="holding"||A.mode==="trailing"){if(A.low!=null&&S.t-A.low<20/3600){say("The anchor is still going down. Wait for it to bite.",{log:false});return;}if(loadsByHand()&&(quayTons(S)>0||basketTons(S)>0)){say("Goods are still on the quay or unpaid in the basket. Confirm and load them before casting off.",{});return;}S.docked=null;A.mode="weighing";A.t0=S.t;say("Cast off! Heave round, lads, weighing anchor.",{});updateUI();return;}
   if(A.mode==="weighing")return;
   if(sh.v>3.5){say("She is making too much way to let go the anchor. Shorten sail and slow to under 3 knots first.",{});return;}
   const d=depthFm(sh.x,sh.y);A.depth=d;A.t0=S.t;A.low=S.t;A.drag=0;A.dragWarned=false;
@@ -1954,7 +1957,7 @@ function plotFix(){const f=crossFix();if(!f)return;
   updateUI(true);}
 
 /* ---------- voyages ---------- */
-function startVoyage(v){
+function startVoyage(v){HARBOURK=1;
   stopSkip();
   S=newState(v);applyShip();setPlotting(false);updateRoute();svNew();openShip(false);selSails.clear();$("sailSl").style.display="none";
   $("ovStart").hidden=true;$("ovEnd").hidden=true;modalOpen=false;
@@ -2387,9 +2390,9 @@ function drawChart(){
   if(showTrue){
     ctx.save();ctx.strokeStyle=S.mode==="lost"?"#a8452c":"rgba(46,37,25,.55)";ctx.lineWidth=S.mode==="lost"?1.8:1.2;ctx.beginPath();S.track.forEach((p,i)=>i?ctx.lineTo(sx(p.x),sy(p.y)):ctx.moveTo(sx(p.x),sy(p.y)));ctx.lineTo(sx(S.ship.x),sy(S.ship.y));ctx.stroke();ctx.restore();
     drawShip(sx(S.ship.x),sy(S.ship.y),S.ship.heading);
-    drawPirates();
+    drawPirates();drawEvents();
   }
-  drawCurrents();drawFish();drawRoute();drawProj();
+  drawLanes();drawTraffic();drawHarbourShips();drawCurrents();drawFish();drawRoute();drawProj();
   // scale bar
   drawScale();
   // night wash
@@ -2536,7 +2539,7 @@ function updateUI(force){
   $("wxTxt").textContent=wxText(S,w);{const g=glassText(S);$("glassTxt").innerHTML=g.fall?`<span class="warn">${g.txt}</span>`:g.txt;}$("seaTxt").textContent=seaText(S);drawBaro();
   $("ordTxt").textContent=`${Math.round(sh.ordered)}° ${pointName(sh.ordered)}`;
   { const fb=$("bFish");{const t=S.fishing?`Stop fishing · ${Math.round(S.catchTotal)} lb (F)`:"Put hand-lines over the side (F)";fb.title=t;fb.setAttribute("aria-label",t);}fb.setAttribute("aria-pressed",String(!!S.fishing)); }
-  { const A=sh.anch,b=$("bDrop");{const t=A.mode==="up"?"Drop anchor (X)":A.mode==="weighing"?"Weighing anchor…":"Weigh anchor (X)";b.title=t;b.setAttribute("aria-label",t);b.setAttribute("aria-pressed",String(A.mode!=="up"));}b.disabled=A.mode==="weighing";
+  { const A=sh.anch,b=$("bDrop");{const t=A.mode==="up"?"Drop anchor (X)":A.mode==="weighing"?"Weighing anchor…":"Weigh anchor (X)";b.title=t;b.setAttribute("aria-label",t);b.setAttribute("aria-pressed",String(A.mode!=="up"));}b.disabled=A.mode==="weighing";{const ap=$("anchPct");if(ap){const pc=A.mode==="weighing"?Math.max(0,Math.min(99,Math.floor((S.t-A.t0)*3600/60*100)))+"%":"";if(ap.textContent!==pc)ap.textContent=pc;}}
     $("anchTxt").textContent=(A.mode==="holding"||A.mode==="trailing")&&A.low!=null&&S.t-A.low<20/3600?`Lowering the anchor… ${Math.max(0,Math.min(99,Math.floor((S.t-A.low)*3600/20*100)))}%`:S.docked&&A.mode==="holding"?`Docked at ${PORTS[S.docked].name}`:A.mode==="holding"?`At anchor in ${A.depth} fathoms${A.drag>0?" · dragging":""}`:A.mode==="trailing"?`Anchor trailing: no bottom (${A.depth} fathoms)`:A.mode==="weighing"?`Heaving up the anchor… ${Math.max(0,Math.min(99,Math.floor((S.t-A.t0)*3600/60*100)))}%`:sh.row&&sh.row.on?`Under ${SHIP.oars&&SHIP.oars.sweeps?"sweeps":"oars"}`:sh.sailSet<.5&&sh.v>.3?"Bare poles: drifting before the wind":""; }
   {
     const moving=SAILIDS.some(k=>Math.abs(sh.sl[k]-sh.sls[k])>.03);
@@ -3433,6 +3436,104 @@ function buildForests(R){
   }
 }
 
+/* ---- harbour traffic: moored and anchored ships in every port ----
+   Each of the ten ship models is built once, outside only (hull, spars, furled sails, rigging; no lamps and no crew), merged into a handful of meshes
+   and cloned for every berth, so a ship in port costs a few draw calls and shares its geometry. A port's ships are made when you come within a few miles,
+   one model a frame, and hidden again when you leave or when they are far off. Density (Scenario > Harbour traffic) shows more or fewer of the same ships. */
+const HB_W={jolly:2,cutter:3,sultana:2.2,brig:3,caroline:1.8,endeavour:1.4,xebec:1.4,gotheborg:.6,constitution:.5,trinidad:.6};
+const HB_BIG=new Set(["endeavour","gotheborg","constitution","trinidad"]); // too deep for the quays and piers: these lie in the roads
+const HB_COUNT={bridgetown:14,stjohns:12,basseterre:12,castries:9,kingstown:7},HB_SIZE={bridgetown:1.3,stjohns:1,basseterre:1,castries:.8,kingstown:.5}; // ships at Normal; a bigger port sees more big ships
+const HB_NEAR=2.6,HB_SHOW=1.7; // nm: a port's ships exist within HB_NEAR, each is drawn within HB_SHOW
+function harbourMerge(root){
+  root.updateMatrixWorld(true);
+  const B=new Map(),walk=(o,vis)=>{vis=vis&&o.visible;
+    if(vis&&(o.isMesh||o.isLineSegments)&&o.geometry&&o.material&&o.geometry.attributes.position){
+      const key=o.material.uuid+(o.isLineSegments?"L":"M");let b=B.get(key);if(!b)B.set(key,b={mat:o.material,line:!!o.isLineSegments,P:[],N:[],U:[],T:[]});
+      const g=o.geometry.index?o.geometry.toNonIndexed():o.geometry.clone();if(!b.line&&!g.attributes.normal)g.computeVertexNormals();g.applyMatrix4(o.matrixWorld);
+      const n=g.attributes.position.count,A=g.attributes;
+      b.P.push(A.position.array);b.N.push(A.normal?A.normal.array:new Float32Array(n*3));b.U.push(A.uv?A.uv.array:new Float32Array(n*2));b.T.push(A.aTone?A.aTone.array:new Float32Array(n));}
+    for(const c of o.children)walk(c,vis);};
+  walk(root,true);
+  const cat=a=>{let n=0;for(const x of a)n+=x.length;const r=new Float32Array(n);let q=0;for(const x of a){r.set(x,q);q+=x.length;}return r;};
+  let z0=1e9,z1=-1e9,x1=0,y1=0;const parts=[];
+  for(const b of B.values()){const P=cat(b.P);for(let i=0;i<P.length;i+=3){z0=Math.min(z0,P[i+2]);z1=Math.max(z1,P[i+2]);x1=Math.max(x1,Math.abs(P[i]));y1=Math.max(y1,P[i+1]);}parts.push([b,P]);}
+  const zc=(z0+z1)/2,out=new THREE.Group();
+  for(const[b,P]of parts){for(let i=2;i<P.length;i+=3)P[i]-=zc;
+    const g=new THREE.BufferGeometry();g.setAttribute("position",new THREE.BufferAttribute(P,3));g.setAttribute("aTone",new THREE.BufferAttribute(cat(b.T),1));
+    if(!b.line){g.setAttribute("normal",new THREE.BufferAttribute(cat(b.N),3));g.setAttribute("uv",new THREE.BufferAttribute(cat(b.U),2));}
+    out.add(b.line?new THREE.LineSegments(g,b.mat):new THREE.Mesh(g,b.mat));}
+  out.userData={len:z1-z0,rad:Math.hypot(x1,(z1-z0)/2)};return out;
+}
+function harbourTemplate(R,id){
+  const T=R.hbT||(R.hbT={});if(T[id])return T[id];
+  fleetMats(R);const sc=Object.create(R);sc.scene=new THREE.Scene();sc.hullMatG=null; // a scratch copy, so the player's own ship fields are left alone
+  const sp=SPEC[id];buildVessel3D(sc,sp,true);
+  for(const sl of sc.gen.sails){sl.gs.mesh.visible=false;sl.gs.lines.visible=false;sl.bun.visible=true;} // sails furled on the yards
+  const t=harbourMerge(sc.ship);t.userData.beam=2*sp.hull.B;t.userData.draft=sp.hull.T;t.rotation.order="YXZ";
+  return T[id]=t;
+}
+function harbourPlan(F){ // which ships this port gets (deterministic per port)
+  const k=F.k,rnd=rng32(hashStr(k+"|ships")),n=Math.ceil((HB_COUNT[k]||8)*1.7),sz=HB_SIZE[k]||1,types=[];
+  for(let i=0;i<n;i++){let tot=0;const w=Object.keys(HB_W).map(id=>{const x=HB_W[id]*(HB_BIG.has(id)?sz:1);tot+=x;return[id,x];});let r=rnd()*tot;
+    let pick=w[0][0];for(const[id,x]of w){if((r-=x)<0){pick=id;break;}}types.push(pick);}
+  F.types=types;F.need=[...new Set(types)];F.rnd=rnd;
+}
+function harbourPlace(R,F){
+  const{o,k}=F,{f,G,lx,lz,S}=o.pf,P0=f.G,X=PORTX[k],rnd=F.rnd,cd=Math.cos(f.d),sd=Math.sin(f.d),placed=[],grp=new THREE.Group();
+  const dk=P0.dock;if(dk)placed.push({u:dk.u,v:dk.v,r:75/S}); // the player's berth
+  const free=(u,v,r)=>{for(const q of placed)if(Math.hypot(q.u-u,q.v-v)<q.r+r)return false;return true;};
+  const wet=(u,v,hu,hv,len,beam)=>{const a=len/2/S,b=beam/2/S;for(const t of[-1,-.5,0,.5,1])for(const s of[-1,0,1]){if(!G.isWater(u+hu*a*t-hv*b*s,v+hv*a*t+hu*b*s))return false;}return true;};
+  const toHead=(dx,dz)=>[-dx*cd-dz*sd,dx*sd-dz*cd]; // a heading on the water to the plan's own axes
+  const Q=P0.quay,ql=[0];for(let i=1;i<Q.length;i++)ql.push(ql[i-1]+Math.hypot(Q[i].u-Q[i-1].u,Q[i].v-Q[i-1].v));
+  const an=X.anch,half=X.shape==="harbour"?X.mouth/2:0;
+  const ships=[],modes=["anchor","quay","pier","anchor","quay","anchor"];
+  F.types.forEach((id,i)=>{
+    const tpl=R.hbT[id],U=tpl.userData,len=U.len,beam=U.beam,rr=(len/2+3)/S;let pose=null;
+    const tryAnchor=()=>{for(let a=0;a<50&&!pose;a++){
+        const u=-46+rnd()*92,v=-14+rnd()*42,b=(70+rnd()*40)*D2R,[hu,hv]=toHead(Math.sin(b),-Math.cos(b));
+        if(Math.pow((u-an[0])/(an[2]*1.35),2)+Math.pow((v-an[1])/(an[3]*1.35),2)<1)continue;
+        if(X.shape==="harbour"&&Math.abs(u)<half+5&&v>-X.ch-5)continue;
+        if(!wet(u,v,hu,hv,len,beam)||G.dist(u,v)*S<(U.draft+.5)/.06*.7+len*.3||!free(u,v,rr))continue;
+        pose={u,v,hu,hv,anch:1};}};
+    const tryQuay=()=>{if(Q.length<3)return;for(let a=0;a<40&&!pose;a++){
+        const s=rnd()*ql[ql.length-1];let j=1;while(j<ql.length-1&&ql[j]<s)j++;const t=(s-ql[j-1])/Math.max(1e-6,ql[j]-ql[j-1]),A=Q[j-1],Bq=Q[j];
+        let tu=Bq.u-A.u,tv=Bq.v-A.v;const tl=Math.hypot(tu,tv)||1;tu/=tl;tv/=tl;if(rnd()<.5){tu=-tu;tv=-tv;}
+        const nu=-(A.nu+(Bq.nu-A.nu)*t),nv=-(A.nv+(Bq.nv-A.nv)*t),off=(beam/2+5)/S,u=A.u+(Bq.u-A.u)*t+nu*off,v=A.v+(Bq.v-A.v)*t+nv*off;
+        if(!wet(u,v,tu,tv,len,beam)||!free(u,v,rr))continue;pose={u,v,hu:tu,hv:tv};}};
+    const tryPier=()=>{const Pp=P0.piers;if(!Pp.length)return;for(let a=0;a<30&&!pose;a++){
+        const p=Pp[(rnd()*Pp.length)|0],side=rnd()<.5?-1:1,t=(len/2/S)*.9+rnd()*Math.max(0,p.len-len/2/S*.5),lat=side*(2.75+beam/2+.5)/S,du=p.du,dv=p.dv;
+        const u=p.u+du*t-dv*lat,v=p.v+dv*t+du*lat,sg=rnd()<.5?1:-1;
+        if(!wet(u,v,du*sg,dv*sg,len,beam)||!free(u,v,rr))continue;pose={u,v,hu:du*sg,hv:dv*sg};}};
+    const order=HB_BIG.has(id)||U.draft>3.2?["anchor"]:modes[i%6]==="quay"?["quay","pier","anchor"]:modes[i%6]==="pier"?["pier","quay","anchor"]:["anchor","quay","pier"];
+    for(const m of order){if(pose)break;(m==="anchor"?tryAnchor:m==="quay"?tryQuay:tryPier)();}
+    if(!pose)return;
+    placed.push({u:pose.u,v:pose.v,r:rr});
+    const m=tpl.clone();m.position.set(lx(pose.u,pose.v),0,lz(pose.u,pose.v));
+    const dx=-pose.hu*cd+pose.hv*sd,dz=-(pose.hu*sd+pose.hv*cd);m.rotation.y=Math.atan2(dx,dz);m.visible=false;grp.add(m);
+    const nm=toNm(f,pose.u,pose.v);ships.push({m,rank:ships.length,x:nm[0],y:nm[1],anch:pose.anch,ph:rnd()*6.28,by:0});
+  });
+  F.ships=ships;F.grp=grp;o.grp.add(grp);
+}
+function updateHarbourFleet(R,dt,sh){
+  const H=R.hb||(R.hb={t:0,ports:{}});H.t+=dt;if(!R.isl)return;
+  for(const o of R.isl){const k=ISLPORT.get(o.isl);if(!k||!o.pf)continue;const f=o.pf.f,d=Math.hypot(f.bx-sh.x,f.by-sh.y);let F=H.ports[k];
+    if(HARBOURK<=0||d>HB_NEAR){if(F&&F.grp)F.grp.visible=false;continue;}
+    if(!F)F=H.ports[k]={o,k};
+    if(!F.grp){ // build one model a frame, then place the ships
+      if(!F.types)harbourPlan(F);
+      const miss=F.need.find(id=>!R.hbT||!R.hbT[id]);
+      if(miss){try{harbourTemplate(R,miss);}catch(e){console.warn("harbour ship",miss,e);F.need=F.need.filter(i=>i!==miss);F.types=F.types.filter(i=>i!==miss);}continue;}
+      try{harbourPlace(R,F);}catch(e){console.warn("harbour place",k,e);F.ships=[];F.grp=new THREE.Group();}
+      continue;}
+    F.grp.visible=true;const show=Math.round((HB_COUNT[k]||8)*HARBOURK);let nv=0;
+    for(const s of F.ships){const dd=Math.hypot(s.x-sh.x,s.y-sh.y),on=s.rank<show&&dd<HB_SHOW;s.m.visible=on;if(!on)continue;nv++;
+      if(dd<.45){const p=H.t*.7+s.ph,a=s.anch?1:.35;s.m.position.y=Math.sin(p)*.05*a;s.m.rotation.z=Math.sin(p*.8+1)*.012*a;s.m.rotation.x=Math.sin(p*.6)*.008*a;}}
+    F.nv=nv;}
+}
+function harbourReadout(s){const H=R3&&R3.hb;if(!H)return "none yet";let best=null,bd=1e9;
+  for(const k in H.ports){const F=H.ports[k],f=F.o.pf.f,d=Math.hypot(f.bx-s.ship.x,f.by-s.ship.y);if(d<bd){bd=d;best=F;}}
+  return best&&best.ships&&bd<HB_NEAR?PORTS[best.k].name+": "+(best.nv||0)+" ships":HARBOURK<=0?"off":"no port near";}
+
 /* the brig's hull lines, shared by the 3D model and the 2D cutaway so the two always agree (z along the keel, y above the water) */
 function brigLines(){
   const sstep=(a,b,v)=>{const t=clamp((v-a)/(b-a),0,1);return t*t*(3-2*t);};
@@ -3901,7 +4002,7 @@ function updateGSail(S,e,belly,flut,t){const{c,NU,NV}=S,p=S.geo.attributes.posit
   S.geo.attributes.position.needsUpdate=true;S.geo.computeVertexNormals();
   const lp=S.lines.geometry.attributes.position.array,pr=S.pairs;for(let i=0;i<pr.length;i++){const a=pr[i]*3;lp[i*3]=p[a];lp[i*3+1]=p[a+1];lp[i*3+2]=p[a+2];}
   S.lines.geometry.attributes.position.needsUpdate=true;}
-function buildVessel3D(R,sp){
+function buildVessel3D(R,sp,ext){ // ext: a harbour ship, outside only (no lamps, lantern, cable or crew)
   const M=fleetMats(R),group=new THREE.Group(),G=new THREE.Group();group.add(G);R.scene.add(group);
   const Ls=linesOf(sp),rig=rigOf(sp,Ls),H=Ls.H,Lh=Ls.Lh,segs=[];
   const {sheer,deck,deckAt,railY,keelY,zF,zS,zA,YW,hx,shape,onHull,zTop,chanAt,qd,fc,poop}=Ls;
@@ -4046,8 +4147,8 @@ function buildVessel3D(R,sp){
   const lg=new THREE.BufferGeometry();lg.setAttribute("position",new THREE.Float32BufferAttribute(segs,3));add(new THREE.LineSegments(lg,M.line)).frustumCulled=false;
   { const mh=masts[sp.pennantOn??0]||masts[0],top=mh.Mt.W([0,mh.Mt.truck,0]),fg=new THREE.Group(),sz=clamp(H.Lwl/24,.25,2.2);fg.position.set(top[0],top[1],top[2]);
     const pg=new THREE.BufferGeometry();pg.setAttribute("position",new THREE.Float32BufferAttribute([0,.45*sz,0,0,-.45*sz,0,1.9*sz*1.4,0,0],3));pg.setIndex([0,1,2]);fg.add(new THREE.Mesh(pg,M.red));G.add(fg);R.flag=fg; }
-  { const cg=new THREE.BufferGeometry();cg.setAttribute("position",new THREE.BufferAttribute(new Float32Array(14*6),3));const cl=new THREE.LineSegments(cg,M.line);cl.frustumCulled=false;cl.visible=false;G.add(cl);R.cable=cl; }
-  R.lantern=new THREE.PointLight(0xffd9a0,0,60);R.lantern.position.set(0,railY(-Lh)+1,-Lh*.85);G.add(R.lantern);
+  if(!ext){ const cg=new THREE.BufferGeometry();cg.setAttribute("position",new THREE.BufferAttribute(new Float32Array(14*6),3));const cl=new THREE.LineSegments(cg,M.line);cl.frustumCulled=false;cl.visible=false;G.add(cl);R.cable=cl;
+  R.lantern=new THREE.PointLight(0xffd9a0,0,60);R.lantern.position.set(0,railY(-Lh)+1,-Lh*.85);G.add(R.lantern); }
   // where things are, for the sea, the crew, the lamps and the camera
   const zw0=qd?qd.z+.7:(H.open?-Lh*.5:-Lh*.45),zw1=fc?fc.z-.7:Lh*.45,hw=z=>Math.max(.25,hx(z,deckAt(z))-H.bwT-.3),mz=masts.map(m=>m.m.z);
   const mainZ=masts.length>1?mz[1]:mz[0],foreZ=mz[0],helmZ=H.tiller?-Lh+H.tiller*.9:(qd?Math.max(-Lh*.7,qd.z-Lh*.12):-Lh*.6),capZ1=qd?qd.z-.6:-Lh*.35,capZ0=Math.max(zA(railY(-Lh))+1.2,helmZ-Lh*.25);
@@ -4071,9 +4172,9 @@ function buildVessel3D(R,sp){
   R.dk.footAt=z=>dy(z);
   if(isOpen)R.dk.thw=oars.length?oars.filter((o,i)=>i%2===0||oars.length<=4).map(o=>[-o.sd*.28,deck(o.z)-.33,o.z]):H.thwarts.map(f=>{const z=-Lh+H.Lwl*f;return[0,deck(z)-.33,z];});
   if(isOpen)R.lamps=R.lamps.slice(0,1);
-  R.lamps=lampSprites(R,G,R.lamps);
+  if(!ext)R.lamps=lampSprites(R,G,R.lamps);
   // the people: helmsman, captain, a lookout in the foretop and as many hands as the deck can show
-  { const mk=(x,y,z,role)=>figKit(R).mk(G,x,y,z,role),D=R.dk,X=SHIPX[sp.id];
+  if(!ext){ const mk=(x,y,z,role)=>figKit(R).mk(G,x,y,z,role),D=R.dk,X=SHIPX[sp.id];
     R.crew=[mk(D.helm[0],isOpen?deck(D.helm[2])-.33:D.helm[1],D.helm[2]+(isOpen?0:.8),"helm")];
     if(!isOpen)R.crew.push(mk(D.cap.x,dy(D.cap.gz),D.cap.gz,"cap"));
     const fm=rig.masts[0];if(!isOpen&&fm.m.top){const ty=fm.W([0,fm.m.h-fm.dbl*.85+.15,0]);R.crew.push(mk(.4,ty[1],ty[2],"look"));}
@@ -4956,7 +5057,7 @@ function update3D(dt,now){
   // world objects relative to ship
   for(const o of R.isl){const c=o.isl.c;o.grp.position.set((c.x-sh.x)*NM,0,-(c.y-sh.y)*NM);const dd=Math.hypot(c.x-sh.x,c.y-sh.y);const q=R.q||0;o.grp.visible=dd<QDIST[q]*R.dm;if(o.veg)o.veg.visible=dd-o.Rr<QVEG[q]*R.dm;}
   updateFauna(R,dt,gain,wdx,wdz,nightF);
-  updatePirates3D(R);
+  updatePirates3D(R);updateTraffic3D(R);updateQuay3D(R);updateEvents3D(R);updateHarbourFleet(R,dt,sh);
   const dest=R.towns[S.v.to];
   if(dest){R.beacon.position.set((dest.x-sh.x)*NM,0,-(dest.y-sh.y)*NM);R.beacon.visible=S.mode==="trial";}else R.beacon.visible=false;
   { const rl=R.routeLine,pts=S.route.pts,n=Math.min(pts.length,65);
@@ -5639,7 +5740,7 @@ function damageStep(s,dt,w){const sh=s.ship,H=s.wx.H;
 const PRICE0={bis:18,meat:34,beer:22,fish:.24,lime:28,rum:190,med:300}; // shillings per 100 lb or gallons; salt fish per lb (Newfoundland cod fetched about 2.5d a pound in the islands)
 const PORTF={bridgetown:.9,castries:1.1,stjohns:1,kingstown:1.05,basseterre:1.15},STORECAP=1500;
 const storeCap=()=>S&&S.crew?Math.max(300,75*S.crew.length):STORECAP; // casks for about two and a half months
-const FISHX=500; // catch speed multiplier
+let FISHX=500; // catch speed multiplier
 const FISHN={bank:"snapper and grouper from the bank",dolphinfish:"dolphinfish",bonito:"bonito",tuna:"tunny"};
 const FISHSIGN={bank:"Gannets and boobies diving over a bank",dolphinfish:"Dolphinfish leaping, with birds working above them",bonito:"A bonito school breaking the surface, terns working over it",tuna:"Water boiling where a school of tunny is feeding"};
 const money=sh=>{sh=Math.round(sh);return `£${Math.floor(sh/20)} ${sh%20}s`;};
@@ -5695,8 +5796,37 @@ const CARGOT={jolly:.5,cutter:6,sultana:12,brig:90,caroline:14,endeavour:260,xeb
 const REPN=[[0,"Unknown"],[15,"Known"],[40,"Trusted"],[70,"Eminent"]],REP2=15,REP3=40;
 const repName=r=>{let n="Unknown";for(const [v,m] of REPN)if(r>=v)n=m;return n;};
 const holdCap=()=>CARGOT[SHIP.id]??40;
-const holdUsed=s=>{let t=0;if(s.cargo)for(const g in s.cargo)t+=s.cargo[g].n*GOODS[g].t;return t;};
-const cargoSpeedF=s=>1-.14*clamp(holdUsed(s)/holdCap(),0,1.3);
+const quayTons=s=>{let t=0;if(s.quay)for(const g in s.quay)t+=s.quay[g].n*GOODS[g].t;return t;};
+const holdLoaded=s=>{let t=0;if(s.cargo)for(const g in s.cargo)t+=s.cargo[g].n*GOODS[g].t;return t;};
+const basketTons=s=>{let t=0;if(s.basket)for(const g in s.basket)t+=s.basket[g].n*GOODS[g].t;return t;};
+const basketCost=s=>{let t=0;if(s.basket)for(const g in s.basket)t+=s.basket[g].cost;return t;};
+const holdUsed=s=>holdLoaded(s)+quayTons(s)+basketTons(s); // goods bought and waiting on the quay count against the hold at once
+const cargoSpeedF=s=>1-.14*clamp(holdLoaded(s)/holdCap(),0,1.3);
+/* brig loading: purchases wait on the quay, then the hands carry them aboard over time (other ships still load instantly) */
+const loadsByHand=()=>true; // every ship loads from the quay by hand
+let LOADX=1; // Cheats: loading speed multiplier for goods bought at the market
+const loadRate=s=>{const h=s.crew?s.crew.filter(m=>m.mode==="duty").length:8;return 180*LOADX*clamp(Math.max(h,4)/12,.35,2);}; // tons per game hour: a hand-carried ton every five seconds with a dozen hands
+const quayLeft=s=>quayTons(s);
+const fmtDur=h=>{const sec=Math.max(1,Math.round(h*3600));return sec>=3600?`${Math.floor(sec/3600)} h ${Math.round(sec%3600/60)} min`:sec>=60?`${Math.floor(sec/60)} min ${sec%60} s`:`${sec} s`;};
+const loadMinutes=s=>Math.max(1,Math.round(quayTons(s)/loadRate(s)*60));
+// the Ship view pauses the game, so loading keeps its own clock then and the hold is rebuilt as goods arrive
+let loadClock=performance.now();
+setInterval(()=>{const now=performance.now(),dt=Math.min(1,(now-loadClock)/1000);loadClock=now;const s=typeof S!=="undefined"?S:null;if(!s||!s.loading)return;
+  if(typeof paused!=="undefined"&&paused){loadStep(s,dt/3600);loadBadge(s);try{tradeUI();stkUI();}catch(_){}}
+  try{if(window.__DRHoldRefresh)window.__DRHoldRefresh();}catch(_){}},250);
+function loadStart(){const s=S;if(!s||!quayTons(s))return;s.loading=true;s.loadTotal=quayTons(s);say("Load! The hands begin carrying the goods from the quay.",{log:false});tradeUI(true);}
+function basketClear(){const s=S;if(!s||!s.basket)return;for(const g in s.basket){const pm=s.mk&&s.mk.ports[s.basketSite];if(pm)pm[g]+=s.basket[g].n;}s.basket={};tradeUI(true);}
+function basketConfirm(){const s=S;if(!s||!s.basket||!Object.keys(s.basket).length)return;const site=tradeSite(s);if(!site){say("You must be in port to pay for the goods.",{log:false});return;}
+  const fee=payFee(s,site),cost=basketCost(s);if(cost+fee>s.purse){say("The purse is too light for the whole basket.",{log:false});return;}
+  s.purse-=cost+fee;if(fee)s.fees[site.k]=dayIndex(s);const q=s.quay||(s.quay={});
+  for(const g in s.basket){const b=s.basket[g],c=q[g]||(q[g]={n:0,cost:0});c.n+=b.n;c.cost+=b.cost;}
+  s.basket={};sayLog(`Paid ${money(cost)}${fee?` and ${fee}s harbour dues`:""} at ${site.name}. The goods are stacked on the quay.`,{});if(site.smug)smuggleRisk(s,cost);tradeUI(true);svBill();}
+function loadBadge(s){const el=document.getElementById("loadPct");if(!el)return;const on=!!(s&&s.loading&&s.loadTotal>0);el.hidden=!on;if(on)el.textContent="Cargo loaded "+Math.round(clamp(1-quayTons(s)/s.loadTotal,0,1)*100)+"%";}
+function loadStep(s,dt){if(!s.quay)return;
+  if(!loadsByHand()){let any=false;for(const g in s.quay){const q=s.quay[g],c=s.cargo[g]||(s.cargo[g]={n:0,cost:0});c.n+=q.n;c.cost+=q.cost;any=true;}if(any)s.quay={};s.loading=false;return;}
+  if(!s.loading||!s.docked)return;let ton=loadRate(s)*dt;
+  for(const g in s.quay){if(ton<=0)break;const q=s.quay[g],G=GOODS[g],u=Math.min(q.n,ton/G.t),f=q.n>0?u/q.n:1,cost=q.cost*f;q.n-=u;q.cost-=cost;ton-=u*G.t;const c=s.cargo[g]||(s.cargo[g]={n:0,cost:0});c.n+=u;c.cost+=cost;if(q.n<1e-6){c.n+=q.n;c.cost+=q.cost;delete s.quay[g];}}
+  if(!Object.keys(s.quay).length){s.loading=false;say("The last of the goods is stowed in the hold.",{log:false});}}
 const cargoValue=s=>{let v=0;if(s.cargo)for(const g in s.cargo)v+=s.cargo[g].n*GOODS[g].p;return v;};
 const unitsFit=(s,g)=>Math.floor((holdCap()-holdUsed(s))/GOODS[g].t+1e-9);
 const portDist=(a,b)=>Math.hypot(PORTS[a].x-PORTS[b].x,PORTS[a].y-PORTS[b].y);
@@ -5736,10 +5866,11 @@ function tradeBuy(g,n){const s=S;if(!s||s.done)return;mkInit(s);const site=trade
   const G=GOODS[g];if(G.tier>1&&(s.rep||0)<REP2){say("The merchants do not know you well enough to deal in that yet.",{log:false});return;}
   const st=s.mk.ports[site.k][g];n=Math.min(n,Math.floor(st-6),unitsFit(s,g));
   if(unitsFit(s,g)<1){say("The hold is full.",{log:false});return;}if(n<1){say("There is no more to be had at a fair price.",{log:false});return;}
-  const fee=payFee(s,site);while(n>0&&buyQuote(s,site.k,g,n,site.smug)+fee>s.purse)n--;
+  const fee=payFee(s,site);while(n>0&&buyQuote(s,site.k,g,n,site.smug)+fee>s.purse-(loadsByHand()?basketCost(s):0))n--;
   if(n<1){say("The purse is too light for that.",{log:false});return;}
-  const c=buyQuote(s,site.k,g,n,site.smug);s.purse-=c+fee;if(fee)s.fees[site.k]=dayIndex(s);
-  s.mk.ports[site.k][g]-=n;const cur=s.cargo[g]||(s.cargo[g]={n:0,cost:0});cur.n+=n;cur.cost+=c;
+  const c=buyQuote(s,site.k,g,n,site.smug);if(!loadsByHand()){s.purse-=c+fee;if(fee)s.fees[site.k]=dayIndex(s);}
+  s.mk.ports[site.k][g]-=n;if(loadsByHand())s.basketSite=site.k;const cur=loadsByHand()?((s.basket||(s.basket={}))[g]||(s.basket[g]={n:0,cost:0})):(s.cargo[g]||(s.cargo[g]={n:0,cost:0}));cur.n+=n;cur.cost+=c;
+  if(loadsByHand()){sayLog(`Added ${n} ${n===1?G.u:gPl(g)} of ${gName(g)} to the basket (${money(c)}). Confirm the receipt to pay.`,{log:false});tradeUI(true);svBill();return;}
   sayLog(`Bought ${n} ${n===1?G.u:gPl(g)} of ${gName(g)} at ${site.name} for ${money(c)}${fee?`, and ${fee}s harbour dues`:""}.`,{});
   if(site.smug)smuggleRisk(s,c);tradeUI(true);svBill();}
 function tradeSell(g,n){const s=S;if(!s||s.done)return;mkInit(s);const site=tradeSite(s);if(!site){say("You must be in port, or at anchor in a quiet cove after dark, to trade.",{log:false});return;}
@@ -5777,7 +5908,7 @@ function buyNews(){const s=S;if(!s)return;const p=atPort(s);if(!p||s.purse<8)ret
   sayLog("A coaster's master tells you what he saw in every port this week, for eight shillings. Your price list is up to date.",{});tradeUI(true);svBill();}
 
 // the hold at sea: damp and heat spoil, a heavy sea works the casks, an overloaded ship strains in a gale; and pirates
-function tradeStep(s,dt,w){mkStep(s,dt);const day=dayIndex(s),d=dt/24;
+function tradeStep(s,dt,w){mkStep(s,dt);loadStep(s,dt);loadBadge(s);const day=dayIndex(s),d=dt/24;
   if(s.cargo){const wet=clamp(s.water/12,0,1)+clamp((s.wx.H-4)/3,0,1),rough=clamp((s.wx.H-3)/3,0,1);
     for(const g in s.cargo){const G=GOODS[g],cur=s.cargo[g],rate=G.spoil+G.wet*wet+(G.rough||0)*rough,loss=cur.n*rate*d;
       if(loss>0){cur.cost*=1-loss/cur.n;cur.n-=loss;s.spoilAcc=(s.spoilAcc||{});s.spoilAcc[g]=(s.spoilAcc[g]||0)+loss;
@@ -5789,7 +5920,7 @@ function tradeStep(s,dt,w){mkStep(s,dt);const day=dayIndex(s),d=dt/24;
     for(const c of s.contracts.slice())if(day>c.due+5){s.contracts=s.contracts.filter(x=>x!==c);s.cdone.push(c.id);addRep(s,-6);
       if(c.special&&s.cargo[c.g]){const cur=s.cargo[c.g];cur.n=Math.max(0,cur.n-c.n);if(cur.n<.01)delete s.cargo[c.g];}
       sayLog(`The ${PORTS[c.to].name} contract has lapsed. Your name suffers${c.special?" and the owners take back their consignment":""}.`,{});}}
-  pirStep(s,dt,w);}
+  pirStep(s,dt,w);evStep(s,dt,w);}
 
 const pirRange=s=>(isNight(s)?3:7)*(s.wx&&s.wx.rain>.4?.6:1);
 function pirStep(s,dt,w){const P=s.pir||(s.pir=[]),sh=s.ship;if(s.done)return;
@@ -5821,13 +5952,133 @@ function pirateCrisis(p){const s=S,done=()=>{s.pir=s.pir.filter(q=>q!==p);s.pirC
   if(hasRum)opts.push({label:"Parley and offer rum",sub:"Give up the rum and a fifth of the cargo to be let alone.",fn:()=>{const v=loseCargo(.2);s.stores.rum=0;done();return `A cask of rum and ${money(v)} of cargo buy a handshake and a fair wind.`;}});
   return{title:"Pirates!",text:"The sloop has run up the black flag and lies across our bow with her gunports open. Her people crowd the rail with cutlasses and boarding pikes.",opts};}
 
+/* ---------- RANDOM SEA EVENTS: three kinds used as templates for any more ----------
+   An event is one entry in EV_DEFS. Its `kind` decides how it behaves (see EV_KINDS):
+     salvage  a wreck that sits and drifts; sail close and choose whether to board it
+     rescue   a person in need that sits where it is; sail close and choose whether to help
+     hazard   a weather cell that moves and bears down on the ship
+   To add an event: add an EV_DEFS entry (kind, name, chart icon, 3D `mesh` name in EV_MESH, sight range, card text, options with outcomes).
+   Each option has `out`: a list of {p (weight), text, fx}; one is picked by weight and its fx applied by evFx (purse in shillings, hull, rig, mo, hurt, rep, beer, bis, cargo, spares, squall). */
+const EV_DEFS={
+ derelict:{kind:"salvage",name:"Drifting derelict",icon:"wreck",mesh:"derelict",sight:6,life:40,w:3,
+  title:"A drifting derelict",
+  text:"A dismasted merchantman lies listing in the swell, no hand at her wheel and no answer to a hail. Her hatches are battened and her stern cabin shows no light.",
+  opts:[
+   {label:"Send a boarding party",sub:"Likely cargo or fittings worth taking, but the wreck is unsteady, there may be fire, and something below may be dangerous.",out:[
+     {p:5,text:"The party comes back low in the boat with a haul of cargo from her hold.",fx:{cargo:"rich"}},
+     {p:2,text:"They find her carpenter's store intact: spare timber and cordage, and a purse in the master's cabin.",fx:{spares:{timber:2.5,rope:2.5},purse:7*20}},
+     {p:2,text:"A beam gives way under the boarding party. They scramble back with a little salvage and a hand with a broken arm, and the wreck grinds against your hull.",fx:{purse:3*20,hurt:.35,hull:-.07}},
+     {p:1,text:"Smoke boils up from her lower deck. The party is dragged back in the boat, singed, with the fire barely kept off your own ship.",fx:{hurt:.25,hull:-.05,mo:-.06,rig:-.05}}]},
+   {label:"Hook off a few things from the boat",sub:"Safer: a small haul and no one goes aboard.",out:[
+     {p:3,text:"You fish out fittings, a bronze bell and a coil of good rope with grapnels.",fx:{purse:3*20,spares:{rope:1.5}}},
+     {p:1,text:"The wreck rolls and nothing comes loose but a splintered spar.",fx:{}}]},
+   {label:"Sail on",sub:"Leave her to the sea.",out:[{p:1,text:"You bear away and the derelict sinks astern.",fx:{}}]}]},
+ castaway:{kind:"rescue",name:"Marooned castaway",icon:"smoke",mesh:"castaway",sight:7,life:60,w:3,
+  title:"A marooned castaway",
+  text:"A thin thread of smoke rises from a bare spit of sand, and a lone figure is waving a shirt. He is gaunt and sunburned, and he has been here a long while.",
+  opts:[
+   {label:"Take him aboard",sub:"Costs beer and biscuit. He may repay it; he may not be what he says.",out:[
+     {p:3,text:"He is a master carpenter wrecked a month ago. He sets to work on your hull the same evening.",fx:{beer:-3,bis:-3,hull:.12,mo:.04}},
+     {p:3,text:"He is grateful, and talks of a hidden cove where a pirate captain buried his share. He presses a pearl and a few coins on you.",fx:{beer:-3,bis:-3,purse:9*20,rep:2}},
+     {p:2,text:"A weary navigator, thrown from his ship in a storm. He checks your reckoning and the hands feel steadier for it.",fx:{beer:-3,bis:-3,mo:.1}},
+     {p:1,text:"He turns out to be a man with a price on his head. The hands mutter, and word will get about.",fx:{beer:-3,bis:-3,mo:-.1,rep:-4}}]},
+   {label:"Send water and food by boat",sub:"Cheaper. He is cheered, and you owe nothing.",out:[{p:1,text:"You leave him a cask, a bag of biscuit and the promise to report him at the next port.",fx:{beer:-1,bis:-1.5,rep:1}}]},
+   {label:"Sail on",sub:"You cannot spare the stores.",out:[{p:1,text:"You bear away. The hands watch the little figure shrink to a speck and say nothing.",fx:{mo:-.04}}]}]},
+ squall:{kind:"hazard",name:"Violent squall",icon:"squall",mesh:"squall",sight:12,life:30,w:3,speed:5,range:1.1,
+  title:"A squall bears down!",
+  text:"The wind dropped to nothing a quarter hour ago, and now the horizon has gone black and the sea ahead is white with it. A squall is coming down on us, fast.",
+  opts:[
+   {label:"Reef down and head into the wind",sub:"Safe and sensible. You will not make much of it, but you should come through whole.",out:[
+     {p:9,text:"The topsails are clewed up and the helm put over. The squall screams past and you ride it out.",fx:{squall:7}},
+     {p:1,text:"A gust catches a half-reefed topsail and splits it before the squall passes.",fx:{squall:7,rig:-.06}}]},
+   {label:"Carry sail and ride it out",sub:"A race. If the hands are quick you gain a huge run before it passes; if not, you may lose spars.",out:[
+     {p:"skill",text:"Every hand to the braces and she heels and flies. You make a great run before the squall blows itself out.",fx:{squall:18,mo:.05}},
+     {p:"fail",text:"A great gust lays her on her beam ends and the foretopmast goes over the side. It takes the hands an hour to clear the wreck.",fx:{squall:15,rig:-.25,hull:-.08,hurt:.3,mo:-.08}}]}]}
+};
+const EV_KINDS={
+ salvage:{move:(e,s,dt)=>{const j=.35;e.x+=Math.sin(e.dr)*j*dt;e.y+=Math.cos(e.dr)*j*dt;},trig:.4},
+ rescue:{move:()=>{},trig:.4},
+ hazard:{move:(e,s,dt,w,D)=>{const a=(w.from+180)*D2R;e.x+=Math.sin(a)*D.speed*dt;e.y+=Math.cos(a)*D.speed*dt;},trig:null}
+};
+function evSpawn(s,id,near){const D=EV_DEFS[id],sh=s.ship;if(!D)return false;let x,y,k=0;
+  do{const d=near?(2+Math.random()*1.5):(D.kind==="hazard"?5+Math.random()*3:4+Math.random()*4),a=sh.heading*D2R+(Math.random()-.5)*2*(near?1.2:.9);
+    x=sh.x+Math.sin(a)*d;y=sh.y+Math.cos(a)*d;k++;}while(coastNm(x,y)<1.5&&k<24);
+  if(coastNm(x,y)<1.5)return false;
+  (s.ev||(s.ev=[])).push({id,x,y,dr:Math.random()*2*PI,seen:false,t0:s.t,h:Math.random()*2*PI});return true;}
+function evNextGap(){const g=Math.exp(Math.log(20)+1.05*(Math.random()+Math.random()+Math.random()-1.5)*1.7);return Math.max(2,g)/Math.max(.05,EVFREQ);} // hours; wide spread, median about 20 h at the natural pace
+const evSight=(s,D)=>D.sight*(D.kind==="hazard"?1:(isNight(s)?.4:1)*(s.wx&&s.wx.rain>.4?.6:1));
+function evFx(s,fx){fx=fx||{};const bits=[];
+  if(fx.purse){s.purse=Math.max(0,s.purse+fx.purse);}
+  if(fx.hull)s.hull=clamp(s.hull+fx.hull,.2,1);
+  if(fx.rig)s.ship.rig=clamp(s.ship.rig+fx.rig,.15,1);
+  if(fx.mo)for(const m of s.crew)if(m.mo!=null)m.mo=clamp(m.mo+fx.mo,0,1);
+  if(fx.hurt){const c=s.crew.filter(m=>m.hp!=null&&m.r!=="Captain");const m=c.length&&c[Math.floor(Math.random()*c.length)];if(m)m.hp=Math.max(.2,m.hp-fx.hurt);}
+  if(fx.rep)addRep(s,fx.rep);
+  if(fx.beer)s.stores.beer=Math.max(0,s.stores.beer+fx.beer);
+  if(fx.bis)s.stores.bis=Math.max(0,s.stores.bis+fx.bis);
+  if(fx.spares)for(const k in fx.spares)if(s.spares[k]!=null)s.spares[k]+=fx.spares[k];
+  if(fx.cargo==="rich"){mkInit(s);const gs=Object.keys(GOODS).filter(g=>GOODS[g].tier>=2);let n=0,left=3+Math.floor(Math.random()*3);
+    while(left>0&&n++<12){const g=gs[Math.floor(Math.random()*gs.length)];if(unitsFit(s,g)<1)continue;const c=s.cargo[g]||(s.cargo[g]={n:0,cost:0});c.n+=1;c.cost+=0;left--;}}
+  if(fx.squall&&!s.squall)s.squall={t0:s.t,dur:.3+Math.random()*.2,boost:fx.squall,shift:(Math.random()<.5?-1:1)*(10+Math.random()*15)};}
+function evCard(e){const s=S,D=EV_DEFS[e.id],done=()=>{s.ev=s.ev.filter(q=>q!==e);};
+  const duty=s.crew.filter(m=>m.mode==="duty"),sk=duty.length?duty.reduce((a,m)=>a+m.sk,0)/duty.length:.4;
+  return{title:D.title,text:D.text,opts:D.opts.map(o=>({label:o.label,sub:o.sub,fn:()=>{done();s.evCool=s.t+3;
+    const pw=x=>x.p==="skill"?clamp(.35+.6*sk+.1*(s.eff-1),.2,.9):x.p==="fail"?1-clamp(.35+.6*sk+.1*(s.eff-1),.2,.9):x.p;
+    let r=Math.random()*o.out.reduce((a,x)=>a+pw(x),0),pick=o.out[o.out.length-1];for(const x of o.out){r-=pw(x);if(r<=0){pick=x;break;}}
+    evFx(s,pick.fx);return pick.text;}}))};}
+function evStep(s,dt,w){if(s.done)return;const E=s.ev||(s.ev=[]),sh=s.ship;
+  const open=!atPort(s)&&coastNm(sh.x,sh.y)>3;
+  if(s.evNext==null)s.evNext=s.t+evNextGap()*Math.random();
+  if(EVFREQ>0&&open&&E.length<3&&s.t>=s.evNext){const ids=[];for(const id in EV_DEFS)for(let i=0;i<EV_DEFS[id].w;i++)ids.push(id);
+    const id=ids[Math.floor(Math.random()*ids.length)];s.evNext=s.t+(evSpawn(s,id)?evNextGap():.5);}
+  for(const e of E.slice()){const D=EV_DEFS[e.id],K=EV_KINDS[D.kind],d=Math.hypot(sh.x-e.x,sh.y-e.y);
+    K.move(e,s,dt,w,D);
+    const R=evSight(s,D);
+    if(!e.seen&&d<R){e.seen=true;const b=pointName(norm(Math.atan2(e.x-sh.x,e.y-sh.y)/D2R));
+      say(D.kind==="hazard"?`Lookout: a black squall line to the ${b}, ${d.toFixed(0)} miles off, and it is coming this way.`:D.kind==="rescue"?`Lookout: smoke and a figure waving, ${b}, about ${d.toFixed(0)} miles.`:`Lookout: a wreck low in the water, ${b}, about ${d.toFixed(0)} miles.`,{slow:true});}
+    else if(e.seen&&d>R*1.35)e.seen=false;
+    if(d>16||s.t-e.t0>D.life){s.ev=E.filter(q=>q!==e);continue;}
+    const tr=D.kind==="hazard"?D.range:K.trig;
+    if(d<tr&&!s.crisis&&!modalOpen&&s.t>(s.evCool||0)){showCrisis(evCard(e));}}}
+// the events on the chart (a small pen-and-ink sign where the lookout has seen one) and in the 3D view
+function evIcon(c,kind,x,y){c.save();c.translate(x,y);c.strokeStyle="#2e2519";c.fillStyle="#2e2519";c.lineWidth=1.5;c.lineCap="round";
+  if(kind==="wreck"){c.beginPath();c.moveTo(-8,3);c.lineTo(8,3);c.lineTo(5,7);c.lineTo(-5,7);c.closePath();c.stroke();c.beginPath();c.moveTo(-1,3);c.lineTo(-3,-8);c.moveTo(-3,-6);c.lineTo(4,-4);c.stroke();}
+  else if(kind==="smoke"){c.beginPath();c.arc(0,5,4,Math.PI,0);c.stroke();c.beginPath();c.moveTo(0,1);c.bezierCurveTo(-5,-3,5,-6,0,-10);c.stroke();c.beginPath();c.moveTo(-2,-7);c.lineTo(2,-13);c.stroke();}
+  else{c.beginPath();c.arc(-4,-2,4,Math.PI*.8,Math.PI*1.9);c.arc(2,-4,5,Math.PI,Math.PI*2);c.arc(8,-1,3.5,Math.PI*1.2,Math.PI*.5,true);c.lineTo(-6,2);c.stroke();for(const i of[-4,0,4]){c.beginPath();c.moveTo(i,5);c.lineTo(i-2,10);c.stroke();}}
+  c.restore();}
+function drawEvents(){if(!S||!S.ev)return;
+  for(const e of S.ev){if(!e.seen)continue;const D=EV_DEFS[e.id],x=sx(e.x),y=sy(e.y);
+    ctx.save();evIcon(ctx,D.icon,x,y);ctx.font="italic 12px 'IM Fell English',Georgia,serif";ctx.fillStyle="#2e2519";ctx.fillText(D.name,x+12,y+4);
+    if(D.kind==="hazard"){const a=(windAt(S,e.x,e.y,S.t).from+180)*D2R,ex=e.x+Math.sin(a)*D.speed,ey=e.y+Math.cos(a)*D.speed;ctx.strokeStyle="#4a4a58";ctx.setLineDash([6,4]);ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(sx(ex),sy(ey));ctx.stroke();ctx.setLineDash([]);ctx.fillText("in 1 hour",sx(ex)+6,sy(ey)+4);}
+    ctx.restore();}}
+const EV_MESH={
+ derelict(){const g=new THREE.Group(),M=c=>new THREE.MeshBasicMaterial({color:c,side:THREE.DoubleSide});
+  const h=new THREE.Mesh(new THREE.BoxGeometry(4,2.6,14),M(0x3a2c1e));h.position.set(0,.4,0);h.rotation.z=.32;g.add(h);
+  const m=new THREE.Mesh(new THREE.CylinderGeometry(.12,.2,9,6),M(0x4a3a28));m.position.set(.6,4.2,1);m.rotation.z=-.9;g.add(m);
+  const s=new THREE.Mesh(new THREE.PlaneGeometry(4,3),M(0xb8ae94));s.position.set(3,4,1);s.rotation.set(0,PI/2,-.9);g.add(s);g.scale.setScalar(1.4);return g;},
+ castaway(){const g=new THREE.Group(),M=c=>new THREE.MeshBasicMaterial({color:c,side:THREE.DoubleSide});
+  const i=new THREE.Mesh(new THREE.CylinderGeometry(5,8,1.6,12),M(0xc8b27a));i.position.y=-.2;g.add(i);
+  const f=new THREE.Mesh(new THREE.BoxGeometry(.5,1.7,.4),M(0x7a5a3a));f.position.set(1.5,1.4,0);g.add(f);
+  const a=new THREE.Mesh(new THREE.BoxGeometry(.2,1.4,.2),M(0xd8cfb4));a.position.set(1.5,2.9,0);a.rotation.z=.6;g.add(a);
+  const sm=new THREE.Mesh(new THREE.CylinderGeometry(.5,1.6,16,8,1,true),new THREE.MeshBasicMaterial({color:0x888888,transparent:true,opacity:.5,side:THREE.DoubleSide,depthWrite:false}));sm.position.set(-2,9,0);g.add(sm);return g;},
+ squall(){const g=new THREE.Group(),m=new THREE.MeshBasicMaterial({color:0x2c3140,transparent:true,opacity:.62,side:THREE.DoubleSide,depthWrite:false});
+  const c=new THREE.Mesh(new THREE.CylinderGeometry(900,1000,420,20,1,true),m);c.position.y=210;g.add(c);
+  const t=new THREE.Mesh(new THREE.CylinderGeometry(1000,900,120,20),new THREE.MeshBasicMaterial({color:0x1d212c,transparent:true,opacity:.8,depthWrite:false}));t.position.y=480;g.add(t);return g;}
+};
+function updateEvents3D(R){if(!S||!R||!R.scene)return;const L=R.evL||(R.evL={}),E=S.ev||[],sh=S.ship,ax=sh.x*NM,az=-sh.y*NM;const used=new Set();
+  for(const e of E){if(!e.seen)continue;const D=EV_DEFS[e.id];let m=L[e.id+e.t0];if(!m){m=EV_MESH[D.mesh]();R.scene.add(m);L[e.id+e.t0]=m;}used.add(m);m.visible=true;
+    const x=(e.x-sh.x)*NM,z=-(e.y-sh.y)*NM;m.position.set(x,D.kind==="hazard"?0:waveH(R,x,z)*.6,z);m.rotation.y=e.h;}
+  for(const k in L)if(!used.has(L[k]))L[k].visible=false;}
+function evTrigger(s,id){if(!s||s.done)return;if(!EV_DEFS[id])return;if(!evSpawn(s,id,true))say("No clear water for that here.",{log:false});}
+window.__EV={evTrigger,evStep,evCard,EV_DEFS,step:dt=>step(dt),get S(){return S},setFreq:v=>{EVFREQ=v},windAt:(s)=>windAt(s,s.ship.x,s.ship.y,s.t)};
+
 // trading page in the Ship panel
 const TS=document.createElement("style");TS.textContent=".mk{width:100%;border-collapse:collapse;font-size:12px}.mk th{font-weight:400;text-align:left;color:var(--ink-soft);border-bottom:1px solid var(--rule);padding:2px 3px}.mk td{padding:3px;border-bottom:1px dotted var(--rule);vertical-align:middle}.mk .num{font-family:var(--f-data);text-align:right;white-space:nowrap}.mk .dim td{color:var(--ink-soft);font-style:italic}.mk button{padding:3px 6px;font-size:11px;background:transparent;color:var(--ink);border:1px solid var(--ink);border-radius:3px;font-family:var(--f-data);margin:1px}.mk button:disabled{opacity:.35}.mkw{overflow-x:auto}.mkc{font-size:12.5px;padding:4px 0;border-bottom:1px dotted var(--rule)}.mkc button{padding:3px 8px;font-size:11px;background:transparent;color:var(--ink);border:1px solid var(--ink);border-radius:3px;font-family:var(--f-data);margin-top:3px}.mkn{font-size:12px;margin:3px 0;font-style:italic;color:var(--ink-soft)}";document.head.append(TS);
 const ageD=(s,t)=>Math.max(0,Math.round((s.t-t)/24));
 function tradeUI(force){const box=document.getElementById("svMktBody");if(!box||!S||!S.crew)return;const s=S;mkInit(s);
   const site=tradeSite(s),rep=s.rep||0,used=holdUsed(s),cap=holdCap(),day=dayIndex(s),smug=!!(site&&site.smug);
   const board=site&&!smug?contractBoard(s,site.k):[];
-  const sig=[site&&site.k+site.smug,Math.round(s.purse),Object.keys(s.cargo).map(g=>g+Math.round(s.cargo[g].n*10)).join(),Math.round(rep),site?MKT_IDS.map(g=>Math.round(s.mk.ports[site.k][g])).join():"",s.contracts.map(c=>c.id).join(),board.map(c=>c.id).join(),s.jetArm||"",day,s.news.length,s.paidNews||0,cap,Object.keys(s.seen).length].join("|");
+  const sig=[site&&site.k+site.smug,Math.round(s.purse),Object.keys(s.cargo).map(g=>g+Math.round(s.cargo[g].n*10)).join(),Object.keys(s.quay||{}).map(g=>g+Math.round(s.quay[g].n*10)).join(),Object.keys(s.basket||{}).map(g=>g+Math.round(s.basket[g].n*10)).join(),s.loading?1:0,Math.round(rep),site?MKT_IDS.map(g=>Math.round(s.mk.ports[site.k][g])).join():"",s.contracts.map(c=>c.id).join(),board.map(c=>c.id).join(),s.jetArm||"",day,s.news.length,s.paidNews||0,cap,Object.keys(s.seen).length].join("|");
   if(!force&&box._sig===sig)return;box._sig=sig;
   const fl=(v)=>Math.round(v*10)/10;
   let h=`<div class="sveff"><div><span>Hold</span><b>${fl(used)} of ${cap} tons</b></div><div><span>Standing</span><b>${repName(rep)} (${Math.round(rep)})</b></div><div><span>Load slows her by</span><b>${Math.round((1-cargoSpeedF(s))*100)}%</b></div></div>`;
@@ -5841,6 +6092,17 @@ function tradeUI(force){const box=document.getElementById("svMktBody");if(!box||
   const rare=Object.keys(s.cargo).filter(g=>GOODS[g].tier===3);
   if(Object.keys(s.cargo).length){h+=`<h3 style="margin-top:10px">Cargo aboard</h3>`;
     for(const g of Object.keys(s.cargo)){const c=s.cargo[g],arm=s.jetArm===g;h+=`<div class="mkc">${gIcon(g,20)} ${fl(c.n)} ${GOODS[g].tier===3?"(consignment) ":""}${gPl(g)} of ${gName(g)}, ${fl(c.n*GOODS[g].t)} tons <button data-t="jet" data-g="${g}">${arm?"Tap again to throw it all over":"Jettison"}</button></div>`;}}
+  const estT=t=>fmtDur(t/loadRate(s));
+  if(s.basket&&Object.keys(s.basket).length){let tot=0,tt=0;
+    h+=`<h3 style="margin-top:10px">Receipt</h3><table class="mk">`;
+    for(const g of Object.keys(s.basket)){const q=s.basket[g];tot+=q.cost;tt+=q.n*GOODS[g].t;h+=`<tr><td>${gIcon(g,18)} ${fl(q.n)} ${gPl(g)} of ${gName(g)}</td><td class="num">${fl(q.n*GOODS[g].t)} t</td><td class="num">${money(q.cost)}</td></tr>`;}
+    const fee=site?payFee(s,site):0;
+    h+=`<tr><td><b>Total</b>${fee?` (and ${fee}s harbour dues)`:""}</td><td class="num"><b>${fl(tt)} t</b></td><td class="num"><b>${money(tot+fee)}</b></td></tr><tr><td colspan="2"><b>Total loading time</b></td><td class="num"><b>${estT(tt)}</b></td></tr></table>`;
+    h+=`<p class="svhint">Loading time depends on the hands on duty${LOADX!==1?` and the Cheats speed (${LOADX<1?LOADX.toFixed(2):LOADX.toFixed(1)}×)`:""}.</p><p class="svbtns"><button type="button" data-t="bconf"${site&&tot+fee<=s.purse?"":" disabled"}>Confirm and pay</button><button type="button" data-t="bclear">Clear basket</button></p>`;}
+  if(s.quay&&Object.keys(s.quay).length){let tt=quayTons(s);
+    h+=`<h3 style="margin-top:10px">On the quay</h3><table class="mk">`;
+    for(const g of Object.keys(s.quay)){const q=s.quay[g];h+=`<tr><td>${gIcon(g,18)} ${fl(q.n)} ${gPl(g)} of ${gName(g)}</td><td class="num">${fl(q.n*GOODS[g].t)} t</td></tr>`;}
+    h+=`</table><p class="svhint">${s.loading?`The hands are carrying it aboard. About ${estT(tt)} left (${Math.round(clamp(1-tt/(s.loadTotal||tt),0,1)*100)}% loaded).`:`Paid for and waiting. Estimated loading time: ${estT(tt)}.`}</p>${s.loading?"":`<p class="svbtns"><button type="button" data-t="load">Load</button></p>`}`;}
   h+=`<h3 style="margin-top:10px">Prices as last seen</h3><div class="mkw"><table class="mk"><tr><th></th>${Object.keys(PORTS).map(k=>`<th class="num">${PORTS[k].name.split(" ")[0]}</th>`).join("")}</tr>`;
   for(const g of MKT_IDS){if(GOODS[g].tier>1&&rep<REP2)continue;h+=`<tr><td>${GOODS[g].n}</td>${Object.keys(PORTS).map(k=>{const e=s.seen[k]&&s.seen[k][g];return `<td class="num">${e?e.p+"s<br><small>"+(ageD(s,e.t)?ageD(s,e.t)+" d ago":"now")+"</small>":"-"}</td>`;}).join("")}</tr>`;}
   h+=`</table></div>`;
@@ -5855,7 +6117,7 @@ function tradeUI(force){const box=document.getElementById("svMktBody");if(!box||
   box.innerHTML=h;}
 { const mb=document.getElementById("svMktBody");
   if(mb)mb.addEventListener("click",e=>{const b=e.target.closest("button[data-t]");if(!b||!S)return;const t=b.dataset.t,g=b.dataset.g,n=b.dataset.n==="all"?"all":+b.dataset.n;
-    if(t==="buy")tradeBuy(g,n);else if(t==="sell")tradeSell(g,n);else if(t==="news")buyNews();else if(t==="acc")contractAccept(b.dataset.id);else if(t==="del")contractDeliver(b.dataset.id);
+    if(t==="buy")tradeBuy(g,n);else if(t==="sell")tradeSell(g,n);else if(t==="news")buyNews();else if(t==="load")loadStart();else if(t==="bconf")basketConfirm();else if(t==="bclear")basketClear();else if(t==="acc")contractAccept(b.dataset.id);else if(t==="del")contractDeliver(b.dataset.id);
     else if(t==="jet"){if(S.jetArm===g){S.jetArm=null;tradeJettison(g,"all");}else{S.jetArm=g;tradeUI(true);}}}); }
 /* ---------- career: start in a small cutter with a little cash, trade, and buy bigger ships at the quay ---------- */
 // price in shillings; the old ship goes in part exchange at TRADEIN of her price
@@ -5923,10 +6185,149 @@ function pirMesh(){const g=new THREE.Group(),M=c=>new THREE.MeshBasicMaterial({c
   add(new THREE.PlaneGeometry(7,11),M(0xd8cfb4),0,9,.2,PI/2);add(new THREE.PlaneGeometry(5.5,8.5),M(0xd8cfb4),0,7.5,-4.8,PI/2);
   add(new THREE.PlaneGeometry(2.4,1.6),M(0x111111),0,18.8,2.2,PI/2);
   g.scale.setScalar(1.6);return g;}
+/* cargo crates, drawn the way the Ship view draws everything: flat wood colour, the same top-lit shading, and the same thin sepia pen line on every edge */
+let CRATE_GEO=null,CRATE_EDG=null;const CRATE_MAT={},CRATE_PEN=new THREE.LineBasicMaterial({color:0x2e2519,transparent:true,opacity:.7});
+const CRATE_WOOD=[0x8a6234,0xa8763f,0x7a5a3a,0xb98a4c,0x9a6c38,0xc29a5e];
+function crateGeo(){if(CRATE_GEO)return CRATE_GEO;const g=new THREE.BoxGeometry(1,1,1),n=g.attributes.normal,c=new Float32Array(n.count*3),L=new THREE.Vector3(.35,.85,.4).normalize();
+  for(let i=0;i<n.count;i++){const d=n.getX(i)*L.x+n.getY(i)*L.y+n.getZ(i)*L.z,s=.66+.34*d;c[i*3]=c[i*3+1]=c[i*3+2]=s;}
+  g.setAttribute("color",new THREE.BufferAttribute(c,3));CRATE_EDG=new THREE.EdgesGeometry(g,35);return CRATE_GEO=g;}
+function crateMat(g){return CRATE_MAT[g]||(CRATE_MAT[g]=new THREE.MeshBasicMaterial({vertexColors:true,color:CRATE_WOOD[(g.length*53)%CRATE_WOOD.length],side:THREE.DoubleSide}));}
+function crateObj(g,pen){const o=new THREE.Group(),m=new THREE.Mesh(crateGeo(),crateMat(g)),l=new THREE.LineSegments(CRATE_EDG,pen||CRATE_PEN);o.add(m);o.add(l);o.userData.mesh=m;return o;}
+window.__crate={obj:(g,pen)=>crateObj(g,pen),mat:g=>crateMat(g)};
+function updateQuay3D(R){if(!S||!R||!R.scene)return;const s=S,f=s.docked&&PF[s.docked];
+  const q=s.quay||{},n=(f&&f.dock&&loadsByHand())?Object.keys(q).reduce((a,g)=>a+Math.ceil(q[g].n-1e-6),0):0;
+  const sig=n+"|"+(f?f.k:"")+"|"+Object.keys(q).join();
+  if(R.quaySig===sig){if(R.quayG&&f&&f.dock){const sh=s.ship;R.quayG.position.set((f.dock.x-sh.x)*NM,0,-(f.dock.y-sh.y)*NM);}return;}R.quaySig=sig;
+  if(R.quayG){R.scene.remove(R.quayG);R.quayG=null;}
+  if(!n)return;
+  const o=R.isl&&R.isl.find(i=>ISLPORT.get(i.isl)===s.docked),P0=f.G,Sc=o&&o.pf&&o.pf.S,Q=P0&&P0.quay;if(!Sc||!Q||Q.length<2)return;
+  const d=f.dock,gr=new THREE.Group(),loc=(u,v)=>{const m=toNm(f,u,v);return[(m[0]-d.x)*NM,-(m[1]-d.y)*NM];};
+  // the quay slabs run 0..13 m inland of the shore line: crates go in rows 2.5 to 10 m back, along the stretch of quay beside the berth
+  let bi=0,bd=1e9;const du=P0.dock?P0.dock.u:Q[0].u,dv=P0.dock?P0.dock.v:Q[0].v;for(let i=0;i<Q.length;i++){const dd=Math.hypot(Q[i].u-du,Q[i].v-dv);if(dd<bd){bd=dd;bi=i;}}
+  const a0=Q[Math.max(0,bi-1)],a1=Q[Math.min(Q.length-1,bi+1)];let tu=a1.u-a0.u,tv=a1.v-a0.v;const tl=Math.hypot(tu,tv)||1;tu/=tl;tv/=tl;const C=Q[bi];
+  const slots=[];for(const row of[3.2,4.7,6.2,7.7])for(let k=-6;k<=6;k++)slots.push([k*1.45+(row>5?.7:0),row]);
+  let i=0;const rnd=(k)=>{const x=Math.sin(k*127.1+311.7)*43758.5453;return x-Math.floor(x);};
+  for(const g in q){const m=GOODS[g];
+    for(let k=0;k<Math.ceil(q[g].n-1e-6);k++,i++){if(i>=slots.length*2)break;const sl=slots[i%slots.length],layer=i>=slots.length?1:0,sz=.82+Math.min(.28,m.t*.28)+rnd(i)*.08;
+      const au=C.u+tu*sl[0]/Sc+C.nu*sl[1]/Sc,av=C.v+tv*sl[0]/Sc+C.nv*sl[1]/Sc,p=loc(au,av);
+      const mesh=crateObj(g);mesh.scale.set(sz,sz*.9,sz*1.12);
+      mesh.position.set(p[0],1.4+sz*.45+layer*sz*.9,p[1]);
+      const ang=Math.atan2(-(C.nv*0+tv),tu);mesh.rotation.y=ang+(rnd(i+9)-.5)*.35;gr.add(mesh);}}
+  gr.position.set((d.x-s.ship.x)*NM,0,-(d.y-s.ship.y)*NM);R.scene.add(gr);R.quayG=gr;}
 function updatePirates3D(R){if(!S||!R||!R.scene)return;const L=R.pirL||(R.pirL=[]),P=S.pir||[],sh=S.ship,ax=sh.x*NM,az=-sh.y*NM;let i=0;
   for(const p of P){if(!p.seen)continue;let m=L[i];if(!m){m=pirMesh();R.scene.add(m);L[i]=m;}m.visible=true;
     const x=p.x*NM,z=-p.y*NM;m.position.set(x,waveH(R,x-ax,z-az)*.6,z);m.rotation.y=-p.h*D2R;i++;}
   for(;i<L.length;i++)L[i].visible=false;}
+/* ---------- shipping lanes and sea traffic ----------
+   Lanes are found once, by a search over a grid of the sea (land and reefs kept clear, the trade wind from about 82 degrees favoured),
+   then straightened. Every ship on a lane is a pure function of the game clock (out and back with a layover in port), so nothing is
+   stepped, saves are untouched and time jumps just work. Hull-only exteriors, no crew, shared geometry per ship type. */
+setTimeout(()=>{try{laneInit();}catch(e){}},2500);
+let TRAFDENS=1; // 0 none, 0.5 sparse, 1 normal, 2 busy, 3 crowded; Menu > Cheats and Scenario mode
+try{const v=localStorage.getItem("drTraf");if(v!=null&&v!=="")TRAFDENS=clamp(+v||0,0,3);}catch(e){}
+const TRAF={range3d:3.2,rangeChart:10,pool:6,grid:2.5,clear:1.6,wind:82,
+  lanes:[["bridgetown","castries"],["bridgetown","kingstown"],["kingstown","castries"],["castries","stjohns"],["kingstown","stjohns"],["castries","basseterre"],["stjohns","basseterre"]],
+  mix:{cutter:3,sultana:3,brig:5,caroline:.5,endeavour:2,xebec:1,gotheborg:1.5,constitution:.6,trinidad:.4},
+  name:{cutter:"Cutter",sultana:"Schooner",brig:"Brig",caroline:"Yacht",endeavour:"Bark",xebec:"Xebec",gotheborg:"East Indiaman",constitution:"Frigate",trinidad:"Ship of the line"}};
+const trafLabel=v=>v<=0?"none":v<=.5?"sparse":v<=1?"normal":v<=2?"busy":"crowded";
+// how well a heading sails in the trade: 0 head to wind .. 1 on the reach or running
+const TWF=[[0,0],[40,.1],[55,.45],[75,.8],[100,.95],[130,1],[160,.95],[180,.85]];
+function trafWF(h){let a=norm(h-TRAF.wind);if(a>180)a=360-a;for(let i=1;i<TWF.length;i++)if(a<=TWF[i][0]){const[p,fp]=TWF[i-1],[q,fq]=TWF[i];return fp+(fq-fp)*(a-p)/(q-p);}return TWF[TWF.length-1][1];}
+const trafEff=h=>.3+.7*(trafWF(h)+trafWF(h+180))/2;
+function seaClr(x,y){let c=coastNm(x,y);if(c>0&&typeof reefs!=="undefined")for(const r of reefs){if(inPoly({x,y},r.pts))return 0;c=Math.min(c,distPoly({x,y},r.pts));}return c;}
+let LANES=null;
+function laneInit(){if(LANES)return LANES;
+  const g=TRAF.grid,nx=Math.ceil(W_NM/g)+1,ny=Math.ceil(H_NM/g)+1,cl=new Float32Array(nx*ny);
+  for(let j=0;j<ny;j++)for(let i=0;i<nx;i++)cl[j*nx+i]=Math.min(seaClr(i*g,j*g),9);
+  const at=(x,y)=>{const i=Math.round(x/g),j=Math.round(y/g);return i<0||j<0||i>=nx||j>=ny?0:cl[j*nx+i];};
+  const MV=[[1,0],[0,1],[-1,0],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1],[2,1],[1,2],[-2,1],[-1,2],[2,-1],[1,-2],[-2,-1],[-1,-2]],CL=TRAF.clear;
+  const approach=k=>{const P=PORTS[k];let best=null,bd=1e9;for(let r=0;r<2&&!best;r++){const need=r?CL*.6:CL;
+      for(let j=0;j<ny;j++)for(let i=0;i<nx;i++){if(cl[j*nx+i]<need)continue;const d=Math.hypot(i*g-P.x,j*g-P.y);if(d<bd&&d<14){bd=d;best=[i,j];}}}return best;};
+  const search=(a,b)=>{const N=nx*ny,gs=new Float32Array(N).fill(1e9),par=new Int32Array(N).fill(-1),done=new Uint8Array(N),H=[];
+    const push=(f,n)=>{H.push([f,n]);let i=H.length-1;while(i>0){const p=(i-1)>>1;if(H[p][0]<=H[i][0])break;[H[p],H[i]]=[H[i],H[p]];i=p;}};
+    const pop=()=>{const t=H[0],l=H.pop();if(H.length){H[0]=l;let i=0;for(;;){let m=i;const L=2*i+1,Rr=L+1;if(L<H.length&&H[L][0]<H[m][0])m=L;if(Rr<H.length&&H[Rr][0]<H[m][0])m=Rr;if(m===i)break;[H[m],H[i]]=[H[i],H[m]];i=m;}}return t;};
+    const s=a[1]*nx+a[0],e=b[1]*nx+b[0];gs[s]=0;push(0,s);
+    while(H.length){const[,n]=pop();if(done[n])continue;done[n]=1;if(n===e)break;const ni=n%nx,nj=(n/nx)|0;
+      for(const[dx,dy]of MV){const i=ni+dx,j=nj+dy;if(i<0||j<0||i>=nx||j>=ny)continue;const m=j*nx+i;if(done[m]||cl[m]<CL)continue;
+        let ok=true;for(let q=1;q<3&&ok;q++)if(at((ni+dx*q/3)*g,(nj+dy*q/3)*g)<CL*.8)ok=false;if(!ok)continue;
+        const d=Math.hypot(dx,dy)*g,h=Math.atan2(dx,dy)/D2R,avoid=1+Math.max(0,3.5-(cl[n]+cl[m])/2)*.4,c=gs[n]+d/trafEff(h)*avoid;
+        if(c<gs[m]){gs[m]=c;par[m]=n;push(c+Math.hypot((b[0]-i)*g,(b[1]-j)*g),m);}}}
+    if(!done[e])return null;const out=[];for(let n=e;n!==-1;n=par[n])out.push({x:(n%nx)*g,y:((n/nx)|0)*g});return out.reverse();};
+  const clearSeg=(p,q)=>{const d=Math.hypot(q.x-p.x,q.y-p.y),n=Math.max(1,Math.ceil(d/.7));for(let i=0;i<=n;i++)if(seaClr(p.x+(q.x-p.x)*i/n,p.y+(q.y-p.y)*i/n)<CL*.85)return false;return true;};
+  const straighten=P=>{const out=[P[0]];let i=0;while(i<P.length-1){let j=P.length-1;while(j>i+1&&!clearSeg(P[i],P[j]))j--;out.push(P[j]);i=j;}return out;};
+  LANES=[];
+  for(const[ka,kb]of TRAF.lanes){const A=approach(ka),B=approach(kb);if(!A||!B)continue;const raw=search(A,B);if(!raw)continue;
+    const mid=straighten(raw),pa=PORTS[ka],pb=PORTS[kb],pts=[{x:pa.x,y:pa.y},...mid,{x:pb.x,y:pb.y}];
+    const a0=Math.hypot(mid[0].x-pa.x,mid[0].y-pa.y),a1=Math.hypot(mid[mid.length-1].x-pb.x,mid[mid.length-1].y-pb.y);
+    const mk=P=>{const cd=[0],tm=[0],hd=[];for(let i=1;i<P.length;i++){const dx=P[i].x-P[i-1].x,dy=P[i].y-P[i-1].y,d=Math.hypot(dx,dy),h=norm(Math.atan2(dx,dy)/D2R);hd.push(h);cd.push(cd[i-1]+d);tm.push(tm[i-1]+d/trafEff(h));}return{P,cd,tm,hd};};
+    const f=mk(pts),b=mk(pts.slice().reverse());
+    LANES.push({a:ka,b:kb,name:PORTS[ka].name+" – "+PORTS[kb].name,pts,len:f.cd[f.cd.length-1],a0,a1,dir:[f,b]});}
+  return LANES;}
+let TRAFSHIPS=null;
+function trafInit(){if(TRAFSHIPS)return TRAFSHIPS;const L=laneInit();TRAFSHIPS=[];
+  const ids=Object.keys(TRAF.mix),tot=ids.reduce((a,k)=>a+TRAF.mix[k],0);
+  L.forEach((lane,li)=>{const r=mulberry32(9100+li*131);
+    for(let k=0;k<TRAF.pool;k++){let x=r()*tot,id=ids[0];for(const q of ids){x-=TRAF.mix[q];if(x<=0){id=q;break;}}
+      const sp=SPEC[id],dir=k%2,cruise=clamp(3+sp.hull.Lwl*.07,3.2,7.2)*(.9+r()*.2),dd=lane.dir[dir],T=dd.tm[dd.tm.length-1]/cruise,lay=5+r()*16;
+      TRAFSHIPS.push({id:li+"-"+k,li,k,sp,dir,cruise,T,lay,cyc:T+lay,off:r()*(T+lay),kind:TRAF.name[id]||sp.name});}});
+  return TRAFSHIPS;}
+// where one traffic ship is at game time t (null while she lies in port or is still in the harbour mouth)
+function trafPos(ts,t){const lane=LANES[ts.li],dd=lane.dir[ts.dir],ph=(t+ts.off)%ts.cyc;if(ph>=ts.T)return null;const u=ph*ts.cruise,tm=dd.tm;
+  let lo=0,hi=tm.length-1;while(hi-lo>1){const m=(lo+hi)>>1;if(tm[m]<=u)lo=m;else hi=m;}
+  const f=(u-tm[lo])/Math.max(1e-6,tm[hi]-tm[lo]),p=dd.P[lo],q=dd.P[hi],d=dd.cd[lo]+(dd.cd[hi]-dd.cd[lo])*f,h=dd.hd[lo];
+  const lo2=ts.dir?lane.a1:lane.a0,hi2=lane.len-(ts.dir?lane.a0:lane.a1);if(d<lo2+.3||d>hi2-.3)return null;
+  const sh=.12; // each way keeps to its own side of the lane
+  return{x:p.x+(q.x-p.x)*f+Math.cos(h*D2R)*sh,y:p.y+(q.y-p.y)*f-Math.sin(h*D2R)*sh,h,kn:ts.cruise*trafEff(h)};}
+function trafVis(s){const night=isNight(s)?.5:1,rain=s.wx&&s.wx.rain>.4?.65:1;let v=night*rain;if(PV.vis!=null)v=Math.min(v,Math.max(.1,PV.vis/7));return v;}
+let TRAFMEMO=null;
+// every traffic ship the lookout could make out from here: {ts,x,y,h,kn,d,in3d}
+function trafNow(s){if(!s||!TRAFDENS)return[];const key=s.t+"|"+TRAFDENS+"|"+s.ship.x+"|"+s.ship.y;if(TRAFMEMO&&TRAFMEMO.key===key)return TRAFMEMO.v;
+  const all=trafInit(),n=Math.round(TRAFDENS*2),vf=trafVis(s),sh=s.ship,out=[];
+  for(const ts of all){if(ts.k>=n)continue;const p=trafPos(ts,s.t);if(!p)continue;const d=Math.hypot(p.x-sh.x,p.y-sh.y),sf=clamp(Math.pow(ts.sp.hull.Lwl/26,.35),.75,1.35);
+    if(d>TRAF.rangeChart*vf*sf)continue;out.push({ts,x:p.x,y:p.y,h:p.h,kn:p.kn,d,in3d:d<TRAF.range3d*vf*sf});}
+  TRAFMEMO={key,v:out};return out;}
+function drawLanes(){if(!S||!TRAFDENS)return;const L=laneInit();ctx.save();ctx.strokeStyle="rgba(46,37,25,.38)";ctx.lineWidth=1.2;ctx.setLineDash([2,6]);ctx.lineCap="round";
+  for(const l of L){ctx.beginPath();l.pts.forEach((p,i)=>i?ctx.lineTo(sx(p.x),sy(p.y)):ctx.moveTo(sx(p.x),sy(p.y)));ctx.stroke();}ctx.restore();}
+// ships lying in a port within sight are drawn on the chart too: a hull that grows to true size when zoomed in on the harbour plan
+function drawHarbourShips(){if(!S||S.done||!R3||!R3.hb)return;const z=cam.zoom;ctx.save();
+  for(const k in R3.hb.ports){const F=R3.hb.ports[k];if(!F||!F.ships||!F.grp||!F.grp.visible)continue;
+    for(const s of F.ships){if(!s.m.visible)continue;const x=sx(s.x),y=sy(s.y);if(x<-40||x>CW+40||y<-40||y>CH+40)continue;
+      const U=s.m.userData||{},len=U.len||20,beam=U.beam||6,h=PI-s.m.rotation.y,L=Math.max(7,len/1852*z),B=Math.max(3.4,beam/1852*z);
+      ctx.save();ctx.translate(x,y);ctx.rotate(h);ctx.fillStyle="rgba(46,37,25,.82)";ctx.strokeStyle="#f3ead2";ctx.lineWidth=Math.min(1.2,.5+B/14);
+      ctx.beginPath();ctx.moveTo(0,-L/2);ctx.quadraticCurveTo(B/2,-L*.12,B*.42,L/2);ctx.lineTo(-B*.42,L/2);ctx.quadraticCurveTo(-B/2,-L*.12,0,-L/2);ctx.closePath();ctx.fill();ctx.stroke();ctx.restore();}}
+  ctx.restore();}
+function drawTraffic(){if(!S||S.done||!TRAFDENS)return;const P=dPos(),sh=S.ship;ctx.save();
+  for(const it of trafNow(S)){const x=sx(P.x+(it.x-sh.x)),y=sy(P.y+(it.y-sh.y)),h=it.h*D2R,k=clamp(it.ts.sp.hull.Lwl/22,.7,1.5);
+    ctx.save();ctx.translate(x,y);ctx.rotate(h);ctx.fillStyle=it.in3d?"#2e2519":"rgba(46,37,25,.7)";ctx.strokeStyle="#f3ead2";ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(0,-8*k);ctx.quadraticCurveTo(3.6*k,-1*k,2.6*k,6*k);ctx.lineTo(-2.6*k,6*k);ctx.quadraticCurveTo(-3.6*k,-1*k,0,-8*k);ctx.closePath();ctx.fill();ctx.stroke();ctx.restore();
+    ctx.font="italic 11px 'IM Fell English',Georgia,serif";ctx.fillStyle="#2e2519";ctx.fillText(`${it.ts.kind} · ${it.kn.toFixed(1)} kn`,x+8,y+4);}
+  ctx.restore();}
+// hull-only exterior: lofted from the ship's own hull lines at low resolution, one shared geometry and material per type
+function trafHull(R,sp){const K=R.trafK||(R.trafK={});let c=K[sp.id];
+  if(!c){const Ls=linesOf(sp),{H,Lh,sheer,deckAt,railY,keelY,zF,zA,hx,shape}=Ls,NU=40,NT=18,pos=[],tone=[],idx=[],grid=[];
+    for(let k=0;k<=NU;k++){const u=.5-.5*Math.cos(PI*k/NU),col=[];
+      for(let j=0;j<=NT;j++){const t=j/NT;let z=-Lh+H.Lwl*u,y=0;for(let it=0;it<7;it++){const yt=railY(z),yk=keelY(z);y=yt-t*(yt-yk);z=zA(y)+u*(zF(y)-zA(y));}col.push([shape(u,y,z),y,z]);}grid.push(col);}
+    for(const sd of[1,-1]){const base=pos.length/3;
+      for(let k=0;k<=NU;k++)for(let j=0;j<=NT;j++){const p=grid[k][j];pos.push(sd*p[0],p[1],p[2]);tone.push(sheer(p[2]));}
+      for(let k=0;k<NU;k++)for(let j=0;j<NT;j++){const a=base+k*(NT+1)+j,b=a+1,cc=a+NT+1,d=cc+1;if(sd>0)idx.push(a,cc,b,b,cc,d);else idx.push(a,b,cc,b,d,cc);}}
+    for(const k of[0,NU]){const base=pos.length/3;for(let j=0;j<=NT;j++){const p=grid[k][j];pos.push(-p[0],p[1],p[2],p[0],p[1],p[2]);tone.push(sheer(p[2]),sheer(p[2]));}
+      for(let j=0;j<NT;j++){const a=base+j*2;idx.push(a,a+1,a+2,a+1,a+3,a+2);}}
+    const g=new THREE.BufferGeometry();g.setAttribute("position",new THREE.Float32BufferAttribute(pos,3));g.setAttribute("aTone",new THREE.Float32BufferAttribute(tone,1));g.setIndex(idx);g.computeVertexNormals();
+    const P=[],I=[],z0=zA(railY(-Lh))+.04,z1=zF(railY(Lh))-H.bwT*1.6;
+    for(let i=0;i<=40;i++){const z=z0+(z1-z0)*i/40,y=deckAt(z),w=Math.max(0,hx(z,y)-H.bwT);P.push(w,y,z,-w,y,z);if(i<40){const a=i*2;I.push(a,a+2,a+1,a+1,a+2,a+3);}}
+    const dg=new THREE.BufferGeometry();dg.setAttribute("position",new THREE.Float32BufferAttribute(P,3));dg.setAttribute("aTone",new THREE.Float32BufferAttribute(new Array(P.length/3).fill(.1),1));dg.setIndex(I);dg.computeVertexNormals();
+    c=K[sp.id]={g,dg,mat:hullMaterial(R.U,sp.paint)};}
+  const grp=new THREE.Group();grp.add(new THREE.Mesh(c.g,c.mat));if(!sp.hull.open)grp.add(new THREE.Mesh(c.dg,R.deckMat));return grp;}
+function updateTraffic3D(R){if(!S||!R||!R.scene)return;const L=R.trafL||(R.trafL=new Map()),sh=S.ship,items=S.done?[]:trafNow(S).filter(i=>i.in3d),seen=new Set();
+  for(const it of items){const id=it.ts.id;seen.add(id);let m=L.get(id);if(!m){m=trafHull(R,it.ts.sp);R.scene.add(m);L.set(id,m);}
+    const x=(it.x-sh.x)*NM,z=-(it.y-sh.y)*NM;m.visible=true;m.position.set(x,waveH(R,x,z)*.6,z);m.rotation.y=PI-it.h*D2R;}
+  for(const[id,m]of L)if(!seen.has(id)){m.visible=false;if(L.size>24){R.scene.remove(m);L.delete(id);}}}
+// Scenario trigger: sail the player in astern of the first ship under way
+function trafGoto(s){const all=trafInit(),n=Math.max(2,Math.round(TRAFDENS*2));for(const ts of all){if(ts.k>=n)continue;const p=trafPos(ts,s.t);if(!p)continue;
+    const x=p.x-Math.sin(p.h*D2R)*1.5,y=p.y-Math.cos(p.h*D2R)*1.5;if(seaClr(x,y)<.8)continue;const sh=s.ship;sh.x=x;sh.y=y;if(s.est){s.est.x=x;s.est.y=y;}sh.heading=sh.ordered=p.h;TRAFMEMO=null;
+    say(`Sail ho: ${ts.kind} ahead, ${LANES[ts.li].name} lane.`,{});return;}
+  say("No ship is under way on the lanes just now. Raise the traffic density, or skip some hours.",{});}
+
 function toggleFish(){if(!S||S.done)return;const sh=S.ship;
   if(S.fishing){S.fishing=false;say("Lines hauled in.",{});updateUI(true);return;}
   if(sh.anch.mode==="weighing"){return;}
@@ -6591,7 +6992,7 @@ function stkUI(){if(!S||!S.crew||!$("stkBars"))return;const T=S.stores,n=S.crew.
   const pal=["#8a6a2e","#5b7f6a","#a8544a","#6a7da3","#9a8456","#7a5a86","#b07a3a","#4d7d86","#8c8c5a","#a36f8b","#6d8f4e","#a05a3a"];
   Object.keys(cg).forEach((g,i)=>{const t=Math.max(1,Math.round(cg[g].n*GOODS[g].t));for(let j=0;j<t&&used<cap2;j++,used++)cols.push([g,pal[i%pal.length]]);});
   let hh="";for(let i=0;i<cap2;i++){const c=cols[i];hh+=c?`<span class="stkc${c[0]===stkHold?" on":""}" data-g="${c[0]}" style="background:${c[1]}" title="${GOODS[c[0]].n}"></span>`:'<span class="stkc e"></span>';}
-  $("stkHold").innerHTML=vzHold(cap2,cg,used);
+  $("stkHold").innerHTML=vzHold(cap2,cg,used)+(S.loading&&S.loadTotal>0?`<p class="svhint"><b>Loading:</b> about ${fmtDur(quayTons(S)/loadRate(S))} left, ${Math.round(clamp(1-quayTons(S)/S.loadTotal,0,1)*100)}% loaded.</p>`:(quayTons(S)>0?`<p class="svhint">${Math.round(quayTons(S))} t waiting on the quay.</p>`:""));
   const site=tradeSite(S),ha=$("stkHoldAct");
   if(stkHold&&cg[stkHold]){const c=cg[stkHold],G=GOODS[stkHold];ha.innerHTML=`<div class="stkh">${gIcon(stkHold,26)} ${Math.round(c.n*10)/10} ${gPl(stkHold)} of ${gName(stkHold)}, ${Math.round(c.n*G.t*10)/10} t. <button type="button" data-a="sell"${site&&G.tier<3?"":" disabled"}>${site?"Sell all here":"Not in port"}</button><button type="button" data-a="jet">${stkJet?"Tap again to throw it over":"Jettison"}</button></div>`;}
   else ha.innerHTML=`<p class="svhint">${Object.keys(cg).length?"Tap a square to see what it is and sell or jettison it.":"The hold is empty. Squares are one ton each."} ${Math.round(used)} of ${cap2} tons used.</p>`;
@@ -6773,8 +7174,16 @@ $("cbBtn").onclick=()=>{const c=$("compassBox"),o=c.classList.toggle("collapsed"
   document.addEventListener("click",e=>{if(!mp.hidden&&!e.target.closest(".menuwrap"))shut();});
   window.addEventListener("keydown",e=>{if(e.key==="Escape")shut();}); }
 { const cp=$("cheatPop"),mpw=$("menuPop");
-  $("bCheat").onclick=()=>{cp.hidden=false;};
+  $("bCheat").onclick=e=>{e.stopPropagation();cp.hidden=false;};
+  $("cheatX").onclick=e=>{e.stopPropagation();cp.hidden=true;};
   document.addEventListener("click",e=>{if(!cp.hidden&&!e.target.closest("#cheatPop,#bCheat"))cp.hidden=true;});
+  let chLoad=10;const chG=$("chGood");chG.innerHTML=Object.keys(GOODS).map(g=>`<option value="${g}">${GOODS[g].n}</option>`).join("");
+  $("chFish").oninput=e=>{FISHX=+e.target.value;$("chFishV").textContent=FISHX;};
+  $("chEv").oninput=e=>{EVFREQ=+e.target.value;$("chEvV").textContent=EVFREQ===0?"off":EVFREQ===1?"natural":EVFREQ+"× as often";if(S&&S.evNext!=null)S.evNext=Math.min(S.evNext,S.t+evNextGap());};
+  $("chEvGo").onclick=e=>{e.stopPropagation();const s=S;if(!s||s.done){say("Start a voyage first.",{log:false});return;}evTrigger(s,$("chEvSel").value);cp.hidden=true;};
+  $("chLX").oninput=e=>{LOADX=Math.pow(10,(+e.target.value-50)/50*1.3);$("chLXV").textContent=LOADX<1?LOADX.toFixed(2):LOADX.toFixed(1);try{tradeUI(true);}catch(_){}};
+  $("chLoad").oninput=e=>{chLoad=+e.target.value;$("chLoadV").textContent=chLoad;};
+  $("chAdd").onclick=e=>{e.stopPropagation();const s=S;if(!s||s.done){say("Start a voyage first.",{log:false});return;}mkInit(s);const g=chG.value,n=Math.min(chLoad,Math.floor(unitsFit(s,g)));if(n<1){say("The hold is full.",{log:false});return;}const c=s.cargo[g]||(s.cargo[g]={n:0,cost:0});c.n+=n;c.cost+=n*GOODS[g].p;say(`Cheat: ${n} ${GOODS[g].n} added to the hold.`,{log:false});try{tradeUI(true);}catch(_){}};
   cp.addEventListener("click",e=>{const b=e.target.closest("button[data-cheat]");if(!b)return;e.stopPropagation();const s=S;if(!s||s.done){say("Start a voyage first.",{log:false});return;}
     const k=b.dataset.cheat;
     if(k==="money"){s.purse+=20000;say("Cheat: £1,000 added to the purse.",{log:false});}
@@ -6783,6 +7192,9 @@ $("cbBtn").onclick=()=>{const c=$("compassBox"),o=c.classList.toggle("collapsed"
     else if(k==="ships"){s.cheatShips=true;say(s.career?"Cheat: every ship is yours for nothing at the shipyard.":"Cheat set: ships are free in Career mode.",{log:false});}
     try{updateUI(true);tradeUI(true);careerUI(true);svBill();}catch(x){} cp.hidden=true;});
   }
+{const dh=document.querySelector(".dock-all .dockhead");if(dh&&!document.getElementById("loadPct")){const d=document.createElement("div");d.id="loadPct";d.className="svhint";d.hidden=true;dh.insertAdjacentElement("afterend",d);}}
+{const el=$("chTr");if(el){el.value=String(TRAFDENS);$("chTrV").textContent=trafLabel(TRAFDENS);
+  el.oninput=e=>{TRAFDENS=+e.target.value;TRAFMEMO=null;$("chTrV").textContent=trafLabel(TRAFDENS);try{localStorage.setItem("drTraf",String(TRAFDENS));}catch(x){}};}}
 $("bookBtn").onclick=()=>{const bx=$("bookBox"),o=!bx.classList.contains("open");bx.classList.toggle("open",o);$("bookBtn").setAttribute("aria-expanded",String(o));$("bookBtn").classList.remove("attn");setTimeout(()=>{resize();resize3D();},0);};
 {const dk=document.querySelector(".dock-all"),ci=document.createElement("button");ci.type="button";ci.id="ctlIcon";ci.className="tbicon";ci.title="Ship controls: helm, sails, log";ci.setAttribute("aria-label","Ship controls");ci.innerHTML=document.querySelector(".dockhead b.dh svg").outerHTML;document.body.append(ci);
   const sync=()=>ci.setAttribute("aria-pressed",String(!dk.classList.contains("collapsed")));sync();new MutationObserver(sync).observe(dk,{attributes:true,attributeFilter:["class"]});
@@ -6915,7 +7327,7 @@ $("bVoy").onclick=()=>{$("ovStart").hidden=false;modalOpen=true;};
   const bb=document.createElement("button");bb.className="btn sm ico";bb.id="bBrg";bb.title="Take bearings of the land in sight";bb.setAttribute("aria-label","Take bearing");
   bb.innerHTML='<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5v3M12 17.5v3M3.5 12h3M17.5 12h3"/><path d="M12 12l4.5-6"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg>';
   bb.onclick=takeBearings;
-  ft.append(bb,$("bDrop"),$("bFish"),hb,$("logbox"));$("bHeave").hidden=true;$("bHeave").style.display="none"; // the heave button now sits between anchor and fishing; the old one stays hidden as the state holder
+  const aw=document.createElement("span");aw.className="anchwrap";const ap=document.createElement("span");ap.id="anchPct";aw.append($("bDrop"),ap);ft.append(bb,aw,$("bFish"),hb,$("logbox"));$("bHeave").hidden=true;$("bHeave").style.display="none"; // the heave button now sits between anchor and fishing; the old one stays hidden as the state holder
   $("cL5").hidden=$("cR5").hidden=true; // the 5° buttons are gone; A and D still turn her
   $("logbox").style.cssText+=";flex:1;min-width:0;padding:0 4px;gap:6px;border:0;justify-content:center;";} // the log-heaving panel opens under the compass // anchor and fishing sit at the bottom left and right of the compass
 {const cl=document.createElement("div");cl.className="chartlog";cl.hidden=true;$("paneChart").append(cl);const lb=$("logbox"),home=lb.parentNode;
@@ -7077,8 +7489,8 @@ const SCN_MECH=[
   readouts:[["Current",s=>CURRENT.drift.toFixed(2)+" kn towards "+Math.round((CURRENT.set+180)%360)+"°"],
    ["Tide at nearest port",s=>{try{const p=portsNear(s);return p.name+" "+tideLvl(p.k,s.t).toFixed(2)+" m"}catch(e){return "—"}}]]},
  {id:"fishing",name:"Fishing",
-  dials:[{k:"fish",label:"Fish",start:true,opts:()=>[["normal","Natural patches"],["rich","School beside the ship"],["none","None"]],def:"normal"}],
-  apply(s,g,starting){if(!starting)return;const f=g("fish");if(f==="rich")scnSchool(s,"bonito");else if(f==="none"){s.fish=[];s.grounds=[];}},
+  dials:[{k:"fish",label:"Fish",start:true,opts:()=>[["normal","Natural patches"],["rich","School beside the ship"],["none","None"]],def:"normal"},{k:"fishx",label:"Fishing rate (cheat)",live:true,opts:()=>[["500","Normal (500×)"],["1500","Fast"],["5000","Very fast"],["50","Slow"]],def:"500"}],
+  apply(s,g,starting){FISHX=+g("fishx");if(!starting)return;const f=g("fish");if(f==="rich")scnSchool(s,"bonito");else if(f==="none"){s.fish=[];s.grounds=[];}},
   triggers:[["Bonito school",s=>scnSchool(s,"bonito")],["Tuna school",s=>scnSchool(s,"tuna")],["Dolphinfish school",s=>scnSchool(s,"dolphinfish")],["Lines out / in",()=>toggleFish()]],
   readouts:[["Lines",s=>s.fishing?"out":"in"],["Nearest school",s=>{let b=null;for(const f of s.fish||[]){const d=Math.hypot(f.x-s.ship.x,f.y-s.ship.y);if(!b||d<b.d)b={d,k:f.kind};}return b?b.k+", "+b.d.toFixed(1)+" nm":"none"}],
    ["Fish in stores",s=>String(Math.round(s.stores.fish||0))]]},
@@ -7088,6 +7500,13 @@ const SCN_MECH=[
   triggers:[["Pirate sloop gives chase",s=>scnPirate(s,"chase")],["Pirate sloop prowling",s=>scnPirate(s,"prowl")],["Clear all pirates",s=>{s.pir=[];}]],
   readouts:[["Pirate sails",s=>{const P=s.pir||[];if(!P.length)return "none";const p=P.reduce((a,b)=>Math.hypot(a.x-s.ship.x,a.y-s.ship.y)<Math.hypot(b.x-s.ship.x,b.y-s.ship.y)?a:b);return P.length+", nearest "+Math.hypot(p.x-s.ship.x,p.y-s.ship.y).toFixed(1)+" nm ("+p.mode+")"}],
    ["Cargo worth",s=>money(cargoValue(s))]]},
+ {id:"traffic",name:"Shipping lanes and traffic",
+  dials:[{k:"dens",label:"Ship traffic",live:true,opts:()=>[["0","None"],["0.5","Sparse"],["1","Normal"],["2","Busy"],["3","Crowded"]],def:"1"}],
+  apply(s,g){TRAFDENS=+g("dens");TRAFMEMO=null;},
+  triggers:[["Sail in astern of a ship",s=>trafGoto(s)]],
+  readouts:[["Ships in 3D range",s=>trafNow(s).filter(i=>i.in3d).length],["Ships on the chart",s=>trafNow(s).length],
+   ["Nearest ship",s=>{const v=trafNow(s);if(!v.length)return "none in sight";const n=v.reduce((a,b)=>a.d<b.d?a:b);return n.ts.kind+", "+n.d.toFixed(1)+" nm"}],
+   ["Lanes",()=>laneInit().map(l=>l.name).join("; ")||"none"]]},
  {id:"crew",name:"Crew and crises",
   dials:[],apply(){},
   triggers:[["Man overboard",()=>scnCrisis("mob")],["Galley fire",()=>scnCrisis("fire")],["Mutiny brewing",()=>scnCrisis("mutiny")],["Crushed hand (surgery)",()=>scnCrisis("hurt")]],
@@ -7097,13 +7516,28 @@ const SCN_MECH=[
  {id:"trade",name:"Trading and cargo",
   dials:[{k:"cargo",label:"Hold at start",start:true,opts:()=>[["none","Empty"],["full","Full of goods"]],def:"none"}],
   apply(s,g,starting){if(starting&&g("cargo")==="full")scnFillHold(s);},
-  triggers:[["Add £1,000",s=>{s.purse+=20000;}],["Fill the hold",s=>scnFillHold(s)],["Empty the hold",s=>{s.cargo={};}]],
+  triggers:[["Add 10 sugar",s=>{mkInit(s);const n=Math.min(10,Math.floor(unitsFit(s,"sugar")));if(n>=1){const c=s.cargo.sugar||(s.cargo.sugar={n:0,cost:0});c.n+=n;c.cost+=n*GOODS.sugar.p;}}],["Add £1,000",s=>{s.purse+=20000;}],["Fill the hold",s=>scnFillHold(s)],["Empty the hold",s=>{s.cargo={};}]],
   readouts:[["Purse",s=>money(s.purse)],["Hold",s=>holdUsed(s).toFixed(1)+" / "+holdCap()+" t"],["Cargo worth",s=>money(cargoValue(s))]]},
+ {id:"loading",name:"Quay loading (brig)",
+  dials:[],
+  triggers:[["Put 10 t on the quay",s=>{mkInit(s);const q=s.quay||(s.quay={}),c=q.flour||(q.flour={n:0,cost:0});c.n+=Math.min(100,Math.max(0,Math.floor((holdCap()-holdUsed(s))/GOODS.flour.t)));c.cost+=c.n*GOODS.flour.p;}],["Start loading",s=>{if(quayTons(s)){s.loading=true;s.loadTotal=quayTons(s);}}],["Clear quay",s=>{s.quay={};s.loading=false;}]],
+  readouts:[["On quay",s=>quayTons(s).toFixed(1)+" t"],["Loaded",s=>holdLoaded(s).toFixed(1)+" t"],["Loading",s=>s.loading?"yes, "+loadMinutes(s)+" min left":"no"]]},
  {id:"navigation",name:"Navigation",
   dials:[{k:"dr",label:"Chart shows",live:true,opts:()=>[["true","True position"],["dr","Reckoning only"]],def:"true"}],
   apply(s,g){const lost=g("dr")==="dr";$("aDR").checked=lost;s.mode=lost?"lost":"trial";},
   triggers:[],
   readouts:[["Reckoning error",s=>Math.hypot(s.est.x-s.ship.x,s.est.y-s.ship.y).toFixed(1)+" nm"],["Log heaves / fixes",s=>(s.heaves||0)+" / "+(s.fixes||0)],["Water under keel (chart)",s=>{const f=depthAt(s.ship.x,s.ship.y);return f==null?"-":f<=0?"aground (land)":Math.round(f)+" m";}]]},
+ {id:"events",name:"Sea events",
+  dials:[{k:"start",label:"Start with",start:true,opts:()=>[["none","Nothing in sight"],["derelict","A drifting derelict ahead"],["castaway","A marooned castaway ahead"],["squall","A violent squall ahead"]],def:"none"},
+   {k:"freq",label:"Event frequency",live:true,opts:()=>[["1","Natural"],["4","Often"],["12","Very often"],["0","Never"]],def:"1"}],
+  apply(s,g,starting){EVFREQ=+g("freq");if(starting){s.ev=[];const k=g("start");if(k&&k!=="none")evSpawn(s,k,true);}},
+  triggers:[["Drifting derelict",s=>evTrigger(s,"derelict")],["Marooned castaway",s=>evTrigger(s,"castaway")],["Violent squall",s=>evTrigger(s,"squall")],["Clear all events",s=>{s.ev=[];}]],
+  readouts:[["Events about",s=>{const E=s.ev||[];if(!E.length)return "none";const e=E.reduce((a,b)=>Math.hypot(a.x-s.ship.x,a.y-s.ship.y)<Math.hypot(b.x-s.ship.x,b.y-s.ship.y)?a:b);return E.length+", nearest "+EV_DEFS[e.id].name.toLowerCase()+" "+Math.hypot(e.x-s.ship.x,e.y-s.ship.y).toFixed(1)+" nm"}],["Next event in",s=>EVFREQ>0&&s.evNext!=null?Math.max(0,s.evNext-s.t).toFixed(0)+" h":"never"]]},
+ {id:"harbour",name:"Harbour traffic",
+  dials:[{k:"dens",label:"Ships in port",live:true,opts:()=>[["0","None"],["0.45","Light"],["1","Normal"],["1.7","Busy"]],def:"1"}],
+  apply(s,g,starting){HARBOURK=+g("dens");},
+  triggers:[],
+  readouts:[["Ships in the nearest port",s=>harbourReadout(s)]]},
  {id:"damage",name:"Hull and rigging",
   dials:[{k:"hull",label:"Hull at start",start:true,opts:()=>[["1","Sound"],["0.7","Damaged"],["0.4","Badly damaged"]],def:"1"}],
   apply(s,g,starting){if(starting)s.hull=+g("hull");},
@@ -7112,6 +7546,9 @@ const SCN_MECH=[
 ];
 const SCN_PRESETS=[
  {id:"fishing",name:"Fishing",desc:"Calm, at sea, a school beside the ship. No pirates.",set:{"setup.place":"leeward","weather.wind":"12","weather.sky":"fair","weather.sea":"slight","fishing.fish":"rich","pirates.pir":"0"}},
+ {id:"evderelict",name:"Derelict",desc:"A drifting wreck ahead, at sea.",set:{"setup.place":"leeward","setup.hour":9,"events.start":"derelict","events.freq":"0","weather.wind":"12","weather.sky":"fair","pirates.pir":"0"}},
+ {id:"evcastaway",name:"Castaway",desc:"A marooned castaway ahead, at sea.",set:{"setup.place":"leeward","setup.hour":9,"events.start":"castaway","events.freq":"0","weather.wind":"12","weather.sky":"fair","pirates.pir":"0"}},
+ {id:"evsquall",name:"Squall",desc:"A violent squall bearing down, at sea.",set:{"setup.place":"leeward","setup.hour":9,"events.start":"squall","events.freq":"0","weather.wind":"12","weather.sky":"fair","pirates.pir":"0"}},
  {id:"pirates",name:"Pirates",desc:"A full hold at sea and pirates about.",set:{"setup.place":"leeward","trade.cargo":"full","pirates.pir":"4","weather.wind":"18","weather.sky":"clear","weather.sea":"moderate"}},
  {id:"storm",name:"Storm",desc:"A gale and a high sea, at sea.",set:{"setup.place":"leeward","weather.wind":"34","weather.dir":"45","weather.sea":"high","weather.sky":"storm","pirates.pir":"0"}},
  {id:"trading",name:"Trading",desc:"Docked at Bridgetown with money to spend.",set:{"setup.place":"bridgetown","setup.purse":400,"setup.hour":9,"weather.wind":"12","pirates.pir":"1"}},
@@ -7221,7 +7658,7 @@ requestAnimationFrame(frame);
 // test hook
 // ---- the oars: a button by the anchor, a stroke column beside the compass, and an Oars section under the Helm ----
 const OAR_SVG='<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4l11 11"/><path d="M14 14.2c1.6-1.4 3.9-1 5.3.6l1.4 1.7c.9 1.1.5 2.9-1 3.8-1.4.8-3.2.4-3.9-.8l-1.2-2c-.7-1.2-.9-2.3-.6-3.3z" fill="currentColor" fill-opacity=".35"/><path d="M3 10.5l7.5-7.5" stroke-width="1.2"/></svg>';
-{ const ob=document.createElement("button");ob.type="button";ob.className="btn sm ico";ob.id="bOars";ob.innerHTML=OAR_SVG;ob.onclick=()=>toggleOars();$("bDrop").after(ob);
+{ const ob=document.createElement("button");ob.type="button";ob.className="btn sm ico";ob.id="bOars";ob.innerHTML=OAR_SVG;ob.onclick=()=>toggleOars();($("bDrop").closest(".anchwrap")||$("bDrop")).after(ob);
   const col=document.createElement("div");col.className="steps5 oarcol";col.id="oarSteps";col.setAttribute("role","group");col.setAttribute("aria-label","Stroke");col.hidden=true;
   [5,4,3,2,1,0].forEach(i=>{const b=document.createElement("button");b.type="button";b.className="btn sm";b.dataset.st=i;b.textContent=["‹","■","›","››","›››","››››"][i];b.title=STROKES[i].n;b.setAttribute("aria-label",STROKES[i].n);b.onclick=()=>setStroke(i);col.append(b);});
   $("sailSteps5").after(col);
@@ -7539,11 +7976,11 @@ const LAYOUT={constitution:1,
  cutter:{decks:[
   {name:"Deck",y:"deck",ic:0,rooms:[["tiller",0,.16,"Tiller","A long tiller over the counter",{main:1}],["swivels",.16,.42,"Saluting guns","Three small guns a side, for the fleet's salutes",{n:3}],["hatch",.42,.6,"Companion","Skylight and the ladder below"],["windlass",.78,.95,"Windlass","Heaves the cable and the running bowsprit"]]},
   {name:"Below",y:-1.0,ic:2,rooms:[["lazarette",0,.17,"Lazarette","Spare gear in the run of the stern"],["cabin",.17,.55,"Owner's cabin","Cot, table and the owner's charts",{main:1}],["saloon",.55,.78,"Saloon","Table, settees and the pantry"],[["chests","galley"],.78,1,"Fo'c'sle","Berths for ten and a little stove",{act:["clean","Scrub out the fo'c'sle and air the bedding","Turn out all hands for a sail change in a minute","Let the hands sing round the stove","Light the stove in a seaway"]}]]},
-  {name:"Hold",y:-1.55,ic:4,rooms:[["water",0,.55,"Water casks","A low tier under the cabin sole",{main:1}],["ballast",.55,1,"Ballast","Iron pigs to keep her on her feet"]]}]},
+  {name:"Hold",y:-1.55,ic:4,rooms:[[["water","cargo"],0,.55,"Casks & cargo","Water under the cabin sole, and room for goods",{main:1}],["ballast",.55,1,"Ballast","Iron pigs to keep her on her feet"]]}]},
  sultana:{decks:[
   {name:"Deck",y:"deck",ic:0,rooms:[["tiller",0,.18,"Tiller","On the little quarterdeck",{up:1,main:1}],["swivels",.18,.58,"Swivel guns","Eight half-pounders on the rails",{n:4}],[["boat","hatch"],.58,.78,"Boat & hatch","The yawl chocked over the main hatch"],["windlass",.84,.98,"Windlass","Heaves the anchor"]]},
   {name:"Below",y:-.5,ic:2,rooms:[["cabin",0,.2,"Captain's cabin","Lieutenant Inglis's table and cot",{stern:1}],["bunks",.2,.32,"Mates","Two berths and a locker"],["cable",.32,.7,"Hold & stores","Cable, casks and spare canvas"],[["hammocks","galley"],.7,1,"Crew","Twenty-five men forward of the mast, and the stove",{main:1}]]},
-  {name:"Hold",y:-1.35,ic:4,rooms:[[["bread","powder"],0,.3,"Bread & powder","Biscuit and a few kegs, kept dry"],[["water","ballast"],.3,1,"Water & ballast","Casks on a bed of shingle",{main:1}]]}]},
+  {name:"Hold",y:-1.35,ic:4,rooms:[[["bread","powder"],0,.3,"Bread & powder","Biscuit and a few kegs, kept dry"],[["water","cargo","ballast"],.3,1,"Water, cargo & ballast","Casks on a bed of shingle, and room for goods",{main:1}]]}]},
  brig:{decks:[
   {name:"Upper deck",y:"deck",ic:0,rooms:[["cabin",0,.28,"Great cabin","Under the quarterdeck, the stern windows",{stern:1}],["wheel",.15,.27,"Wheel","On the quarterdeck",{up:1}],["guns",.3,.74,"Carriage guns","Four a side through the ports",{n:4,gs:.75,main:1}],[["boat","hatch"],.42,.62,"Longboat & hatch","The boat chocked over the main hatch"],[["windlass","chests"],.8,1,"Fo'c'sle","The windlass and the hands' chests"]]},
   {name:"'Tween deck",y:.3,ic:2,rooms:[["bread",0,.13,"Bread room","Biscuit in lined lockers"],["bunks",.13,.3,"Steerage","The mate and the bosun"],[["hammocks","mess"],.3,.75,"Mess deck","Hammocks and mess tables",{main:1}],["galley",.75,.88,"Galley","Brick stove and copper"],["store",.88,1,"Boatswain","Rope, blocks and paint"]]},
@@ -7551,7 +7988,7 @@ const LAYOUT={constitution:1,
  caroline:{decks:[
   {name:"Upper deck",y:"deck",ic:0,rooms:[["state",0,.27,"State rooms","The King's day cabin under the quarterdeck",{stern:1,main:1}],["wheel",.17,.27,"Wheel","On the quarterdeck",{up:1}],["guns",.3,.74,"4-pounders","Five a side, for salutes",{n:5,gs:.6}],["boat",.45,.62,"Barge","The royal barge on the booms"],["galley",.82,1,"Galley","Under the forecastle"]]},
   {name:"Lower deck",y:-.4,ic:2,rooms:[["state",0,.25,"Royal bedchamber","The King's bed under a canopy",{stern:1}],[["bunks","mess"],.25,.5,"Wardroom","Officers' cabins round a table"],[["hammocks","mess"],.5,.8,"Crew","Seventy men in hammocks",{main:1}],["store",.8,1,"Stores","Boatswain's and carpenter's gear"]]},
-  {name:"Hold",y:-2.4,ic:4,rooms:[[["bread","powder"],0,.25,"Bread & powder","Biscuit and the saluting powder"],[["water","pump"],.25,1,"Water & beer","Casks for the voyage, and the pump",{main:1}]]}]},
+  {name:"Hold",y:-2.4,ic:4,rooms:[[["bread","powder"],0,.25,"Bread & powder","Biscuit and the saluting powder"],[["water","cargo","pump"],.25,1,"Water, beer & cargo","Casks for the voyage, the pump, and room for goods",{main:1}]]}]},
  endeavour:{decks:[
   {name:"Upper deck",y:"deck",ic:0,rooms:[["nat",0,.24,"Great cabin","Cook and Banks: charts, books and specimens",{stern:1,main:1}],["wheel",.15,.24,"Wheel","On the quarterdeck",{up:1}],["guns",.3,.72,"4-pounders","Five a side",{n:5,gs:.55}],["boat",.42,.6,"Pinnace & longboat","Nested on the booms"],["windlass",.84,1,"Windlass","A collier's windlass for the bower"]]},
   {name:"Lower deck",y:.3,ic:2,rooms:[["bunks",0,.12,"Officers","Lieutenants' and master's cabins"],["bunks",.12,.24,"Gunroom","Midshipmen and gentlemen"],[["hammocks","mess"],.24,.8,"Mess deck","Ninety-four people in a collier's hold",{main:1}],[["galley","store"],.8,1,"Galley & boatswain","The stove and the bosun's store"]]},
@@ -7559,7 +7996,7 @@ const LAYOUT={constitution:1,
  xebec:{decks:[
   {name:"Upper deck",y:"deck",ic:0,rooms:[["tiller",0,.12,"Tiller","Steered from the poop grating",{main:1}],["guns",.14,.82,"Guns","Eight a side through the ports",{n:8,gs:.6,main:1}],["hatch",.4,.5,"Main hatch","Down to the rowing deck"],["windlass",.86,1,"Windlass","Heaves the anchor"]]},
   {name:"Rowing deck",y:-.2,ic:1,rooms:[["cabin",0,.15,"Captain's cabin","Low, under the poop",{stern:1}],["benches",.15,.85,"Rowing benches","Fourteen sweeps a side",{n:14,main:1}],[["store","galley"],.85,1,"Stores & galley","Gear and the cook's fire"]]},
-  {name:"Hold",y:-1.7,ic:4,rooms:[["powder",0,.2,"Powder","Kegs behind a copper screen"],[["water","shot"],.2,1,"Water, biscuit & shot","Casks and the shot locker",{main:1}]]}]},
+  {name:"Hold",y:-1.7,ic:4,rooms:[["powder",0,.2,"Powder","Kegs behind a copper screen"],[["water","cargo","shot"],.2,1,"Water, cargo & shot","Casks, the shot locker, and room for goods",{main:1}]]}]},
  gotheborg:{decks:[
   {name:"Upper deck",y:"deck",ic:0,rooms:[["cabin",0,.13,"Roundhouse","The captain's cabin under the poop",{stern:1}],["saloon",.13,.3,"Great cabin","The supercargoes' table",{main:1}],["wheel",.24,.31,"Wheel","On the quarterdeck",{up:1}],["capstan",.36,.43,"Capstan","Heaves the bower"],[["boat","hatch"],.46,.64,"Longboat","Over the main hatch"],["galley",.8,1,"Cook room","Under the forecastle"]]},
   {name:"Gun deck",y:.8,ic:1,rooms:[["bunks",0,.2,"Officers & passengers","Cabins along the sides",{stern:1}],[["guns","hammocks"],.2,.78,"Guns & crew","Eleven guns a side; 144 men sling between them",{n:9,gs:.9,main:1}],["sails",.78,1,"Sail room","Spare canvas for the long passage"]]},
@@ -7571,7 +8008,7 @@ const LAYOUT={constitution:1,
   {name:"Middle gun deck",y:4.4,ic:1,rooms:[["bunks",0,.14,"Wardroom","Officers' cabins"],[["guns","hammocks"],.14,.86,"24-pounders","Sixteen a side",{n:12,gs:1.1,main:1}],["galley",.86,1,"Galley","Stoves for 1,050 men"]]},
   {name:"Lower gun deck",y:2.3,ic:1,rooms:[["bunks",0,.1,"Gunroom","Gunner and the young officers"],[["guns","hammocks","mess"],.1,.92,"36-pounders","Fifteen a side, the heaviest guns afloat",{n:13,gs:1.2,main:1}],["manger",.92,1,"Manger","Bulkhead and scuppers at the hawse"]]},
   {name:"Orlop",y:-.2,ic:3,rooms:[["bread",0,.14,"Bread room","Biscuit in lined lockers"],["powder",.14,.24,"Magazine","Copper-lined"],["cable",.24,.6,"Cable tier","Cables and stores",{main:1}],["sick",.6,.8,"Surgeon","The cockpit and cots"],["powder",.8,.9,"Fore magazine","Powder for the forward guns"],["store",.9,1,"Boatswain","Rope, blocks and paint"]]},
-  {name:"Hold",y:-6.3,ic:4,rooms:[["water",0,.55,"Water casks","Water for 1,050 men",{main:1}],["shot",.55,.7,"Shot locker","Round shot in racks"],[["ballast","pump"],.7,1,"Ballast","Iron pigs, shingle and the pumps"]]}]}};
+  {name:"Hold",y:-6.3,ic:4,rooms:[[["water","cargo"],0,.55,"Water & cargo","Water for 1,050 men, and room for goods",{main:1}],["shot",.55,.7,"Shot locker","Round shot in racks"],[["ballast","pump"],.7,1,"Ballast","Iron pigs, shingle and the pumps"]]}]}};
 function prepLayout(id){
   if(id==="constitution")return{decks:DECKS.map((d,i)=>Object.assign({ic:i,y:[0,YG,YB,YO,YH][i]},d)),act:ACT,tags:TAGS,wet:[0,0,0,1,1]};
   const X=LAYOUT[id],s=Math.max(.3,SK),decks=[],act=[],tags=[],bands=[],lz=[],kx={},duty=[];
@@ -7593,8 +8030,22 @@ function level(y){const a=[zA(y)+.35,zF(y)-.6];a.zs=a[0];a.ze=a[1];return a;}
 function bandify(m){const bu={value:new THREE.Vector3(0,0,0)};m.userData.bu=bu;m.onBeforeCompile=sh=>{sh.uniforms.uBand=bu;
   sh.vertexShader="varying float vBz;\n"+sh.vertexShader.replace("#include <begin_vertex>","#include <begin_vertex>\nvBz=position.z;");
   sh.fragmentShader="varying float vBz;uniform vec3 uBand;\n"+sh.fragmentShader.replace("#include <dithering_fragment>","#include <dithering_fragment>\nif(uBand.z>.5&&(vBz<uBand.x||vBz>uBand.y))gl_FragColor.a*=.2;");};}
+/* what she carries: a signature to rebuild the hold when her cargo changes, and the list of goods with tonnage */
+function cargoList(){try{const c=S&&S.cargo,o=[];if(c&&typeof GOODS!=="undefined")for(const g in c){const n=c[g]&&c[g].n;if(n>0&&GOODS[g])o.push([g,n,n*GOODS[g].t]);}return o;}catch(e){return[];}}
+function cargoSig(){return cargoList().map(a=>a[0]+Math.ceil(a[1])).join(",")+"|"+(SPc?SPc.id:"");}
+M.cgUpdate=function(force){const sl=M.cgSlots;if(!M.built||!sl||!M.cgG)return;const L=cargoList(),sig=L.map(a=>a[0]+Math.ceil(a[1])).join(",")+"|"+(SPc?SPc.id:"");
+  if(!force&&sig===M.cgSig)return;M.cgSig=sig;let cnt=0;const gs=[M.cgG];if(M.G2&&M.G2.children){const c2=M.G2.children.find(o=>o.name==="holdcargo");if(c2)gs.push(c2);}
+  const kind=new Array(sl.length).fill(null);
+  if(L.length&&sl.length){const used=L.reduce((a,e)=>a+e[2],0),cap=Math.max(.1,typeof CARGOT!=="undefined"&&CARGOT[SPc.id]||40),fill=Math.min(1,used/cap);
+    const total=Math.max(1,Math.min(sl.length,L.reduce((a,e)=>a+Math.ceil(e[1]-1e-6),0)));L.sort((a,b)=>b[2]-a[2]);const al=L.map(e=>Math.max(1,Math.floor(total*e[2]/used)));
+    let sum=al.reduce((a,b)=>a+b,0);for(let i=0;sum<total;i=(i+1)%al.length){al[i]++;sum++;}
+    while(sum>total){let m=0;for(let i=1;i<al.length;i++)if(al[i]>al[m])m=i;if(al[m]<=1)break;al[m]--;sum--;}
+    let si=0;L.forEach((e,i)=>{for(let n=0;n<al[i]&&si<sl.length;n++,si++)kind[si]=e[0];});}
+  for(const g of gs)g.children.forEach((m,i)=>{const k=kind[i];m.userData.on=!!k;if(k)m.userData.mesh.material=__crate.mat(k);});
+  M.cgShow();};
+M.cgShow=function(){for(const g of[M.cgG,M.G2&&M.G2.children&&M.G2.children.find(o=>o.name==="holdcargo")])if(g)for(const m of g.children){const v=!!m.userData.on&&(M.sel<0||m.userData.lv===M.sel);if(m.visible!==v)m.visible=v;}};
 function build(R){
-  if(!R.bob||!LAYOUT[R.shipId])return;if(M.built&&M.bob===R.bob)return;if(M.built)teardown();
+  if(!R.bob||!LAYOUT[R.shipId])return;const cgSig=cargoSig();if(M.built&&M.bob===R.bob)return;if(M.built)teardown();M.cg=cgSig;
   M.built=true;M.bob=R.bob;useLines(R.shipId);M.L=prepLayout(R.shipId);const NL=M.L.decks.length;
   const G=new THREE.Group();G.name="cutaway";R.bob.add(G);M.G=G;
   const pen=new THREE.LineBasicMaterial({color:0x2e2519,transparent:true,opacity:.7});M.pen=pen;
@@ -7624,7 +8075,7 @@ function build(R){
     const top=[],bot=[];for(let i=0;i<n;i++){top.push([C[i*6],C[i*6+1],C[i*6+2]]);bot.push([C[i*6+3],C[i*6+4],C[i*6+5]]);}
     for(let i=0;i<n-1;i++){LN(top[i],top[i+1]);LN(bot[i],bot[i+1]);}LN(top[0],bot[0]);LN(top[n-1],bot[n-1]);};
   const edgeStrip=(fy,t,z0,z1)=>{const C=[];let n=0;for(let z=z0;z<=z1+1e-6;z+=.6){C.push(0,fy(z),z,0,fy(z)-t,z);n++;}cutFace(C,n);};
-  const deckM=R.deckMat;
+  const deckM=R.deckMat;const CSLOT=[];
   if(SPc.id!=="constitution")genBuild();else{
   LV=0;edgeStrip(deck,.3,zA(deck(-20))+.4,zF(deck(20))-1.4);
   { const P=[],I=[];let n=0;for(let z=zA(deck(-20))+.4;z<=zF(deck(20))-1.4;z+=.5){const y=deck(z)+.04,w=wd(z,y-.05,.15);if(w<.4)continue;P.push(0,y,z,-w,y,z);if(n>0){const a=(n-1)*2;I.push(a,a+1,a+2,a+1,a+3,a+2);}n++;LN([0,y+.01,z],[-w,y+.01,z]);}
@@ -7708,7 +8159,7 @@ function build(R){
   /* ---- HOLD ---- */
   LV=4;
   { const[z0,z1]=level(YH+1);const nz=Math.floor((z1-z0-6)/.95);
-    for(let k=0;k<nz;k++){const z=z0+3+k*.95;if(Math.abs(z-3)<1.4)continue;for(const x of[-.55,-1.55,-2.55,-3.55]){if(hx(z,YH+.7)<-x+.5)continue;Cy(x,YH+.55,z,.46,.9,0xc99a5a,{ax:"z",seg:10});if(k%2===0&&x>-3)Cy(x-.5,YH+1.45,z+.45,.42,.85,0xd6a965,{ax:"z",seg:10});}}
+    for(let k=0;k<nz;k++){const z=z0+3+k*.95;if(Math.abs(z-3)<1.4)continue;for(const x of[-.55,-1.55,-2.55,-3.55]){if(hx(z,YH+.7)<-x+.5)continue;CSLOT.push([x,YH+.02,z,.9,LV]);if(k%2===0&&x>-3)CSLOT.push([x-.5,YH+.92,z+.45,.85,LV]);}}
     for(let k=0;k<12;k++)B(-.2,.2,YH,YH+.3,z0+3+k*.9,z0+3.7+k*.9,0x5b5a58,false);
     for(let k=0;k<8;k++){const z=-2+k*.9;B(-4.3,-3.2,YH,YH+.35,z,z+.75,0x6a6864);}
     { const g=new THREE.SphereGeometry(1,16,9,0,2*PI,0,PI/2);g.scale(1.6,.6,5);g.translate(-1.2,YH,-13.5);const ng=g.toNonIndexed();ng.computeVertexNormals();const c=paint(ng,0xaaa491),p=ng.attributes.position.array;for(let i=0;i<p.length;i++){AP[LV].push(p[i]);AC[LV].push(c[i]);} }
@@ -7798,7 +8249,7 @@ function build(R){
       const xc=-Math.min(3.0,xs-.8*f);if(xc<-1.9*f-.6)To(xc,y+.18,c.zc,.7*f,.2*f,0xd6c08f);},
      sails(c){const y=c.f(c.zc),len=c.z1-c.z0-.8,f=Math.max(.5,Math.min(1,c.hh/1.4));if(len<=0)return;
       for(const[x,t]of[[-1.0,0],[-1.75,0],[-2.5,0],[-1.4,1],[-2.15,1]]){if(t&&c.hh<1.2)continue;if(W(c.zc,y+.5)<-x*f+.45)continue;Cy(x*f,y+.35*f+t*.62*f,c.zc,.33*f,len,0xefe6cb,{ax:"z",seg:10,e:false});}},
-     water(c){const y=c.f(c.zc),cs=Math.max(.35,Math.min(1,c.hh/1.15)),r=.46*cs,st=.95*cs,nz=Math.min(90,Math.floor((c.z1-c.z0-.4)/st));
+     water(c){const y=c.f(c.zc),cs=Math.max(.35,Math.min(1,c.hh/1.15)),r=.46*cs,st=.95*cs,nz=Math.min(90,Math.floor(((c.k&&c.k.includes("cargo")?c.z0+(c.z1-c.z0)*.26:c.z1)-c.z0-.4)/st)); // with a cargo space beside them the ship's water casks keep to one end and the rest of the hold is left for the trade goods
       for(let k=0;k<nz;k++){const z=c.z0+.2+st*(k+.5);for(let b=0;b<6;b++){const x=-.55*cs-b*cs;if(hx(z,y+r*1.5)<-x+r*1.1)continue;Cy(x,y+r*1.2,z,r,.9*cs,0xc99a5a,{ax:"z",seg:10});if(c.hh>2.1&&k%2===0&&b<3)Cy(x-.5*cs,y+r*3.1,z+.45*cs,r*.92,.85*cs,0xd6a965,{ax:"z",seg:10});}}},
      shot(c){const y=c.f(c.zc),xs=W(c.zc,y+.5,.2),f=Math.max(.4,Math.min(1,xs/4.2,c.hh/1.2)),x0=-Math.min(4.0*f,xs-.1),x1=x0+1.6*f,len=Math.min(3,c.z1-c.z0-.4);
       B(x0,x1,y,y+.9*f,c.zc-len/2,c.zc+len/2,0x6a6864);for(let a=0;a<Math.floor(len/.45);a++)for(let b=0;b<3;b++)Sp(x0+.3*f+b*.5*f,y+1.05*f,c.zc-len/2+.25+a*.45,.16*f,.16*f,.16*f,0x2e2c2a,false);},
@@ -7807,9 +8258,9 @@ function build(R){
       dome(Math.min(1.6,xs*.4),.55*f,len*.32,-xs*.45,y,c.zc,0xaaa491);
       for(let k=0;k<Math.floor((len-.4)/.9);k++){const z=c.z0+.3+k*.9,x=-Math.min(3.75,W(z,y+.3,.2)*.75);if(x>-1.2*f)continue;B(x-.55*f,x+.55*f,y,y+.35*f,z,z+.75,0x6a6864);}},
      pump(c){const z=c.zc,y=c.f(z),f=Math.max(.5,Math.min(1,s*1.5)),top=deck(z)+.2;Cy(-.4*f,(y+top)/2,z,.2*f,top-y,0xc9962f,{seg:10});},
-     cargo(c){crates(c,[0x8a6234,0xa8763f,0x7a5a3a,0xd9c08f],.9);},
-     tea(c){crates(c,[0x8a5a2b,0x9a6a3b,0xb08040],.6);},
-     china(c){crates(c,[0xd9c9a0,0xcbb88a],.8);const y=c.f(c.zc);for(let k=0;k<4;k++){const z=c.z1-.6-k*.55;if(z<c.z0)break;Cy(-.5,y+.3,z,.22,.6,k%2?0xe8eef2:0x2f5f8a,{seg:10,e:false});}},
+     cargo(c){crates(c,null,.9);},
+     tea(c){crates(c,null,.7);},
+     china(c){crates(c,null,.8);},
      benches(c){const n=c.o.n||8;for(let i=0;i<n;i++){const z=c.z0+(i+.5)*(c.z1-c.z0)/n,y=c.f(z),w=hx(z,y+.6);if(w<1)continue;
         B(-w+.15,-.45,y+.42,y+.5,z-.16,z+.16,0x8c5f33);B(-.6,-.45,y,y+.42,z-.1,z+.1,0x6a4423,false);B(-w+.3,-.6,y,y+.12,z+.45,z+.55,0x6a4423,false);
         Cy(-w*.5-.3,y+.95,z+.3,.045,w*1.25,0xc49a5e,{ax:"x",seg:6,e:false});}},
@@ -7819,8 +8270,8 @@ function build(R){
      lazarette(c){const y=c.f(c.zc),h=Math.max(.3,Math.min(.6,c.hh-.1));for(let k=0;k<3;k++){const z=c.z0+.4+k*(c.z1-c.z0-.8)/2,xw=W(z,y+.4,.2);if(xw<.6)continue;B(-xw,-xw+Math.min(.7,xw-.2),y,y+h,z-.25,z+.25,[0x8a6234,0xd9b46e,0xa8763f][k]);}To(-.6,y+.1,c.zc,.35,.1,0xd6c08f);},
      manger(c){const y=c.f(c.zc),h=Math.min(1.3,c.hh-.1);pz(c.z0,y,h,0xcfa575);Cy(-1.0,y+.6,c.zc,.18,1.2,0x3d342a,{seg:8});To(-Math.min(2.4,W(c.zc,y+.4)-.9),y+.18,c.zc,.7,.16,0xd6c08f);},
      chests(c){const y=c.f(c.zc),n=Math.max(1,Math.floor((c.z1-c.z0)/.9));for(let i=0;i<n;i++){const z=c.z0+.45+i*.9,xw=W(z,y+.4,.2);if(xw<.9)continue;B(-xw,-xw+.65,y,y+.42,z-.3,z+.3,0x6a4423);B(-xw,-xw+.65,y+.42,y+.47,z-.3,z+.3,0x8c5f33,false);}}};
-    function crates(c,cols,sz){const y=c.f(c.zc),t=Math.max(1,Math.min(3,Math.floor((c.hh-.1)/sz))),st=sz*1.08,nz=Math.min(60,Math.floor((c.z1-c.z0-.3)/st));
-      for(let k=0;k<nz;k++){const z=c.z0+.15+st*(k+.5);for(let b=0;b<5;b++){const x=-.6-b*st;if(hx(z,y+sz)<-x+sz*.6)continue;for(let q=0;q<t-(b+k)%2;q++)B(x-sz/2,x+sz/2,y+q*sz,y+(q+1)*sz-.03,z-sz/2,z+sz/2,cols[(k+b+q)%cols.length]);}}}
+    function crates(c,cols,sz){const y=c.f(c.zc),t=Math.max(1,Math.min(3,Math.floor((c.hh-.1)/sz))),st=sz*1.08,zs=c.k&&c.k.includes("water")?c.z0+(c.z1-c.z0)*.3:c.z0,nz=Math.min(60,Math.floor((c.z1-zs-.3)/st));
+      for(let k=0;k<nz;k++){const z=zs+.15+st*(k+.5);for(let b=0;b<5;b++){const x=-.6-b*st;if(hx(z,y+sz)<-x+sz*.6)continue;for(let q=0;q<t-(b+k)%2;q++){if(!cols)CSLOT.push([x,y+q*sz,z,sz,LV]);else B(x-sz/2,x+sz/2,y+q*sz,y+(q+1)*sz-.03,z-sz/2,z+sz/2,cols[(k+b+q)%cols.length]);}}}}
     /* decks: the weather deck, the floors below, the keel and the ribs */
     if(!L.open){LV=0;const za=zA(deck(-LS.Lh))+.4*s,zb=zF(deck(LS.Lh))-1.4*s;edgeStrip(deck,.3*sk,za,zb);
       const P=[],I=[];let n=0;for(let z=za;z<=zb;z+=.5){const y=deck(z)+.04,w=wd(z,y-.05,.15);if(w<.3)continue;P.push(0,y,z,-w,y,z);if(n>0){const a=(n-1)*2;I.push(a,a+1,a+2,a+1,a+3,a+2);}n++;LN([0,y+.01,z],[-w,y+.01,z]);}
@@ -7831,11 +8282,16 @@ function build(R){
     /* rooms */
     L.decks.forEach((d,k)=>{LV=k;d.R.forEach((r,i)=>{const[z0,z1]=L.bands[k][i],zc=(z0+z1)/2,f=z=>floorAt(k,i,z),top=z=>(d.y==="deck"?(r.o.up?LS.deckAt(z)+1.6:LS.deckAt(z)):ceilOf(X,k,z));
       const hh=d.y==="deck"?(r.o.up?2.2:(LS.deckAt(zc)-deck(zc)>.6?LS.deckAt(zc)-deck(zc)-.15:2.2)):ceilOf(X,k,zc)-d.y-.3*sk;
-      const c={z0,z1,zc,f,top,hh,o:r.o,lv:k};for(const kt of r.k)if(KIT[kt])KIT[kt](c);
+      const c={z0,z1,zc,f,top,hh,o:r.o,lv:k,k:r.k};for(const kt of r.k)if(KIT[kt])KIT[kt](c);
       // bulkheads: round the closed rooms below, and at the break of a raised deck
       if(d.y!=="deck"){if(r.k.some(t=>CLOSED.includes(t))){if(i>0)pz(z0,d.y,hh);if(i<d.R.length-1)pz(z1,d.y,hh);}}
       else if(!r.o.up&&LS.deckAt(zc)-deck(zc)>.6){const zb=zc<0?z1:z0,hb=LS.deckAt(zb+(zc<0?-.4:.4))-deck(zb);if(hb>.6)pz(zb,deck(zb),hb-.05,0xcfa575);}});});
   }
+  /* the hold shows what is really aboard: wooden crates sit in the cargo spaces, lowest deck first. They are separate meshes that are
+     simply switched on as goods come aboard (M.cgUpdate), so nothing is rebuilt and the view never moves. */
+  { const sl=CSLOT.slice().sort((a,b)=>b[4]-a[4]),cg=new THREE.Group();cg.name="holdcargo";M.cgSlots=sl;M.cgSig="";
+    sl.forEach((q,i)=>{const sz=q[3]*.9,m=__crate.obj("cotton",M.pen);m.scale.set(sz,sz*.82,sz);m.position.set(q[0],q[1]+sz*.41,q[2]);m.visible=false;m.userData.lv=q[4];m.userData.i=i;cg.add(m);});
+    G.add(cg);M.cgG=cg; }
   /* keep everything on a deck inside her: no prop, plank, cask or stack may poke out through the hull side or up through the deck above (squashed against the wall or ceiling instead) */
   { const skk=Math.max(.15,H.T/6.2);
     const ceil=(k,z)=>k<=0?1e9:(k===1?deck(z):M.L.decks[k-1].y)-.3*skk-.05;
@@ -7850,6 +8306,7 @@ function build(R){
   { const zl=LS.Lh+10*SK,g=new THREE.PlaneGeometry(Math.max(6,36*SK),zl*2+4*SK);g.rotateX(-PI/2);g.translate(6*SK,-H.T-Math.max(.3,1.6*SK),0);const pm=new THREE.Mesh(g,new THREE.MeshBasicMaterial({color:0x6e93a8,fog:false}));pm.frustumCulled=false;R.ship.add(pm);M.seabed=pm; }
   R.renderer.localClippingEnabled=true;
   { const G2=G.clone();G2.scale.x=-1;G2.visible=false;R.bob.add(G2);M.G2=G2; }
+  M.cgUpdate(true);
   M.labels=SPc.id==="constitution"?makeLabels():genLabels();makeFig(R);
 
 }
@@ -7926,6 +8383,7 @@ window.CUTCAM=function(R){
   R.ship.updateMatrixWorld(true);const m=R.bob.matrixWorld;
   _s.set(1,0,0).transformDirection(m);_b.set(0,0,1).transformDirection(m);_c.setFromMatrixPosition(m);
   if(M.flip){_s.negate();_b.negate();}if(M.G)M.G.scale.x=M.flip?-1:1;if(M.G2){M.G2.scale.x=-M.G.scale.x;M.G2.visible=true;}
+  M.cgUpdate();M.cgShow();
   const T=Object.assign({},M.ov||pose(R));{const rc0=R.renderer.domElement.getBoundingClientRect(),cr0=card.getBoundingClientRect(),av=Math.min(rc0.bottom,cr0.top>0?cr0.top:rc0.bottom)-Math.max(rc0.top,88);T.dist*=Math.max(.9,Math.min(2,430/Math.max(200,av)));}{const tk=M.L.decks.length>1&&M.sel>=0?1:0;if(M.sel>=0)M.sk=M.sel;{const ts=M.sel>=0?1:0;M.xs=M.fast?ts:(M.xs||0)+(ts-(M.xs||0))*.1;if(Math.abs(M.xs-ts)<.004)M.xs=ts;}M.xk=M.fast?tk:(M.xk||0)+(tk-(M.xk||0))*.09;if(Math.abs(M.xk-tk)<.004)M.xk=tk;xApply();const sp=M.span||0;T.dist*=1+1.7*sp/(27*FIT);{{const cy=(keelY(0)+deck(0)+2.2*Math.max(.6,SK)+(M.off?M.off[0]:0)*.6)/2;T.ly+=(cy-T.ly);}if(M.sk!=null&&M.sk>=0&&M.xs>0){const dk=M.L.decks[M.sk],yk=(M.sk===0?deck(0)+1.6:dk.y+1.0)+xo(M.sk);T.ly+=(yk-T.ly)*M.xs;}}T.pt=Math.max(T.pt,30);}T.az+=M.uaz;T.pt=Math.max(3,Math.min(85,T.pt+M.upt));T.dist*=M.uz;T.ly+=M.uly;T.lz+=M.pan;if(!M.cur){M.cur={az:-100,pt:14,dist:T.dist*1.7,lx:0,ly:8*FIT/2.4,lz:0};}
   const e=M.fast?1:.045;for(const f of["az","pt","dist","lx","ly","lz"])M.cur[f]+=(T[f]-M.cur[f])*e;
   const c=M.cur,az=c.az*PI/180,pt=c.pt*PI/180;R.camera.fov=FOV;
@@ -8149,6 +8607,7 @@ function leave(){const R=M.R||R3;M.on=false;window.CUTON=false;root.style.displa
 const back=document.createElement("button");back.hidden=true; // no Cutaway button: the Ship icon in the bottom bar goes back
 back.onclick=()=>{M.ledger=false;};window.__cutSheet=()=>!!(M.on&&!M.ledger&&M.sel>=0&&M.hi>=0&&matchMedia("(min-width:0px)").matches);window.__cutLedger=v=>{if(v!==undefined)M.ledger=!!v;return!!M.ledger;};
 function want(){return typeof SV!=="undefined"&&SV.open&&SHIP&&!!LAYOUT[SHIP.id]&&typeof R3!=="undefined"&&R3&&R3.shipId===SHIP.id&&R3.bob;}
+window.__DRHoldRefresh=function(){if(M.built&&M.cgUpdate)M.cgUpdate();};
 function sync(){const w=want(),on=w&&!M.ledger;
   if(!w)M.ledger=false;
   if(on&&!M.on){build(R3);if(M.built)enter();}else if(!on&&M.on)leave();
@@ -8179,7 +8638,7 @@ window.addEventListener("load",()=>setTimeout(boot,400));
 window.__CUT=M;window.__CUTfast=()=>{M.fast=1;};
 })();
 
-window.__DR={exportChart,buildRelief,depthAt,drawChart,camC:cam,hour:()=>S&&!S.done?localHours(S,S.t):null,preview:PV,cam:()=>R3,footAt,PF,portGeom,openPortCard,openPortPlan,tideLvl,tideTable,tideStream,plotFix,LMS,currentAt,landInit,WINDK,CURK,dockAtPort,showCrisis,crisisKind,punish,loadState,packState,decS,toggleOars,setStroke,oarPivot,STROKES,pickShip,get SHIP(){return SHIP},SHIPDEFS,SPEC,useShip,applyShip,crewOf,rigOf,linesOf,get shipPick(){return shipPick},set shipPick(v){shipPick=v},svMove,svCtx,sx,sy,openPortCard,openPortPlan,get R3(){return R3},setMain,update3D,get S(){return S},VOYAGES,PORTS,islands,reefs,LMS,step,startVoyage,setCourse,tackOrWear,setSail,assistStep,noonAvailable,windAt:(x,y,t)=>windAt(S,x,y,t),inPoly,crossFix,plotFix,takeBearing,markNoon,startObserve,noonAvailable,endVoyage,toGeo,geo,atPort:()=>atPort(S),buyStore,sellFish,toggleFish,coastNm,fishStep,tradeBuy,tradeSell,tradeUI,tradeSite,tradeJettison,contractBoard,contractText,contractAccept,contractDeliver,mkInit,holdUsed,marketBlurb,tradeStep,buyNews};
+window.__DR={laneInit,trafNow,trafInit,trafPos,TRAF,get TRAFDENS(){return TRAFDENS},setTraf(v){TRAFDENS=v;TRAFMEMO=null;},exportChart,buildRelief,depthAt,drawChart,camC:cam,hour:()=>S&&!S.done?localHours(S,S.t):null,preview:PV,cam:()=>R3,footAt,PF,portGeom,openPortCard,openPortPlan,tideLvl,tideTable,tideStream,plotFix,LMS,currentAt,landInit,WINDK,CURK,dockAtPort,showCrisis,crisisKind,punish,loadState,packState,decS,toggleOars,setStroke,oarPivot,STROKES,pickShip,get SHIP(){return SHIP},SHIPDEFS,SPEC,useShip,applyShip,crewOf,rigOf,linesOf,get shipPick(){return shipPick},set shipPick(v){shipPick=v},svMove,svCtx,sx,sy,openPortCard,openPortPlan,get R3(){return R3},setMain,update3D,get S(){return S},VOYAGES,PORTS,islands,reefs,LMS,step,startVoyage,setCourse,tackOrWear,setSail,assistStep,noonAvailable,windAt:(x,y,t)=>windAt(S,x,y,t),inPoly,crossFix,plotFix,takeBearing,markNoon,startObserve,noonAvailable,endVoyage,toGeo,geo,atPort:()=>atPort(S),buyStore,sellFish,toggleFish,coastNm,fishStep,tradeBuy,tradeSell,tradeUI,tradeSite,tradeJettison,contractBoard,contractText,contractAccept,contractDeliver,mkInit,holdUsed,marketBlurb,tradeStep,buyNews};
 })();
 </script>
 <style>/* UI Layout Tuner settings (phone), 2026-10-29 */
@@ -8443,4 +8902,74 @@ function ks0(){return Object.keys(L).concat(Object.keys(K));}
 new MutationObserver(()=>window.drUiImgSync()).observe(document.documentElement,{attributes:true,attributeFilter:["data-theme"]});
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",put);else put();
 addEventListener("load",put);[300,1500,4000].forEach(t=>setTimeout(put,t));
-let mo=0;new MutationObserver(()=>{if(mo)return;mo=setTimeout(()=>{mo=0;put();},250);}).observe(document.body||document.documentElement,{childList:true,subtree:true});})();</script></body></html>
+let mo=0;new MutationObserver(()=>{if(mo)return;mo=setTimeout(()=>{mo=0;put();},250);}).observe(document.body||document.documentElement,{childList:true,subtree:true});})();</script><script id="drUiFrmData">window.DR_UI_FRAMES={"v":1,"frames":{"panel":{"url":"data:image/png;base64,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","slice":25.0,"w":16.0,"out":3.0},"sheet":{"url":"data:image/png;base64,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","slice":25.0,"w":18.0,"out":0},"button":{"url":"data:image/png;base64,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","slice":25.0,"w":7.0,"out":0}},"tex":{}};</script><script id="drUiFrmHook">(function(){
+/* UI frames (9-slice border images) and textures (tiled backgrounds), baked from the UI Images dashboard.
+   Code keeps all text and layout: frames are drawn with border-image over the existing border box,
+   textures replace only the background image. Menu > "Frames and textures" turns them off. */
+const D=window.DR_UI_FRAMES||{},F=D.frames||{},T=D.tex||{};
+if(!Object.keys(F).length&&!Object.keys(T).length)return;
+const R=":root:root:root:root ";
+const NOTB=":not(.menupop *):not(.drhas):not(.tbtab):not(#ctlIcon):not(.fsb):not(.tbicon):not(.bookbtn)";
+const BTN=[".btn",".bar .tb",".dock .tb",".card .tb",".svbtns button",".stkh button",".vzbt button",".mapctl button","#cutCard .ra button","#cutCard .jm button","#cutCard .mb button","#cutCard .hp button","#cutCard .jb",".rb","#pvSheet .pvc button"];
+const ONSEL=['[aria-pressed="true"]','.on','.active','[aria-checked="true"]','.hot'];
+/* pressed and primary buttons keep the game's own look unless there is a pressed frame */
+const UNP=ONSEL.concat(['.primary']).map(o=>":not("+o+")").join("");
+const WHERE={
+ panel:[".bookbody",".portcard",".routebar",".compassbox:not(.collapsed):not(.dockbody *)",".chartlog","#camPop","#cutCard:not(.sh)",".skipbar","#skipCount",".dock:not(.dock-all)"],
+ sheet:[".card",".menupop","#pvSheet",".sheet","#cutCard.sh"],
+ button:BTN.map(s=>s+NOTB+UNP),
+ pressed:[].concat(...BTN.map(s=>ONSEL.map(o=>s+NOTB+o)))
+};
+const TWHERE={
+ parchment:[".card",".sheet","#bookBox .panel",".portcard",".dock:not(.dock-all)",".infobar",".routebar",".chartlog",".compassbox:not(.collapsed):not(.dockbody *)","#cutCard","#camPop",".skipbar","#skipCount",".menupop","#pvSheet"],
+ wood:[".bar","#tabbar"],
+ cloth:[".shipv.ledger .sv-side",".shipv.ledger .sheet","#cutCard.sh.ledger"],
+ book:["#bookBox .panel"],
+ menu:[".menupop","#pvSheet"]
+};
+const ON=()=>{try{return localStorage.getItem("drUiFrm.on")!=="0";}catch(e){return true;}};window.drUiFrmOn=ON;
+const isDark=()=>document.documentElement.getAttribute("data-theme")==="dark";
+/* dark theme: same image through invert(.9) + hue-rotate(180deg), the filter the icons use */
+const DK={};
+function darkOf(u){if(DK[u])return DK[u];return DK[u]=new Promise(res=>{const im=new Image();im.onload=()=>{try{const c=document.createElement("canvas");c.width=im.naturalWidth;c.height=im.naturalHeight;const x=c.getContext("2d");x.drawImage(im,0,0);const d=x.getImageData(0,0,c.width,c.height),p=d.data;
+ for(let i=0;i<p.length;i+=4){const r=229.5-.8*p[i],g=229.5-.8*p[i+1],b=229.5-.8*p[i+2];p[i]=-.574*r+1.43*g+.144*b;p[i+1]=.426*r+.43*g+.144*b;p[i+2]=.426*r+1.43*g-.856*b;}
+ x.putImageData(d,0,0);res(c.toDataURL("image/png"));}catch(e){res(u);}};im.onerror=()=>res(u);im.src=u;});}
+const num=(v,d,a,b)=>{v=+v;return isFinite(v)?Math.max(a,Math.min(b,v)):d;};
+const okU=u=>typeof u==="string"&&/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(u);
+async function css(){
+ if(!ON())return "";
+ const dk=isDark();let out="";
+ for(const k of ["parchment","wood","cloth","book","menu"]){const t=T[k];if(!t||!okU(t.url)||!TWHERE[k])continue;
+  const u=dk?await darkOf(t.url):t.url,sz=num(t.size,256,32,1024);
+  out+=TWHERE[k].map(s=>R+s).join(",")+`{background-image:url(${u})!important;background-size:${sz}px ${sz}px!important;background-repeat:repeat!important;background-position:0 0!important;${dk?"background-blend-mode:luminosity!important;":""}}`;}
+ for(const k of ["panel","sheet","button","pressed"]){const f=F[k];if(!f||!okU(f.url)||!WHERE[k])continue;
+  const u=dk?await darkOf(f.url):f.url,sl=num(f.slice,25,1,49),w=num(f.w,14,1,80),o=num(f.out,0,0,40);
+  out+=WHERE[k].map(s=>R+s).join(",")+`{border-style:solid!important;border-image-source:url(${u})!important;border-image-slice:${sl}% fill!important;border-image-width:${w}px!important;border-image-outset:${o}px!important;border-image-repeat:${f.rep==="round"?"round":"stretch"}!important;border-radius:0!important;${k==="button"||k==="pressed"?"background:transparent!important;box-shadow:none!important;color:var(--ink)!important;":""}}`;}
+ return out;}
+let busy=0;
+async function apply(){const my=++busy,t=await css();if(my!==busy)return;let st=document.getElementById("drUiFrmLive");if(!st){st=document.createElement("style");st.id="drUiFrmLive";document.head.append(st);}if(st.textContent!==t)st.textContent=t;}
+window.drUiFrmSync=apply;
+function menu(){const mp=document.getElementById("menuPop");if(!mp||document.getElementById("bUiFrm"))return;const b=document.createElement("button");b.className="tb";b.id="bUiFrm";b.title="Switch between the new frames and textures and the original drawn panels";const lab=()=>{b.textContent="Frames and textures: "+(ON()?"On":"Off");b.setAttribute("aria-pressed",ON());};lab();b.onclick=()=>{try{localStorage.setItem("drUiFrm.on",ON()?"0":"1");}catch(e){}lab();apply();};const c=document.getElementById("bUiImg")||document.getElementById("bCheat");mp.insertBefore(b,c?c.nextSibling:null);}
+/* stores page: mark the ship view while the ledger (stores) is showing, so the cloth texture can find it */
+function led(){const sv=document.getElementById("shipView");if(!sv)return;const on=!!(window.__cutLedger&&window.__cutLedger());sv.classList.toggle("ledger",on);const cc=document.getElementById("cutCard");if(cc)cc.classList.toggle("ledger",on);}
+new MutationObserver(apply).observe(document.documentElement,{attributes:true,attributeFilter:["data-theme"]});
+function go(){menu();apply();led();}
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",go);else go();
+addEventListener("load",go);[300,1500,4000].forEach(t=>setTimeout(go,t));setInterval(led,700);
+})();</script><script id="drUiVisHook">(function(){
+/* One master switch for the game's visuals: "With images" (icons, frames, textures) or "Vector only" (the code-drawn look).
+   Replaces the separate "UI images" and "Frames and textures" Menu items by driving both of their on/off keys. */
+const K=["drUiImg.on","drUiFrm.on"];
+const get=k=>{try{return localStorage.getItem(k);}catch(e){return null;}};
+const set=(k,v)=>{try{localStorage.setItem(k,v);}catch(e){}};
+const imagesOn=()=>K.some(k=>get(k)!=="0");
+function css(){if(document.getElementById("drUiVisCss"))return;const s=document.createElement("style");s.id="drUiVisCss";s.textContent="#bUiImg,#bUiFrm{display:none!important}";document.head.append(s);}
+function menu(){const mp=document.getElementById("menuPop");if(!mp||document.getElementById("bVis"))return;
+  const b=document.createElement("button");b.className="tb";b.id="bVis";b.title="Switch the whole game between the new images (icons, frames, textures) and the original code-drawn look";
+  const lab=()=>{const on=imagesOn();b.textContent="Visuals: "+(on?"With images":"Vector only");b.setAttribute("aria-pressed",on);};lab();
+  b.onclick=()=>{const v=imagesOn()?"0":"1";K.forEach(k=>set(k,v));lab();if(window.drUiImgSync)window.drUiImgSync();if(window.drUiFrmSync)window.drUiFrmSync();};
+  const ref=document.getElementById("bUiImg")||document.getElementById("bUiFrm")||document.getElementById("bCheat");mp.insertBefore(b,ref||null);}
+function go(){css();menu();}
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",go);else go();
+addEventListener("load",go);[300,1500,4000].forEach(t=>setTimeout(go,t));
+})();</script></body></html>
