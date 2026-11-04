@@ -1038,7 +1038,7 @@ const beaufort=kn=>{let i=0;while(i<BFT.length&&kn>=BFT[i])i++;return i;};
 const CURRENT={set:290,drift:.35};
 // Preview menu overrides (null = the game's own auto weather); see the Preview panel near the end of the script
 // Every game mechanic is listed here AND described in the Scenario registry (SCN_MECH). Add an id here and an entry there when you add a mechanic.
-const GAME_MECHANICS=["traffic","setup","weather","tides","fishing","pirates","crew","trade","loading","navigation","damage","events","harbour"];
+const GAME_MECHANICS=["traffic","setup","weather","tides","fishing","pirates","crew","trade","loading","navigation","damage","events","harbour","performance"];
 let HARBOURK=1; // harbour traffic: 0 none, .45 light, 1 normal, 1.7 busy (Scenario)
 let EVFREQ=1; // sea events: 1 = natural pace, 0 = off, higher = more often (Cheats menu and Scenario)
 const PV={wind:null,sea:null,cur:null,wx:null,vis:null,fauna:1,tide:1,shadows:true};
@@ -2016,8 +2016,9 @@ function ringBell(n){
 
 /* ---------- rendering: chart ---------- */
 const cv=$("chart"),ctx=cv.getContext("2d");
+let chartDirty=true; // set by anything that can change the chart (input, resize, new voyage); the main loop then redraws it
 const cam={x:200,y:200,zoom:3};let follow=true;let drag=null;const pts=new Map();let DPR=1,CW=0,CH=0;
-function resize(){DPR=Math.min(2,window.devicePixelRatio||1);const r=cv.getBoundingClientRect();CW=r.width;CH=r.height;cv.width=Math.round(CW*DPR);cv.height=Math.round(CH*DPR);measureDocks();}
+function resize(){chartDirty=true;DPR=Math.min(2,window.devicePixelRatio||1);const r=cv.getBoundingClientRect();CW=r.width;CH=r.height;cv.width=Math.round(CW*DPR);cv.height=Math.round(CH*DPR);measureDocks();}
 let CYC=0; // vertical centre of the visible chart, above the floating docks
 function measureDocks(){const r=cv.getBoundingClientRect(),d=document.querySelector('.bookbox').getBoundingClientRect();const cover=Math.max(0,Math.min(r.height*.6,r.bottom-d.top+8));const n=(CH-cover)/2;if(!follow&&CYC&&n!==CYC){cam.y+=(CYC-n)/cam.zoom;if(drag)drag.cy+=(CYC-n)/cam.zoom;}CYC=n;} // keep the map still when the dock height changes
 const sx=x=>(x-cam.x)*cam.zoom+CW/2, sy=y=>CYC-(y-cam.y)*cam.zoom;
@@ -3231,13 +3232,19 @@ function init3D(){
     R.smRT=smRT;R.shDepth=shDepth;R.lcam=new THREE.OrthographicCamera(-1,1,1,-1,.1,10);
     // ---- sea ----
     const rings=[];for(let r=0;r<=30;r+=1.5)rings.push(r);for(let r=30*1.06;r<130000;r*=1.06)rings.push(r);
-    const SEG=256,pos=new Float32Array(rings.length*(SEG+1)*3),idx=[];
-    rings.forEach((r,i)=>{for(let j=0;j<=SEG;j++){const a=j/SEG*2*PI;const o=(i*(SEG+1)+j)*3;pos[o]=Math.cos(a)*r;pos[o+1]=0;pos[o+2]=Math.sin(a)*r;}});
-    for(let i=0;i<rings.length-1;i++)for(let j=0;j<SEG;j++){const a=i*(SEG+1)+j,b=a+1,c=a+SEG+1,d=c+1;idx.push(a,c,b,b,c,d);}
-    const sg=new THREE.BufferGeometry();sg.setAttribute("position",new THREE.BufferAttribute(pos,3));sg.setIndex(new THREE.BufferAttribute(new Uint32Array(idx),1));
+    // the sea is rings of triangles round the ship. Full: 256 around every ring. Lowered (phones; Cheats > Sea detail): 128 beyond 300 m and 64 beyond 3 km, the rings joined without gaps
+    const seaGeo=lod=>{const segOf=r=>lod?(r<300?256:r<3000?128:64):256,sg=rings.map(segOf),base=[];let n=0;rings.forEach((r,i)=>{base.push(n);n+=sg[i]+1;});
+      const pos=new Float32Array(n*3),idx=[];
+      rings.forEach((r,i)=>{const S=sg[i];for(let j=0;j<=S;j++){const a=j/S*2*PI,o=(base[i]+j)*3;pos[o]=Math.cos(a)*r;pos[o+1]=0;pos[o+2]=Math.sin(a)*r;}});
+      for(let i=0;i<rings.length-1;i++){const A=base[i],B=base[i+1],SA=sg[i],SB=sg[i+1];
+        if(SA===SB){for(let j=0;j<SA;j++){const a=A+j,b=a+1,c=B+j,d=c+1;idx.push(a,c,b,b,c,d);}}
+        else for(let j=0;j<SB;j++){const a0=A+2*j,a1=a0+1,a2=a0+2,b0=B+j,b1=b0+1;idx.push(a0,b0,a1,a1,b0,b1,a1,b1,a2);}}
+      const g=new THREE.BufferGeometry();g.setAttribute("position",new THREE.BufferAttribute(pos,3));g.setIndex(new THREE.BufferAttribute(new Uint32Array(idx),1));return g;};
+    const sg=seaGeo(false);
     const seaU=Object.assign({},U,{uWave:{value:WAVES.map(()=>new THREE.Vector4())},uPh:{value:[0,0,0,0]},uA:{value:[0,0,0,0]},uAmpTotal:{value:.3},uOff:{value:new THREE.Vector2()}});
     const sea=new THREE.Mesh(sg,new THREE.ShaderMaterial({uniforms:seaU,vertexShader:VS_SEA,fragmentShader:FS_SEA,side:THREE.DoubleSide,extensions:{derivatives:true}}));
     sea.frustumCulled=false;scene.add(sea);R.sea=sea;R.seaU=seaU;
+    R.seaFull=sg;R.seaLow=null;R.seaGeoOf=seaGeo; // the lowered mesh is made the first time it is wanted
     // horizon line
     const hp=[];for(let i=0;i<=180;i++){const a=i/180*2*PI;hp.push(new THREE.Vector3(Math.cos(a)*100000,0,Math.sin(a)*100000));}
     const hz=new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(hp),new THREE.LineBasicMaterial({color:0x2e2519,fog:false}));hz.frustumCulled=false;scene.add(hz);R.horizon=hz;
@@ -3446,11 +3453,12 @@ function buildForests(R){
 const HB_W={jolly:2,cutter:3,sultana:2.2,brig:3,caroline:1.8,endeavour:1.4,xebec:1.4,gotheborg:.6,constitution:.5,trinidad:.6};
 const HB_BIG=new Set(["endeavour","gotheborg","constitution","trinidad"]); // too deep for the quays and piers: these lie in the roads
 const HB_COUNT={bridgetown:14,stjohns:12,basseterre:12,castries:9,kingstown:7},HB_SIZE={bridgetown:1.3,stjohns:1,basseterre:1,castries:.8,kingstown:.5}; // ships at Normal; a bigger port sees more big ships
+const HB_FAR=.6; // nm: beyond this (scaled by quality) harbour ships lose their rigging lines
 const HB_NEAR=2.6,HB_SHOW=1.7; // nm: a port's ships exist within HB_NEAR, each is drawn within HB_SHOW
-function harbourMerge(root){
+function harbourMerge(root,noLines,zcFix){ // noLines leaves the rigging lines out (the far silhouette); zcFix keeps it centred exactly like the full model
   root.updateMatrixWorld(true);
   const B=new Map(),walk=(o,vis)=>{vis=vis&&o.visible;
-    if(vis&&(o.isMesh||o.isLineSegments)&&o.geometry&&o.material&&o.geometry.attributes.position){
+    if(vis&&(o.isMesh||(o.isLineSegments&&!noLines))&&o.geometry&&o.material&&o.geometry.attributes.position){
       const key=o.material.uuid+(o.isLineSegments?"L":"M");let b=B.get(key);if(!b)B.set(key,b={mat:o.material,line:!!o.isLineSegments,P:[],N:[],U:[],T:[]});
       const g=o.geometry.index?o.geometry.toNonIndexed():o.geometry.clone();if(!b.line&&!g.attributes.normal)g.computeVertexNormals();g.applyMatrix4(o.matrixWorld);
       const n=g.attributes.position.count,A=g.attributes;
@@ -3460,12 +3468,12 @@ function harbourMerge(root){
   const cat=a=>{let n=0;for(const x of a)n+=x.length;const r=new Float32Array(n);let q=0;for(const x of a){r.set(x,q);q+=x.length;}return r;};
   let z0=1e9,z1=-1e9,x1=0,y1=0;const parts=[];
   for(const b of B.values()){const P=cat(b.P);for(let i=0;i<P.length;i+=3){z0=Math.min(z0,P[i+2]);z1=Math.max(z1,P[i+2]);x1=Math.max(x1,Math.abs(P[i]));y1=Math.max(y1,P[i+1]);}parts.push([b,P]);}
-  const zc=(z0+z1)/2,out=new THREE.Group();
+  const zc=zcFix!=null?zcFix:(z0+z1)/2,out=new THREE.Group();
   for(const[b,P]of parts){for(let i=2;i<P.length;i+=3)P[i]-=zc;
     const g=new THREE.BufferGeometry();g.setAttribute("position",new THREE.BufferAttribute(P,3));g.setAttribute("aTone",new THREE.BufferAttribute(cat(b.T),1));
     if(!b.line){g.setAttribute("normal",new THREE.BufferAttribute(cat(b.N),3));g.setAttribute("uv",new THREE.BufferAttribute(cat(b.U),2));}
     out.add(b.line?new THREE.LineSegments(g,b.mat):new THREE.Mesh(g,b.mat));}
-  out.userData={len:z1-z0,rad:Math.hypot(x1,(z1-z0)/2)};return out;
+  out.userData={len:z1-z0,rad:Math.hypot(x1,(z1-z0)/2),zc};return out;
 }
 function harbourTemplate(R,id){
   const T=R.hbT||(R.hbT={});if(T[id])return T[id];
@@ -3473,6 +3481,7 @@ function harbourTemplate(R,id){
   const sp=SPEC[id];buildVessel3D(sc,sp,true);
   for(const sl of sc.gen.sails){sl.gs.mesh.visible=false;sl.gs.lines.visible=false;sl.bun.visible=true;} // sails furled on the yards
   const t=harbourMerge(sc.ship);t.userData.beam=2*sp.hull.B;t.userData.draft=sp.hull.T;t.rotation.order="YXZ";
+  t.farT=harbourMerge(sc.ship,true,t.userData.zc); // the far silhouette: hull, spars and furled sails, no rigging lines
   return T[id]=t;
 }
 function harbourPlan(F){ // which ships this port gets (deterministic per port)
@@ -3511,9 +3520,9 @@ function harbourPlace(R,F){
     for(const m of order){if(pose)break;(m==="anchor"?tryAnchor:m==="quay"?tryQuay:tryPier)();}
     if(!pose)return;
     placed.push({u:pose.u,v:pose.v,r:rr});
-    const m=tpl.clone();m.position.set(lx(pose.u,pose.v),0,lz(pose.u,pose.v));
+    const m=new THREE.Group(),mn=tpl.clone(),mf=tpl.farT.clone();m.rotation.order="YXZ";m.add(mn,mf);mf.visible=false;m.position.set(lx(pose.u,pose.v),0,lz(pose.u,pose.v));
     const dx=-pose.hu*cd+pose.hv*sd,dz=-(pose.hu*sd+pose.hv*cd);m.rotation.y=Math.atan2(dx,dz);m.visible=false;grp.add(m);
-    const nm=toNm(f,pose.u,pose.v);ships.push({m,rank:ships.length,x:nm[0],y:nm[1],anch:pose.anch,ph:rnd()*6.28,by:0});
+    const nm=toNm(f,pose.u,pose.v);ships.push({m,mn,mf,rank:ships.length,x:nm[0],y:nm[1],anch:pose.anch,ph:rnd()*6.28,by:0});
   });
   F.ships=ships;F.grp=grp;o.grp.add(grp);
 }
@@ -3529,7 +3538,9 @@ function updateHarbourFleet(R,dt,sh){
       try{harbourPlace(R,F);}catch(e){console.warn("harbour place",k,e);F.ships=[];F.grp=new THREE.Group();}
       continue;}
     F.grp.visible=true;const show=Math.round((HB_COUNT[k]||8)*HARBOURK);let nv=0;
+    const fr=HB_FAR*PERF.scale(R); // nm: farther than this a berthed ship is drawn as the plain silhouette
     for(const s of F.ships){const dd=Math.hypot(s.x-sh.x,s.y-sh.y),on=s.rank<show&&dd<HB_SHOW;s.m.visible=on;if(!on)continue;nv++;
+      if(s.mf){const far=dd>fr;if(s.mf.visible!==far){s.mf.visible=far;s.mn.visible=!far;}}
       if(dd<.45){const p=H.t*.7+s.ph,a=s.anch?1:.35;s.m.position.y=Math.sin(p)*.05*a;s.m.rotation.z=Math.sin(p*.8+1)*.012*a;s.m.rotation.x=Math.sin(p*.6)*.008*a;}}
     F.nv=nv;}
 }
@@ -4340,7 +4351,10 @@ function faMake(R,kind){const F=R.fauna,G=F.geo[kind],g=new THREE.Group();g.rota
   R.scene.add(g);return o;}
 function faSpawn(R,kind,o){const F=R.fauna,p=F.pool[kind]||(F.pool[kind]=[]);const a=p.pop()||faMake(R,kind);a.g.visible=true;
   for(const k of Object.keys(a))if(!["kind","g","w","gh"].includes(k))delete a[k];Object.assign(a,{x:0,y:-50,z:0,yaw:0,pitch:0,roll:0,t:0,mode:"",life:0},o||{});F.list.push(a);return a;}
-function faFx(R,x,z,sz,spout,lean){const F=R.fauna,f=F.fx.find(f=>f.life<=0);if(!f)return;f.x=x;f.z=z;f.t=0;f.life=spout?2.8:1.1;f.sz=sz;f.spout=!!spout;
+const FA_BIRD=new Set(["frigate","booby","pelican","gull","tern","tropic"]);
+function faFx(R,x,z,sz,spout,lean){const F=R.fauna,f=F.fx.find(f=>f.life<=0);if(!f)return;
+  { const sc=PERF.scale(R);if(sc<1e8&&Math.hypot(x-R.camera.position.x,z-R.camera.position.z)>700*sc)return; } // no splash or spout sprites for far animals, unless the spyglass is up
+  f.x=x;f.z=z;f.t=0;f.life=spout?2.8:1.1;f.sz=sz;f.spout=!!spout;
   f.s.material.map=spout?F.spoutTex:F.splashTex;f.s.material.rotation=lean||0;f.s.visible=true;}
 // where things are relative to the ship, in plain words for the log
 function faWhere(R,x,z){const h=S.ship.heading,b=norm(Math.atan2(x,-z)/D2R-h),side=b<180?"starboard":"larboard",a=b<180?b:360-b;
@@ -4386,7 +4400,10 @@ function updateFauna(R,dt,gain,wdx,wdz,nightF){
   F.pods=F.pods.filter(p=>!p.dead);
   // ---- animate ----
   const camP=R.camera.position;
+  const farS=PERF.scale(R),farB=350*farS; // birds farther than this from the camera think every fourth frame (never through the spyglass)
   for(const a of F.list){a.x-=wdx;a.z-=wdz;a.t+=rdt;
+    if(farS<1e8&&FA_BIRD.has(a.kind)){if(a.sl==null)a.sl=F.sl=(F.sl||0)+1;
+      if(Math.hypot(a.x-camP.x,a.z-camP.z)>farB&&((R.frame+a.sl)&3)){a.lag=(a.lag||0)+rdt;a.g.position.set(a.x,a.y,a.z);continue;}}
     const surf=waveH(R,a.x,a.z);
     if(a.kind==="dolphin")faDolphin(R,a,rdt,surf,{fx,fz,sx,sz,bow,shV,hdg,kn});
     else if(a.kind==="ffish"){if(a.t<0){a.g.visible=false;continue;}a.g.visible=true;a.yaw+=a.turn*rdt;const u=a.t/a.dur,up=smooth(0,.12,u)*(1-smooth(.88,1,u));
@@ -4397,7 +4414,7 @@ function updateFauna(R,dt,gain,wdx,wdz,nightF){
       else{a.y=surf-.1-smooth(0,2,a.t)*1.5;a.pitch=.4;if(a.t>a.dn){if(--a.n<=0)a.dead=1;else{a.mode="up";a.t=0;}}}
       if(Math.hypot(a.x,a.z)>900)a.dead=1;}
     else if(a.kind==="humpback"||a.kind==="sperm")faWhale(R,a,rdt,surf);
-    else faBirdStep(R,a,rdt,surf,{fx,fz,bow,day});
+    else{const dtB=rdt+(a.lag||0);a.lag=0;faBirdStep(R,a,dtB,surf,{fx,fz,bow,day});}
     a.g.position.set(a.x,a.y,a.z);a.g.rotation.set(a.pitch,a.yaw,a.roll);
     const dcam=Math.hypot(a.x-camP.x,a.z-camP.z);if(a.g.visible&&dcam>(a.kind==="humpback"||a.kind==="sperm"?4000:900))a.g.visible=false;else if(a.kind!=="ffish"&&!a.hide)a.g.visible=true;
     if(a.gh){const md=FAUNA_DEPTH[a.kind],dp=surf-a.y,on=dp>.35&&dp<md&&dcam<(md>10?1500:400)&&Math.abs(a.pitch)<.9;a.gh.visible=on;
@@ -4745,6 +4762,8 @@ function skyLabels(c,R,W,H){
 
 function update3D(dt,now){
   const R=R3;if(!R||!S)return;
+  R.glass=!!(R.scope&&(R.shot==="deck"||R.shot==="lookout")); // the spyglass is up: everything looked at is drawn and updated at full quality
+  PERF.seaSync(R);
   if((R.frame++&31)===0){const rr=v3c.getBoundingClientRect(),d=document.querySelector(".bookbox").getBoundingClientRect();R.cover=Math.max(0,Math.min(rr.height*.55,rr.bottom-d.top+10));}
   const sh=S.ship,w=windAt(S,sh.x,sh.y,S.t),kn=w.kn;
   const lh=((localHours(S,S.t)%24)+24)%24,di=dayIndex(S),g=shipGeo(S);
@@ -5137,7 +5156,7 @@ function update3D(dt,now){
       const keep=new Set();for(let q=R.ship;q;q=q.parent)keep.add(q);const hid=[];
       for(const o of R.scene.children)if(o.visible&&!keep.has(o)&&!o.isLight){o.visible=false;hid.push(o);}
       try{DRStyle.render(R);}finally{for(const o of hid)o.visible=true;}
-    }else{shadowPass(R);DRStyle.render(R);}} // on a computer the ship page covers the 3D view, so skip drawing it
+    }else{if(PERF.shadowDue(R))shadowPass(R);DRStyle.render(R);}} // on a computer the ship page covers the 3D view, so skip drawing it
   drawHud(now,sq,w);
 }
 
@@ -5461,9 +5480,60 @@ function applyQuality(){const R=R3,b=$("bQual");if(b)b.textContent="Quality: "+Q
   resize3D();}
 {const b=$("bQual");if(b)b.onclick=()=>{const o=["auto","low","med","high"];QUAL.mode=o[(o.indexOf(QUAL.mode)+1)%4];try{localStorage.setItem("dr.quality",QUAL.mode);}catch(e){}applyQuality();};}
 
+
+/* ---------- performance: distance detail, frame cap, chart redraw and the readout (Menu > Cheats) ----------
+   Far things are drawn and updated more cheaply: berthed ships lose their rigging lines, sea traffic loses its deck, far birds think every fourth frame,
+   far splashes are skipped, the ship's shadow map is redrawn every other frame, and the chart is only redrawn when something changed.
+   While the spyglass is up (R.glass) none of that applies: what you look at through it is drawn at full quality. Automatic quality scales the distances. */
+const PERF=(()=>{
+ const coarse=()=>!!(window.matchMedia&&matchMedia("(pointer:coarse)").matches);
+ const ld=k=>{try{return localStorage.getItem("dr.perf."+k);}catch(e){return null;}};
+ const P={lod:ld("lod")!=="0",cap:ld("cap")||"auto",seaLod:ld("sea")!=null?ld("sea")==="1":coarse(),hud:ld("hud")==="1",
+  fps:60,ms:16.7,cpu:0,calls:0,tris:0,geos:0,texs:0,shadowRun:0,shadowSkip:0,chartRun:0,chartSkip:0,frames:0,lastBusy:0};
+ const save=(k,v)=>{try{localStorage.setItem("dr.perf."+k,v);}catch(e){}};
+ /* distance multiplier for every cut-off: Infinity = everything at full quality (detail reduction off, or the spyglass up) */
+ P.scale=R=>{if(!P.lod||(R&&R.glass))return Infinity;const m=QUAL.mode;
+  if(m==="high")return 1.5;if(m==="med")return 1.15;if(m==="low")return .8;
+  return[1.15,.9,.7,.55][(R&&R.q)||0];};
+ P.capMs=()=>P.cap==="off"?0:P.cap==="60"?1000/60:(coarse()?1000/60:0);
+ P.shadowDue=R=>{const due=!P.lod||R.glass||QUAL.mode==="high"||(R.frame&1)===0||!R.shDone;if(due){P.shadowRun++;R.shDone=true;}else P.shadowSkip++;return due;};
+ P.seaSync=R=>{if(!R.sea||!R.seaFull)return;const want=P.seaLod&&P.lod&&!R.glass;
+  if(want){if(!R.seaLow)R.seaLow=R.seaGeoOf(true);if(R.sea.geometry!==R.seaLow)R.sea.geometry=R.seaLow;}else if(R.sea.geometry!==R.seaFull)R.sea.geometry=R.seaFull;};
+ P.set=(k,v,keep)=>{if(k==="lod")P.lod=!!v;else if(k==="cap")P.cap=v;else if(k==="sea")P.seaLod=!!v;else if(k==="hud"){P.hud=!!v;P.paint();}
+  if(keep!==false)save(k,typeof v==="boolean"?(v?"1":"0"):v);};
+ P.text=()=>{const R=R3,rr=R&&R.renderer,pr=rr?rr.getPixelRatio():1;
+  return[`${P.fps.toFixed(0)} fps · frame ${P.ms.toFixed(1)} ms · JS ${P.cpu.toFixed(1)} ms`,
+   `Draw calls ${P.calls} · triangles ${(P.tris/1000).toFixed(1)}k · geometries ${P.geos} · textures ${P.texs}`,
+   `Pixel ratio ${pr.toFixed(2)} · quality ${QNAME[QUAL.mode]}${QUAL.mode==="auto"&&R?" (level "+(R.q||0)+")":""} · cap ${P.capMs()?Math.round(1000/P.capMs())+" fps":"none"}`,
+   `Distance detail ${P.lod?(R&&R.glass?"full (spyglass up)":"on, ×"+(P.scale(R)).toFixed(2)):"off"} · sea ${P.seaLod&&P.lod&&!(R&&R.glass)?"lowered":"full"}`,
+   `Shadow map: ${P.shadowRun} drawn, ${P.shadowSkip} skipped · chart: ${P.chartRun} drawn, ${P.chartSkip} skipped`].join("\n");};
+ let hud=null;
+ P.paint=()=>{const t=P.text(),c=document.getElementById("chPerf");if(c)c.textContent=t;
+  if(P.hud){if(!hud){hud=document.createElement("pre");hud.id="perfHud";hud.style.cssText="position:fixed;left:6px;bottom:6px;z-index:9998;margin:0;padding:4px 7px;font:10px/1.35 var(--f-data,monospace);background:rgba(20,16,10,.78);color:#f3ead0;border-radius:3px;pointer-events:none;white-space:pre";document.body.append(hud);}hud.hidden=false;hud.textContent=t;}
+  else if(hud)hud.hidden=true;};
+ /* called once a frame from the main loop: t0 = when the frame's work began, raw = ms since the last frame */
+ P.frame=(t0,raw)=>{const R=R3,rr=R&&R.renderer;P.frames++;
+  if(raw>0&&raw<1000){P.ms+=(raw-P.ms)*.08;P.fps=1000/P.ms;}
+  P.cpu+=((performance.now()-t0)-P.cpu)*.08;
+  if(rr){const i=rr.info;P.calls=i.render.calls;P.tris=i.render.triangles;P.geos=i.memory.geometries;P.texs=i.memory.textures;i.reset();}};
+ setInterval(()=>{if(P.hud||(document.getElementById("cheatPop")&&!document.getElementById("cheatPop").hidden))P.paint();},500);
+ P.r3=()=>R3;window.__PERF=P;
+ return P;
+})();
 /* ---------- main loop ---------- */
+/* the chart is redrawn when something about it changed (the ship moved a pixel, the view moved, an input event, a new minute of game time), and at least every 400 ms so nothing stays stale */
+let chartSig="",chartLastDraw=0;
+for(const t of["pointerdown","pointerup","wheel","keydown","keyup","click","input","change","touchstart","touchend"])document.addEventListener(t,()=>{chartDirty=true;},{capture:true,passive:true});
+document.addEventListener("pointermove",e=>{if(e.buttons||e.target===cv)chartDirty=true;},{capture:true,passive:true});
+function chartMaybe(now){
+  if(!PERF.lod){drawChart();return;}
+  const sh=S&&S.ship,es=S&&S.est;
+  const sig=CW+"|"+CH+"|"+cam.x.toFixed(3)+"|"+cam.y.toFixed(3)+"|"+cam.zoom.toFixed(3)+"|"+(S?(Math.round(sx(sh.x)*2)+","+Math.round(sy(sh.y)*2)+","+Math.round(sh.heading*2)+","+(es?Math.round(sx(es.x)*2)+","+Math.round(sy(es.y)*2):"")+","+Math.round(S.t*60)+","+(paused?1:0)):"-");
+  if(chartDirty||sig!==chartSig||now-chartLastDraw>400){chartDirty=false;chartSig=sig;chartLastDraw=now;PERF.chartRun++;drawChart();}else PERF.chartSkip++;}
 let lastFrame=performance.now(),acc=0,frameN=0;
 function frame(now){
+  const capMs=PERF.capMs();if(capMs&&now-lastFrame<capMs-2&&!skipBusy){requestAnimationFrame(frame);return;} // phones: no more than 60 frames a second, so a 120 Hz screen does not double the work
+  const tw0=performance.now();if(R3&&R3.renderer&&R3.renderer.info.autoReset)R3.renderer.info.autoReset=false; // the readout counts a whole frame (shadow map, scene, style pass)
   autoQ(now-lastFrame);
   const dtR=Math.min(.1,(now-lastFrame)/1000);lastFrame=now;
   if(skipBusy){
@@ -5479,8 +5549,9 @@ function frame(now){
   }else acc=0;
   if(S&&follow&&!(S.mode==="lost"&&!$("peek").checked&&!S.done)){const tgt=S.ship;cam.x+=(tgt.x-cam.x)*.15;cam.y+=(tgt.y-cam.y)*.15;}
   if((frameN++&31)===0)measureDocks();
-  drawChart();if(dialDue(now))drawDial();update3D(dtR,now);updateUI();if(SV.open)svFrame(dtR,now);
+  chartMaybe(now);if(dialDue(now))drawDial();update3D(dtR,now);updateUI();if(SV.open)svFrame(dtR,now);
   if(soundOn&&windGain&&S){const w=windAt(S,S.ship.x,S.ship.y,S.t);windGain.gain.value=paused?0:Math.min(.5,.04+w.kn/80);}
+  PERF.frame(tw0,dtR*1000);
   requestAnimationFrame(frame);
 }
 
@@ -6328,9 +6399,13 @@ function trafHull(R,sp){const K=R.trafK||(R.trafK={});let c=K[sp.id];
     const dg=new THREE.BufferGeometry();dg.setAttribute("position",new THREE.Float32BufferAttribute(P,3));dg.setAttribute("aTone",new THREE.Float32BufferAttribute(new Array(P.length/3).fill(.1),1));dg.setIndex(I);dg.computeVertexNormals();
     c=K[sp.id]={g,dg,mat:hullMaterial(R.U,sp.paint)};}
   const grp=new THREE.Group();grp.add(new THREE.Mesh(c.g,c.mat));if(!sp.hull.open)grp.add(new THREE.Mesh(c.dg,R.deckMat));return grp;}
-function updateTraffic3D(R){if(!S||!R||!R.scene)return;const L=R.trafL||(R.trafL=new Map()),sh=S.ship,items=S.done?[]:trafNow(S).filter(i=>i.in3d),seen=new Set();
+function updateTraffic3D(R){if(!S||!R||!R.scene)return;
+  if(R.trafNear>PERF.scale(R)*600&&(R.frame&3)&&R.trafL){return;} // all the ships in sight are far off: move them every fourth frame (hulls only, shared geometry, no shadow or wake)
+  const L=R.trafL||(R.trafL=new Map()),sh=S.ship,items=S.done?[]:trafNow(S).filter(i=>i.in3d),seen=new Set();let nearD=1e9;
   for(const it of items){const id=it.ts.id;seen.add(id);let m=L.get(id);if(!m){m=trafHull(R,it.ts.sp);R.scene.add(m);L.set(id,m);}
-    const x=(it.x-sh.x)*NM,z=-(it.y-sh.y)*NM;m.visible=true;m.position.set(x,waveH(R,x,z)*.6,z);m.rotation.y=PI-it.h*D2R;}
+    const x=(it.x-sh.x)*NM,z=-(it.y-sh.y)*NM;m.visible=true;m.position.set(x,waveH(R,x,z)*.6,z);m.rotation.y=PI-it.h*D2R;const dd=Math.hypot(x,z);if(dd<nearD)nearD=dd;
+    const dk=m.children[1];if(dk)dk.visible=dd<1500*PERF.scale(R);} // the deck planking is dropped on a far hull: a plain hull silhouette
+  R.trafNear=nearD;
   for(const[id,m]of L)if(!seen.has(id)){m.visible=false;if(L.size>24){R.scene.remove(m);L.delete(id);}}}
 // Scenario trigger: sail the player in astern of the first ship under way
 function trafGoto(s){const all=trafInit(),n=Math.max(2,Math.round(TRAFDENS*2));for(const ts of all){if(ts.k>=n)continue;const p=trafPos(ts,s.t);if(!p)continue;
@@ -7204,6 +7279,20 @@ $("cbBtn").onclick=()=>{const c=$("compassBox"),o=c.classList.toggle("collapsed"
     try{updateUI(true);tradeUI(true);careerUI(true);svBill();}catch(x){} cp.hidden=true;});
   }
 {const dh=document.querySelector(".dock-all .dockhead");if(dh&&!document.getElementById("loadPct")){const d=document.createElement("div");d.id="loadPct";d.className="svhint";d.hidden=true;dh.insertAdjacentElement("afterend",d);}}
+{ // Cheats > Performance: the frame-time and draw-call readout and the switches for the distance detail
+  const cp=$("cheatPop"),d=document.createElement("div");d.id="chPerfBox";d.style.cssText="margin-top:10px;border-top:1px solid var(--ink);padding-top:6px;font-size:12px";
+  d.innerHTML=`<div style="font-family:var(--f-display);font-variant:small-caps;font-size:15px">Performance</div>
+   <pre id="chPerf" style="margin:4px 0;font:10.5px/1.4 var(--f-data,monospace);white-space:pre-wrap">—</pre>
+   <label style="display:block;margin:3px 0"><input type="checkbox" id="chPHud"> Show this readout on the screen</label>
+   <label style="display:block;margin:3px 0"><input type="checkbox" id="chPLod"> Distance detail (far ships, birds, shadows; the spyglass always shows full detail)</label>
+   <label style="display:block;margin:3px 0"><input type="checkbox" id="chPSea"> Lower the sea detail at a distance</label>
+   <label style="display:block;margin:3px 0">Frame cap <select id="chPCap"><option value="auto">Auto (60 on phones)</option><option value="60">60 fps</option><option value="off">None</option></select></label>`;
+  cp.append(d);
+  const q=id=>d.querySelector("#"+id);
+  q("chPHud").checked=PERF.hud;q("chPLod").checked=PERF.lod;q("chPSea").checked=PERF.seaLod;q("chPCap").value=PERF.cap;
+  q("chPHud").onchange=e=>PERF.set("hud",e.target.checked);q("chPLod").onchange=e=>PERF.set("lod",e.target.checked);
+  q("chPSea").onchange=e=>PERF.set("sea",e.target.checked);q("chPCap").onchange=e=>PERF.set("cap",e.target.value);
+  $("bCheat").addEventListener("click",()=>setTimeout(()=>PERF.paint(),0));PERF.paint();}
 {const el=$("chTr");if(el){el.value=String(TRAFDENS);$("chTrV").textContent=trafLabel(TRAFDENS);
   el.oninput=e=>{TRAFDENS=+e.target.value;TRAFMEMO=null;$("chTrV").textContent=trafLabel(TRAFDENS);try{localStorage.setItem("drTraf",String(TRAFDENS));}catch(x){}};}}
 $("bookBtn").onclick=()=>{const bx=$("bookBox"),o=!bx.classList.contains("open");bx.classList.toggle("open",o);$("bookBtn").setAttribute("aria-expanded",String(o));$("bookBtn").classList.remove("attn");setTimeout(()=>{resize();resize3D();},0);};
@@ -7549,6 +7638,14 @@ const SCN_MECH=[
   apply(s,g,starting){HARBOURK=+g("dens");},
   triggers:[],
   readouts:[["Ships in the nearest port",s=>harbourReadout(s)]]},
+ {id:"performance",name:"Performance and distance detail",
+  dials:[{k:"lod",label:"Distance detail",live:true,opts:()=>[["1","On (far things cheaper)"],["0","Off (all full)"]],def:"1"},
+   {k:"cap",label:"Frame cap",live:true,opts:()=>[["auto","Auto (60 on phones)"],["60","60 fps"],["off","None"]],def:"auto"},
+   {k:"sea",label:"Sea detail at distance",live:true,opts:()=>[["auto","Auto (lowered on phones)"],["1","Lowered"],["0","Full"]],def:"auto"}],
+  apply(s,g){PERF.set("lod",g("lod")==="1",false);PERF.set("cap",g("cap"),false);const v=g("sea");PERF.set("sea",v==="auto"?matchMedia("(pointer:coarse)").matches:v==="1",false);},
+  triggers:[["Show readout",()=>PERF.set("hud",true,false)],["Hide readout",()=>PERF.set("hud",false,false)]],
+  readouts:[["Frame",()=>PERF.fps.toFixed(0)+" fps, "+PERF.ms.toFixed(1)+" ms"],["Draw calls",()=>String(PERF.calls)],["Triangles",()=>(PERF.tris/1000).toFixed(1)+"k"],
+   ["Spyglass up (full detail)",()=>R3&&R3.glass?"yes":"no"],["Shadow map drawn / skipped",()=>PERF.shadowRun+" / "+PERF.shadowSkip],["Chart drawn / skipped",()=>PERF.chartRun+" / "+PERF.chartSkip]]},
  {id:"damage",name:"Hull and rigging",
   dials:[{k:"hull",label:"Hull at start",start:true,opts:()=>[["1","Sound"],["0.7","Damaged"],["0.4","Badly damaged"]],def:"1"}],
   apply(s,g,starting){if(starting)s.hull=+g("hull");},
