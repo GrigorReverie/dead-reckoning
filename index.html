@@ -3291,7 +3291,7 @@ function buildIslands(R){
     const f0=ISLPORT.get(isl)&&PF[ISLPORT.get(isl)];let tm=terrainMat;
     if(f0){const cd=Math.cos(f0.d),sd=Math.sin(f0.d),S=PUN*NM,cv=(PGV0+PGV1)/2,cx=(f0.bx-c.x)*NM+sd*cv*S,cz=-(f0.by-c.y)*NM-cd*cv*S; // the island's own terrain is cut away inside the harbour footprint, where the harbour's heightfield stands instead
       tm=new THREE.ShaderMaterial({uniforms:Object.assign({},R.U,{uCvA:{value:new THREE.Vector4(cx,cz,-cd,-sd)},uCvB:{value:new THREE.Vector4(sd,-cd,PGU*S,(PGV1-PGV0)/2*S)}}),vertexShader:terrainMat.vertexShader,fragmentShader:terrainMat.fragmentShader,side:THREE.DoubleSide,defines:Object.assign({CARVE:1},terrainMat.defines),extensions:{derivatives:true}});}
-    const mesh=new THREE.Mesh(g,tm);mesh.frustumCulled=false;
+    const mesh=new THREE.Mesh(g,tm);mesh.frustumCulled=true; // islands behind the camera are skipped (the group is placed in world space each frame)
     const grp=new THREE.Group();grp.add(mesh);scene.add(grp);const bins=new Int16Array(360);{const an=ring.map(b=>((Math.atan2(b.y-c.y,b.x-c.x)/PI*180)%360+360)%360);for(let d=0;d<360;d++){let bj=0,bd=1e9;for(let j=0;j<M;j++){const dd=Math.abs(((an[j]-d+540)%360)-180);if(dd<bd){bd=dd;bj=j;}}bins[d]=bj;}}
     R.isl.push({isl,grp,peak,Rr,ring,M,K,P,c,bins});isl.grp=grp;
   }
