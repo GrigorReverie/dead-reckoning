@@ -5225,9 +5225,18 @@ function drawHud(now,sq,w){
   if(S.mode==="trial"&&S.v.to){const P=PORTS[S.v.to];const b=norm(Math.atan2(P.x-sh.x,P.y-sh.y)*R2D);mk(b,(x,e)=>{c.fillStyle=e?"rgba(178,69,44,.5)":"#b2452c";c.beginPath();c.moveTo(x,y0+hh+2);c.lineTo(x+5,y0+hh+8);c.lineTo(x,y0+hh+14);c.lineTo(x-5,y0+hh+8);c.closePath();c.fill();});}
   // landmark labels
   c.font="italic 14px 'IM Fell English',Georgia,serif";c.textAlign="center";
+  R.bpHits=[];
   for(const lm of BPS){if(!lm.vis)continue;const v=new THREE.Vector3((lm.x-sh.x)*NM,lm.h*VEX,-(lm.y-sh.y)*NM).project(R.camera);if(v.z>1||Math.abs(v.x)>1)continue;
-    const x=(v.x*.5+.5)*W,y=(-v.y*.5+.5)*H;c.fillStyle=paper(.8);const tw2=c.measureText(lm.name).width;c.fillRect(x-tw2/2-3,y-30,tw2+6,17);c.fillStyle=ink(1);c.fillText(lm.name,x,y-17);
-    c.strokeStyle=ink(.8);c.beginPath();c.moveTo(x,y-12);c.lineTo(x,y-3);c.stroke();c.beginPath();c.arc(x,y-1,2,0,2*PI);c.stroke();}
+    const x=(v.x*.5+.5)*W,y=(-v.y*.5+.5)*H,sel=lm===bpSel;c.fillStyle=paper(.8);const tw2=c.measureText(lm.name).width;c.fillRect(x-tw2/2-3,y-30,tw2+6,17);c.fillStyle=sel?"#2a4fa8":ink(1);c.fillText(lm.name,x,y-17);
+    c.strokeStyle=sel?"#2a4fa8":ink(.8);c.lineWidth=sel?2:1;c.strokeRect(x-tw2/2-3,y-30,tw2+6,17);c.beginPath();c.moveTo(x,y-12);c.lineTo(x,y-3);c.stroke();c.beginPath();c.arc(x,y-1,2,0,2*PI);c.stroke();c.lineWidth=1;
+    R.bpHits.push({lm,x0:x-tw2/2-6,x1:x+tw2/2+6,y0:y-34,y1:y+4});}
+  // strip of every bearing point in sight under the heading tape, at its true bearing; tap one to pick it
+  {const vs=BPS.filter(l=>l.vis).sort((p,q)=>p.dist-q.dist);c.font="10px 'IBM Plex Mono',monospace";c.textAlign="center";let k=0;
+    for(const lm of vs){const b=norm(Math.atan2(lm.x-sh.x,lm.y-sh.y)*R2D),d=angDiff(cb,b);if(Math.abs(d)>span/2-4)continue;const x=x0+tw/2+d*ppd,row=k++%3,y=y0+hh+32+row*13,sel=lm===bpSel;
+      const nm=lm.name.length>16?lm.name.slice(0,15)+"…":lm.name,tw3=c.measureText(nm).width;
+      c.fillStyle=paper(.8);c.fillRect(x-tw3/2-3,y-10,tw3+6,13);c.fillStyle=sel?"#2a4fa8":ink(1);c.fillText(nm,x,y);
+      c.strokeStyle=sel?"#2a4fa8":ink(.7);c.lineWidth=sel?2:1;c.strokeRect(x-tw3/2-3,y-10,tw3+6,13);c.beginPath();c.moveTo(x,y-10);c.lineTo(x,y0+hh);c.stroke();c.lineWidth=1;
+      R.bpHits.push({lm,x0:x-tw3/2-5,x1:x+tw3/2+5,y0:y-12,y1:y+5});}}
   // part callouts
   if(R.notes&&R.dist<260){
     const parts=R.notesG||[["FORE TOPSAIL",[0,15,5.5],1,-1],["MAIN TOPSAIL",[0,15,-2.5],-1,-1],["JIB",[0,12,11],1,1],["BOWSPRIT",[0,5.2,16.5],1,1],["QUARTERDECK",[0,4.3,-8.6],-1,1],["RUDDER",[0,0.2,-12.3],-1,1],["MAIN COURSE",[0,8.3,-2.5],-1,0],["FORE COURSE",[0,8.3,5.5],1,0]];
@@ -5289,6 +5298,8 @@ window.__CAM=()=>R3;
 v3c.addEventListener("pointerdown",e=>{if(!R3)return;if(e.pointerType==="mouse"&&e.button!==0){if(e.button===1)e.preventDefault();return;}
   { // a tap on the heading tape orders that bearing; the ship eases round at the helm's turn rate
     const r=v3c.getBoundingClientRect();
+    if($("paneV3").classList.contains("big")&&S&&R3.bpHits){const px=e.clientX-r.left,py=e.clientY-r.top;let hit=null;for(const h of R3.bpHits)if(px>=h.x0&&px<=h.x1&&py>=h.y0&&py<=h.y1){hit=h.lm;break;}
+      if(hit){selectBp(hit===bpSel?null:hit);e.preventDefault();return;}}
     if($("paneV3").classList.contains("big")&&S&&e.clientY-r.top<=23){const W=R3.W,span=W<600?70:100;setCourse(Math.round(R3.camBrg+((e.clientX-r.left)-W/2)*span/(W-1)));e.preventDefault();return;}}
   if(ptr3.size>=2)return;try{v3c.setPointerCapture(e.pointerId);}catch(_){}
   ptr3.set(e.pointerId,{x:e.clientX,y:e.clientY});if(ptr3.size===1)R3.tapMoved=false;anchor3();v3c.classList.add("drag");});
