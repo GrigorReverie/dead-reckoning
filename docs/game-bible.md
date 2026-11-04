@@ -47,7 +47,7 @@ Full rules are in `mechanics.md`. Registered ids in `GAME_MECHANICS`: `setup`, `
 | Sailing | Polar speed table, no-go zone (67 degrees), sail settings from bare poles to all plain sail, brace angle, irons | Live |
 | Weather | Wind and Beaufort sea state, swell, cloud, rain, squalls, land wind shadows | Live |
 | Currents and tides | Set and drift; tides twice daily with spring/neap | Live |
-| Navigation | Dead reckoning, heave the log, noon sight, landmark bearings, chart position lock | Live |
+| Navigation | Dead reckoning, heave the log, noon sight, bearings on points in sight (peaks, headlands, lighthouses, beacons, ports: tap one on the chart to pick it, then draw the line; out-of-range points are hidden and cannot be picked), chart position lock | Live |
 | Time | Real-time with pause, game speed (+ and − only change the stored target speed shown in the middle; tapping it runs at that speed; 1× is real time and keeps the stored speed), Skip runs the full simulation | Live |
 | Crew | Personalities, watches, jobs, hiring, surgeon, discipline, crises | Live |
 | Vessel condition | Hull, rigging, leaks, repairs, spares | Live |
