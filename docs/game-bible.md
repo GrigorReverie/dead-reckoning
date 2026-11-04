@@ -91,7 +91,7 @@ Named crew with personalities, two watches, jobs by room, fatigue, morale, beer 
 - **Chart:** 17th-century-style chart look with contour and depth lines (in progress); pen-and-ink icons.
 - **3D:** three.js scenes: port plans in 3D, painted walking crew, cutaway of every ship, Deck camera at eye level, spyglass (looked through from each ship's lookout point, the foretop or high on the foremast; spyglass button sits beside the eye icon in the 3D view, tap again or Esc to return to the previous angle), sun and cloud shadows, day/night sky and constellations.
 - **Styles:** Visuals dropdown (Original, New, Images); Menu > Preview > Style presets; UI Look and 3D Style sliders; one responsive layout for phone and desktop.
-- **Performance:** automatic quality (Auto/Low/Medium/High).
+- **Performance:** automatic quality (Auto/Low/Medium/High). Distance detail: berthed ships lose rigging lines when far, sea-traffic hulls lose their deck, far birds update every fourth frame, far splashes are skipped, the ship's shadow map is redrawn every other frame, the chart is redrawn only when something changed, phones are capped at 60 frames a second and draw a lower-detail sea at a distance. While the spyglass is up, everything is drawn at full quality. Menu > Cheats > Performance shows frame time, draw calls and triangles and switches each saving on or off (also a Scenario mechanic, "Performance and distance detail").
 - **Tools:** private tuner dashboards, listed in the Dashboards hub, are where values are tuned before being pasted into the game.
 
 ## 11. Roadmap and open ideas
