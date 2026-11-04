@@ -17,7 +17,7 @@
    ===================================================================== */
 
 /* PUBLISHED SHIP CONTROLS LOOK: replaced by the push script. null = game default. */
-const DR_SHIPCTL_PUBLISHED={"v":1,"c":{"cPoints":8,"cLetterSize":30,"cShipScale":0.88,"gTubeW":20,"gStyle":"bar","gFluidA":0.8,"gWordFont":"'IM Fell English SC',Georgia,serif","gNumFont":"'IM Fell English SC',Georgia,serif","sStyle":"blocks","sNumFont":"'IM Fell English SC',Georgia,serif","sWordFont":"'IM Fell English SC',Georgia,serif","bDial":246,"bGap":30,"extras":[{"type":"readout","field":"anchor","at":"top","size":13,"bold":true,"full":true}],"bShadow":false,"bPad":0,"hReadSize":12,"pos":{"box":{"x":0,"y":-112,"s":70,"r":0},"sheet":{"x":0,"y":46,"s":100,"r":0},"cL5":{"x":0,"y":-3,"s":100,"r":0},"course":{"x":1,"y":-13,"s":101,"r":0},"wind":{"x":2,"y":-17,"s":100,"r":0},"yards":{"x":0,"y":2,"s":100,"r":0},"helmbtns":{"x":0,"y":-18,"s":141,"r":0},"hdg":{"x":0,"y":0,"s":99,"r":0},"xend":{"x":0,"y":2,"s":100,"r":0},"current":{"x":0,"y":-22,"s":100,"r":0},"anchor":{"x":0,"y":-26,"s":99,"r":0}},"sty":{"ctl":{"mt":-140},"dial":{"bw":0,"fs":7,"op":1,"ta":"center"},"wind":{"bold":false,"ord":0,"font":"'IBM Plex Mono',monospace","ta":"left"},"anchor":{"bold":true,"fs":14},"box":{"ta":"right"}},"vs":{"ship":88,"ctl":68,"stores":55,"book":70},"hShowAnchor":false,"cBraceFill":"rgba(110,0,0,.14)","hShowRig":false,"bBorderW":0,"bRadius":0}};
+const DR_SHIPCTL_PUBLISHED={"v":1,"c":{"vs":{"ctl":44},"sty":{"box":{"ord":-2},"ctl":{"ord":-1},"oars":{"ord":1},"logb":{"ord":2},"riggrp":{"ord":0}},"sWordFont":"'IM Fell English SC',Georgia,serif","sNumFont":"system-ui,sans-serif","gTubeW":20,"gFluidA":0.84,"gWordFont":"'IM Fell English SC',Georgia,serif","gNumFont":"system-ui,sans-serif","cRimW":3,"cPoints":8,"gStyle":"bar"}};
 
 window.DRSC=(function(){
   const DEFAULTS={
@@ -74,6 +74,7 @@ window.DRSC=(function(){
     ["cL5","Port 5° button","Buttons","#cL5"],["cR5","Starboard 5° button","Buttons","#cR5"],["drop","Anchor button","Buttons","#bDrop"],["fish","Fish button","Buttons","#bFish"],
     ["sDn","Shorten sail button","Buttons","#sDn"],["sUp","Make sail button","Buttons","#sUp"],["sAll","Pick all sails","Buttons","#sailAll"],["sNone","Clear sails","Buttons","#sailNone"],
     ["brL","Yards left button","Buttons","#brL"],["brR","Yards right button","Buttons","#brR"],["heave","Heave the log button","Buttons","#bHeave"],["helmbtns","Helm button row","Buttons",".dock-all .helmbtns"],
+    ["oars","Oars section","Page groups","#oarSec"],["logb","Log book section","Page groups",".dock-all .sub.subl>.oarsec:not(#oarSec)"],["riggrp","Rigging and log row","Page groups",".dock-all .sub.subt"],
     ["hdg","Heading slider","Buttons","#dockHdg"],["sheet","Whole helm panel","Panel",".dock-all .dockbody"],["ctl","Helm readout block","Panel",".dock-all .dockctl"]
   ];
   const partSel=Object.fromEntries(PARTS.map(p=>[p[0],p[3]]));

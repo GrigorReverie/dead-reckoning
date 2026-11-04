@@ -95,7 +95,8 @@ Named crew with personalities, two watches, jobs by room, fatigue, morale, beer 
 - **Tools:** private tuner dashboards, listed in the Dashboards hub, are where values are tuned before being pasted into the game.
 
 ## 11. Roadmap and open ideas
-In progress (Preview): traffic, harbour ships, sea events, quay loading, ship controls module, engine/games folder split plan (`engine-plan/`).
+Live (promoted from Preview 2026-11-04): lookout spyglass, ship controls module with the fixed helm deck layout, compass redraw capped to ~30fps.
+In progress (Preview): traffic, harbour ships, sea events, quay loading, engine/games folder split plan (`engine-plan/`).
 
 Ideas not built: St John's reefs in 3D; bar depth blocking deep ships at low tide; wind-sea wavelength; pay and shares; chronometer as a late upgrade (from the brief).
 
