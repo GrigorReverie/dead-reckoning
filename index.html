@@ -1031,6 +1031,7 @@ const BPS=LMS.slice();
  ["Pointe Pointe Beacon","Dominica",15.58,-61.46,30,"beacon"]
 ].forEach(([name,isl,lat,lon,h,type,lr])=>BPS.push({name,isl,...geo(lat,lon),h,type,lr,geoRange:2.08*(Math.sqrt(h)+Math.sqrt(18))}));
 for(const k in PORTS){const p=PORTS[k];BPS.push({name:p.name,isl:p.name,x:p.x,y:p.y,h:30,type:"port",port:k,geoRange:2.08*(Math.sqrt(30)+Math.sqrt(18))});}
+const BP_UNLIMITED=true; // for now every bearing point can be seen and picked at any distance; set false to restore real visual range
 let bpSel=null; // the bearing point the captain has picked on the chart
 const placeOf=k=>PORTS[k]||START_ONLY[k];
 function inPoly(p,pts){let ins=false;for(let i=0,j=pts.length-1;i<pts.length;j=i++){const a=pts[i],b=pts[j];if(((a.y>p.y)!==(b.y>p.y))&&(p.x<(b.x-a.x)*(p.y-a.y)/(b.y-a.y)+a.x))ins=!ins;}return ins;}
@@ -1405,9 +1406,9 @@ function step(dt){
   // land sightings
   const night=isNight(s);
   const hz=dayInfo(s,di).haze;
-  for(const lm of BPS){const d=Math.hypot(lm.x-sh.x,lm.y-sh.y);const r=(night&&lm.type==="light"?Math.min(lm.lr,22):Math.min(lm.geoRange,44)*(night?.15:1))*hz;lm.vis=d<r;lm.dist=d;
+  for(const lm of BPS){const d=Math.hypot(lm.x-sh.x,lm.y-sh.y);const r=(night&&lm.type==="light"?Math.min(lm.lr,22):Math.min(lm.geoRange,44)*(night?.15:1))*hz;lm.near=d<r;lm.vis=BP_UNLIMITED||lm.near;lm.dist=d;
     if(!lm.vis&&bpSel===lm)bpSel=null;
-    if(lm.type==="peak"&&lm.vis&&!s.seen.has(lm.isl)){s.seen.add(lm.isl);say(`Land ho! ${lm.isl} in sight, bearing ${pointName(Math.atan2(lm.x-sh.x,lm.y-sh.y)*R2D)}.`,{slow:true});}}
+    if(lm.type==="peak"&&lm.near&&!s.seen.has(lm.isl)){s.seen.add(lm.isl);say(`Land ho! ${lm.isl} in sight, bearing ${pointName(Math.atan2(lm.x-sh.x,lm.y-sh.y)*R2D)}.`,{slow:true});}}
   // hazards
   const fa=footAt(sh.x,sh.y); // inside a harbour the plan decides what is land
   // no grounding or dock strikes in port waters (harbour footprint, docked, or close to a port); open coasts and reefs still ground her
