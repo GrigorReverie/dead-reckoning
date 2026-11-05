@@ -471,6 +471,8 @@ body.fs3d #fsBar{left:max(12px,env(safe-area-inset-left,0px));bottom:max(12px,en
 @keyframes drIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
 .menupop:not([hidden]),#camPop:not([hidden]){animation:drIn .16s ease-out}
 @media (prefers-reduced-motion:reduce){.menupop,#camPop{animation:none!important}}
+.sumstrip{position:fixed;left:50%;transform:translateX(-50%);bottom:max(76px,calc(env(safe-area-inset-bottom,0px) + var(--ic,40px) + 36px));z-index:16;display:flex;align-items:center;gap:12px;padding:4px 12px;background:color-mix(in srgb,var(--paper) 93%,transparent);border:1px solid var(--ink);border-radius:3px;box-shadow:var(--shadow-float);font:var(--fs-small,12px) var(--f-data);font-variant-numeric:tabular-nums;pointer-events:none;white-space:nowrap;max-width:calc(100vw - 24px);overflow:hidden}
+.sumstrip .sumdot{width:8px;height:8px;border-radius:50%;background:var(--ochre);flex:none}
 </style>
 
 <div class="app">
@@ -596,6 +598,7 @@ body.fs3d #fsBar{left:max(12px,env(safe-area-inset-left,0px));bottom:max(12px,en
       </div>
     </div>
     </div>
+    <div class="sumstrip" id="sumStrip" role="status" aria-label="Ship summary" hidden></div>
     <aside class="side">
       <section class="dock dock-all" aria-label="Ship controls">
         <div class="dockhead"><b class="dh" title="Collapse or expand the ship controls"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="6.6"/><circle cx="12" cy="12" r="2"/><path d="M12 1.5v21M1.5 12h21M4.6 4.6l14.8 14.8M19.4 4.6L4.6 19.4"/></svg> <span class="dht">Ship controls</span></b><span class="r"><small id="posail">—</small><button class="ctog" data-dock="all" aria-expanded="true" title="Collapse or expand">–</button></span></div>
@@ -943,6 +946,7 @@ function render(){
   <div class="lkg">${COL.map(([k,n])=>row(k,n)).join("")}</div>
   <label class="lkc lkoc"><input type="color" data-oc value="${hex(L.oc||cur("ink"))}"><span>Outline colour (all panels)</span>${L.oc?`<button type="button" data-ocr title="Back to default">↺</button>`:""}</label>
   ${NUM.map(num).join("")}
+  <div class="pvc"><span class="pvn">Folded ship controls show</span>${[["hdg","Heading"],["spd","Speed"],["wind","Wind"],["sails","Sails"],["alert","Alert dot"]].map(([k,n])=>`<button type="button" data-sm="${k}" aria-pressed="${(L.sum||["hdg","spd","wind","alert"]).includes(k)}">${n}</button>`).join("")}</div>
   <div class="pvc"><span class="pvn">Texture</span>${Object.entries(TEX).map(([k,n])=>`<button type="button" data-tx="${k}" aria-pressed="${(L.tx||"none")===k}">${n}</button>`).join("")}</div>
   <div class="pvc"><span class="pvn">Border style</span>${Object.entries(BDS).map(([k,n])=>`<button type="button" data-bd="${k}" aria-pressed="${(L.bd||"solid")===k}">${n}</button>`).join("")}</div>
   <div class="pvr"><label>Texture strength</label><input type="range" data-n="ta" min="5" max="100" step="5" value="${L.ta!=null?L.ta:40}"><output>${L.ta!=null?L.ta:40}%</output></div>
@@ -964,6 +968,7 @@ document.addEventListener("click",e=>{
   if(!host)return;const b=e.target.closest("button");if(!b||!host.contains(b))return;
   if(b.dataset.cr){const c=L[th()];if(c){delete c[b.dataset.cr];apply();save();render();}}
   else if(b.hasAttribute("data-ocr")){delete L.oc;apply();save();render();}
+  else if(b.dataset.sm){const s=(L.sum||["hdg","spd","wind","alert"]).slice(),i=s.indexOf(b.dataset.sm);if(i<0)s.push(b.dataset.sm);else s.splice(i,1);L.sum=s;apply();save();render();}
   else if(b.dataset.tx){L.tx=b.dataset.tx;apply();save();render();}
   else if(b.dataset.bd){if(b.dataset.bd==="solid")delete L.bd;else L.bd=b.dataset.bd;apply();save();render();}
   else if(b.dataset.p){const p=PRESETS[b.dataset.p];const keep={};load(JSON.parse(JSON.stringify(p.d)));
@@ -2792,6 +2797,9 @@ function updateUI(force){
    const jb=$("cbJib"),am=sh.anch.mode,atp=S.docked||am==="holding"||am==="weighing",show=atp?th<NOGO+6||!!sh.jibBack:(am==="up"||am==="trailing")&&(S.irons||sh.jibBack||(th<NOGO+6&&sh.v<1.5));
    jb.classList.toggle("on",!!show);jb.classList.toggle("armed",!!sh.jibBack);jb.title=sh.jibBack?"Jib backed: tap to let it go":"Back the jib: set the heading you want on the compass, then tap";}
   $("posail").textContent=`${pos} · wind ${rel>0?"starboard":"port"}`;$("posail").className=th<NOGO?"warn":"";
+  {const el=$("sumStrip"),dk=document.querySelector(".dock-all");if(el){const col=!!dk&&dk.classList.contains("collapsed");el.hidden=!col;if(col){const sm=(window.DRLook&&DRLook.get().sum)||["hdg","spd","wind","alert"],P=[];
+   if(sm.includes("hdg"))P.push((((Math.round(sh.heading)%360)+360)%360)+"°");if(sm.includes("spd"))P.push($("spdTxt").textContent);if(sm.includes("wind"))P.push("wind "+pointName(w.from)+" F"+bf);if(sm.includes("sails"))P.push(pos);
+   const al=th<NOGO||S.water>15||S.hull<.5;el.innerHTML=P.map(x=>"<span>"+x+"</span>").join("")+(sm.includes("alert")&&al?'<i class="sumdot" title="Needs attention"></i>':"");}}}
   $("wxTxt").textContent=wxText(S,w);{const g=glassText(S);$("glassTxt").innerHTML=g.fall?`<span class="warn">${g.txt}</span>`:g.txt;}$("seaTxt").textContent=seaText(S);drawBaro();
   $("ordTxt").textContent=`${Math.round(sh.ordered)}° ${pointName(sh.ordered)}`;
   { const fb=$("bFish");{const t=S.fishing?`Stop fishing · ${Math.round(S.catchTotal)} lb (F)`:"Put hand-lines over the side (F)";fb.title=t;fb.setAttribute("aria-label",t);}fb.setAttribute("aria-pressed",String(!!S.fishing)); }
