@@ -950,7 +950,7 @@ function render(){
   <div class="lkg">${COL.map(([k,n])=>row(k,n)).join("")}</div>
   <label class="lkc lkoc"><input type="color" data-oc value="${hex(L.oc||cur("ink"))}"><span>Outline colour (all panels)</span>${L.oc?`<button type="button" data-ocr title="Back to default">↺</button>`:""}</label>
   ${NUM.map(num).join("")}
-  <div class="pvc"><span class="pvn">Folded ship controls show</span>${[["hdg","Heading"],["spd","Speed"],["wind","Wind"],["sails","Sails"],["alert","Alert dot"]].map(([k,n])=>`<button type="button" data-sm="${k}" aria-pressed="${(L.sum||["hdg","spd","wind","alert"]).includes(k)}">${n}</button>`).join("")}</div>
+  <div class="pvc"><span class="pvn">Folded ship controls show</span>${[["hdg","Heading"],["spd","Speed"],["wind","Wind"],["sails","Sails"],["alert","Alert dot"]].map(([k,n])=>`<button type="button" data-sm="${k}" aria-pressed="${(L.sum||["hdg","spd","alert"]).includes(k)}">${n}</button>`).join("")}</div>
   <div class="pvc"><span class="pvn">Texture</span>${Object.entries(TEX).map(([k,n])=>`<button type="button" data-tx="${k}" aria-pressed="${(L.tx||"none")===k}">${n}</button>`).join("")}</div>
   <div class="pvc"><span class="pvn">Border style</span>${Object.entries(BDS).map(([k,n])=>`<button type="button" data-bd="${k}" aria-pressed="${(L.bd||"solid")===k}">${n}</button>`).join("")}</div>
   <div class="pvr"><label>Texture strength</label><input type="range" data-n="ta" min="5" max="100" step="5" value="${L.ta!=null?L.ta:40}"><output>${L.ta!=null?L.ta:40}%</output></div>
@@ -972,7 +972,7 @@ document.addEventListener("click",e=>{
   if(!host)return;const b=e.target.closest("button");if(!b||!host.contains(b))return;
   if(b.dataset.cr){const c=L[th()];if(c){delete c[b.dataset.cr];apply();save();render();}}
   else if(b.hasAttribute("data-ocr")){delete L.oc;apply();save();render();}
-  else if(b.dataset.sm){const s=(L.sum||["hdg","spd","wind","alert"]).slice(),i=s.indexOf(b.dataset.sm);if(i<0)s.push(b.dataset.sm);else s.splice(i,1);L.sum=s;apply();save();render();}
+  else if(b.dataset.sm){const s=(L.sum||["hdg","spd","alert"]).slice(),i=s.indexOf(b.dataset.sm);if(i<0)s.push(b.dataset.sm);else s.splice(i,1);L.sum=s;apply();save();render();}
   else if(b.dataset.tx){L.tx=b.dataset.tx;apply();save();render();}
   else if(b.dataset.bd){if(b.dataset.bd==="solid")delete L.bd;else L.bd=b.dataset.bd;apply();save();render();}
   else if(b.dataset.p){const p=PRESETS[b.dataset.p];const keep={};load(JSON.parse(JSON.stringify(p.d)));
@@ -2802,7 +2802,7 @@ function updateUI(force){
    const jb=$("cbJib"),am=sh.anch.mode,atp=S.docked||am==="holding"||am==="weighing",show=atp?th<NOGO+6||!!sh.jibBack:(am==="up"||am==="trailing")&&(S.irons||sh.jibBack||(th<NOGO+6&&sh.v<1.5));
    jb.classList.toggle("on",!!show);jb.classList.toggle("armed",!!sh.jibBack);jb.title=sh.jibBack?"Jib backed: tap to let it go":"Back the jib: set the heading you want on the compass, then tap";}
   $("posail").textContent=`${pos} · wind ${rel>0?"starboard":"port"}`;$("posail").className=th<NOGO?"warn":"";
-  {const el=$("sumStrip"),dk=document.querySelector(".dock-all");if(el){const col=!!dk&&dk.classList.contains("collapsed");el.hidden=!col;if(col){const sm=(window.DRLook&&DRLook.get().sum)||["hdg","spd","wind","alert"],P=[];
+  {const el=$("sumStrip"),dk=document.querySelector(".dock-all");if(el){const col=!!dk&&dk.classList.contains("collapsed");el.hidden=!col;if(col){const sm=(window.DRLook&&DRLook.get().sum)||["hdg","spd","alert"],P=[];
    if(sm.includes("hdg"))P.push((((Math.round(sh.heading)%360)+360)%360)+"°");if(sm.includes("spd"))P.push($("spdTxt").textContent);if(sm.includes("wind"))P.push("wind "+pointName(w.from)+" F"+bf);if(sm.includes("sails"))P.push(pos);
    const nC=(S.crew&&S.crew.length)||1,why=[];if(th<NOGO)why.push("in irons");if(S.water>15)why.push("water in the bilge");if(S.hull<.5)why.push("hull damaged");if(S.stores&&Math.min(S.stores.bis,S.stores.meat,S.stores.beer)/nC<5)why.push("stores low");if(S.crew&&S.crew.some(m=>m.hp!=null&&m.hp<.5))why.push("crew hurt or sick");
    el.innerHTML=P.map(x=>"<span>"+x+"</span>").join("")+(sm.includes("alert")&&why.length?'<i class="sumdot" title="'+why.join(", ")+'">!</i>':"");}}}
@@ -9098,11 +9098,11 @@ html body .dock-all #compassBox .sc-x{width:100%!important;text-align:center!imp
 html body .dock-all #compassBox .sc-x[hidden],html body .dock-all #compassBox .sc-x:empty{display:none!important}
 html body .dock-all #compassBox #dial{position:static!important;width:200px!important;height:200px!important;flex:none}
 html body .dock-all #compassBox #baro,html body .dock-all #compassBox #sailSteps5{width:56px!important;height:180px!important;flex:none;align-self:flex-end}
-html body .dock-all #compassBox .cbfoot{display:grid!important;grid-template-columns:repeat(6,44px)!important;justify-content:center!important;align-items:start!important;gap:6px 8px!important;column-gap:8px!important;row-gap:6px!important;padding:0 0 12px!important;height:auto!important;width:auto!important;flex-wrap:nowrap!important;align-self:center!important}
+html body .dock-all #compassBox .cbfoot{display:flex!important;flex-wrap:wrap!important;justify-content:center!important;align-items:flex-start!important;gap:6px 8px!important;column-gap:8px!important;row-gap:6px!important;padding:0 0 12px!important;height:auto!important;width:100%!important;align-self:center!important}
 html body .dock-all #compassBox .cbfoot .btn.ico,html body .dock-all #compassBox .cbfoot .btn.ico.btn,html body .dock-all #compassBox .cbfoot #bNip{width:44px!important;height:44px!important;min-height:0!important;flex:none!important;padding:0!important}
 html body .dock-all #compassBox .cbfoot .anchwrap{width:44px!important;height:44px!important}
 html body .dock-all #compassBox .cbfoot .btn.ico svg,html body .dock-all #compassBox .cbfoot .btn.ico img{width:30px!important;height:30px!important}
-html body .dock-all #compassBox .cbfoot #logbox:not([hidden]){order:20!important;grid-column:1/-1!important;display:flex!important;align-items:center!important;justify-content:center!important;gap:10px!important;padding:0!important;flex:none!important}
+html body .dock-all #compassBox .cbfoot #logbox:not([hidden]){order:20!important;flex:0 0 100%!important;display:flex!important;align-items:center!important;justify-content:center!important;gap:10px!important;padding:0!important}
 html body .dock-all #compassBox .cbfoot #logbox #glass{width:22px!important;height:34px!important;position:static!important}
 }
 </style>
