@@ -1261,6 +1261,100 @@ function wxStep(s,dt,w){const X=s.wx,t=s.t;if(!X)return;const HOLD=FIELD.hold()|
   // a note whenever the wind has moved a good way round
   if(X.last==null)X.last=w.from;const dd=angDiff(X.last,w.from);
   if(Math.abs(dd)>=WXK.shiftNote){EV.emit("wx","shift",{dd,from:w.from});X.last=w.from;}}
+/* engine/nav/nav.js: dead reckoning, log readings, noon sight, bearings, cross-bearing fix, mark position.
+   Logic only: the functions change the navigation state `s` and emit events for anything the player should be told.
+   State used on `s`: est {x,y,sx,sy} (the reckoned position and its error), estSpeed, estTrack [{x,y}], lastLog {v,t,by},
+   heaves, bearings [{lm,brg,t,time}], latLines, fixes, sights, lastFixT, t0, t, marks, mkIdx, noon {observing,readings,lastRead,doneDay}.
+   Positions are plane miles (x east, y north); bearings are degrees. Uses the game's helpers norm, angDiff, D2R, R2D, gauss.
+   Events: "navBearing" (b), "navNoon" (info), "navFix" (info), "navMark" (info), "refresh" (force). */
+const MARK_SPEED_FRESH=5/60; // the log counts if it was hove within the last 5 game minutes
+
+/* reckoning: ordered course + logged speed only; the error grows with time and speed. Call before s.t advances. */
+function navReckon(s,ordered,dt){
+  s.est.x+=s.estSpeed*Math.sin(ordered*D2R)*dt;s.est.y+=s.estSpeed*Math.cos(ordered*D2R)*dt;
+  const g=(.06*s.estSpeed+.45)*dt;s.est.sx+=g;s.est.sy+=g;
+}
+/* extend the reckoned track once the estimate has moved far enough */
+function navTrail(s){const le=s.estTrack[s.estTrack.length-1];if(Math.hypot(le.x-s.est.x,le.y-s.est.y)>.8)s.estTrack.push({x:s.est.x,y:s.est.y});}
+/* a log reading (knots) becomes the speed the reckoning uses */
+function navLogReading(s,knots,by){s.estSpeed=knots;s.lastLog={v:knots,t:s.t,by:by||"you"};s.heaves++;}
+
+/* take a bearing on a landmark {x,y}; spread*typeK is the noise in degrees (one standard deviation) */
+function navBearing(s,from,lm,spread,typeK){
+  const tb=norm(Math.atan2(lm.x-from.x,lm.y-from.y)*R2D);const brg=norm(tb+gauss()*spread*typeK);
+  const b={lm,brg,t:s.t,time:null};s.bearings.push(b);
+  EV.emit("navBearing",b);
+  return b;
+}
+
+/* two bearings on different landmarks, 25 to 155 degrees apart and taken within 45 minutes, cross at a fix */
+function navCrossFix(s){
+  const b=s.bearings;if(b.length<2)return null;
+  for(let i=b.length-1;i>0;i--)for(let j=i-1;j>=0;j--){
+    const a=b[i],c=b[j];if(a.t-c.t>.75)break;if(a.lm===c.lm)continue;
+    const cut=Math.abs(angDiff(a.brg,c.brg));if(cut<25||cut>155)continue;
+    // line from landmark back toward ship: P = L + s*d, d = dir(brg+180)
+    const d1={x:Math.sin((a.brg+180)*D2R),y:Math.cos((a.brg+180)*D2R)},d2={x:Math.sin((c.brg+180)*D2R),y:Math.cos((c.brg+180)*D2R)};
+    const den=d1.x*d2.y-d1.y*d2.x;if(Math.abs(den)<1e-6)continue;
+    const dx=c.lm.x-a.lm.x,dy=c.lm.y-a.lm.y;const s1=(dx*d2.y-dy*d2.x)/den;
+    if(s1<0)continue;
+    return{x:a.lm.x+s1*d1.x,y:a.lm.y+s1*d1.y,a,c};
+  }
+  return null;
+}
+/* put the reckoning on the cross fix f (from navCrossFix) */
+function navPlotFix(s,f){
+  const hrs=s.t-(s.lastFixT===undefined?s.t0:s.lastFixT),mx=f.x-s.est.x,my=f.y-s.est.y,mm=Math.hypot(mx,my);s.lastFixT=s.t;
+  s.est.x=f.x;s.est.y=f.y;s.est.sx=s.est.sy=1.2;s.estTrack.push({x:f.x,y:f.y});s.fixes++;s.bearings=s.bearings.filter(b=>b.t>s.t-.75&&b!==f.a&&b!==f.c);
+  EV.emit("navFix",{x:f.x,y:f.y,hrs,mx,my,mm});
+  EV.emit("refresh",true);
+}
+
+/* noon sight: the sun's greatest altitude gives latitude. o = {decl (sun declination, deg), lat0 (latitude of y=0),
+   trueLat (the ship's real latitude, for the report), day, time, lost (reckoning-only mode)} */
+function navNoonSight(s,o){
+  const n=s.noon;if(!n.observing||n.readings.length<3)return;
+  n.observing=false;n.doneDay=o.day;s.sights++;
+  const max=Math.max(...n.readings);
+  const lat=90-max+o.decl; // sun to the south of the ship
+  const last=n.readings.slice(-6);const stillRising=last.length>3&&last[last.length-1]>last[0]+.02;
+  const y=(lat-o.lat0)*60;
+  s.latLines.push({y,lat,time:o.time});
+  if(o.lost){s.est.y=y;s.est.sy=1.5;}
+  else{s.est.y=y;}
+  s.estTrack.push({x:s.est.x,y:s.est.y});
+  EV.emit("navNoon",{max,lat,stillRising,trueLat:o.trueLat});
+  EV.emit("refresh");
+}
+
+/* mark position: every bearing taken plus the speed from the last 5 minutes, solved by least squares.
+   Returns false when there is nothing to mark from. o = {time} */
+function navMarkPosition(s,o){
+  if(!s.marks){const e=s.estTrack[0]||s.est;s.marks=[{x:e.x,y:e.y,t:s.t0,q:"Start",r:0}];s.mkIdx=0;}
+  const B=s.bearings;if(!B.length){EV.emit("navMark",null);return false;}
+  const fresh=!!(s.lastLog&&s.t-s.lastLog.t<=MARK_SPEED_FRESH);
+  // each bearing is a line the ship lies on; the speed-fed reckoning is a weak pull toward where it thinks she is (stronger when the log is fresh)
+  const wp=fresh?1/2.25:1/36;let a=wp,b=0,c=wp,e=wp*s.est.x,f=wp*s.est.y;
+  for(const q of B){const r=q.brg*D2R,nx=Math.cos(r),ny=-Math.sin(r),d=nx*q.lm.x+ny*q.lm.y,sg=Math.max(.4,Math.hypot(q.lm.x-s.est.x,q.lm.y-s.est.y)*.02),w=1/(sg*sg);
+    a+=w*nx*nx;b+=w*nx*ny;c+=w*ny*ny;e+=w*nx*d;f+=w*ny*d;}
+  const det=a*c-b*b,x=(c*e-b*f)/det,y=(a*f-b*e)/det,sx=Math.max(.15,Math.sqrt(c/det)),sy=Math.max(.15,Math.sqrt(a/det));
+  // quality: how well the lines cross (best near 90 degrees) and whether the speed is fresh
+  let sn=0,lines=0;const lms=[...new Set(B.map(q=>q.lm))];
+  for(let i=0;i<B.length;i++)for(let j=i+1;j<B.length;j++)if(B[i].lm!==B[j].lm)sn=Math.max(sn,Math.abs(Math.sin(angDiff(B[i].brg,B[j].brg)*D2R)));
+  lines=lms.length>=2&&sn>.25?1:0;
+  const score=(lines?2+2*sn:0)+(fresh?1:0),tier=score<1?"Poor":score<2?"Fair":score<3.5?"Good":score<4.8?"Very good":"Excellent";
+  // the path since the last mark is bent to end on the new dot, so a good fix repairs the drift of the earlier leg
+  const i0=Math.min(s.mkIdx||0,s.estTrack.length-1),leg=s.estTrack.slice(i0);leg.push({x:s.est.x,y:s.est.y});
+  const ox=x-s.est.x,oy=y-s.est.y;let tot=0;const cum=[0];for(let i=1;i<leg.length;i++){tot+=Math.hypot(leg[i].x-leg[i-1].x,leg[i].y-leg[i-1].y);cum.push(tot);}
+  const bent=leg.map((p,i)=>{const k=tot>0?cum[i]/tot:(i?1:0);return{x:p.x+ox*k,y:p.y+oy*k};});
+  s.estTrack=s.estTrack.slice(0,i0).concat(bent);s.mkIdx=s.estTrack.length-1;
+  const off=Math.hypot(ox,oy),dir=norm(Math.atan2(ox,oy)*R2D);
+  s.est.x=x;s.est.y=y;s.est.sx=sx;s.est.sy=sy;s.lastFixT=s.t;if(lines)s.fixes++;
+  s.marks.push({x,y,t:s.t,q:tier,r:Math.max(sx,sy),time:o.time,n:B.length,speed:fresh});
+  const nb=B.length;s.bearings=[];
+  EV.emit("navMark",{x,y,sx,sy,tier,fresh,lines,nb,off,dir});
+  return true;
+}
 Object.assign(WINDK,{block:1.4,venturi:1.25,shadow:1.25,shadowLen:1.25,seaBreeze:1.25,landBreeze:1.25,thermal:1.3,diurnal:1.3});
 /* Dead Reckoning's world for the wind and weather engine: local time from the ship's longitude, the islands and passages, the Preview menu holds, the day's cloud */
 FIELD.localHour=(s,t)=>localHours(s,t);FIELD.land=()=>landInit();FIELD.hold=()=>PV;FIELD.day=s=>dayInfo(s,dayIndex(s));
@@ -1486,12 +1580,11 @@ function step(dt){
   const sd=s.irons?clamp(.15+.02*w.kn,.15,.6):0; // in irons she gathers sternway
   sh.x+=(vx-sd*Math.sin(sh.heading*D2R))*dt;sh.y+=(vy-sd*Math.cos(sh.heading*D2R))*dt;s.distance+=sh.v*dt;s.maxV=Math.max(s.maxV,sh.v);
   // reckoning: ordered course + logged speed only
-  s.est.x+=s.estSpeed*Math.sin(sh.ordered*D2R)*dt;s.est.y+=s.estSpeed*Math.cos(sh.ordered*D2R)*dt;
-  const g=(.06*s.estSpeed+.45)*dt;s.est.sx+=g;s.est.sy+=g;
+  navReckon(s,sh.ordered,dt);
   s.t+=dt;
   // tracks
   const lt=s.track[s.track.length-1];if(Math.hypot(lt.x-sh.x,lt.y-sh.y)>.8)s.track.push({x:sh.x,y:sh.y});
-  const le=s.estTrack[s.estTrack.length-1];if(Math.hypot(le.x-s.est.x,le.y-s.est.y)>.8)s.estTrack.push({x:s.est.x,y:s.est.y});
+  navTrail(s);
   // bells & hourly log
   const lh=localHours(s,s.t);
   const hh=Math.floor(lh*2);
@@ -1988,7 +2081,7 @@ function nip(){
   $("knotCount").textContent=heave.meas.toFixed(1);
   $("glassMsg").textContent=Math.abs(err)<.05?"Nipped right as the glass ran out. A clean reading.":err<0?"Nipped early. The reading is low.":"Nipped late. The reading is high.";
   $("bNip").disabled=true;
-  S.estSpeed=heave.meas;S.lastLog={v:heave.meas,t:S.t,by:"you"};S.heaves++;(S.heaveLog=S.heaveLog||[]).unshift({v:heave.meas,crs:pointName(S.ship.ordered),time:timeStr(S)});if(S.heaveLog.length>40)S.heaveLog.length=40;
+  navLogReading(S,heave.meas,"you");(S.heaveLog=S.heaveLog||[]).unshift({v:heave.meas,crs:pointName(S.ship.ordered),time:timeStr(S)});if(S.heaveLog.length>40)S.heaveLog.length=40;
   if(R3&&R3.logfx)R3.logfx.end=performance.now();
   setTimeout(()=>{$("logbox").style.display="none";$("logbox").hidden=true;$("bHeave").disabled=false;heave=null;if(R3&&R3.logfx){R3.logfx.start=0;R3.logfx.end=0;R3.logfx.placed=false;}updateUI();},1300);
 }
@@ -2025,31 +2118,26 @@ function noonAvailable(){
 function startObserve(){const a=noonAvailable();if(!a.ok)return;S.noon.observing=true;S.noon.readings=[];S.noon.lastRead=-9;if(speedMult>60)setSpeed(60);say("You take the octant up to the quarterdeck and bring the sun down to the horizon.",{log:false});updateUI();}
 function markNoon(){
   const n=S.noon;if(!n.observing||n.readings.length<3)return;
-  n.observing=false;n.doneDay=dayIndex(S);S.sights++;
-  const max=Math.max(...n.readings);const di=dayIndex(S);
-  const lat=90-max+decl(di); // sun to the south of the ship
-  const tl=shipGeo(S).lat;
-  const last=n.readings.slice(-6);const stillRising=last.length>3&&last[last.length-1]>last[0]+.02;
-  const y=(lat-LAT0)*60;
-  S.latLines.push({y,lat,time:timeStr(S)});
-  if(S.mode==="lost"){S.est.y=y;S.est.sy=1.5+Math.abs(lat-tl)*0;}
-  else{S.est.y=y;}
-  S.estTrack.push({x:S.est.x,y:S.est.y});
-  say(`Noon. Sun's greatest altitude ${fmtAlt(max)}. Latitude by observation ${fmtLat(lat)}.${stillRising?" (It may still have been rising.)":""}`);
-  if(S.mode==="trial")say(`Noon sight: ${fmtLat(lat)}. True latitude ${fmtLat(tl)}, error ${Math.abs(lat-tl)*60<1?"under 1":(Math.abs(lat-tl)*60).toFixed(1)} miles.`);
-  updateUI();
+  const di=dayIndex(S);
+  navNoonSight(S,{decl:decl(di),lat0:LAT0,trueLat:shipGeo(S).lat,day:di,time:timeStr(S),lost:S.mode==="lost"});
 }
+EV.on("navNoon",e=>{
+  say(`Noon. Sun's greatest altitude ${fmtAlt(e.max)}. Latitude by observation ${fmtLat(e.lat)}.${e.stillRising?" (It may still have been rising.)":""}`);
+  if(S.mode==="trial")say(`Noon sight: ${fmtLat(e.lat)}. True latitude ${fmtLat(e.trueLat)}, error ${Math.abs(e.lat-e.trueLat)*60<1?"under 1":(Math.abs(e.lat-e.trueLat)*60).toFixed(1)} miles.`);
+});
 const fmtAlt=a=>{const d=Math.floor(a),m=Math.round((a-d)*60);return `${d}°${String(m).padStart(2,"0")}′`;};
 
 /* ---------- bearings ---------- */
 function takeBearing(lm){
-  const sh=S.ship;const tb=norm(Math.atan2(lm.x-sh.x,lm.y-sh.y)*R2D);
-  const w=windAt(S,sh.x,sh.y,S.t);const brg=norm(tb+gauss()*(.8+.2*beaufort(w.kn))*(BP_TYPES[lm.type||"peak"].noise));
-  S.bearings.push({lm,brg,t:S.t,time:timeStr(S)});
-  say(`${lm.name} bears ${Math.round(brg)}° (${pointName(brg)}).`);
-  (S.heaveLog=S.heaveLog||[]).unshift({txt:`${lm.name} bears ${Math.round(brg)}° (${pointName(brg)})`,time:timeStr(S)});if(S.heaveLog.length>40)S.heaveLog.length=40;
+  const sh=S.ship;const w=windAt(S,sh.x,sh.y,S.t);
+  const b=navBearing(S,sh,lm,.8+.2*beaufort(w.kn),BP_TYPES[lm.type||"peak"].noise);
+  b.time=timeStr(S);
   updateUI(true);
 }
+EV.on("navBearing",b=>{
+  say(`${b.lm.name} bears ${Math.round(b.brg)}° (${pointName(b.brg)}).`);
+  (S.heaveLog=S.heaveLog||[]).unshift({txt:`${b.lm.name} bears ${Math.round(b.brg)}° (${pointName(b.brg)})`,time:timeStr(S)});if(S.heaveLog.length>40)S.heaveLog.length=40;
+});
 function takeBearings(){
   if(!S||S.done)return;const vis=BPS.filter(l=>l.vis);
   if(!vis.length){say("Nothing in sight to take a bearing on.");return;}
@@ -2060,59 +2148,28 @@ function bearingAction(){if(!S||S.done)return;if(bpSel&&bpSel.vis){takeBearing(b
 function selectBp(lm){bpSel=lm&&lm.vis?lm:null;syncBpUI();if(typeof chartDirty!=="undefined")chartDirty=true;}
 function syncBpUI(){const b=$("cBrg");if(b){b.setAttribute("aria-pressed",bpSel?"true":"false");b.title=bpSel?`Take a bearing on ${bpSel.name} (tap it again to clear)`:"Tap a point on the chart to pick it, or press for everything in sight";}
   const bb=$("bBrg");if(bb)bb.title=b&&b.title;}
-function crossFix(){
-  const b=S.bearings;if(b.length<2)return null;
-  for(let i=b.length-1;i>0;i--)for(let j=i-1;j>=0;j--){
-    const a=b[i],c=b[j];if(a.t-c.t>.75)break;if(a.lm===c.lm)continue;
-    const cut=Math.abs(angDiff(a.brg,c.brg));if(cut<25||cut>155)continue;
-    // line from landmark back toward ship: P = L + s*d, d = dir(brg+180)
-    const d1={x:Math.sin((a.brg+180)*D2R),y:Math.cos((a.brg+180)*D2R)},d2={x:Math.sin((c.brg+180)*D2R),y:Math.cos((c.brg+180)*D2R)};
-    const den=d1.x*d2.y-d1.y*d2.x;if(Math.abs(den)<1e-6)continue;
-    const dx=c.lm.x-a.lm.x,dy=c.lm.y-a.lm.y;const s1=(dx*d2.y-dy*d2.x)/den;
-    if(s1<0)continue;
-    return{x:a.lm.x+s1*d1.x,y:a.lm.y+s1*d1.y,a,c};
-  }
-  return null;
-}
-function plotFix(){const f=crossFix();if(!f)return;
-  const hrs=S.t-(S.lastFixT===undefined?S.t0:S.lastFixT),mx=f.x-S.est.x,my=f.y-S.est.y,mm=Math.hypot(mx,my);S.lastFixT=S.t;
-  S.est.x=f.x;S.est.y=f.y;S.est.sx=S.est.sy=1.2;S.estTrack.push({x:f.x,y:f.y});S.fixes++;S.bearings=S.bearings.filter(b=>b.t>S.t-.75&&b!==f.a&&b!==f.c);
-  const g=toGeo(f.x,f.y);say(`Fix by cross-bearings: ${fmtLat(g.lat)} ${fmtLon(g.lon)}.`);
+const crossFix=()=>navCrossFix(S);
+function plotFix(){const f=crossFix();if(!f)return;navPlotFix(S,f);}
+EV.on("navFix",e=>{
+  const g=toGeo(e.x,e.y),hrs=e.hrs,mm=e.mm,mx=e.mx,my=e.my;say(`Fix by cross-bearings: ${fmtLat(g.lat)} ${fmtLon(g.lon)}.`);
   if(hrs>=1&&mm/hrs>2)say(`Reckoning against fix: you are ${mm.toFixed(0)} miles ${pointName(norm(Math.atan2(mx,my)*R2D))} of the reckoning. That is too much for the current alone: the log must have been read wrongly or too seldom.`,{slow:true});
   else if(hrs>=1&&mm>.3){const st=norm(Math.atan2(mx,my)*R2D);say(`Reckoning against fix: the ship is ${mm.toFixed(1)} miles ${pointName(st)} of the reckoning, which is a current setting ${Math.round(st)}° at about ${(mm/hrs).toFixed(1)} knots over the ${hrs.toFixed(0)} hours since the last fix (leeway and a log that reads a little off count in this too).`,{slow:true});}
-  updateUI(true);}
+});
 
 /* ---------- mark position: every bearing taken plus the speed from the last 5 minutes ---------- */
-const MARK_SPEED_FRESH=5/60; // the log counts if it was hove within the last 5 game minutes
 function ensureMarks(){if(!S.marks){const e=S.estTrack[0]||S.est;S.marks=[{x:e.x,y:e.y,t:S.t0,q:"Start",r:0}];S.mkIdx=0;}}
 function markPosition(){
-  if(!S||S.done)return;ensureMarks();
-  const B=S.bearings;if(!B.length){say("Nothing to mark from: take a bearing on a point first.");return;}
-  const fresh=!!(S.lastLog&&S.t-S.lastLog.t<=MARK_SPEED_FRESH);
-  // least squares: each bearing is a line the ship lies on; the speed-fed reckoning is a weak pull toward where it thinks she is (stronger when the log is fresh)
-  const wp=fresh?1/2.25:1/36;let a=wp,b=0,c=wp,e=wp*S.est.x,f=wp*S.est.y;
-  for(const q of B){const r=q.brg*D2R,nx=Math.cos(r),ny=-Math.sin(r),d=nx*q.lm.x+ny*q.lm.y,sg=Math.max(.4,Math.hypot(q.lm.x-S.est.x,q.lm.y-S.est.y)*.02),w=1/(sg*sg);
-    a+=w*nx*nx;b+=w*nx*ny;c+=w*ny*ny;e+=w*nx*d;f+=w*ny*d;}
-  const det=a*c-b*b,x=(c*e-b*f)/det,y=(a*f-b*e)/det,sx=Math.max(.15,Math.sqrt(c/det)),sy=Math.max(.15,Math.sqrt(a/det));
-  // quality: how well the lines cross (best near 90 degrees) and whether the speed is fresh
-  let sn=0,lines=0;const lms=[...new Set(B.map(q=>q.lm))];
-  for(let i=0;i<B.length;i++)for(let j=i+1;j<B.length;j++)if(B[i].lm!==B[j].lm)sn=Math.max(sn,Math.abs(Math.sin(angDiff(B[i].brg,B[j].brg)*D2R)));
-  lines=lms.length>=2&&sn>.25?1:0;
-  const score=(lines?2+2*sn:0)+(fresh?1:0),tier=score<1?"Poor":score<2?"Fair":score<3.5?"Good":score<4.8?"Very good":"Excellent";
-  // the path since the last mark is bent to end on the new dot, so a good fix repairs the drift of the earlier leg
-  const m0=S.marks[S.marks.length-1],i0=Math.min(S.mkIdx||0,S.estTrack.length-1),leg=S.estTrack.slice(i0);leg.push({x:S.est.x,y:S.est.y});
-  const ox=x-S.est.x,oy=y-S.est.y;let tot=0;const cum=[0];for(let i=1;i<leg.length;i++){tot+=Math.hypot(leg[i].x-leg[i-1].x,leg[i].y-leg[i-1].y);cum.push(tot);}
-  const bent=leg.map((p,i)=>{const k=tot>0?cum[i]/tot:(i?1:0);return{x:p.x+ox*k,y:p.y+oy*k};});
-  S.estTrack=S.estTrack.slice(0,i0).concat(bent);S.mkIdx=S.estTrack.length-1;
-  const off=Math.hypot(ox,oy),dir=pointName(norm(Math.atan2(ox,oy)*R2D));
-  S.est.x=x;S.est.y=y;S.est.sx=sx;S.est.sy=sy;S.lastFixT=S.t;if(lines)S.fixes++;
-  S.marks.push({x,y,t:S.t,q:tier,r:Math.max(sx,sy),time:timeStr(S),n:B.length,speed:fresh});
-  const nb=B.length,g=toGeo(x,y);S.bearings=[];
-  say(`Position marked: ${fmtLat(g.lat)} ${fmtLon(g.lon)}. ${nb} bearing${nb>1?"s":""}${fresh?" and the log hove within 5 minutes":", no fresh log"}: ${tier} accuracy, good to about ${Math.max(sx,sy).toFixed(1)} miles. The reckoning was ${off.toFixed(1)} miles ${off>.05?dir+" of the mark":"off"}.`,{slow:true});
-  if(!fresh)say("Heave the log before marking for a better fix.",{toast:false});
-  if(lines===0&&nb>0)say("One line of position only: you could be anywhere along it. Take a second bearing about 90° apart.",{toast:false});
+  if(!S||S.done)return;
+  if(!navMarkPosition(S,{time:timeStr(S)}))return;
   if(typeof chartDirty!=="undefined")chartDirty=true;updateUI(true);drawChart&&drawChart();
 }
+EV.on("navMark",e=>{
+  if(!e){say("Nothing to mark from: take a bearing on a point first.");return;}
+  const g=toGeo(e.x,e.y),nb=e.nb,off=e.off;
+  say(`Position marked: ${fmtLat(g.lat)} ${fmtLon(g.lon)}. ${nb} bearing${nb>1?"s":""}${e.fresh?" and the log hove within 5 minutes":", no fresh log"}: ${e.tier} accuracy, good to about ${Math.max(e.sx,e.sy).toFixed(1)} miles. The reckoning was ${off.toFixed(1)} miles ${off>.05?pointName(e.dir)+" of the mark":"off"}.`,{slow:true});
+  if(!e.fresh)say("Heave the log before marking for a better fix.",{toast:false});
+  if(e.lines===0&&nb>0)say("One line of position only: you could be anywhere along it. Take a second bearing about 90° apart.",{toast:false});
+});
 
 /* ---------- voyages ---------- */
 function startVoyage(v){HARBOURK=1;

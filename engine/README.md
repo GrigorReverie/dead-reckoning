@@ -15,6 +15,10 @@ Shared game logic (no UI, layout or look). Modules arrive step by step (core, fi
 
 Engine files are plain script inlined into the game's single script, so names are shared; check a new name is not already used in the game.
 
+## nav/ (step 3)
+- `nav/nav.js` `navReckon(s,ordered,dt)` (reckoned position and error growth; call before `s.t` advances), `navTrail(s)`, `navLogReading(s,knots)`, `navBearing(s,from,lm,spread,typeK)`, `navCrossFix(s)`, `navPlotFix(s,fix)`, `navNoonSight(s,{decl,lat0,trueLat,day,time,lost})`, `navMarkPosition(s,{time})`. Knob `MARK_SPEED_FRESH`.
+- The game keeps the player actions (`takeBearing`, `markNoon`, `plotFix`, `markPosition`, `noonAvailable`) as thin wrappers that gather inputs (wind, sun declination, clock text) and call the engine. Uses the game's helpers `norm`, `angDiff`, `D2R`, `R2D`, `gauss`.
+
 ## Events Dead Reckoning listens to
 | event | args | DR does |
 |---|---|---|
@@ -26,8 +30,12 @@ Engine files are plain script inlined into the game's single script, so names ar
 | `cargo` | state | cargo-loaded badge |
 | `crisis` | crisis | open the crisis card |
 | `voyageEnd` | ok, where | end-of-voyage screen |
+| `navBearing` | bearing {lm,brg,t} | notice and compass-log line |
+| `navNoon` | {max,lat,stillRising,trueLat} | noon notice (and true-latitude check in trial mode) |
+| `navFix` | {x,y,hrs,mx,my,mm} | fix notice and reckoning-vs-fix comment |
+| `navMark` | {x,y,sx,sy,tier,fresh,lines,nb,off,dir} or null | mark-position notices; null means no bearings |
 | `wx` | kind, e | weather notice text (`WX_SAY`): `wave1-3`, `front1-3`, `surge`, `lull`, `squallNear`, `shift` {dd, from} |
 
 Options asked with `optOn`: `bosun`, `mateLog`, `aSail`, `aCrew`, `aNoon`, `aFix` (Assists switches) and `crisisOpen`.
 
-Still calling the DR UI directly (to convert in their own steps): nav actions (`setCourse`, `takeBearing`, `startObserve`, `markNoon`, `plotFix`, `setSail`, `rowStep` call `updateUI`), crew roster helpers (`svBalance`, `hireHand`, `removeHand`), and `crisisStep` reads the `modalOpen` flag.
+Still calling the DR UI directly (to convert in their own steps): helm actions (`setCourse`, `setSail`, `rowStep` call `updateUI`) and the nav wrappers (`takeBearing`, `startObserve`, `markPosition` call `updateUI` after the engine call), crew roster helpers (`svBalance`, `hireHand`, `removeHand`), and `crisisStep` reads the `modalOpen` flag.

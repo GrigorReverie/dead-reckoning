@@ -209,6 +209,42 @@
    "games": [
     "dead-reckoning"
    ]
+  },
+  {
+   "id": "navigation",
+   "module": "nav/nav.js",
+   "summary": "Dead reckoning: the reckoned position and its growing error from ordered course and logged speed, log readings, a noon sight for latitude, bearings on landmarks with weather-dependent noise, a cross-bearing fix, and a least-squares mark position that bends the track.",
+   "inputs": [
+    "navReckon(s,ordered,dt): course in degrees and step in hours",
+    "navLogReading(s,knots)",
+    "navBearing(s,from,lm,spread,typeK): landmark {x,y}",
+    "navNoonSight(s,{decl,lat0,trueLat,day,time,lost})",
+    "navCrossFix(s) / navPlotFix(s,fix)",
+    "navMarkPosition(s,{time})",
+    "state s.est, s.estSpeed, s.estTrack, s.bearings, s.noon"
+   ],
+   "outputs": [
+    "s.est {x,y,sx,sy} reckoned position and error",
+    "s.estTrack, s.marks, s.latLines, s.fixes, s.sights, s.heaves",
+    "EV 'navBearing', 'navNoon', 'navFix', 'navMark' events with the numbers for the game to word"
+   ],
+   "knobs": [
+    "MARK_SPEED_FRESH (how recent a log counts as fresh)",
+    "error growth .06*speed+.45 per hour",
+    "bearing spread given by the game"
+   ],
+   "tags": [
+    "navigation",
+    "dead reckoning",
+    "bearings",
+    "fix",
+    "noon sight",
+    "log"
+   ],
+   "adaptation": "Blimp: the speed log becomes an airspeed or ground-speed reading, bearings are on peaks, towns or radio beacons, and the noon sight still gives latitude; wind drift can be left hidden from the reckoning as currents are for ships. Any vehicle without GPS can reuse it unchanged.",
+   "games": [
+    "dead-reckoning"
+   ]
   }
  ]
 }
