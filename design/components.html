@@ -20,9 +20,9 @@ section{padding:18px 0;border-bottom:1px solid var(--rule);display:flex;flex-dir
 .cell{display:flex;flex-direction:column;gap:5px;align-items:flex-start;min-width:0}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
 .sw{border:1px solid var(--ink);border-radius:2px;overflow:hidden;background:var(--paper)}
-.sw i{display:block;height:40px;border-bottom:1px solid var(--ink)}
+.sw i{display:block;height:84px}
 .sw div{padding:5px 7px;font:11px var(--f-data);display:flex;flex-direction:column;gap:1px}.sw b{font-weight:500}.sw span{color:var(--ink-soft)}
-.sw .pair{display:flex}.sw .pair i{flex:1;height:40px}
+.sw .pair{display:flex}.sw .pair i{flex:1;height:84px}.sw .pair i+i{border-left:1px solid var(--ink)}
 /* game components, copied from index.src.html */
 button{font:inherit;cursor:pointer}
 button:focus-visible,.f{outline:2px solid var(--brass);outline-offset:2px}
@@ -65,7 +65,7 @@ input[type=range]{accent-color:var(--brass);width:160px}
 <button class="tb" id="th" type="button">Day / Night</button>
 <p class="sub">Draft token set and every reusable piece in every state. Nothing here is in the game yet.</p></header>
 
-<section><h2>Colour <small>light | dark</small></h2><div class="grid" id="sw"></div>
+<section><h2>Colour <small>day left, night right</small></h2><div class="grid" id="sw"></div>
 <p class="muted">Italic labels mark proposals: <b>good</b> and <b>chart-ink</b> are new. All others already exist in the game under these names.</p></section>
 
 <section><h2>Type <small>four roles, six sizes</small></h2><div class="scale">
@@ -111,7 +111,7 @@ input[type=range]{accent-color:var(--brass);width:160px}
 </div>
 <script>
 const C=[["desk","#ebdfc2","#0b1a40"],["desk-2","#d9c9a2","#10245a"],["paper","#f6eed9","#132a63"],["paper-2","#ece2c8","#0f2252"],["ink","#2e2519","#eadfb4"],["ink-soft","#7b6a55","#a9a283"],["rule","#cbbd98","#2d4688"],["sea","#4a6a8a","#8aa8d6"],["brass","#b8862a","#d9a940"],["ochre","#b2452c","#e4905f"],["pencil","#4a5a8a","#9db2e2"],["good *","#3f7a4a","#7fb283"],["chart-ink *","#3a2614","#3a2614"]];
-document.getElementById("sw").innerHTML=C.map(c=>`<div class="sw"><div class="pair"><i style="background:${c[1]}"></i><i style="background:${c[2]}"></i></div><div><b>--${c[0].replace(" *","")}</b><span>${c[1]} | ${c[2]}${c[0].endsWith("*")?" · new":""}</span></div></div>`.replace('<div class="sw"><div class="pair">','<div class="sw"><div class="pair" style="border-bottom:1px solid var(--ink)">')).join("");
+document.getElementById("sw").innerHTML=C.map(c=>`<div class="sw"><div class="pair"><i style="background:${c[1]}"></i><i style="background:${c[2]}"></i></div><div><b>${c[0].replace(" *","")}</b>${c[0].endsWith("*")?"<span>new</span>":""}</div></div>`.replace('<div class="sw"><div class="pair">','<div class="sw"><div class="pair" style="border-bottom:1px solid var(--ink)">')).join("");
 const I=[["Chart","M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2zM9 4v14M15 6v14"],["Ship","M3 15h18l-3 5H6zM12 3v12M12 4l6 8h-6M12 6l-5 7h5"],["Book","M4 4h7a2 2 0 012 2v14a2 2 0 00-2-2H4zM20 4h-7v16h7z"],["Eye","M2 12c4-7 16-7 20 0-4 7-16 7-20 0zM12 9a3 3 0 100 6 3 3 0 000-6z"],["Compass","M12 3a9 9 0 100 18 9 9 0 000-18zM15 9l-2 6-4 0 2-6z"],["Anchor","M12 3a2 2 0 100 4 2 2 0 000-4zM12 7v14M7 12h10M5 15c0 3 3 6 7 6s7-3 7-6"]];
 document.getElementById("ib").innerHTML=I.map((x,k)=>`<div class="cell"><span class="lab">${x[0]}${k==1?" · pressed":k==2?" · hover":""}</span><button class="tbicon" ${k==1?'aria-pressed="true"':''} ${k==2?'style="background:var(--paper-2)"':''} aria-label="${x[0]}"><svg class="i" viewBox="0 0 24 24"><path d="${x[1]}"/></svg></button></div>`).join("");
 document.getElementById("th").onclick=()=>{const r=document.documentElement,d=r.dataset.theme==="dark"||(!r.dataset.theme&&matchMedia("(prefers-color-scheme:dark)").matches);r.dataset.theme=d?"light":"dark"};
