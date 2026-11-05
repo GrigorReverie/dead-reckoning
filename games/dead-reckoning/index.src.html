@@ -471,7 +471,14 @@ body.fs3d #fsBar{left:max(12px,env(safe-area-inset-left,0px));bottom:max(12px,en
 .menupop:not([hidden]),#camPop:not([hidden]){animation:drIn .16s ease-out}
 @media (prefers-reduced-motion:reduce){.menupop,#camPop{animation:none!important}}
 .sumstrip{position:fixed;left:50%;transform:translateX(-50%);bottom:max(76px,calc(env(safe-area-inset-bottom,0px) + var(--ic,40px) + 36px));z-index:16;display:flex;align-items:center;gap:12px;padding:4px 12px;background:color-mix(in srgb,var(--paper) 93%,transparent);border:1px solid var(--ink);border-radius:3px;box-shadow:var(--shadow-float);font:var(--fs-small,12px) var(--f-data);font-variant-numeric:tabular-nums;pointer-events:none;white-space:nowrap;max-width:calc(100vw - 24px);overflow:hidden}
-.sumstrip .sumdot{width:8px;height:8px;border-radius:50%;background:var(--ochre);flex:none}
+.sumstrip .sumdot{border-radius:50%;border-radius:50%;background:var(--ochre);flex:none}
+.sumstrip .sumdot{width:14px;height:14px;font:700 10px/14px var(--f-data);text-align:center;color:var(--paper)}
+/* Design system pass 3: clearer states. Warnings carry a mark, not colour alone; one focus ring; pressed feedback. */
+:root{--focus:#8a6212}:root[data-theme=dark]{--focus:#d9a940}:root{--good:#3a7344}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible,a:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.warn::before{content:"\25B2\FE0E ";font-size:.8em}
+.btn:active:not(:disabled),.tb:active,.ctog:active,.tbicon:active{background:var(--rule)}
+.btn:disabled,.tb:disabled{cursor:not-allowed}
 </style>
 
 <div class="app">
@@ -2537,7 +2544,8 @@ function updateUI(force){
   $("posail").textContent=`${pos} · wind ${rel>0?"starboard":"port"}`;$("posail").className=th<NOGO?"warn":"";
   {const el=$("sumStrip"),dk=document.querySelector(".dock-all");if(el){const col=!!dk&&dk.classList.contains("collapsed");el.hidden=!col;if(col){const sm=(window.DRLook&&DRLook.get().sum)||["hdg","spd","wind","alert"],P=[];
    if(sm.includes("hdg"))P.push((((Math.round(sh.heading)%360)+360)%360)+"°");if(sm.includes("spd"))P.push($("spdTxt").textContent);if(sm.includes("wind"))P.push("wind "+pointName(w.from)+" F"+bf);if(sm.includes("sails"))P.push(pos);
-   const al=th<NOGO||S.water>15||S.hull<.5;el.innerHTML=P.map(x=>"<span>"+x+"</span>").join("")+(sm.includes("alert")&&al?'<i class="sumdot" title="Needs attention"></i>':"");}}}
+   const nC=(S.crew&&S.crew.length)||1,why=[];if(th<NOGO)why.push("in irons");if(S.water>15)why.push("water in the bilge");if(S.hull<.5)why.push("hull damaged");if(S.stores&&Math.min(S.stores.bis,S.stores.meat,S.stores.beer)/nC<5)why.push("stores low");if(S.crew&&S.crew.some(m=>m.hp!=null&&m.hp<.5))why.push("crew hurt or sick");
+   el.innerHTML=P.map(x=>"<span>"+x+"</span>").join("")+(sm.includes("alert")&&why.length?'<i class="sumdot" title="'+why.join(", ")+'">!</i>':"");}}}
   $("wxTxt").textContent=wxText(S,w);{const g=glassText(S);$("glassTxt").innerHTML=g.fall?`<span class="warn">${g.txt}</span>`:g.txt;}$("seaTxt").textContent=seaText(S);drawBaro();
   $("ordTxt").textContent=`${Math.round(sh.ordered)}° ${pointName(sh.ordered)}`;
   { const fb=$("bFish");{const t=S.fishing?`Stop fishing · ${Math.round(S.catchTotal)} lb (F)`:"Put hand-lines over the side (F)";fb.title=t;fb.setAttribute("aria-label",t);}fb.setAttribute("aria-pressed",String(!!S.fishing)); }
