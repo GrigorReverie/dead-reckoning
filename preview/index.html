@@ -463,6 +463,14 @@ body.fs3d #fsBar{left:max(12px,env(safe-area-inset-left,0px));bottom:max(12px,en
 .btn,.tb,.ctog,.tbicon{transition:background-color .16s ease,color .16s ease,border-color .16s ease}
 @media (prefers-reduced-motion:reduce){.btn,.tb,.ctog,.tbicon{transition:none}}
 @media (pointer:coarse){.btn,.tb,.seg button{min-height:40px}.btn.ico{width:40px;height:40px}.btn.sm{min-height:40px}.ctog{width:32px;height:32px}.dock .row,.dock .svbtns{gap:8px}}
+
+/* Design system pass 2: one float shadow, one modal shadow, soft menu entrance. */
+:root{--shadow-float:0 6px 18px rgba(20,14,10,.3);--shadow-modal:0 20px 60px rgba(0,0,0,.45)}
+.dock,.menupop,.routebar,.portcard,.skipbar,.compassbox,.tbicon,.mapicon,.bookbtn,#camPop{box-shadow:var(--shadow-float)}
+.card{box-shadow:var(--shadow-modal)}
+@keyframes drIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+.menupop:not([hidden]),#camPop:not([hidden]){animation:drIn .16s ease-out}
+@media (prefers-reduced-motion:reduce){.menupop,#camPop{animation:none!important}}
 </style>
 
 <div class="app">
