@@ -122,6 +122,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-
 #scopeView::before,#scopeView::after{content:"";position:absolute;inset:0;pointer-events:none}
 #scopeView::before{background:radial-gradient(circle var(--sr,150px) at 50% 50%,transparent calc(100% - 2px),#050403 100%)}
 #scopeView::after{background:radial-gradient(circle var(--sr,150px) at 50% 50%,transparent calc(100% - 11px),#3a2a12 calc(100% - 11px),#8a6a2e calc(100% - 9px),#e7c978 calc(100% - 6px),#fbeab0 calc(100% - 5px),#9c7a35 calc(100% - 3px),#2a1d0a calc(100% - 1px),#050403 100%),radial-gradient(ellipse 22% 9% at 40% calc(50% - var(--sr,150px)*.62),rgba(255,255,255,.16),transparent 70%),linear-gradient(180deg,rgba(0,0,0,.18),transparent 22%,transparent 78%,rgba(0,0,0,.22))}
+#scopeHdg{position:absolute;left:50%;bottom:calc(14px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);width:min(340px,calc(100% - 140px));height:30px;pointer-events:none;border:1px solid #8a6a2e;border-radius:6px;background:rgba(10,7,4,.62)}
 #scopeZoom{position:absolute;left:50%;top:calc(50% + var(--sr,150px) - 30px);transform:translateX(-50%);font:600 11px 'IBM Plex Mono',monospace;letter-spacing:.08em;color:#f3dc92;text-shadow:0 1px 2px #000;pointer-events:none;background:rgba(10,7,4,.55);padding:1px 8px;border:1px solid #8a6a2e;border-radius:9px}#scopeView[hidden]{display:none}.walkpad #scopeBtn{display:none}.walkpad #scopeBtn[aria-pressed=true]{background:#e8c66a}.walkpad button{width:24px;height:24px;padding:0;font-size:10px;line-height:1;background:rgba(246,238,217,.9);color:var(--ink);border:none;border-radius:6px;box-shadow:none;cursor:pointer;touch-action:none;-webkit-tap-highlight-color:transparent}.walkpad button span{display:inline-block;pointer-events:none}.walkpad button:active{background:var(--ink);color:#f6eed9}
 body.fs3d #paneV3{position:fixed!important;left:0!important;top:0!important;right:0!important;bottom:0!important;width:auto!important;height:auto!important;z-index:9000!important;margin:0!important;border:0!important;transform:none!important}
 body.fs3d #paneV3>*:not(#view3d):not(#hud):not(#fsBar):not(#fsBtn):not(#walkPad):not(#scopeView){display:none!important}
@@ -5224,6 +5225,7 @@ function update3D(dt,now){
   else{R.camera.near=3;R.camera.position.set(Math.sin(al)*dh*ck,Math.max((R.shot?1.6:4)*Math.min(1,ck),(R.cb+R.dist*Math.sin(pt))*ck),-Math.cos(al)*dh*ck);
     R.camera.lookAt(0,R.cl*(R.camY||1),0);}
   {const sz=(R.shot==="deck"||R.shot==="lookout")&&R.scope?R.scopeZ:1,k=CC().fov/sz;if(R.scope&&window.__scopeZoomEl){const t="×"+(R.scopeZ||4).toFixed(1);if(window.__scopeZoomEl.textContent!==t)window.__scopeZoomEl.textContent=t;}if(Math.abs(R.camera.fov-k)>.01){R.camera.fov=k;R.camera.updateProjectionMatrix();}}
+  if(R.scope&&window.__scopeHdgEl)window.drawScopeHdg(window.__scopeHdgEl,norm(R.hs+R.yaw),R.scopeZ||4);
   {const wp=$("walkPad");if(wp){const lk=R.shot==="lookout",on=R.shot==="deck"||lk;if(wp.hidden===on)wp.hidden=!on;wp.classList.toggle("lk",lk);if(!on&&R.scope)window.setScope(false);}}R.camBrg=norm((R.hs+R.yaw));if(window.CUTCAM)window.CUTCAM(R);
   if(R.cover>2)R.camera.setViewOffset(R.W,R.H,0,R.cover*.3,R.W,R.H);else R.camera.clearViewOffset();
   R.camera.updateMatrixWorld();R.camera.updateProjectionMatrix();
@@ -5314,8 +5316,18 @@ function camSet(c){const R=R3;if(!R||!c)return;if(R.scope&&c.shot!=="lookout"&&w
 function camShot(n){const R=R3,v=SHOTS[n];if(!R||!v)return;camKeep();camSet({shot:n,ty:v[1],tp:v[2],td:v[3]});}
 function camBack(){if(!R3||!camPrev)return;const c=camPrev;camPrev=camNow();camSet(c);}
 
+/* bearing strip at the bottom of the spyglass: the compass bearing you are looking along, ticks finer as you zoom in */
+window.drawScopeHdg=(cv,brg,z)=>{const r=cv.getBoundingClientRect(),w=Math.max(80,Math.round(r.width*2)),h=60;if(cv.width!==w)cv.width=w;if(cv.height!==h)cv.height=h;
+  const c=cv.getContext("2d"),span=clamp(150/z,14,70),ppd=w/span,step=span>40?5:span>22?2:1,maj=step===5?15:step===2?10:5;
+  c.clearRect(0,0,w,h);c.save();c.scale(2,2);const W=w/2,ppd2=W/span;c.textAlign="center";c.fillStyle="#f3dc92";c.strokeStyle="#e7c978";c.lineWidth=1;
+  const CARD={0:"N",45:"NE",90:"E",135:"SE",180:"S",225:"SW",270:"W",315:"NW"};
+  for(let b=Math.ceil((brg-span/2)/step)*step;b<=brg+span/2;b+=step){const x=W/2+(b-brg)*ppd2,bb=((Math.round(b)%360)+360)%360,M=bb%maj===0;c.beginPath();c.moveTo(x,30);c.lineTo(x,30-(M?9:4));c.stroke();
+    if(M){const cd=CARD[bb];c.font=cd?"bold 11px Georgia,serif":"9px 'IBM Plex Mono',monospace";c.fillText(cd||String(bb),x,12);}}
+  c.fillStyle="#fbeab0";c.beginPath();c.moveTo(W/2,30);c.lineTo(W/2-4,23);c.lineTo(W/2+4,23);c.closePath();c.fill();
+  c.font="600 10px 'IBM Plex Mono',monospace";c.fillText(String(Math.round(brg)%360).padStart(3,"0")+"°",W/2,21);c.restore();};
 {const sv=$("scopeView"),sb=$("scopeBtn"),pts=new Map();let pd=null;
   const zl=document.createElement("div");zl.id="scopeZoom";sv.appendChild(zl);window.__scopeZoomEl=zl;
+  const hc=document.createElement("canvas");hc.id="scopeHdg";hc.width=340*2;hc.height=30*2;sv.appendChild(hc);window.__scopeHdgEl=hc;
   const size=()=>{const r=sv.getBoundingClientRect();sv.style.setProperty("--sr",Math.max(60,Math.min(r.width,r.height)*.46)+"px");};
   window.setScope=on=>{const R=R3;if(!R)return;R.scope=!!on;if(on&&!R.scopeZ)R.scopeZ=CC().zoom[2];sv.hidden=!on;sb.setAttribute("aria-pressed",on?"true":"false");{const cs=document.getElementById("cbScope");if(cs)cs.setAttribute("aria-pressed",on?"true":"false");}{const fs=document.getElementById("fsScope");if(fs)fs.setAttribute("aria-pressed",on?"true":"false");}if(on)size();pts.clear();pd=null;};
   // the spyglass is used from the ship's lookout point (masthead or foretop): camera there, narrow field of view; tapping again, or Esc, returns to the angle before
