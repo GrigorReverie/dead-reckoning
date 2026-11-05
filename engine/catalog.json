@@ -1,1 +1,127 @@
-{"version":1,"features":[]}
+{
+ "version": 1,
+ "features": [
+  {
+   "id": "core.events",
+   "module": "core/events.js",
+   "summary": "Event bus: the simulation emits events (notices, refresh, bell, crisis, voyage end) and each game's UI subscribes, so game logic never touches the screen.",
+   "inputs": [
+    "EV.emit(type, ...args)",
+    "say(message, {pause, slow, log, toast})"
+   ],
+   "outputs": [
+    "synchronous calls to every handler added with EV.on(type, fn)"
+   ],
+   "knobs": [],
+   "tags": [
+    "core",
+    "events",
+    "notices",
+    "ui-bridge"
+   ],
+   "adaptation": "Any game: subscribe its own UI to the same event names. A blimp game could show 'say' notices as a radio log instead of toasts.",
+   "games": [
+    "dead-reckoning"
+   ]
+  },
+  {
+   "id": "core.settings",
+   "module": "core/settings.js",
+   "summary": "Player options the simulation asks about (assists, automatic helpers, is a dialog open) without reading the page.",
+   "inputs": [
+    "OPT.def(id, fn) and OPT.use(fallback) from the game"
+   ],
+   "outputs": [
+    "optOn(id) true or false"
+   ],
+   "knobs": [],
+   "tags": [
+    "core",
+    "settings",
+    "assists"
+   ],
+   "adaptation": "Any game: answer the same ids from its own settings screen, or from fixed values for a game with no assists.",
+   "games": [
+    "dead-reckoning"
+   ]
+  },
+  {
+   "id": "core.rng",
+   "module": "core/rng.js",
+   "summary": "Seedable random numbers: mulberry32 streams, the simulation stream rng, normal deviates and text hashing for repeatable seeds.",
+   "inputs": [
+    "seed number or text"
+   ],
+   "outputs": [
+    "rng() 0..1",
+    "gauss() normal deviate",
+    "hashStr(text) seed"
+   ],
+   "knobs": [],
+   "tags": [
+    "core",
+    "random",
+    "seed"
+   ],
+   "adaptation": "Game-neutral as is.",
+   "games": [
+    "dead-reckoning"
+   ]
+  },
+  {
+   "id": "core.state",
+   "module": "core/state.js",
+   "summary": "The live game state S, the sim clock (speedMult, paused), the longest simulation step and a time-of-day formatter.",
+   "inputs": [
+    "hours"
+   ],
+   "outputs": [
+    "S",
+    "speedMult",
+    "paused",
+    "MAXSTEP",
+    "clockStr(hours, secs)"
+   ],
+   "knobs": [
+    "MAXSTEP = 1 game second"
+   ],
+   "tags": [
+    "core",
+    "state",
+    "time",
+    "clock"
+   ],
+   "adaptation": "Game-neutral; a faster vehicle may want a shorter MAXSTEP.",
+   "games": [
+    "dead-reckoning"
+   ]
+  },
+  {
+   "id": "core.save",
+   "module": "core/save.js",
+   "summary": "Turns game state into text and back (Sets and infinities survive) and shrinks big saves by thinning long tracks and trimming logs.",
+   "inputs": [
+    "state object",
+    "limit, thin {array: points}, tail {array: entries}"
+   ],
+   "outputs": [
+    "save text",
+    "decoded state"
+   ],
+   "knobs": [
+    "limit 200000 characters",
+    "track and estTrack 600 points",
+    "log 150 entries"
+   ],
+   "tags": [
+    "core",
+    "save",
+    "load"
+   ],
+   "adaptation": "Game-neutral; each game picks its own arrays to thin and where the text is stored.",
+   "games": [
+    "dead-reckoning"
+   ]
+  }
+ ]
+}

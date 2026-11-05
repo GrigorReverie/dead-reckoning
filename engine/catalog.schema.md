@@ -13,3 +13,5 @@ Each entry in `features`:
 - `games` games that use it, e.g. `["dead-reckoning"]`
 
 Run `python3 tools/check.py` to validate.
+
+Ids starting with `core.` are engine infrastructure (events, settings, rng, state, save), not game mechanics, so they have no `GAME_MECHANICS` / `SCN_MECH` entry.

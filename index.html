@@ -969,9 +969,62 @@ const $=id=>document.getElementById(id);
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const norm=d=>((d%360)+360)%360;
 const angDiff=(a,b)=>{let d=norm(b-a);return d>180?d-360:d;}; // signed a->b
+/* engine/core/events.js: the event bus. Simulation code never touches the screen: it emits
+   events and each game's UI subscribes. Handlers run synchronously, in the order they were
+   added, so emitting is exactly like calling the UI directly (same order, same timing).
+   EV.on(type,fn) -> returns an off() function; EV.off(type,fn); EV.once(type,fn); EV.emit(type,...args)
+   say(msg,opts) is the engine's notice call: it emits "say" (opts: pause, slow, log, toast). */
+const EV=(()=>{const H=new Map();
+  const on=(t,fn)=>{let a=H.get(t);if(!a){a=[];H.set(t,a);}a.push(fn);return()=>off(t,fn);};
+  const off=(t,fn)=>{const a=H.get(t);if(!a)return;const i=a.indexOf(fn);if(i>=0)a.splice(i,1);};
+  const once=(t,fn)=>{const w=(...x)=>{off(t,w);return fn(...x);};return on(t,w);};
+  const emit=(t,...x)=>{const a=H.get(t);if(!a||!a.length)return;for(const fn of a.slice())fn(...x);};
+  const has=t=>!!(H.get(t)&&H.get(t).length);
+  return{on,off,once,emit,has};})();
+function say(msg,opts){EV.emit("say",msg,opts||{});}
+/* engine/core/settings.js: player options and questions the simulation asks the game.
+   The engine asks optOn("id") instead of reading a checkbox or the page. The game decides how
+   to answer: OPT.def(id,fn) for one named question, OPT.use(fn) for everything else. */
+const OPT=(()=>{const D=new Map();let fb=()=>false;
+  return{def(id,fn){D.set(id,fn);},use(fn){fb=fn;},get(id){const f=D.get(id);return f?f(id):fb(id);}};})();
+const optOn=id=>OPT.get(id);
+/* engine/core/rng.js: random numbers. mulberry32(seed) gives a repeatable stream; rng is the
+   simulation's current stream (Math.random until a voyage seeds it); gauss() is a normal deviate
+   from rng; hashStr turns text into a seed. */
 function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;}}
 let rng=Math.random;
 const gauss=()=>{let u=0,v=0;while(!u)u=rng();while(!v)v=rng();return Math.sqrt(-2*Math.log(u))*Math.cos(2*PI*v);};
+const hashStr=s=>{let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;};
+/* engine/core/state.js: the live game state and the sim clock.
+   S is the whole game (null before a voyage starts); speedMult is game seconds per real second;
+   paused stops the clock. MAXSTEP is the longest single simulation step (one game second, in hours). */
+let S=null, speedMult=1, paused=false;
+const MAXSTEP=1/3600;
+/* clockStr(hours,secs): "hh:mm" (or "hh:mm:ss") for a time of day in hours, wrapped to 0..24 */
+function clockStr(h0,secs){const lh=((h0%24)+24)%24;const h=Math.floor(lh),m=Math.floor((lh-h)*60),sc=Math.floor(((lh-h)*60-m)*60);return `${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}${secs?":"+String(sc).padStart(2,"0"):""}`;}
+/* engine/core/save.js: turning game state into text and back. Sets and non-finite numbers
+   survive the round trip. savePack shrinks a big state: when the text is longer than `limit`,
+   arrays named in `thin` keep about that many evenly spaced points (and the last one), and
+   arrays named in `tail` keep only their last N entries. Where the text is stored (device,
+   account, cloud) is up to each game. */
+const saveRep=(k,v)=>v instanceof Set?{__set:[...v]}:(typeof v==="number"&&!isFinite(v)?{__num:String(v)}:v);
+const saveEncode=o=>JSON.stringify(o,saveRep);
+const saveDecode=j=>JSON.parse(j,(k,v)=>v&&typeof v==="object"&&!Array.isArray(v)?(v.__set!==undefined?new Set(v.__set):(v.__num!==undefined?Number(v.__num):v)):v);
+function savePack(o0,{limit=200000,thin={},tail={}}={}){let j=saveEncode(o0);if(j.length>limit){const o=saveDecode(j);
+  for(const k in thin){const n=thin[k],a=o[k];if(Array.isArray(a)&&a.length>n)o[k]=a.filter((_,i)=>i%Math.ceil(a.length/n)===0||i===a.length-1);}
+  for(const k in tail){const n=tail[k];if(o[k]&&o[k].length>n)o[k]=o[k].slice(-n);}
+  j=JSON.stringify(o,saveRep);}return j;}
+/* Dead Reckoning answers the engine: notices go to the toast and log, refresh/bell/route/cargo events to the screen, and opt() reads the Assists switches */
+EV.on("say",(m,o)=>showNotice(m,o));
+EV.on("refresh",f=>updateUI(f));
+EV.on("log",()=>renderLog());
+EV.on("bell",n=>ringBell(n));
+EV.on("route",()=>updateRoute());
+EV.on("cargo",s=>loadBadge(s));
+EV.on("crisis",c=>showCrisis(c));
+EV.on("voyageEnd",(ok,where)=>endVoyage(ok,where));
+OPT.use(id=>$(id).checked);
+OPT.def("crisisOpen",()=>!$("ovCrisis").hidden);
 
 /* ---------- geography ---------- */
 const LAT0=10, LAT1=18.6, LON0=-63.6, LON1=-58.0, COSR=Math.cos(14.3*D2R);
@@ -1121,7 +1174,7 @@ const VOYAGES=[
 ];
 
 let DARK=false;try{DARK=localStorage.getItem('drDark')==='1';}catch(e){}
-let S=null, speedMult=1, paused=false, modalOpen=true;
+let modalOpen=true; // S, speedMult and paused live in engine/core/state.js
 let skipLeft=0,skipTotal=0,skipEndCb=null,skipBusy=false,skipCdEnd=0; // game hours still to skip, hours asked for, and what to do when it ends
 let skipPrev=null,fadeWait=false; // a projected skip waiting for the captain's word; the fade to black while the hours pass
 const SKIPSTEP=1/180; // skipping runs the sim in 20-second steps
@@ -1290,7 +1343,7 @@ const TOAST_MS=17500,TOAST_MAX=4;
 /* each notice stays 17.5 s then fades quickly; tap one to dismiss it now; newer ones stack below */
 function dropToast(el){if(el.dataset.gone)return;el.dataset.gone=1;clearTimeout(el._t);el.classList.add("hide");setTimeout(()=>el.remove(),260);}
 function sayLog(msg){say(msg,{toast:false});}
-function say(msg,{pause=false,slow=false,log=true,toast=true}={}){
+function showNotice(msg,{pause=false,slow=false,log=true,toast=true}={}){ // the "say" event: engine notices become a toast and a log line
   const box=$("toast");if(box&&toast){const el=document.createElement("div");el.className="toast";el.textContent=msg;el.title=msg;el.setAttribute("role","status");
     el.addEventListener("click",()=>dropToast(el));box.appendChild(el);el._t=setTimeout(()=>dropToast(el),TOAST_MS);
     const live=[...box.children].filter(c=>!c.dataset.gone);for(let k=0;k<live.length-TOAST_MAX;k++)dropToast(live[k]);}
@@ -1299,11 +1352,11 @@ function say(msg,{pause=false,slow=false,log=true,toast=true}={}){
   if(slow||pause)stopSkip();
   if(pause)setPaused(true);
 }
-function timeStr(s,secs){const lh=((localHours(s,s.t)%24)+24)%24;const h=Math.floor(lh),m=Math.floor((lh-h)*60),sc=Math.floor(((lh-h)*60-m)*60);return `${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}${secs?":"+String(sc).padStart(2,"0"):""}`;}
+function timeStr(s,secs){return clockStr(localHours(s,s.t),secs);}
 function dayIndex(s){return Math.floor(localHours(s,s.t)/24);}
 
 /* ---------- simulation step ---------- */
-const MAXSTEP=1/3600; // longest single simulation step: one game second, in hours
+// MAXSTEP (longest single simulation step) lives in engine/core/state.js
 function step(dt){
   const s=S;if(s.done)return;
   const sh=s.ship;
@@ -1351,7 +1404,7 @@ function step(dt){
   sh.sailSet=invEff(effOf(sh.sls));
   const sail=sailLerp(sh.sailSet);
   const opt=optBrace(rel);
-  if($("bosun").checked||sh.turnDir||sh.autoBrace){const d=opt-sh.brace;sh.brace+=clamp(d,-8000*dt,8000*dt);sh.braceCmd=sh.brace;if(!sh.turnDir&&Math.abs(d)<2)sh.autoBrace=false;}
+  if(optOn("bosun")||sh.turnDir||sh.autoBrace){const d=opt-sh.brace;sh.brace+=clamp(d,-8000*dt,8000*dt);sh.braceCmd=sh.brace;if(!sh.turnDir&&Math.abs(d)<2)sh.autoBrace=false;}
   else sh.brace+=clamp(sh.braceCmd-sh.brace,-25000*dt,25000*dt); // the yards swing about 7 degrees a second
   const terr=Math.abs(sh.brace-opt);
   const alpha=th-(90-sh.brace*Math.sign(rel||1)); // angle between the wind and the sail; negative means it blows on the forward face
@@ -1371,7 +1424,7 @@ function step(dt){
     if(A.mode==="holding"||A.mode==="weighing"){sh.v+=(0-sh.v)*(1-Math.exp(-dt/.003));
       if(A.mode==="holding"){if(!s.docked){sh.heading=norm(sh.heading+angDiff(sh.heading,w.from)*(1-Math.exp(-dt/.015)));sh.ordered=sh.heading;sh.wander=0;sh.turnDir=0;}
         A.drag=!s.docked&&w.kn>30?(w.kn-30)*.12:0;if(A.drag>0&&!A.dragWarned){A.dragWarned=true;say("The anchor is dragging in this wind! Veer more cable or get under way.",{slow:true});}if(A.drag===0)A.dragWarned=false;}
-      if(A.mode==="weighing"&&s.t>=A.t0+60/3600){A.mode="up";say("Anchor's aweigh! The hands cat and fish it.",{});updateUI(true);}}
+      if(A.mode==="weighing"&&s.t>=A.t0+60/3600){A.mode="up";say("Anchor's aweigh! The hands cat and fish it.",{});EV.emit("refresh",true);}}
     else if(A.mode==="trailing")sh.v+=(sh.v*.4-sh.v)*(1-Math.exp(-dt/.004)); }
   if(!inIrons)sh.lastSide=rel>0?1:-1;
   // strain
@@ -1398,10 +1451,10 @@ function step(dt){
   // bells & hourly log
   const lh=localHours(s,s.t);
   const hh=Math.floor(lh*2);
-  if(hh!==s.lastHalfHour){s.lastHalfHour=hh;let b=((hh%8)+8)%8;if(b===0)b=8;ringBell(b);}
+  if(hh!==s.lastHalfHour){s.lastHalfHour=hh;let b=((hh%8)+8)%8;if(b===0)b=8;EV.emit("bell",b);}
   const hr=Math.floor(s.t);
   if(hr!==s.lastHour){s.lastHour=hr;hourly(w);}
-  if(!s.earlyLog&&s.t-s.t0>.3){s.earlyLog=true;if($("mateLog").checked&&!(s.lastLog&&s.lastLog.by==="you"))mateHeave(s);}
+  if(!s.earlyLog&&s.t-s.t0>.3){s.earlyLog=true;if(optOn("mateLog")&&!(s.lastLog&&s.lastLog.by==="you"))mateHeave(s);}
   // noon readings
   const di=dayIndex(s);
   if(s.noon.observing){if(s.t-s.noon.lastRead>=20/3600){s.noon.lastRead=s.t;const lat=toGeo(sh.x,sh.y).lat;const a=sunAlt(lat,lh%24<0?lh%24+24:lh%24,di)+gauss()*(.35+.12*bf)/60;s.noon.readings.push(a);}
@@ -1423,7 +1476,7 @@ function step(dt){
   if(near<1.6&&!s.docked&&!fa&&s.t-s.breakersWarned>1){s.breakersWarned=s.t;say(`Breakers ahead! The leadsman finds bottom fast. ${s.mode==="lost"?"Land close aboard.":nearName+" close aboard."} Haul off!`,{pause:true});}
   // arrival
   const pk=s.v.to||nearestPort(sh).k,P=PORTS[pk];const dp=Math.hypot(P.x-sh.x,P.y-sh.y);
-  if(dp<5&&!s.arrivedNear){s.arrivedNear=pk;say(`${P.name} is open ahead. You can dock at port.`,{pause:!s.v.free});updateUI(true);}
+  if(dp<5&&!s.arrivedNear){s.arrivedNear=pk;say(`${P.name} is open ahead. You can dock at port.`,{pause:!s.v.free});EV.emit("refresh",true);}
   if(dp>7)s.arrivedNear=false;
 }
 const nearestPort=(p)=>{let k=null,d=1e9;for(const q in PORTS){const e=Math.hypot(PORTS[q].x-p.x,PORTS[q].y-p.y);if(e<d){d=e;k=q;}}return{k,d};};
@@ -1433,21 +1486,21 @@ function mateHeave(s){const m=Math.max(0,Math.round(s.ship.v*(1+gauss()*.07)*2)/
 function assistStep(s,dt,w){
   if(s.done||s.t<(s.assistT||0))return;s.assistT=s.t+.02;
   const sh=s.ship;
-  if($("aSail").checked&&sh.anch.mode==="up"){
+  if(optOn("aSail")&&sh.anch.mode==="up"){
     const kn=w.kn;let want=0;for(let L=0;L<SAILS.length;L++)if(SAILS[L].safe>kn+4)want=L;if(want===0&&SAILS[1].safe>kn)want=1;
     const hold=SAILS[sh.sail].safe>kn+2;
     if((s.strain>0||!hold||sh.sail>want)&&sh.sail>0){setSail(sh.sail-1);s.smOrd=true;say(`The sailmaster shortens her to ${SAILS[sh.sail].name.toLowerCase()}.`,{});s.sailT=s.t;}
     else if(sh.sail<want&&s.t-(s.sailT||-9)>.25){setSail(sh.sail+1);s.smOrd=true;say(`The wind has eased. The sailmaster sets ${SAILS[sh.sail].name.toLowerCase()}.`,{});s.sailT=s.t;}
   }
-  if($("aCrew").checked){
+  if(optOn("aCrew")){
     const n=s.crew.length;
     if((s.crewN!==n)||(s.fat>.55&&s.t-(s.balT||-9)>2)){s.crewN=n;s.balT=s.t;svBalance();say("The mate spreads the hands evenly between the watches so they can sleep.",{});}
   }
-  if($("aNoon").checked&&s.noon){
+  if(optOn("aNoon")&&s.noon){
     if(!s.noon.observing){if(noonAvailable().ok)startObserve();}
     else{const r=s.noon.readings;if(r.length>=8){const mx=Math.max(...r);if(r[r.length-1]<mx-.012)markNoon();}}
   }
-  if($("aFix").checked&&s.mode==="lost"){
+  if(optOn("aFix")&&s.mode==="lost"){
     const seen=BPS.filter(l=>l.vis&&!s.bearings.some(b=>b.lm===l&&b.t>s.t-.3));
     seen.slice(0,2).forEach(l=>takeBearing(l));
     if(crossFix())plotFix();
@@ -1472,13 +1525,13 @@ function initAssists(){
 }
 function hourly(w){
   const s=S;
-  if($("mateLog").checked&&!(s.lastLog&&s.lastLog.by==="you"&&s.t-s.lastLog.t<.75))mateHeave(s);
-  if(s.log.length>80)s.log.length=80;renderLog();
+  if(optOn("mateLog")&&!(s.lastLog&&s.lastLog.by==="you"&&s.t-s.lastLog.t<.75))mateHeave(s);
+  if(s.log.length>80)s.log.length=80;EV.emit("log");
 }
 function runAground(isl){
   S.done=true;S.ship.v=0;
   say(`Aground on ${isl.name}! She struck hard.`,{log:true});
-  endVoyage(false,isl.name);
+  EV.emit("voyageEnd",false,isl.name);
 }
 
 /* ---------- commands ---------- */
@@ -3407,7 +3460,7 @@ function geoBuilder(R){
     }};
 }
 const rng32=a=>()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};
-const hashStr=s=>{let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;};
+// hashStr lives in engine/core/rng.js
 // a gabled prism: ridge along x, eaves at z=+-d/2 at height 0, ridge at height h
 function gableGeo(w,d,h){
   const g=new THREE.BufferGeometry(),a=w/2,b=d/2;
@@ -5672,7 +5725,7 @@ function routeSteerOnce(){const R=S.route;if(!R.pts.length||S.ship.anch.mode==="
   if(th<NOGO+2){const side=Math.sign(rel||1);c=norm(w.from-side*(NOGO+5));if(!R.beatSaid){R.beatSaid=true;say("The mark lies in the wind's eye. She will beat to windward; tack when you judge best.",{});}}else R.beatSaid=false;
   if(Math.abs(angDiff(sh.ordered,c))>2&&!sh.turnDir)setCourse(c);}
 function routeStep(s){const R=s.route;if(!R||!R.pts.length||!R.follow||s.t<R.t)return;R.t=s.t+1/60;const P=dPos();
-  if(Math.hypot(R.pts[0].x-P.x,R.pts[0].y-P.y)<.7){R.pts.shift();say(R.pts.length?"Mark reached. Steering for the next.":"Route complete.",{});if(!R.pts.length){R.follow=false;}updateRoute();return;}
+  if(Math.hypot(R.pts[0].x-P.x,R.pts[0].y-P.y)<.7){R.pts.shift();say(R.pts.length?"Mark reached. Steering for the next.":"Route complete.",{});if(!R.pts.length){R.follow=false;}EV.emit("route");return;}
   routeSteerOnce();}
 function projTrack(h){ // where dead reckoning says she will be: the ordered course (or the plotted marks, if the helm follows them) at the present speed, with no leeway, current or change of wind
   if(!S||S.done)return null;const sh=S.ship;if(sh.anch.mode==="holding"||sh.anch.mode==="weighing")return null;
@@ -6092,7 +6145,7 @@ function buyNews(){const s=S;if(!s)return;const p=atPort(s);if(!p||s.purse<8)ret
   sayLog("A coaster's master tells you what he saw in every port this week, for eight shillings. Your price list is up to date.",{});tradeUI(true);svBill();}
 
 // the hold at sea: damp and heat spoil, a heavy sea works the casks, an overloaded ship strains in a gale; and pirates
-function tradeStep(s,dt,w){mkStep(s,dt);loadStep(s,dt);loadBadge(s);const day=dayIndex(s),d=dt/24;
+function tradeStep(s,dt,w){mkStep(s,dt);loadStep(s,dt);EV.emit("cargo",s);const day=dayIndex(s),d=dt/24;
   if(s.cargo){const wet=clamp(s.water/12,0,1)+clamp((s.wx.H-4)/3,0,1),rough=clamp((s.wx.H-3)/3,0,1);
     for(const g in s.cargo){const G=GOODS[g],cur=s.cargo[g],rate=G.spoil+G.wet*wet+(G.rough||0)*rough,loss=cur.n*rate*d;
       if(loss>0){cur.cost*=1-loss/cur.n;cur.n-=loss;s.spoilAcc=(s.spoilAcc||{});s.spoilAcc[g]=(s.spoilAcc[g]||0)+loss;
@@ -6716,16 +6769,16 @@ function crisisKind(k,arg){const C=S.crew,sea=S.wx?clamp((S.wx.H-2)/4,0,1):0,dut
   return null;}
 const n_=C=>C.length;
 function crisisStep(s,dt,w,rough,avg){
-  if(s.crisis&&$("ovCrisis").hidden)s.crisis=null;
+  if(s.crisis&&!optOn("crisisOpen"))s.crisis=null;
   if(s.strikeUntil&&s.t>=s.strikeUntil){s.strikeUntil=null;say("The strike is over; the hands turn to again.",{});}
   s.mutH=avg<.28?(s.mutH||0)+dt:Math.max(0,(s.mutH||0)-dt*2);
-  if(!s.crisis&&!modalOpen&&!s.done&&s.medQueue&&s.medQueue.length){const c=crisisKind("surgery",s.medQueue.shift());if(c){showCrisis(c);return;}}
+  if(!s.crisis&&!modalOpen&&!s.done&&s.medQueue&&s.medQueue.length){const c=crisisKind("surgery",s.medQueue.shift());if(c){EV.emit("crisis",c);return;}}
   if(s.crisis||modalOpen||s.done||s.t<(s.crNext??0)||s.strikeUntil)return;
   const C=s.crew;let k=null;
   if(s.mutH>10)k="mutiny";
   else if(rough>.25&&Math.random()<dt*.0010*rough)k="mob";
   else if(C.some(m=>m.r==="Cook"&&m.mode==="duty")&&Math.random()<dt*.0004)k="fire";
-  if(!k)return;const c=crisisKind(k);if(c){s.mutH=0;showCrisis(c);}}
+  if(!k)return;const c=crisisKind(k);if(c){s.mutH=0;EV.emit("crisis",c);}}
 function crewStep(s,dt,w){const C=s.crew;if(!C)return;crewX(s);const sh=s.ship,wi=watchInfo(s);
   if(s.wkey!==wi.key){if(s.wkey!==undefined){for(const m of C)m.ov=null;if(skipLeft<=0)say(`${["Eight bells","Eight bells","Eight bells","Eight bells","Four bells","Eight bells","Eight bells"][wi.i]}. The ${WNAME[wi.w].toLowerCase()} has the deck.`,{});}s.wkey=wi.key;}
   s.allHands=!!s.callAll||w.kn>=30||!!s.squall;
@@ -7549,9 +7602,9 @@ $("bDark").onclick=()=>{DARK=!DARK;applyDark();};applyDark();
 const SLOTS=[["auto","Autosave"],["1","Slot 1"],["2","Slot 2"],["3","Slot 3"]];
 let dbH=null,dbUid=null,dbP=null;
 function initStore(){if(dbP)return dbP;dbP=(async()=>{try{if(window.claude&&claude.use){const[d,u]=await Promise.all([claude.use("db"),claude.use("user")]);if(d&&u){const id=await u.id();if(id){dbH=d;dbUid=id;}}}}catch(e){}})();return dbP;}
-const encS=()=>JSON.stringify(S,(k,v)=>v instanceof Set?{__set:[...v]}:(typeof v==="number"&&!isFinite(v)?{__num:String(v)}:v));
-const decS=j=>JSON.parse(j,(k,v)=>v&&typeof v==="object"&&!Array.isArray(v)?(v.__set!==undefined?new Set(v.__set):(v.__num!==undefined?Number(v.__num):v)):v);
-function packState(){let j=encS();if(j.length>200000){const o=decS(j),th=a=>Array.isArray(a)&&a.length>600?a.filter((_,i)=>i%Math.ceil(a.length/600)===0||i===a.length-1):a;o.track=th(o.track);o.estTrack=th(o.estTrack);if(o.log&&o.log.length>150)o.log=o.log.slice(-150);j=JSON.stringify(o,(k,v)=>v instanceof Set?{__set:[...v]}:(typeof v==="number"&&!isFinite(v)?{__num:String(v)}:v));}return j;}
+const encS=()=>saveEncode(S); // the codecs live in engine/core/save.js
+const decS=saveDecode;
+function packState(){return savePack(S,{limit:200000,thin:{track:600,estTrack:600},tail:{log:150}});}
 function saveMeta(){const g=shipGeo(S);return{title:`${S.v.tag}: ${S.v.title}`,hours:+(S.t-S.t0).toFixed(1),nm:+S.distance.toFixed(0),hull:Math.round(S.hull*100),at:Date.now(),savedAt:Date.now(),mode:S.mode};}
 /* Cross-device sync for the installed app: saves are mirrored to a private GitHub gist the player owns, using a token they paste in once (classic token, "gist" scope only). */
 const SY={get cfg(){try{return JSON.parse(localStorage.getItem("drSync")||"null");}catch(e){return null;}},set cfg(v){try{if(v)localStorage.setItem("drSync",JSON.stringify(v));else localStorage.removeItem("drSync");}catch(e){}}};
