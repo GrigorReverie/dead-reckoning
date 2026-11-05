@@ -15,3 +15,5 @@ Each entry in `features`:
 Run `python3 tools/check.py` to validate.
 
 Ids starting with `core.` are engine infrastructure (events, settings, rng, state, save), not game mechanics, so they have no `GAME_MECHANICS` / `SCN_MECH` entry.
+
+Ids of the form `<mechanic>.<part>` (e.g. `weather.wind`) are parts of that mechanic and share its `GAME_MECHANICS` / `SCN_MECH` entry.

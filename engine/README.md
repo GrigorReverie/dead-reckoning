@@ -8,6 +8,11 @@ Shared game logic (no UI, layout or look). Modules arrive step by step (core, fi
 - `state.js` `S`, `speedMult`, `paused`, `MAXSTEP`, `clockStr`.
 - `save.js` `saveEncode`, `saveDecode`, `savePack`.
 
+## field/ and weather/ (step 2)
+- `field/wind.js` `windAt(s,x,y,t,alt)` -> `{from,kn,lee,pass,breeze}`; `passage`, `passK`, `landHeat`. Knobs `WINDK` (land and thermal, 1 = realistic), `WIND_BASE` (prevailing wind, gale easing, height shear). `alt` (metres) is optional: left out, the wind is at the surface.
+- `weather/weather.js` `genWx(s,x,y)`, `wxStep(s,dt,w)`, `squallStep(s)`, `pressureAt(s,t)`. Knobs `WXK`.
+- The game describes its world through `FIELD` hooks: `localHour(s,t)`, `land()` (`{I:[{c,r,hf,h,name}],P:[passage(...)]}`), `hold()` (test-menu holds `{wind,sea,wx}`) and `day(s)` (`{overcast,cl}`). DR sets them next to its `landInit`.
+
 Engine files are plain script inlined into the game's single script, so names are shared; check a new name is not already used in the game.
 
 ## Events Dead Reckoning listens to
@@ -21,6 +26,7 @@ Engine files are plain script inlined into the game's single script, so names ar
 | `cargo` | state | cargo-loaded badge |
 | `crisis` | crisis | open the crisis card |
 | `voyageEnd` | ok, where | end-of-voyage screen |
+| `wx` | kind, e | weather notice text (`WX_SAY`): `wave1-3`, `front1-3`, `surge`, `lull`, `squallNear`, `shift` {dd, from} |
 
 Options asked with `optOn`: `bosun`, `mateLog`, `aSail`, `aCrew`, `aNoon`, `aFix` (Assists switches) and `crisisOpen`.
 

@@ -122,6 +122,93 @@
    "games": [
     "dead-reckoning"
    ]
+  },
+  {
+   "id": "weather.wind",
+   "module": "field/wind.js",
+   "summary": "Wind at any point and time: a wandering prevailing wind with a daily rhythm, squalls and passing systems on top, bent by land (blocking, venturi round points and through passages, long lee shadows behind high ground, sea and land breezes, afternoon gusts).",
+   "inputs": [
+    "world state s (s.wx systems, s.wx.cover, s.squall)",
+    "position x, y (nm)",
+    "time t (hours)",
+    "optional altitude alt (m above the surface)",
+    "FIELD.localHour(s,t), FIELD.land() {I:land masses, P:passages}, FIELD.hold() test holds"
+   ],
+   "outputs": [
+    "windAt -> {from (deg), kn, lee (land name), pass (passage name), breeze ('sea breeze'/'land breeze')}",
+    "passage(A,B,others) passage geometry",
+    "passK(P,x,y) 0..1 inside a passage",
+    "landHeat(s,localHour) {sea, land} heating"
+   ],
+   "knobs": [
+    "WINDK.block",
+    "WINDK.venturi",
+    "WINDK.shadow",
+    "WINDK.shadowLen",
+    "WINDK.seaBreeze",
+    "WINDK.landBreeze",
+    "WINDK.thermal",
+    "WINDK.diurnal",
+    "WIND_BASE.from",
+    "WIND_BASE.kn",
+    "WIND_BASE.cap",
+    "WIND_BASE.capK",
+    "WIND_BASE.min",
+    "WIND_BASE.zRef",
+    "WIND_BASE.shear"
+   ],
+   "tags": [
+    "wind",
+    "field",
+    "land",
+    "thermal",
+    "sea breeze",
+    "lee",
+    "venturi",
+    "altitude"
+   ],
+   "adaptation": "Blimp or glider: pass alt in metres; wind strengthens with height (Hellmann shear) and land blocking and lee shadows fade as the craft climbs toward peak height. Give FIELD.land() hills or mountains with heights; set WIND_BASE to the region's prevailing wind. A land vehicle could use it for dust, sail-cart or fire spread.",
+   "games": [
+    "dead-reckoning"
+   ]
+  },
+  {
+   "id": "weather",
+   "module": "weather/weather.js",
+   "summary": "Weather systems drawn ahead of time (surges, lulls, tropical waves, cold fronts) plus squalls; they drive wind-sea and swell, rain, lightning, cloud cover and darkness, and a barometer that falls before the big ones, with notices emitted as events.",
+   "inputs": [
+    "world state s (s.t, s.nextSquall)",
+    "genWx(s,x,y): start position",
+    "wxStep(s,dt,w): step in hours and the local wind",
+    "FIELD.localHour, FIELD.hold(), FIELD.day(s) {overcast, cl}",
+    "rng"
+   ],
+   "outputs": [
+    "s.wx {ev, sea {dir, amp, swF, swA}, H wave height m, rain, cover, dark, flash, bolt}",
+    "s.squall {t0, dur, boost, shift}",
+    "pressureAt(s,t) hPa",
+    "EV 'wx' events: wave1-3, front1-3, surge, lull, squallNear, shift {dd, from}"
+   ],
+   "knobs": [
+    "WXK.swellDir",
+    "WXK.swellAmp",
+    "WXK.frontSwellDir",
+    "WXK.shiftNote"
+   ],
+   "tags": [
+    "weather",
+    "sea state",
+    "swell",
+    "rain",
+    "cloud",
+    "barometer",
+    "squall",
+    "front"
+   ],
+   "adaptation": "Blimp: ignore sea and swell, use rain, cloud, squalls and the falling glass as flying hazards (turbulence from squall boost, icing under cover). A desert game could swap waves and fronts for sandstorms by changing event types and their wind effect.",
+   "games": [
+    "dead-reckoning"
+   ]
   }
  ]
 }
