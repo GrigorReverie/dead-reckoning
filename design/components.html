@@ -1,0 +1,118 @@
+<title>Dead Reckoning Components</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+English+SC&family=IM+Fell+English:ital@0;1&family=Spectral:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a drafting-table spec sheet. Tokens are the game's own; dark = the game's night chart. */
+:root{--desk:#ebdfc2;--desk-2:#d9c9a2;--paper:#f6eed9;--paper-2:#ece2c8;--ink:#2e2519;--ink-soft:#7b6a55;--rule:#cbbd98;--sea:#4a6a8a;--brass:#b8862a;--ochre:#b2452c;--pencil:#4a5a8a;--good:#3f7a4a;
+--f-display:"IM Fell English SC","IM Fell English",Georgia,serif;--f-italic:"IM Fell English",Georgia,serif;--f-body:"Spectral",Georgia,serif;--f-data:"IBM Plex Mono",ui-monospace,Menlo,monospace}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--desk:#0b1a40;--desk-2:#10245a;--paper:#132a63;--paper-2:#0f2252;--ink:#eadfb4;--ink-soft:#a9a283;--rule:#2d4688;--sea:#8aa8d6;--brass:#d9a940;--ochre:#e4905f;--pencil:#9db2e2;--good:#7fb283;color-scheme:dark}}
+:root[data-theme="dark"]{--desk:#0b1a40;--desk-2:#10245a;--paper:#132a63;--paper-2:#0f2252;--ink:#eadfb4;--ink-soft:#a9a283;--rule:#2d4688;--sea:#8aa8d6;--brass:#d9a940;--ochre:#e4905f;--pencil:#9db2e2;--good:#7fb283;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--desk);color:var(--ink);font:13px/1.45 var(--f-body);padding-block:0 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1040px;margin:0 auto}
+header{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:baseline;border-bottom:2px solid var(--ink);padding:20px 0 10px;margin-bottom:6px}
+h1{font:400 26px var(--f-display);margin:0;flex:1 1 auto}
+.sub{font:italic 15px var(--f-italic);color:var(--ink-soft);width:100%;margin:0}
+h2{font:400 17px var(--f-display);margin:0;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+small,.lab{font:500 10.5px var(--f-data);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft)}
+section{padding:18px 0;border-bottom:1px solid var(--rule);display:flex;flex-direction:column;gap:12px}
+.row{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center}
+.cell{display:flex;flex-direction:column;gap:5px;align-items:flex-start;min-width:0}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.sw{border:1px solid var(--ink);border-radius:2px;overflow:hidden;background:var(--paper)}
+.sw i{display:block;height:40px;border-bottom:1px solid var(--ink)}
+.sw div{padding:5px 7px;font:11px var(--f-data);display:flex;flex-direction:column;gap:1px}.sw b{font-weight:500}.sw span{color:var(--ink-soft)}
+.sw .pair{display:flex}.sw .pair i{flex:1;height:40px}
+/* game components, copied from index.src.html */
+button{font:inherit;cursor:pointer}
+button:focus-visible,.f{outline:2px solid var(--brass);outline-offset:2px}
+.btn{background:var(--paper);border:1px solid var(--ink);color:var(--ink);padding:5px 10px;border-radius:2px;font-size:13px}
+.btn:hover:not(:disabled),.btn.h{background:var(--paper-2)}
+.btn.primary{background:var(--ink);color:var(--paper)}
+.btn:disabled{opacity:.4;cursor:default}
+.btn.sm{padding:3px 8px;font-size:12px}
+.btn[aria-pressed=true]{background:var(--ink);color:var(--paper)}
+.btn.ico{width:34px;height:28px;padding:0;display:inline-flex;align-items:center;justify-content:center}
+.tb{background:transparent;color:var(--ink);border:1px solid var(--ink);border-radius:3px;padding:5px 10px;font:12px var(--f-data)}
+.tb:hover,.tb.h{background:var(--paper-2)}.tb[aria-pressed=true]{background:var(--ink);color:var(--paper)}
+.seg{display:inline-flex;border:1px solid var(--ink);border-radius:3px;overflow:hidden}
+.seg button{background:transparent;color:var(--ink);border:0;border-right:1px solid var(--ink);padding:5px 10px;font:12px var(--f-data)}
+.seg button:last-child{border-right:0}.seg button[aria-pressed=true]{background:var(--ink);color:var(--paper)}
+.tbicon{width:40px;height:40px;padding:0;display:inline-flex;align-items:center;justify-content:center;background:color-mix(in srgb,var(--paper) 93%,transparent);border:1px solid var(--ink);border-radius:6px;color:var(--ink);box-shadow:0 4px 14px rgba(20,14,10,.25)}
+.tbicon[aria-pressed=true]{background:var(--ink);color:var(--paper)}.tbicon:hover{background:var(--paper-2)}
+svg.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.ctog{width:22px;height:22px;padding:0;background:var(--paper);border:1px solid var(--ink);color:var(--ink);border-radius:2px;font:14px var(--f-data)}
+.dock{background:color-mix(in srgb,var(--paper) 93%,transparent);border:1px solid var(--ink);box-shadow:0 8px 28px rgba(20,14,10,.35);border-radius:3px;padding:8px 12px 10px;display:flex;flex-direction:column;gap:6px;max-width:340px;width:100%}
+.dockhead{display:flex;justify-content:space-between;align-items:baseline;gap:8px}.dockhead b{font:400 17px var(--f-display)}
+.panel{border-bottom:1px solid var(--rule);padding:6px 0;display:flex;flex-direction:column;gap:6px}
+.line{display:flex;justify-content:space-between;gap:8px;font-size:12.5px;border-bottom:1px dotted var(--rule);padding:2px 0}.line i{font:normal 10.5px var(--f-data);letter-spacing:.06em;text-transform:uppercase;color:var(--ink-soft)}
+.num{font-family:var(--f-data);font-variant-numeric:tabular-nums}
+.warn{color:var(--ochre);font-weight:600}.muted{color:var(--ink-soft);font-size:12.5px}.good{color:var(--good)}.fair{color:var(--brass)}
+.rwind{height:8px;background:var(--paper-2);border:1px solid var(--ink)}.rwind i{display:block;height:100%;background:linear-gradient(90deg,var(--ochre),var(--brass) 35%,var(--good))}
+.notice{border:1px solid var(--ink);border-left:4px solid var(--brass);background:var(--paper);padding:6px 10px;border-radius:2px;max-width:420px;width:100%;font-size:12.5px}.notice.w{border-left-color:var(--ochre)}.notice.g{border-left-color:var(--good)}
+.card{background:var(--paper);border:1px solid var(--ink);box-shadow:0 20px 60px rgba(0,0,0,.35);padding:18px 20px;border-radius:2px;max-width:420px;width:100%;display:flex;flex-direction:column;gap:10px}
+.menu{background:var(--paper);border:1px solid var(--ink);box-shadow:0 8px 24px rgba(20,14,10,.35);padding:6px;display:flex;flex-direction:column;gap:4px;min-width:170px}
+.menu .tb{text-align:left}
+input[type=range]{accent-color:var(--brass);width:160px}
+.pvr{display:flex;gap:8px;align-items:center;font-size:12.5px}.pvr output{font:11px var(--f-data);color:var(--ink-soft);min-width:40px}
+.chip{font:11px var(--f-data);border:1px solid var(--ink);border-radius:2px;padding:2px 6px;background:var(--paper)}.chip.on{background:var(--ink);color:var(--paper)}
+.scale div{display:flex;gap:12px;align-items:baseline;border-bottom:1px dotted var(--rule);padding:3px 0}.scale code{font:11px var(--f-data);color:var(--ink-soft);min-width:130px}
+.t{display:inline-flex;gap:6px;align-items:center}
+@media(max-width:480px){.scale code{min-width:90px}}
+</style>
+<div class="wrap">
+<header><h1>Dead Reckoning components</h1>
+<button class="tb" id="th" type="button">Day / Night</button>
+<p class="sub">Draft token set and every reusable piece in every state. Nothing here is in the game yet.</p></header>
+
+<section><h2>Colour <small>light | dark</small></h2><div class="grid" id="sw"></div>
+<p class="muted">Italic labels mark proposals: <b>good</b> and <b>chart-ink</b> are new. All others already exist in the game under these names.</p></section>
+
+<section><h2>Type <small>four roles, six sizes</small></h2><div class="scale">
+<div><code>f-display 17</code><span style="font:400 17px var(--f-display)">Bridgetown to Castries</span></div>
+<div><code>f-italic 15</code><span style="font:italic 15px var(--f-italic)">Wind backing north-east, a fair breeze</span></div>
+<div><code>f-body 13</code><span>Hands on watch: 6 of 14. Salt beef for 31 days.</span></div>
+<div><code>f-data fs-small 12</code><span style="font:12px var(--f-data)">SPEED 6.4 kn  HDG 247°</span></div>
+<div><code>f-data fs-micro 10.5</code><span class="lab">Heading · set and drift</span></div></div></section>
+
+<section><h2>Buttons <small>.btn .tb .seg</small></h2>
+<div class="row"><div class="cell"><span class="lab">rest</span><button class="btn">Hire crew</button></div>
+<div class="cell"><span class="lab">hover</span><button class="btn h">Hire crew</button></div>
+<div class="cell"><span class="lab">focus</span><button class="btn f">Hire crew</button></div>
+<div class="cell"><span class="lab">pressed</span><button class="btn" aria-pressed="true">Anchor</button></div>
+<div class="cell"><span class="lab">primary</span><button class="btn primary">Set sail</button></div>
+<div class="cell"><span class="lab">disabled</span><button class="btn" disabled>Sell</button></div>
+<div class="cell"><span class="lab">small</span><button class="btn sm">Fish</button></div></div>
+<div class="row"><div class="cell"><span class="lab">top bar</span><span class="t"><button class="tb">Menu</button><button class="tb h">Skip</button><button class="tb" aria-pressed="true">Chart</button></span></div>
+<div class="cell"><span class="lab">segmented</span><span class="seg"><button aria-pressed="true">Free</button><button>Career</button><button>Scenario</button></span></div></div></section>
+
+<section><h2>Icon buttons <small>pen-and-ink, stroke 1.6, 40px</small></h2>
+<div class="row" id="ib"></div></section>
+
+<section><h2>Dock and panel <small>.dock .panel</small></h2>
+<div class="row" style="align-items:flex-start"><div class="dock"><div class="dockhead"><b>Ship controls</b><small>brig · 6.4 kn</small></div>
+<div class="panel"><div class="line"><i>Heading</i><span class="num">247°</span></div><div class="line"><i>Sails</i><span class="num">75%</span></div><div class="line"><i>Trim</i><span class="good">Fair</span></div><div class="line"><i>Stores</i><span class="warn">Water low</span></div></div>
+<div class="row"><button class="btn sm ico" aria-label="Anchor"><svg class="i" style="width:18px;height:18px" viewBox="0 0 24 24"><circle cx="12" cy="5" r="2"/><path d="M12 7v14M7 12h10M5 15c0 3 3 6 7 6s7-3 7-6"/></svg></button><button class="btn sm ico" aria-pressed="true" aria-label="Fish"><svg class="i" style="width:18px;height:18px" viewBox="0 0 24 24"><path d="M3 12c4-6 11-6 15 0-4 6-11 6-15 0zM18 12l4-4v8z"/></svg></button><button class="ctog" aria-label="Collapse">–</button></div></div>
+<div class="card"><h2>Bridgetown <small>port</small></h2><p style="margin:0">Sugar £4 · Rum £7 · Salt beef £3. Duty 8% on foreign cargo.</p><div class="row"><button class="btn primary">Trade</button><button class="btn">Leave</button></div></div></div></section>
+
+<section><h2>Notices, bars and sliders</h2>
+<div class="row"><div class="notice">Wind has backed north-east.</div><div class="notice w">Water low: 3 days left.</div><div class="notice g">Contract delivered: +£12.</div></div>
+<div class="row"><div class="cell" style="width:240px"><span class="lab">Readiness (bar)</span><div class="rwind" style="width:100%"><i style="width:68%"></i></div></div>
+<div class="pvr"><label for="s1">Outline width</label><input id="s1" type="range" min="0" max="4" step=".5" value="1" oninput="this.nextElementSibling.textContent=this.value+'px'"><output>1px</output></div>
+<span class="chip on">Parchment</span><span class="chip">Vellum</span><span class="chip">High contrast</span></div></section>
+
+<section><h2>Menu <small>.menupop</small></h2><div class="menu"><button class="tb">Quality: Auto</button><button class="tb" aria-pressed="true">Night chart</button><button class="tb">Cheats</button></div></section>
+
+<section><h2>Shape and space</h2><div class="row">
+<div class="cell"><span class="lab">r-1 · 2px btn</span><div style="width:64px;height:32px;border:1px solid var(--ink);border-radius:2px"></div></div>
+<div class="cell"><span class="lab">r-2 · 3px dock</span><div style="width:64px;height:32px;border:1px solid var(--ink);border-radius:3px"></div></div>
+<div class="cell"><span class="lab">r-3 · 6px tool</span><div style="width:64px;height:32px;border:1px solid var(--ink);border-radius:6px"></div></div>
+<div class="cell"><span class="lab">sp 2 4 6 8 12 16 24</span><div style="display:flex;gap:6px;align-items:flex-end"><i style="background:var(--brass);width:2px;height:2px"></i><i style="background:var(--brass);width:4px;height:4px"></i><i style="background:var(--brass);width:6px;height:6px"></i><i style="background:var(--brass);width:8px;height:8px"></i><i style="background:var(--brass);width:12px;height:12px"></i><i style="background:var(--brass);width:16px;height:16px"></i><i style="background:var(--brass);width:24px;height:24px"></i></div></div></div></section>
+</div>
+<script>
+const C=[["desk","#ebdfc2","#0b1a40"],["desk-2","#d9c9a2","#10245a"],["paper","#f6eed9","#132a63"],["paper-2","#ece2c8","#0f2252"],["ink","#2e2519","#eadfb4"],["ink-soft","#7b6a55","#a9a283"],["rule","#cbbd98","#2d4688"],["sea","#4a6a8a","#8aa8d6"],["brass","#b8862a","#d9a940"],["ochre","#b2452c","#e4905f"],["pencil","#4a5a8a","#9db2e2"],["good *","#3f7a4a","#7fb283"],["chart-ink *","#3a2614","#3a2614"]];
+document.getElementById("sw").innerHTML=C.map(c=>`<div class="sw"><div class="pair"><i style="background:${c[1]}"></i><i style="background:${c[2]}"></i></div><div><b>--${c[0].replace(" *","")}</b><span>${c[1]} | ${c[2]}${c[0].endsWith("*")?" · new":""}</span></div></div>`.replace('<div class="sw"><div class="pair">','<div class="sw"><div class="pair" style="border-bottom:1px solid var(--ink)">')).join("");
+const I=[["Chart","M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2zM9 4v14M15 6v14"],["Ship","M3 15h18l-3 5H6zM12 3v12M12 4l6 8h-6M12 6l-5 7h5"],["Book","M4 4h7a2 2 0 012 2v14a2 2 0 00-2-2H4zM20 4h-7v16h7z"],["Eye","M2 12c4-7 16-7 20 0-4 7-16 7-20 0zM12 9a3 3 0 100 6 3 3 0 000-6z"],["Compass","M12 3a9 9 0 100 18 9 9 0 000-18zM15 9l-2 6-4 0 2-6z"],["Anchor","M12 3a2 2 0 100 4 2 2 0 000-4zM12 7v14M7 12h10M5 15c0 3 3 6 7 6s7-3 7-6"]];
+document.getElementById("ib").innerHTML=I.map((x,k)=>`<div class="cell"><span class="lab">${x[0]}${k==1?" · pressed":k==2?" · hover":""}</span><button class="tbicon" ${k==1?'aria-pressed="true"':''} ${k==2?'style="background:var(--paper-2)"':''} aria-label="${x[0]}"><svg class="i" viewBox="0 0 24 24"><path d="${x[1]}"/></svg></button></div>`).join("");
+document.getElementById("th").onclick=()=>{const r=document.documentElement,d=r.dataset.theme==="dark"||(!r.dataset.theme&&matchMedia("(prefers-color-scheme:dark)").matches);r.dataset.theme=d?"light":"dark"};
+</script>
