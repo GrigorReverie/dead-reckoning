@@ -245,6 +245,43 @@
    "games": [
     "dead-reckoning"
    ]
+  },
+  {
+   "id": "crew",
+   "module": "crew/crew.js",
+   "summary": "A crew of individuals with roles, skill, temper, spirits and health, three watches with fatigue and sleep, rations and scurvy, fever and injury with a surgeon, hiring and paying off in port, shore leave, discipline, and crisis moments (man overboard, fire, mutiny, surgery) offered as choice cards.",
+   "inputs": [
+    "crewStep(s,dt,w): step in hours and the wind {kn}",
+    "crewMake(spec): named hands, seamen names, berth order, doctors",
+    "hireList(s) / hireHand(id) / payOff(m) / shoreLeave() / issueRum() / punish(m)",
+    "crewRota(C) / crewBosunWatch(C): even out the watches",
+    "CREWG hooks: localHours, dayIndex, atPort, modalOpen, skipping, money, maxCrew, minCrew, effN, role, dutyRate, berths, berthOwner, watchNames, names",
+    "state s.crew, s.stores, s.ration, s.wx, s.squall"
+   ],
+   "outputs": [
+    "s.crew fields (mode, f fatigue, mo spirits, sk skill, hp, scv, fev, sick), s.eff work output, s.fat, s.helmN, s.helmF",
+    "EV 'crewRemoved' (man, index), 'crewHired' (man), 'crewBill', 'crisis' (card with options) and 'say' notices"
+   ],
+   "knobs": [
+    "WB watch boundaries",
+    "CREWG.dutyRate fatigue per role",
+    "CREWG.role work value per role",
+    "CREWG.maxCrew / minCrew",
+    "SKILL0 starting skill by role"
+   ],
+   "tags": [
+    "crew",
+    "morale",
+    "watches",
+    "health",
+    "hiring",
+    "crisis",
+    "discipline"
+   ],
+   "adaptation": "Blimp: the roster becomes aircrew and riggers with the same fatigue, watches and morale; scurvy becomes any long-trip condition (oxygen, cold) by renaming; man overboard becomes a fall from the gondola; roles, berths and names come from the game's data through the CREWG hooks.",
+   "games": [
+    "dead-reckoning"
+   ]
   }
  ]
 }

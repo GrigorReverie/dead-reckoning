@@ -19,6 +19,10 @@ Engine files are plain script inlined into the game's single script, so names ar
 - `nav/nav.js` `navReckon(s,ordered,dt)` (reckoned position and error growth; call before `s.t` advances), `navTrail(s)`, `navLogReading(s,knots)`, `navBearing(s,from,lm,spread,typeK)`, `navCrossFix(s)`, `navPlotFix(s,fix)`, `navNoonSight(s,{decl,lat0,trueLat,day,time,lost})`, `navMarkPosition(s,{time})`. Knob `MARK_SPEED_FRESH`.
 - The game keeps the player actions (`takeBearing`, `markNoon`, `plotFix`, `markPosition`, `noonAvailable`) as thin wrappers that gather inputs (wind, sun declination, clock text) and call the engine. Uses the game's helpers `norm`, `angDiff`, `D2R`, `R2D`, `gauss`.
 
+## crew/ (step 4)
+- `crew/crew.js` `crewMake(spec)` (roster from named hands, seamen, berth order, doctors), `watchInfo`, `isDuty`, `effOfMan`, `crewX`, `medTeam`, `crewLife`, `crewStep(s,dt,w)`, `hireList`, `hireHand`, `removeHand`, `payOff`, `shoreLeave`, `issueRum`, `punish`, `crisisKind`, `crisisStep`, `crewRota`, `crewBosunWatch`. Knob `WB` (watch boundaries).
+- The game describes its world and data through the `CREWG` hooks: `localHours`, `dayIndex`, `atPort`, `modalOpen`, `skipping`, `money`, `maxCrew`, `minCrew`, `effN`, `role`, `dutyRate`, `berths`, `berthOwner`, `watchNames`, `names`. DR sets them right after the engine include.
+
 ## Events Dead Reckoning listens to
 | event | args | DR does |
 |---|---|---|
@@ -34,8 +38,11 @@ Engine files are plain script inlined into the game's single script, so names ar
 | `navNoon` | {max,lat,stillRising,trueLat} | noon notice (and true-latitude check in trial mode) |
 | `navFix` | {x,y,hrs,mx,my,mm} | fix notice and reckoning-vs-fix comment |
 | `navMark` | {x,y,sx,sy,tier,fresh,lines,nb,off,dir} or null | mark-position notices; null means no bearings |
+| `crewRemoved` | man, index | fix the selected man in the Ship tab, rebuild the roster |
+| `crewHired` | man | rebuild the roster |
+| `crewBill` | | redraw the watch bill |
 | `wx` | kind, e | weather notice text (`WX_SAY`): `wave1-3`, `front1-3`, `surge`, `lull`, `squallNear`, `shift` {dd, from} |
 
 Options asked with `optOn`: `bosun`, `mateLog`, `aSail`, `aCrew`, `aNoon`, `aFix` (Assists switches) and `crisisOpen`.
 
-Still calling the DR UI directly (to convert in their own steps): helm actions (`setCourse`, `setSail`, `rowStep` call `updateUI`) and the nav wrappers (`takeBearing`, `startObserve`, `markPosition` call `updateUI` after the engine call), crew roster helpers (`svBalance`, `hireHand`, `removeHand`), and `crisisStep` reads the `modalOpen` flag.
+Still calling the DR UI directly (to convert in their own steps): helm actions (`setCourse`, `setSail`, `rowStep` call `updateUI`) and the nav wrappers (`takeBearing`, `startObserve`, `markPosition` call `updateUI` after the engine call), `svBalance` (the Ship-tab rebuild between the rota and the bosun's watch). Crew logic itself is now in the engine; the crisis card (`showCrisis`), `crewInfo`, `crewExtra` and `hireUI` stay in the game.
