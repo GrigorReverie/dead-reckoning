@@ -3799,7 +3799,7 @@ function brigLines(){
   return{sstep,QB,FB,QDY,FCY,YW,rise,deckW,deckAt,railY,keelY,zF,zS,zA,shape,hx};
 }
 // the ship in hand: the brig's own model, or one of the fleet built from her spec
-function buildShip3D(R){R.shipId=SHIP.id;R.wz=null;R.sweepers=null;R.oarsOn=null;R.crew=null;R.dsig=null;R.sails=null;R.jib=null;R.gaff=null;R.yardInfo={};R.lamps=[];R.oars=[];R.tiller=null;R.gen=null;R.faA=null;R.handS=null;
+function buildShip3D(R){R.shipId=SHIP.id;R.wz=null;R.sweepers=null;R.oarsOn=null;R.crew=null;R.dsig=null;R.run=null;R.sails=null;R.jib=null;R.gaff=null;R.yardInfo={};R.lamps=[];R.oars=[];R.tiller=null;R.gen=null;R.faA=null;R.handS=null;
   if(SHIP.id==="brig")buildShip(R);else buildVessel3D(R,SPEC[SHIP.id]);if(R.wake){R.wake.sl.length=0;R.wake.last=null;}R.foam=null;R.heel=0;}
 function setShip3D(){const R=R3;if(!R||R.shipId===SHIP.id)return;R.scene.remove(R.ship);
   R.ship.traverse(o=>{if(o.geometry&&!(o.parent&&o.parent.isGroup&&R.figKit&&0))o.geometry.dispose();});if(R.hullMatG){R.hullMatG.dispose();R.hullMatG=null;}
@@ -3890,7 +3890,7 @@ function buildShip(R){
   const LEV=[{y:11,sh:5.4},{y:17.6,sh:5.6},{y:22.8,sh:3.9}];
   R.sails=[];R.yardGroups=[];
   for(const m of masts){cyl(.2,.34,m.h,0,2.3+m.h/2,m.z);
-    for(const sy of[.55,.8])for(const sd of[1,-1])segs.push(0,2.3+m.h*sy,m.z,sd*(chanAt(m.z).xi+.3),chanAt(m.z).y+.1,m.z+(m.z>0?1.4:-1.4));
+    for(const sy of[.55,.8])for(const sd of[1,-1])segs.push(0,2.3+m.h*sy,m.z,sd*(chanAt(m.z).xi+.3),chanAt(m.z).y+.1,m.z-2.2);
     LEV.forEach((lv,li)=>{
       const grp=new THREE.Group();grp.position.set(0,lv.y,m.z);bob.add(grp);
       const yard=new THREE.Mesh(new THREE.CylinderGeometry(.12,.12,m.yw[li],6),mastMat);yard.rotation.z=PI/2;grp.add(yard);
@@ -3918,7 +3918,7 @@ function buildShip(R){
     // furled: the sail lies in pleats along the boom, the gaff lowered on top of it
     const bun=new THREE.Mesh(new THREE.CylinderGeometry(.28,.28,8.4,8),sailMat);bun.rotation.x=PI/2;bun.position.set(0,6.85,-5.0);g.add(bun);
     // sheet and topping lift
-    const ln=[0,6.5,-9.6,0,4.35,-10.2,0,13.8,-6.3,0,23.5,0.1,0,6.4,-9.6,0,5.0,-11.0];
+    const ln=[0,13.8,-6.3,0,23.5,0.1]; // peak halyard; the boom sheet is a running line (below)
     g.add(new THREE.LineSegments(new THREE.BufferGeometry().setAttribute("position",new THREE.Float32BufferAttribute(ln,3)),lineMat));
     R.gaff={g,sm,el:el2,gf,bun,lp,NU,NV,TH,PK,CL,TK,ang:0,side:1};updateGaff(R.gaff,1); }
   // spritsail yard slung under the bowsprit, sail furled along it
@@ -3942,6 +3942,27 @@ function buildShip(R){
     const jl=new THREE.LineSegments(new THREE.BufferGeometry(),sailLine);jl.geometry.setAttribute("position",new THREE.BufferAttribute(new Float32Array(pairs.length*3),3));jl.frustumCulled=false;jm.frustumCulled=false;bob.add(jl);
     const jbun=new THREE.Mesh(new THREE.CylinderGeometry(.22,.22,6.6,8),sailMat);jbun.rotation.x=PI/2;jbun.position.set(0,5.45,13.1);bob.add(jbun);
     R.jib={mesh:jm,lines:jl,pairs,NR,NC,H,T,C,bun:jbun}; }
+
+  // ---- running rigging: lifts, braces and sheets for the six yards, the boom sheet, and the pin racks the hands belay them at ----
+  { const RL=[],P=(x,y,z)=>()=>RTV.set(x,y,z),Yp=(o,x,y,z)=>()=>rgPt(bob,o,x,y,z),LI=[{sh:5.4},{sh:5.6},{sh:3.9}];
+    const xq=hx(-7.8,QDY+.5)-.6;R.brigRack={xq};
+    const rack=(x,y,z0,z1)=>{L2([x,y+1,z0],[x,y+1,z1]);for(const z of[z0,z1,(z0+z1)/2])L2([x,y,z],[x,y+1,z]);for(let k=0;k<5;k++){const z=z0+.15+k*(z1-z0-.3)/4;L2([x,y+1,z],[x,y+1.17,z]);}};
+    for(const sd of[1,-1])rack(sd*xq,QDY,-8.7,-7.0); // quarterdeck pin rail inside the bulwark: the main braces belay here
+    masts.forEach((m,mi)=>{const top=2.3+m.h*.6;
+      [0,1,2].forEach(li=>{const nmM=mi?"main":"fore",grp=R.sails.find(o=>o.mast===nmM&&o.level===li).grp,half=m.yw[li]/2,id=(mi?"m":"f")+"ctg"[li],cap=[top-.15,2.3+m.h*.9,2.3+m.h*.985][li],e=()=>rgE(id);
+        for(const sd of[1,-1]){
+          RL.push({a:P(sd*.25,cap,m.z),b:Yp(grp,sd*half*.92,-.1,0)}); // lift from the masthead to the yardarm
+          const arm=Yp(grp,sd*half,0,0);
+          if(mi===0){const bY=[7.5,10.5,13][li],c2=chanAt(-2.5),bx=c2.x1+(.5-c2.x1)*(bY-c2.y)/(2.3+27*.6-c2.y)*.85; // fore braces lead aft through a block on the main shrouds and belay at the main pin rack
+            RL.push({a:arm,b:P(sd*bx,bY,-3.5)});RL.push({a:P(sd*bx,bY,-3.5),b:P(sd*1.0,3.25,-3.1+li*.45)});}
+          else RL.push({a:arm,b:P(sd*xq,QDY+1.17,-8.5+li*.5)}); // main braces lead aft to the quarter pin rail
+          const clew=()=>{const sc=Math.max(e(),.03);return rgPt(bob,grp,sd*half*.96,-.1-LI[li].sh*sc,0);},on=()=>e()>.05;
+          if(li===0){const xs=hx(m.z-1.2,3)-.45;RL.push({a:clew,b:P(sd*xs,2.8,m.z-1.2),on});RL.push({a:clew,b:P(sd*xs,2.8,m.z+2.6),on});} // sheet aft and tack forward, to blocks at the ship's side
+          else{const lg=R.sails.find(o=>o.mast===nmM&&o.level===li-1).grp;RL.push({a:clew,b:Yp(lg,sd*m.yw[li-1]/2*.97,-.15,0),on});} // topsail and topgallant sheets lead down to the yardarm below
+        }});});
+    { const gg=R.gaff.g,bE=()=>rgPt(bob,gg,0,6.5,-9.6);RL.push({a:bE,b:()=>{const v=bE();return RTV.set(clamp(v.x*.35,-.8,.8),QDY+.3,-10.3);}});L2([-.9,QDY+.12,-10.3],[.9,QDY+.12,-10.3]); } // boom sheet down to the horse across the quarterdeck
+    for(const sd of[1,-1]){L2([sd*.15,6.0,15.8],onHull(10.7,3.9,sd,.03));L2([sd*.15,5.8,15.0],onHull(10.4,3.5,sd,.03));} // bowsprit shrouds to the bows
+    R.rgList=RL; }
   // ---- extra detail: rails, guns, channels, shrouds and ratlines, tops, stays, deck furniture ----
   { const L2=(a,b)=>segs.push(a[0],a[1],a[2],b[0],b[1],b[2]);
     const circ=(cx,cy,cz,r,pl,n)=>{n=n||8;for(let k=0;k<n;k++){const a0=k/n*2*PI,a1=(k+1)/n*2*PI;
@@ -4021,6 +4042,7 @@ function buildShip(R){
   }
   const lg=new THREE.BufferGeometry();lg.setAttribute("position",new THREE.Float32BufferAttribute(segs,3));
   const ls=new THREE.LineSegments(lg,lineMat);ls.frustumCulled=false;bob.add(ls);
+  rgFinish(R,bob,lineMat,R.rgList);
   // pennant
   { const fg=new THREE.Group();fg.position.set(0,4.62+4.15,-11.95);
     // a plain wind flag: a simple red triangle, no national colours
@@ -4040,7 +4062,7 @@ function buildShip(R){
     ];R.lamps=lampSprites(R,bob,R.lamps); }
   R.ship=group;R.bob=bob;R.st=st;bowFx(R,group);
   // the brig's own measures for the sea, the crew, the lamps and the camera (the fleet builder sets the same from each ship's lines)
-  R.gen=null;R.hk=1;R.Z0=12.15;R.ZS=-12.1;R.bAt=z=>st[clamp(Math.round((z+12)/24*18),0,18)].b;R.taff=[-11.6,3.3];R.hawse=[12.3,2.2];R.camK=1;R.camY=1;R.notesG=null;R.faFoot={drv:[1.0,4.27,-8.4]};
+  R.gen=null;R.hk=1;R.Z0=12.15;R.ZS=-12.1;R.bAt=z=>st[clamp(Math.round((z+12)/24*18),0,18)].b;R.taff=[-11.6,3.3];R.hawse=[12.3,2.2];R.camK=1;R.camY=1;R.notesG=null;R.faFoot={drv:[.65,2.15,-3.3]};
   { // the brig's sweeps: four a side through the small oar ports in the waist, stowed on the booms until a calm
     const Lb=brigLines(),geo=new THREE.CylinderGeometry(.06,.07,1,6);geo.rotateZ(PI/2);R.oars=[];
     for(let i=0;i<4;i++){const z=-3.6+i*2.3;for(const sd of[1,-1]){const y=Lb.railY(z)-.55,x=Lb.hx(z,y)+.05,g=new THREE.Group();g.position.set(sd*x,y,z);
@@ -4050,7 +4072,7 @@ function buildShip(R){
   { const railX=(R.yardInfo.mc?R.yardInfo.mc.x1-1.15:3.4)-.7,rnd=Math.random;
     R.dk={ground:(x,z)=>z<-5.4?4.27:z<-4.4?2.15+(4.27-2.15)*(-4.4-z)/1.0:z>6.6?3.95:z>4.6?2.15+(3.95-2.15)*(z-4.6)/2.0:2.15,foot:2.15,
       stroll:()=>[(rnd()-.5)*2.6,rnd()<.78?-4.8+rnd()*6.4:4.7+rnd()*1.6],rail:sd=>[sd*railX,-2.2+rnd()*5.5],coil:()=>[(rnd()-.5)*2.4,-3.2+rnd()*4.5],swab:()=>[(rnd()-.5)*2.4,-3.6+rnd()*3.6],
-      pump:sd=>[sd*.75,-1.9],mend:()=>[(rnd()<.5?-1:1)*(.4+rnd()*.8),2.8+rnd()*1.6],capstan:[0,-4.2,1.05],haul:(sd,s)=>[sd*1.05,4.6+s*.32],fish:(sd,s)=>[sd*railX,-2+s*1.1],home:()=>[(rnd()-.5)*2,(rnd()-.5)*5],
+      pump:sd=>[sd*.75,-1.9],mend:()=>[(rnd()<.5?-1:1)*(.4+rnd()*.8),2.8+rnd()*1.6],capstan:[0,-4.2,1.05],haul:(sd,s)=>s<3?[sd*.62,-3.1+s*.45]:[sd*(R.brigRack.xq-.6),-8.5+(s-3)*.45],fish:(sd,s)=>[sd*railX,-2+s*1.1],home:()=>[(rnd()-.5)*2,(rnd()-.5)*5],
       cap:{x:1.3,z0:-10.3,z1:-7.9,gz:-9.0},jib:[.5,3.95,9.7],aft:[1.0,4.27,-8.4],railX,open:false,helm:[0,4.27,-6.05],mast:[5.5,-2.5]}; }
 }
 
@@ -4414,6 +4436,35 @@ function buildVessel3D(R,sp,ext){ // ext: a harbour ship, outside only (no lamps
   R.notesG=rig.sails.filter(s=>s.kind!=="sp").slice(0,9).map((s,i)=>{const c=s.c,cx=(c[0][0]+c[1][0]+c[2][0]+c[3][0])/4,cy=(c[0][1]+c[1][1]+c[2][1]+c[3][1])/4,cz=(c[0][2]+c[1][2]+c[2][2]+c[3][2])/4;
     const p=s.kind==="sq"||s.kind==="fa"?rig.masts[s.mast].W([cx,cy,cz]):[cx,cy,cz];return[s.name.toUpperCase(),p,p[2]>0?1:-1,i%3-1];});
   R.dk.footAt=z=>dy(z);
+
+  // ---- running rigging: lifts, braces, sheets and halyards that follow the yards, gaffs and clews; pin racks where the braces belay ----
+  { const RL=[],P=(x,y,z)=>()=>RTV.set(x,y,z),Yp=(o,x,y,z)=>()=>rgPt(G,o,x,y,z),nM=masts.length,rx=z=>Math.min(1.0,hw(z)*.5),off=()=>false;
+    const rack=(z0,z1)=>{for(const sd of[1,-1]){const x=sd*rx((z0+z1)/2),y=dy((z0+z1)/2);L2([x,y+1,z0],[x,y+1,z1]);for(const z of[z0,z1,(z0+z1)/2])L2([x,y,z],[x,y+1,z]);for(let k=0;k<5;k++){const z=z0+.15+k*(z1-z0-.3)/4;L2([x,y+1,z],[x,y+1.17,z]);}}};
+    const zq=Math.max(-Lh+1.8,qd?qd.z-1.9:masts[nM-1].m.z-2.6),lead=mi=>mi+1<nM?{z0:masts[mi+1].m.z-1.0,mj:mi+1}:{z0:zq-.9,mj:-1},bel=[];
+    masts.forEach((mh,mi)=>{if(!mh.Mt.yards.length)return;const L=lead(mi);if(!bel.some(b=>b.z0===L.z0)){bel.push(L);rack(L.z0,L.z0+1.8);}});
+    masts.forEach((mh,mi)=>{const Mt=mh.Mt,m=mh.m,L=lead(mi);
+      for(const Y of Mt.yards){const half=Y.w/2,sl=sails.find(o=>o.kind==="sq"&&o.id===Mt.pfx+"ctgr"[Y.i]),id=Mt.pfx+"ctgr"[Y.i],e=()=>rgE(id),cap=Math.max(Y.y+1.1,Math.min(Mt.truck,[m.h,Mt.tmTop,Mt.tgTop??Mt.tmTop,Mt.truck][Y.i]??m.h));
+        const lower=Mt.yards.find(q=>q.i===Y.i-1);
+        for(const sd of[1,-1]){
+          RL.push({a:Yp(mh.grp,sd*Mt.r*1.1,cap,0),b:Yp(mh.yg,sd*half*.9,Y.y-.1,0)}); // lift
+          const arm=Yp(mh.yg,sd*half,Y.y,0),zp=L.z0+.2+Y.i*.4,pin=P(sd*rx(zp),dy(zp)+1.17,zp);
+          if(L.mj>=0){const mj=masts[L.mj],bY=dy(mj.m.z)+2.6+Y.i*2.4,hY=mj.Mt.W([0,mj.m.h*.97,0])[1],ch=chanAt(mj.m.z),bx=ch.x1+(mj.Mt.r*.7-ch.x1)*clamp((bY-ch.y)/(hY-ch.y),0,1)*.85,bz=mj.m.z-1.0; // block on the aft mast's shrouds
+            RL.push({a:arm,b:P(sd*bx,bY,bz)});RL.push({a:P(sd*bx,bY,bz),b:pin});}
+          else RL.push({a:arm,b:pin});
+          if(sl){const c=sl.gs.c,t=sd>0?c[1]:c[0],b=sd>0?c[3]:c[2],clew=()=>{const k=Math.max(e(),.03);return rgPt(G,mh.yg,t[0]+(b[0]-t[0])*k,t[1]+(b[1]-t[1])*k,.12);},on=ext?off:()=>e()>.05;
+            if(!lower){const za=m.z-1.2,zf=m.z+2.5;RL.push({a:clew,b:P(sd*(hw(za)-.1),dy(za)+.6,za),on});RL.push({a:clew,b:P(sd*(hw(zf)-.1),dy(zf)+.6,zf),on});}
+            else RL.push({a:clew,b:Yp(mh.yg,sd*lower.w/2*.97,lower.y-.12,0),on});}
+        }}});
+    for(const sl of sails){const mh=masts[sl.s.mast],id=sl.id,on=ext?off:()=>rgE(id)>.05;
+      if(sl.kind==="fa"){const c=sl.gs.c,w=sl.s.what,cl=w==="lateen"?c[2]:c[3];
+        RL.push({a:Yp(mh.fg,cl[0],cl[1],cl[2]),b:()=>{const v=rgPt(G,mh.fg,cl[0],cl[1],cl[2]);const z=v.z;return RTV.set(clamp(v.x*.35,-hw(z)*.6,hw(z)*.6),dy(z)+.3,z);},on}); // sheet down to the traveller on deck
+        if(w==="gaff"||w==="sprit"){const hd=[0,mh.m.h*.98,-mh.Mt.r*1.6];RL.push({a:Yp(mh.fg,c[1][0],c[1][1],c[1][2]),b:Yp(mh.grp,hd[0],hd[1],hd[2]),on});RL.push({a:Yp(mh.fg,c[0][0],c[0][1],c[0][2]),b:Yp(mh.grp,hd[0],hd[1]-.4,hd[2]),on});}} // peak and throat halyards
+      else if(sl.kind==="hs"){const cl=sl.gs.c[3];for(const sd of[1,-1])RL.push({a:Yp(sl.piv,cl[0],cl[1],cl[2]),b:()=>{const v=rgPt(G,sl.piv,cl[0],cl[1],cl[2]);const z=Math.max(v.z-2.2,zw0+1.5);return RTV.set(sd*(hw(z)-.1),dy(z)+.6,z);},on});}}
+    rgFinish(R,G,M.line,RL);
+    // the hands haul the braces at the pin racks (or the sheets abaft the aftmost mast in a fore-and-aft vessel)
+    const oldHaul=R.dk.haul;
+    R.dk.haul=bel.length?(sd,s)=>{const L=bel[s%bel.length],z=L.z0+.35+Math.floor(s/bel.length)*.4;return[sd*rx(z)*.6,z];}:oldHaul;
+  }
   {const fm=rig.masts[0],ly=fm.m.top?fm.m.h-fm.dbl*.85+.15:fm.m.h*.82,lp=fm.W([0,ly,0]);R.look=[lp[0]+(fm.m.top?.4:0),lp[1]+.9,lp[2]+(fm.m.r||.3)+.5];} // the lookout point: foretop, or high on the foremast of a small craft
   if(isOpen)R.dk.thw=oars.length?oars.filter((o,i)=>i%2===0||oars.length<=4).map(o=>[-o.sd*.28,deck(o.z)-.33,o.z]):H.thwarts.map(f=>{const z=-Lh+H.Lwl*f;return[0,deck(z)-.33,z];});
   if(isOpen)R.lamps=R.lamps.slice(0,1);
@@ -4428,6 +4479,15 @@ function buildVessel3D(R,sp,ext){ // ext: a harbour ship, outside only (no lamps
   R.ship=group;R.bob=G;R.gen={sails,masts,rig,Ls,sp};R.sails=null;R.jib=null;R.gaff=null;R.st=null;
 }
 
+// ---- running rigging: lines whose ends ride on moving yards, gaffs and clews (lifts, braces, sheets, halyards), redrawn every frame ----
+const RTV=new THREE.Vector3();
+function rgPt(G,o,x,y,z){RTV.set(x,y,z);for(let p=o;p&&p!==G;p=p.parent){p.updateMatrix();RTV.applyMatrix4(p.matrix);}return RTV;}
+function rgE(id){return(typeof S!=="undefined"&&S&&S.ship&&S.ship.sls&&S.ship.sls[id])||0;}
+function rgFinish(R,G,mat,list){const geo=new THREE.BufferGeometry();geo.setAttribute("position",new THREE.BufferAttribute(new Float32Array(list.length*6),3));
+  const ls=new THREE.LineSegments(geo,mat);ls.frustumCulled=false;G.add(ls);R.run={ls,geo,list};rgUpdate(R);}
+function rgUpdate(R){const Q=R.run;if(!Q)return;const pa=Q.geo.attributes.position.array;let n=0;
+  for(const l of Q.list){if(l.on&&!l.on())continue;let v=l.a();pa[n++]=v.x;pa[n++]=v.y;pa[n++]=v.z;v=l.b();pa[n++]=v.x;pa[n++]=v.y;pa[n++]=v.z;}
+  Q.geo.setDrawRange(0,n/3);Q.geo.attributes.position.needsUpdate=true;}
 function makeSail(w,h,mat,lineMat){
   const GX=10,GY=7,geo=new THREE.PlaneGeometry(w,h,GX,GY);geo.translate(0,-h/2-.1,0);
   const base=geo.attributes.position.array.slice();const mesh=new THREE.Mesh(geo,mat);mesh.frustumCulled=false;
@@ -5189,6 +5249,7 @@ function update3D(dt,now){
       if(on){const pa=cl.geometry.attributes.position.array,out=A.mode==="weighing"?clamp(1-(S.t-A.t0)*60,0,1):1,L=A.mode==="trailing"?3:8*out+1;let prev=null,n=0;
         for(let i=0;i<=14;i++){const t=i/14,hy=R.hawse[1],p=[0,hy-(hy+(A.mode==="trailing"?7:2.5)*hk)*t+Math.sin(t*PI)*-.6*hk,R.hawse[0]+L*t*1.6*hk];if(prev){pa.set(prev,n*3);pa.set(p,n*3+3);n+=2;}prev=p;}
         cl.geometry.setDrawRange(0,n);cl.geometry.attributes.position.needsUpdate=true;} } }
+  rgUpdate(R);
   // crew
   { const C=R.crew;if(C){if((R.dsf=(R.dsf||0)+1)%30===1)dressDeck(R);const sp=clamp(speedMult,1,8),cdt=Math.min(dt,.1)*sp,t=R.wt,working={};
       for(const j of sh.q)working[j.id]=1;for(const k of SAILIDS)if(Math.abs(sh.sls[k]-sh.sa[k])>.02)working[k]=1;
@@ -5289,10 +5350,13 @@ function update3D(dt,now){
               else if(c.act==="swab"){face(c,Math.PI*.15*Math.sin(t*.6+c.ph)+.4);const a=Math.sin(t*2.4+c.ph);c.lean=.45+a*.06;hip(c,0);c.aL.rotation.x=-.85+a*.2;c.aR.rotation.x=-.95+a*.2;}
               else if(c.act==="chat"&&c.pt){const q=c.pt.m.position;face(c,Math.atan2(q.x-m.position.x,q.z-m.position.z));hip(c,0);const g1=Math.max(0,Math.sin(t*1.1+c.ph*3));c.aR.rotation.x=-.9*g1;c.aL.rotation.x=-.25*Math.max(0,Math.sin(t*.7+c.ph));c.lean=.03;}}}} }
       { const k=Math.min(1,cdt*8),B=c.sm||(c.sm={}),sm=(key,tv)=>{const p=B[key];return B[key]=p==null?tv:p+(tv-p)*k;};
-        c.lL.rotation.x=sm("a",c.lL.rotation.x);c.lR.rotation.x=sm("b",c.lR.rotation.x);c.aL.rotation.x=sm("c",c.aL.rotation.x);c.aR.rotation.x=sm("d",c.aR.rotation.x);
+        c.lL.rotation.x=sm("a",Math.min(.5,c.lL.rotation.x));c.lR.rotation.x=sm("b",Math.min(.5,c.lR.rotation.x));c.aL.rotation.x=sm("c",Math.max(-3.1,Math.min(1.0,c.aL.rotation.x)));c.aR.rotation.x=sm("d",Math.max(-3.1,Math.min(1.0,c.aR.rotation.x)));
         c.lean=sm("e",c.lean)+Math.sin(t*1.7+c.ph)*.012;
-        c.kn[0].rotation.x=Math.max(0,-c.lL.rotation.x)*1.05;c.kn[1].rotation.x=Math.max(0,-c.lR.rotation.x)*1.05;
-        c.el[0].rotation.x=-Math.min(1.2,.12+Math.max(0,-c.aL.rotation.x)*.4);c.el[1].rotation.x=-Math.min(1.2,.12+Math.max(0,-c.aR.rotation.x)*.4);
+        { // knees bend as the thigh lifts forward (a step, a squat, a seat) and as the trailing leg lifts its foot; legs never swing far back and the elbows always keep a bend
+          const kb=h=>Math.min(2.3,Math.max(0,-h)*1.05+Math.max(0,h)*.9+(Math.abs(h)>.05?.08:.04));
+          c.kn[0].rotation.x=kb(c.lL.rotation.x);c.kn[1].rotation.x=kb(c.lR.rotation.x);
+          const eb=a=>-Math.min(2.0,.18+Math.abs(a)*.5+Math.max(0,-a-1.6)*.3);
+          c.el[0].rotation.x=eb(c.aL.rotation.x);c.el[1].rotation.x=eb(c.aR.rotation.x); }
         const fine=R.q===0;for(const o of c.xt)o.visible=fine; }
       fishLn(R,c,t,c.role.startsWith("hand")&&c.act==="fish"&&c.state==="idle"&&c.m.visible&&!!S.fishing);
       { const yw=m.rotation.y,hnd=c.role.startsWith("hand"),deck=c.role==="helm"||c.role==="cap"||(hnd&&(c.state==="idle"||((c.state==="going"||c.state==="returning")&&c.q[0]&&c.q[0].m==="walk")));
@@ -8783,22 +8847,23 @@ window.CUTCAM=function(R){
   const cp=R.camera.position;cp.copy(_v).addScaledVector(_s,Math.cos(az)*Math.cos(pt)*c.dist).addScaledVector(_b,Math.sin(az)*Math.cos(pt)*c.dist);cp.y+=Math.sin(pt)*c.dist;
   R.camera.lookAt(_v);
   { const rcv=R.renderer.domElement.getBoundingClientRect(),cr=card.getBoundingClientRect(),top=Math.max(rcv.top,88),bot=Math.min(rcv.bottom,cr.top>0?cr.top:rcv.bottom),shift=(rcv.top+rcv.height/2)-(top+bot)/2;R.cover=shift>2?shift/.3:0; }   // main's view offset moves the picture up by cover*.3 px, so the look-at point sits in the middle of what you can see
-  const U=R.U;U.uCutOn.value=1;U.uCutSl.value=M.sel<0?1:0;U.uGhost.value=0;U.uCutC.value.copy(_c);U.uCutN.value.copy(_s);U.uCutB.value.copy(_b);U.uCutR.value=90;U.uCutTop.value=TOP;const deckWet=M.sel>=0&&!!M.L.wet[M.sel],wet=M.sel<0||deckWet;if(M.sel<0)U.uCutBox.value.set(-(H.B*1.45),3.6*H.B,LS.Lh+H.B);else U.uCutBox.value.set(1000,1001,1);U.uCutE.value.set(H.B+1.4,LS.Lh+1.6,deckWet?1:0);if(M.seabed)M.seabed.visible=wet;
+  const shell=M.sel<0&&(M.xk||0)<.05; // All decks: the outer shell, masts, yards and rigging show too, as a faint ghost round the cut-open decks
+  const U=R.U;U.uCutOn.value=1;U.uCutSl.value=M.sel<0?1:0;U.uGhost.value=shell?.4:0;U.uCutC.value.copy(_c);U.uCutN.value.copy(_s);U.uCutB.value.copy(_b);U.uCutR.value=90;U.uCutTop.value=shell?400:TOP;const deckWet=M.sel>=0&&!!M.L.wet[M.sel],wet=M.sel<0||deckWet;if(M.sel<0)U.uCutBox.value.set(-(H.B*1.45),3.6*H.B,LS.Lh+H.B);else U.uCutBox.value.set(1000,1001,1);U.uCutE.value.set(H.B+1.4,LS.Lh+1.6,deckWet?1:0);if(M.seabed)M.seabed.visible=wet;
   if(R.seaU){R.seaU.uCutB.value.copy(_b);}
   if(R.sea&&!R.sea.material.transparent){R.sea.material.transparent=true;R.sea.material.needsUpdate=true;}
   _pl.setFromNormalAndCoplanarPoint(_s.clone().negate(),_c);_pt.set(new THREE.Vector3(0,-1,0),_c.y+TOP);
-  const gh=M.sel>=0,cm=gh?1:2;M.gA.value=0;
+  const gh=M.sel>=0,cm=shell?3:gh?1:2;M.gA.value=shell?.9:0;
   R.ship.traverse(o=>{const mt=o.material;if(!mt)return;
-    if(o.isLine&&!ing(o)){hide(o);return;}   // the real ship's own line work (hull strakes, rigging) stays out of the stack
-    if(mt.isLineBasicMaterial&&mt!==M.pen&&!M.PN.includes(mt)){if(mt.__cl!==cm){mt.clippingPlanes=gh?[_pt]:[_pl,_pt];mt.__cl=cm;mt.needsUpdate=true;}
+    if(o.isLine&&!ing(o)&&!shell){hide(o);return;}   // the real ship's own line work (hull strakes, rigging) stays out of the stack
+    if(mt.isLineBasicMaterial&&mt!==M.pen&&!M.PN.includes(mt)){if(mt.__cl!==cm){mt.clippingPlanes=shell?[_pl]:gh?[_pt]:[_pl,_pt];mt.__cl=cm;mt.needsUpdate=true;}
       if(!mt.__gu){mt.__gu=1;mt.__t=mt.transparent;const pv=mt.onBeforeCompile;mt.onBeforeCompile=(sh,r)=>{if(pv)pv.call(mt,sh,r);sh.uniforms.uGhostA=M.gA;sh.fragmentShader="uniform float uGhostA;\n"+sh.fragmentShader.replace("#include <dithering_fragment>","#include <dithering_fragment>\ngl_FragColor.a*=uGhostA;");};mt.transparent=true;mt.needsUpdate=true;}else if(!mt.transparent){mt.transparent=true;mt.needsUpdate=true;}}
     else if(o.isMesh&&mt.isMeshBasicMaterial&&mt.vertexColors!==true){const h=mt.color.getHex();if(h===0x221a13||h===0x3a3a40||(M.xk>.02&&!ing(o)))hide(o);}});if(M.seabed)hide(M.seabed);
-  if(R.gen)for(const o of R.gen.sails){if(o.s&&o.s.yard&&o.s.yard.y>TOP-1&&o.piv)hide(o.piv);}
+  if(R.gen&&!shell)for(const o of R.gen.sails){if(o.s&&o.s.yard&&o.s.yard.y>TOP-1&&o.piv)hide(o.piv);}
   { const sl=S&&S.ship&&S.ship.sls;if(sl)for(const k in sl)sl[k]=0; }
   if(R.crew)for(const c of R.crew)hide(c.m);
   if(!M.hid){M.hid=[];const bb=new THREE.Box3();R.bob.traverse(o=>{if(!(o.isMesh||o.isLine||o.isSprite))return;for(let q=o;q;q=q.parent)if(q===M.G||q===M.G2)return;   // yards, tops and flags left floating above the cut
     bb.setFromObject(o);if(!bb.isEmpty()&&bb.min.y-_c.y>TOP-1.2)M.hid.push(o);});}
-  for(const o of M.hid)hide(o);
+  if(!shell)for(const o of M.hid)hide(o);
   for(let k=0;k<M.L.decks.length;k++){const exd=M.xk>.02,dm=false,bd=k===M.sel&&M.hi>=0&&M.bands&&M.bands[k]&&M.bands[k][M.hi];const key=(dm?1:0)+(bd?2:0)+(exd?4:0);
     const a=M.VM[k],p=M.PN[k];
     if(a&&bd){const b=M.bands[k][M.hi];a.userData.bu.value.set(b[0],b[1],1);p.userData.bu.value.set(b[0],b[1],1);}else if(a){a.userData.bu.value.z=0;p.userData.bu.value.z=0;}
