@@ -28,6 +28,7 @@ It runs in the browser as an installable PWA (GitHub Pages), on phone and deskto
 | Mode | What it is |
 |---|---|
 | Free | Sail and trade freely. Start money £120. |
+| Learn to sail | A guided first voyage: a button on the start screen next to Free, Career and Scenario. Out of Bridgetown and back in 7 short steps (cast off and steer, set sails, heave the log, reckon, take a bearing, mark position, dock). Same sea and rules; the Assists switch decides Captain or Casual. Pirates, crew crises and squalls are switched off for the lesson. | Live |
 | Career | Start in a cutter (£40), earn, and move up the fleet at the shipyard (60% part-exchange). |
 | Scenario | Sandbox/test mode built from the `SCN_MECH` registry: setup sheet, Test panel, presets. |
 
@@ -40,7 +41,7 @@ Voyages can also be scripted start/finish pairs: trial (true position shown) or 
 - **Campaign:** build standing and money, unlock better goods and contracts, buy a bigger ship.
 
 ## 6. Mechanics overview
-Full rules are in `mechanics.md`. Registered ids in `GAME_MECHANICS`: `setup`, `weather`, `tides`, `fishing`, `pirates`, `crew`, `trade`, `navigation`, `damage`. Preview adds `traffic`, `harbour`, `events` and quay loading.
+Full rules are in `mechanics.md`. Registered ids in `GAME_MECHANICS`: `setup`, `weather`, `tides`, `fishing`, `pirates`, `crew`, `trade`, `navigation`, `damage`. Preview adds `traffic`, `harbour`, `events` and quay loading. `tutorial` is registered too.
 
 | Area | Summary | Status |
 |---|---|---|
@@ -57,6 +58,7 @@ Full rules are in `mechanics.md`. Registered ids in `GAME_MECHANICS`: `setup`, `
 | Sea events | Derelict, castaway, squall encounters with weighted outcomes | Preview |
 | Traffic | Other vessels on lanes, moored harbour ships | Preview |
 | Quay loading | Basket, receipt, crates loaded one by one into the hold | Preview |
+| Tutorial | `engine/tutorial/tutorial.js` runs a lesson (steps with done tests, stuck hint after 25 s, skip at any time); Dead Reckoning's lesson and card are in the game file. Registered id `tutorial`; Scenario can start, step and leave it | Live |
 
 ## 7. Ships
 Ten ships, each with its own hull, rig, cutaway and camera settings (`SHIPSPEC`, `CAMCFG`):

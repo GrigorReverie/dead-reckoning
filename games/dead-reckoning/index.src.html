@@ -1111,7 +1111,7 @@ const beaufort=kn=>{let i=0;while(i<BFT.length&&kn>=BFT[i])i++;return i;};
 const CURRENT={set:290,drift:.35};
 // Preview menu overrides (null = the game's own auto weather); see the Preview panel near the end of the script
 // Every game mechanic is listed here AND described in the Scenario registry (SCN_MECH). Add an id here and an entry there when you add a mechanic.
-const GAME_MECHANICS=["traffic","setup","weather","tides","fishing","pirates","crew","trade","loading","navigation","damage","events","harbour","performance"];
+const GAME_MECHANICS=["traffic","setup","weather","tides","fishing","pirates","crew","trade","loading","navigation","damage","events","harbour","performance","tutorial"];
 let HARBOURK=1; // harbour traffic: 0 none, .45 light, 1 normal, 1.7 busy (Scenario)
 let EVFREQ=1; // sea events: 1 = natural pace, 0 = off, higher = more often (Cheats menu and Scenario)
 const PV={wind:null,sea:null,cur:null,wx:null,vis:null,fauna:1,tide:1,shadows:true};
@@ -1126,6 +1126,7 @@ function tideTable(k,t0,hrs){const out=[];let pv=tideLvl(k,t0-.1),cu=tideLvl(k,t
 //@engine field/wind.js
 //@engine weather/weather.js
 //@engine nav/nav.js
+//@engine tutorial/tutorial.js
 Object.assign(WINDK,{block:1.4,venturi:1.25,shadow:1.25,shadowLen:1.25,seaBreeze:1.25,landBreeze:1.25,thermal:1.3,diurnal:1.3});
 /* Dead Reckoning's world for the wind and weather engine: local time from the ship's longitude, the islands and passages, the Preview menu holds, the day's cloud */
 FIELD.localHour=(s,t)=>localHours(s,t);FIELD.land=()=>landInit();FIELD.hold=()=>PV;FIELD.day=s=>dayInfo(s,dayIndex(s));
@@ -7554,7 +7555,12 @@ const SCN_MECH=[
   dials:[{k:"hull",label:"Hull at start",start:true,opts:()=>[["1","Sound"],["0.7","Damaged"],["0.4","Badly damaged"]],def:"1"}],
   apply(s,g,starting){if(starting)s.hull=+g("hull");},
   triggers:[["Damage hull 25%",s=>{s.hull=Math.max(.2,s.hull-.25);}],["Repair hull",s=>{s.hull=1;}]],
-  readouts:[["Hull",s=>Math.round(s.hull*100)+"%"],["Rigging",s=>Math.round(s.ship.rig*100)+"%"],["Leak / water in hold",s=>(s.leak||0).toFixed(1)+" / "+(s.water||0).toFixed(1)]]}
+  readouts:[["Hull",s=>Math.round(s.hull*100)+"%"],["Rigging",s=>Math.round(s.ship.rig*100)+"%"],["Leak / water in hold",s=>(s.leak||0).toFixed(1)+" / "+(s.water||0).toFixed(1)]]},
+ {id:"tutorial",name:"Learn to sail (guided lesson)",
+  dials:[],
+  apply(){},
+  triggers:[["Start the lesson here",s=>tutBegin(s)],["Next lesson step",s=>{if(s.tut&&!s.tut.done)tutGo(s,TUT_LESSON,s.tut.i+1,performance.now());else tutBegin(s);}],["Previous step",s=>{if(s.tut)tutGo(s,TUT_LESSON,Math.max(0,s.tut.i-1),performance.now());}],["Leave the lesson",s=>tutSkip(s)]],
+  readouts:[["Lesson step",s=>!s.tut?"not started":s.tut.done?(s.tut.skipped?"left early":"finished"):(s.tut.i+1)+" of "+TUT_LESSON.steps.length+": "+TUT_LESSON.steps[s.tut.i].title],["Miles from Bridgetown",s=>tutAway(s).toFixed(1)],["Reckoning error (nm)",s=>Math.hypot(s.est.x-s.ship.x,s.est.y-s.ship.y).toFixed(2)]]}
 ];
 const SCN_PRESETS=[
  {id:"fishing",name:"Fishing",desc:"Calm, at sea, a school beside the ship. No pirates.",set:{"setup.place":"leeward","weather.wind":"12","weather.sky":"fair","weather.sea":"slight","fishing.fish":"rich","pirates.pir":"0"}},
@@ -7636,11 +7642,105 @@ function scnPanelRefresh(rebuild){
 }
 scnPanelBuild();setInterval(()=>scnPanelRefresh(false),400);
 window.__SCN={SCN_MECH,SCN_PRESETS,scnStart,scnDefaults};
+
+/* ---------- LEARN TO SAIL: a guided first voyage out of Bridgetown and back ----------
+   The runner lives in engine/tutorial/tutorial.js; this is the lesson (words and targets) and the card on the screen.
+   Same sea and same rules as the real game: Captain (dead reckoning only) or Casual (true position shown) follows the Assists switch. */
+const TUT_HOME="bridgetown",TUT_HDG=250;
+const tutAway=s=>{const h=s.tutHome||PORTS[TUT_HOME];return Math.hypot(s.ship.x-h.x,s.ship.y-h.y);}; // miles from where the lesson began (the quay)
+const tutErr=s=>Math.hypot(s.est.x-s.ship.x,s.est.y-s.ship.y);
+const TUT_LESSON={id:"learn",stuckMs:25000,steps:[
+ {id:"cast",title:"Cast off and steer",
+  text:s=>s.docked?"You are alongside the quay. Tap the anchor button to cast off, then turn her bow to the west-south-west, about 250 degrees, out to open sea.":"You are free of the quay. Turn the helm until the heading reads about 250 degrees (west-south-west).",
+  hint:s=>s.docked?"The anchor button is in the Helm controls. On a phone tap the Helm icon first.":"Use the compass: tap or drag to the heading you want, or the arrows beside it.",
+  target:s=>s.docked?["#bDrop","#ctlIcon"]:["#compassBox","#ctlIcon"],
+  done:s=>!s.docked&&Math.abs(angDiff(s.ship.heading,TUT_HDG))<35},
+ {id:"sail",title:"Set the sails",
+  text:()=>"She has no way on yet. Open the sail plan, tap the sails you want, then tap how much to set. Fill her canvas until the speed reads 4 knots or more.",
+  hint:()=>"Tap a sail on the drawing (or Select all), then pick a bigger share such as full. The trade wind blows from the east, so heading 250 is a comfortable run.",
+  target:["#sailSteps5","#sailDiag","#ctlIcon"],
+  done:s=>!s.docked&&s.ship.v>=3.5},
+ {id:"log",title:"Heave the log",
+  enter:(s,f)=>{f.h0=s.heaves;},
+  text:()=>"Now measure your speed the old way. Tap the log button, then tap Nip the moment the sand runs out. The knots you read are what your reckoning uses from now on.",
+  hint:()=>"The glass fills the screen. Tap Nip just as the top bulb is empty.",
+  target:["#bHeave","#bHeave2","#ctlIcon"],
+  done:(s,f)=>s.heaves>f.h0},
+ {id:"reckon",title:"Reckon your position",speed:true,
+  text:s=>{const a=tutAway(s);if(a<4)return `Keep sailing. Your pencil mark on the chart moves by the speed you logged, not by the speed she really makes. Sail about 4 miles out (${a.toFixed(1)} so far). You can speed time up while you wait.`;
+    const e=tutErr(s);return `Your reckoning puts you ${e.toFixed(1)} nautical miles from where the ship really is. ${e<.6?"That is close, because you logged your speed and held your sails. Change sail and forget to log, and it grows quickly.":"That gap is the whole game. The log is a snapshot: when wind or sail changes, heave it again."} Land bearings are how you pull the error back.`;},
+  hint:()=>"Watch the pencil track on the chart grow. Open the Chart tab if you cannot see it.",
+  target:[],
+  ready:s=>tutAway(s)>=4,
+  done:(s,f)=>!!f.ack},
+ {id:"bearing",title:"Take a bearing",
+  enter:(s,f)=>{f.b0=s.bearings.length;},
+  text:()=>{const v=BPS.filter(l=>l.vis);return v.length?`${v[0].name} is in sight. Tap the bearing button to take its compass bearing. You may also tap the point on the chart first to pick it.`:"Nothing is in sight yet. Sail a little closer to Barbados, then take a bearing on Mount Hillaby.";},
+  hint:()=>"The bearing button sits beside the compass and on the chart. It draws a line from the land back toward you.",
+  target:["#cBrg","#bBrg","#ctlIcon"],
+  done:(s,f)=>s.bearings.length>f.b0},
+ {id:"mark",title:"Mark your position",
+  enter:(s,f)=>{f.m0=(s.marks||[]).length;},
+  text:()=>"One bearing gives a line: you are somewhere along it. Tap Mark position to combine it with your log (heave the log again first for a better mark). With a second landmark about 90 degrees round, the fix would be sharp.",
+  hint:()=>"Mark position is on the chart and in the bearing list under the Book.",
+  target:["#cMarkPos","#bMarkPos","#ctlIcon"],
+  done:(s,f)=>(s.marks||[]).length>f.m0},
+ {id:"home",title:"Sail home and dock",speed:true,
+  text:s=>s.arrivedNear?"The harbour is open ahead. Tap Dock at port to finish.":"Come about and sail back to Bridgetown. Within about 5 miles a Dock at port button appears. Sail by your reckoning and the chart.",
+  hint:()=>"Aim for the Bridgetown mark on the chart. Beating into the wind? Zig-zag at 45 to 60 degrees off it.",
+  target:s=>s.arrivedNear?["#bAnchor","#bookBtn"]:[],
+  done:s=>!!s.docked}
+]};
+function tutBegin(s){s.tutHome={x:s.ship.x,y:s.ship.y};s.scnPir=0;s.crNext=1e9;s.nextSquall=1e9;tutStart(s,TUT_LESSON,performance.now());}
+function startLesson(){
+  startVoyage({id:"learn",tag:"Learn to sail",title:"Out of Bridgetown and back",from:TUT_HOME,to:null,mode:"trial",hdg:280,free:true,ship:"brig",desc:"",tutorial:true});
+  tutBegin(S);
+}
+{ const st=document.createElement("style");
+  st.textContent=`#tutCard{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 8px);width:min(430px,calc(100vw - 16px));z-index:60;background:var(--paper);color:var(--ink);border:1px solid var(--ink);box-shadow:0 4px 18px rgba(0,0,0,.35);padding:8px 12px 10px;font-size:14px;line-height:1.35}
+#tutCard[hidden]{display:none}#tutCard .th{display:flex;align-items:baseline;gap:8px;cursor:pointer}#tutCard .th b{font-family:var(--f-display);font-weight:400;font-size:18px;flex:1}#tutCard .th small{color:var(--ink-soft);font-family:var(--f-data)}
+#tutCard .dots{display:flex;gap:4px;margin:5px 0}#tutCard .dots i{flex:1;height:4px;background:var(--rule,#999);opacity:.5}#tutCard .dots i.on{background:var(--ink);opacity:1}#tutCard .dots i.cur{background:#d4540f;opacity:1}
+#tutCard .tb{margin-top:6px;display:flex;gap:6px;flex-wrap:wrap}#tutCard.min .tbody{display:none}#tutCard .hint{margin-top:6px;color:#b3150f;font-style:italic}
+.tutHi{outline:3px solid #d4540f!important;outline-offset:3px;border-radius:4px;animation:tutPulse 1.3s ease-in-out infinite}.tutHi.stuck{animation-duration:.6s}
+@keyframes tutPulse{50%{outline-color:rgba(212,84,15,.25);outline-offset:6px}}`;
+  document.head.append(st);
+  const card=document.createElement("div");card.id="tutCard";card.hidden=true;card.setAttribute("role","status");card.setAttribute("aria-live","polite");
+  card.innerHTML='<div class="th" id="tutHead"><b id="tutTitle"></b><small id="tutNum"></small></div><div class="tbody"><div class="dots" id="tutDots"></div><div id="tutText"></div><div class="hint" id="tutHint" hidden></div><div class="tb"><button class="btn sm primary" id="tutOk" hidden>Got it</button><button class="btn sm" id="tutFast" hidden>Speed up time</button><button class="btn sm" id="tutSkip">Skip lesson</button></div></div>';
+  document.body.append(card);
+  let cur=null,hi=[];
+  const clearHi=()=>{hi.forEach(e=>e.classList.remove("tutHi","stuck"));hi=[];};
+  const vis=e=>e&&e.getClientRects().length>0&&getComputedStyle(e).visibility!=="hidden";
+  const place=()=>{clearHi();if(!cur||!S||!S.tut||S.tut.done)return;
+    for(const sel of cur.target){const e=document.querySelector(sel);if(vis(e)){e.classList.add("tutHi");if(cur.stuck)e.classList.add("stuck");hi.push(e);break;}}};
+  const draw=()=>{
+    if(!S||!S.tut||S.tut.done||S.done){card.hidden=true;clearHi();cur=null;return;}
+    const info=tutInfo(S,TUT_LESSON);if(!info){card.hidden=true;return;}
+    cur=info;card.hidden=false;
+    $("tutTitle").textContent=info.title;$("tutNum").textContent=`Step ${info.i+1} of ${info.n}`;
+    $("tutDots").innerHTML=Array.from({length:info.n},(_,i)=>`<i class="${i<info.i?"on":i===info.i?"cur":""}"></i>`).join("");
+    $("tutText").textContent=info.text;
+    const h=$("tutHint");h.hidden=!info.stuck;h.textContent=info.hint;
+    $("tutOk").hidden=!info.ready;
+    $("tutFast").hidden=!info.speed||info.ready;
+    place();};
+  EV.on("tutStep",info=>{if(info)say(`Lesson, step ${info.i+1} of ${info.n}: ${info.title}.`,{log:false,toast:false});draw();});
+  EV.on("tutStuck",()=>draw());
+  EV.on("tutDone",e=>{draw();if(e.skipped){say("Lesson left. Sail on your own: the sea is yours.");return;}
+    const s=S,hrs=s.t-s.t0;
+    say(`Lesson complete. You sailed ${s.distance.toFixed(0)} miles in ${Math.floor(hrs)} h ${Math.round((hrs%1)*60)} min, hove the log ${s.heaves} time${s.heaves===1?"":"s"}, took ${s.bearings.length} bearing${s.bearings.length===1?"":"s"} and marked your position. You are ready to sail on your own. Free sailing starts from the menu.`);});
+  $("tutHead").onclick=()=>card.classList.toggle("min");
+  $("tutOk").onclick=()=>{if(S){tutAck(S,TUT_LESSON);tutStep(S,TUT_LESSON,performance.now());draw();}};
+  $("tutSkip").onclick=()=>{if(S)tutSkip(S);};
+  $("tutFast").onclick=()=>{setPaused(false);setSpeed(4);};
+  // runs a few times a second; also redraws the card after a saved game is loaded and keeps the words up to date
+  setInterval(()=>{if(S&&S.tut&&!S.tut.done&&!S.done){tutStep(S,TUT_LESSON,performance.now());draw();}else if(!card.hidden)draw();},400);
+  window.__TUT={TUT_LESSON,tutBegin,startLesson};
+}
 $("voyList").innerHTML=VOYAGES.map((v,i)=>`<button class="voycard" data-v="${i}"><span class="tag">${v.tag}</span><b>${v.title}</b><span class="d">${v.desc}</span></button>`).join("");
 $("voyList").querySelectorAll("button").forEach(b=>b.onclick=()=>startVoyage(VOYAGES[+b.dataset.v]));
 {const fb=document.createElement("button");fb.className="voycard";fb.id="freeCard";fb.innerHTML='<span class="tag">No orders</span><b>Free sailing</b><span class="d">Start from any port and sail where you like. No mission, no end: trade, fish, explore the islands and come to anchor when you please.</span>';
   const fp=$("freePick"); // free roam is the only way to start: the sea trial and lost-at-sea voyages stay in VOYAGES for old saves but are not offered
-  fp.innerHTML='<div class="row" role="radiogroup" aria-label="Game mode" style="gap:8px"><button type="button" class="btn" id="modeFree" role="radio">Free sailing</button><button type="button" class="btn" id="modeCareer" role="radio">Career</button><button type="button" class="btn" id="modeScn" role="radio">Scenario</button></div><p class="muted" id="modeNote" style="margin:0"></p><b id="freeHead" style="font-family:var(--f-display);font-weight:400;font-size:17px">Free roam: where do you weigh from?</b><div class="voylist" id="freePorts" style="grid-template-columns:repeat(auto-fill,minmax(130px,1fr))"></div><div><button class="btn" id="freeBack">Back</button></div><div id="scnSetup" hidden></div>';
+  fp.innerHTML='<div class="row" role="radiogroup" aria-label="Game mode" style="gap:8px"><button type="button" class="btn" id="modeFree" role="radio">Free sailing</button><button type="button" class="btn" id="modeCareer" role="radio">Career</button><button type="button" class="btn" id="modeScn" role="radio">Scenario</button><button type="button" class="btn" id="modeLearn" title="A short guided voyage out of Bridgetown that teaches the helm, sails, log, reckoning and bearings">Learn to sail</button></div><p class="muted" id="modeNote" style="margin:0"></p><b id="freeHead" style="font-family:var(--f-display);font-weight:400;font-size:17px">Free roam: where do you weigh from?</b><div class="voylist" id="freePorts" style="grid-template-columns:repeat(auto-fill,minmax(130px,1fr))"></div><div><button class="btn" id="freeBack">Back</button></div><div id="scnSetup" hidden></div>';
   let gameMode="free";try{{const dm=localStorage.getItem("drMode");if(dm==="career"||dm==="scenario")gameMode=dm;}}catch(e){}
   const setMode=m=>{gameMode=m;try{localStorage.setItem("drMode",m);}catch(e){}
     $("modeFree").setAttribute("aria-checked",String(m==="free"));$("modeCareer").setAttribute("aria-checked",String(m==="career"));$("modeFree").setAttribute("aria-pressed",String(m==="free"));$("modeCareer").setAttribute("aria-pressed",String(m==="career"));
@@ -7649,7 +7749,7 @@ $("voyList").querySelectorAll("button").forEach(b=>b.onclick=()=>startVoyage(VOY
     $("freeHead").textContent=m==="career"?"Career: where do you start?":"Free roam: where do you weigh from?";
     $("modeScn").setAttribute("aria-checked",String(m==="scenario"));$("modeScn").setAttribute("aria-pressed",String(m==="scenario"));
     $("freeHead").hidden=$("freePorts").hidden=m==="scenario";$("scnSetup").hidden=m!=="scenario";if(m==="scenario")$("modeNote").textContent="A sandbox for testing mechanics such as fishing, pirates, weather, trading, crew crises, navigation and tides. No goals and no end.";};
-  $("modeFree").onclick=()=>setMode("free");$("modeCareer").onclick=()=>setMode("career");$("modeScn").onclick=()=>setMode("scenario");scnBuildSetup($("scnSetup"));setMode(gameMode);
+  $("modeLearn").onclick=()=>startLesson();$("modeFree").onclick=()=>setMode("free");$("modeCareer").onclick=()=>setMode("career");$("modeScn").onclick=()=>setMode("scenario");scnBuildSetup($("scnSetup"));setMode(gameMode);
   $("freePorts").innerHTML=Object.keys(PORTS).map(k=>`<button class="voycard" data-p="${k}" style="padding:8px 10px"><b style="font-size:16px">${PORTS[k].name}</b></button>`).join("");
   $("voyList").hidden=true;fp.hidden=false;$("freeBack").parentNode.hidden=true;
   $("freePorts").querySelectorAll("button").forEach(b=>b.onclick=()=>{const k=b.dataset.p;

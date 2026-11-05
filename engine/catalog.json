@@ -282,6 +282,33 @@
    "games": [
     "dead-reckoning"
    ]
+  },
+  {
+   "id": "tutorial",
+   "module": "tutorial/tutorial.js",
+   "summary": "Guided lesson runner: a lesson is a list of steps, each with a done test on the game state; it advances, flags a stuck player and ends, and the game draws the card and highlight.",
+   "inputs": [
+    "a lesson {id, stuckMs, steps[{id, title, text, hint, target, ready, done, enter}]}",
+    "tutStart, tutStep(now) called a few times a second",
+    "tutAck, tutSkip, tutGo"
+   ],
+   "outputs": [
+    "state s.tut {id, i, f, stuck, done, skipped}",
+    "events tutStep, tutStuck, tutDone"
+   ],
+   "knobs": [
+    "stuckMs (how long before a hint)"
+   ],
+   "tags": [
+    "tutorial",
+    "onboarding",
+    "lesson",
+    "ui-bridge"
+   ],
+   "adaptation": "Any game: write its own lesson as steps that test its own state (a blimp: cast off, climb to 500 ft, trim the burner, read the drift). Only the words, targets and card are new.",
+   "games": [
+    "dead-reckoning"
+   ]
   }
  ]
 }

@@ -46,3 +46,4 @@ Engine files are plain script inlined into the game's single script, so names ar
 Options asked with `optOn`: `bosun`, `mateLog`, `aSail`, `aCrew`, `aNoon`, `aFix` (Assists switches) and `crisisOpen`.
 
 Still calling the DR UI directly (to convert in their own steps): helm actions (`setCourse`, `setSail`, `rowStep` call `updateUI`) and the nav wrappers (`takeBearing`, `startObserve`, `markPosition` call `updateUI` after the engine call), `svBalance` (the Ship-tab rebuild between the rota and the bosun's watch). Crew logic itself is now in the engine; the crisis card (`showCrisis`), `crewInfo`, `crewExtra` and `hireUI` stay in the game.
+- `tutorial/tutorial.js` lesson runner (tutStart, tutStep, tutAck, tutSkip, tutGo, tutInfo). Events `tutStep`, `tutStuck`, `tutDone`.
