@@ -28,6 +28,7 @@ It runs in the browser as an installable PWA (GitHub Pages), on phone and deskto
 | Mode | What it is |
 |---|---|
 | Free | Sail and trade freely. Start money £120. |
+| Learn to sail | A guided first voyage: a button on the start screen next to Free, Career and Scenario. Out of Bridgetown and back in 7 short steps (cast off and steer, set sails, heave the log, reckon, take a bearing, mark position, dock). Same sea and rules; the Assists switch decides Captain or Casual. Pirates, crew crises and squalls are switched off for the lesson. | Live |
 | Career | Start in a cutter (£40), earn, and move up the fleet at the shipyard (60% part-exchange). |
 | The Short Run | The first voyage: Bridgetown to Castries with Mr Haskell's 6 tons of flour before tomorrow noon's tide. A scripted run (calm, falling glass, a squall and one choice, haze that hides the land, landfall) ends in a verdict card. A new player sees it alone until it is done or skipped; it stays on the start sheet as a replay. Casual (true position shown) gets hints and a softer squall; Captain (reckoning only) gets neither. | Preview |
 | Scenario | Sandbox/test mode built from the `SCN_MECH` registry: setup sheet, Test panel, presets. |
@@ -41,7 +42,7 @@ Voyages can also be scripted start/finish pairs: trial (true position shown) or 
 - **Campaign:** build standing and money, unlock better goods and contracts, buy a bigger ship.
 
 ## 6. Mechanics overview
-Full rules are in `mechanics.md`. Registered ids in `GAME_MECHANICS`: `setup`, `weather`, `tides`, `fishing`, `pirates`, `crew`, `trade`, `navigation`, `damage`, `shortrun`. Preview adds `traffic`, `harbour`, `events` and quay loading.
+Full rules are in `mechanics.md`. Registered ids in `GAME_MECHANICS`: `setup`, `weather`, `tides`, `fishing`, `pirates`, `crew`, `trade`, `navigation`, `damage`, `shortrun`. Preview adds `traffic`, `harbour`, `events` and quay loading. `tutorial` is registered too.
 
 | Area | Summary | Status |
 |---|---|---|
@@ -59,6 +60,7 @@ Full rules are in `mechanics.md`. Registered ids in `GAME_MECHANICS`: `setup`, `
 | Sea events | Derelict, castaway, squall encounters with weighted outcomes | Preview |
 | Traffic | Other vessels on lanes, moored harbour ships | Preview |
 | Quay loading | Basket, receipt, crates loaded one by one into the hold | Preview |
+| Tutorial | `engine/tutorial/tutorial.js` runs a lesson (steps with done tests, stuck hint after 25 s, skip at any time); Dead Reckoning's lesson and card are in the game file. Registered id `tutorial`; Scenario can start, step and leave it | Live |
 
 ## 7. Ships
 Ten ships, each with its own hull, rig, cutaway and camera settings (`SHIPSPEC`, `CAMCFG`):
@@ -94,7 +96,7 @@ Named crew with personalities, two watches, jobs by room, fatigue, morale, beer 
 - **3D:** three.js scenes: port plans in 3D, painted walking crew, cutaway of every ship, Deck camera at eye level, spyglass (looked through from each ship's lookout point, the foretop or high on the foremast; spyglass button sits beside the eye icon in the 3D view, tap again or Esc to return to the previous angle; a bearing strip at the bottom shows the compass bearing you are looking along, ticks finer as you zoom), sun and cloud shadows, day/night sky and constellations. Bearing point labels and the strip under the heading tape are hidden by default; the eye menu has a Bearing points switch (landmark icon) to show them. Mark position and the eye-menu switches use the same pen-and-ink icons as the rest.
 - **Styles:** Visuals dropdown (Original, New, Images); Menu > Preview > Style presets; UI Look and 3D Style sliders; one responsive layout for phone and desktop.
 - **Performance:** automatic quality (Auto/Low/Medium/High). Distance detail: berthed ships lose rigging lines when far, sea-traffic hulls lose their deck, far birds update every fourth frame, far splashes are skipped, the ship's shadow map is redrawn every other frame, the chart is redrawn only when something changed, phones are capped at 60 frames a second and draw a lower-detail sea at a distance. While the spyglass is up, everything is drawn at full quality. Menu > Cheats > Performance shows frame time, draw calls and triangles and switches each saving on or off (also a Scenario mechanic, "Performance and distance detail").
-- **Design system:** `design/DESIGN.md` and `design/tokens.json` (draft). Pass 1 is in DR Preview only: lighter inner borders, 40px touch targets on touch screens, six-step type scale, tokens `--good` and `--chart-ink`. Parchment, ink and brass identity is kept.
+- **Design system:** `design/DESIGN.md` and `design/tokens.json` (draft). Pass 1 is in DR Preview only: lighter inner borders, 40px touch targets on touch screens, six-step type scale, tokens `--good` and `--chart-ink`. Parchment, ink and brass identity is kept. Pass 4: remaining CSS colours use tokens, shared heading and row spacing, double-rule dividers between panels, money with thousands separators, headings as three digits.
 - **Tools:** private tuner dashboards, listed in the Dashboards hub, are where values are tuned before being pasted into the game.
 
 ## 11. Roadmap and open ideas
