@@ -3115,7 +3115,12 @@ vec3 sunShade(vec3 col,vec3 nw,vec3 wp,vec2 hc){
   float form=1.0-smoothstep(u_termBias-u_termSoft,u_termBias+u_termSoft,lam);
   float csh=0.0;
   if(u_castOn>0.5 && u_ShadowOn>0.0){
+    #ifdef HATCH_UV
+    // sails are thin cloth that sways: with the normal bias they shadow themselves and the cast edge shimmers frame to frame, so give them a much larger offset and bias and fade the cast near the terminator
+    csh=shadowAt(wp+nw*u_sBias*3.0,u_sBias*(4.0+4.0*(1.0-clamp(lam,0.0,1.0))),u_selfSoft*1.5).x*u_castAmt*(1.0-form)*smoothstep(0.05,0.3,lam);
+#else
     csh=shadowAt(wp+nw*u_sBias*0.6,u_sBias*(1.0+2.0*(1.0-clamp(lam,0.0,1.0))),u_selfSoft).x*u_castAmt*(1.0-form);
+#endif
   }
   float shade=max(form*u_formAmt,csh)*u_LightK;
   col*=mix(vec3(1.0),u_shadeTint,clamp(shade*u_washAmt,0.0,1.0));
