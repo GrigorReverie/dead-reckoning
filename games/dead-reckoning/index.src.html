@@ -1354,7 +1354,7 @@ function step(dt){
   }
   const rate=(s.docked?6000:8000+800*sh.v+(rw?(rw.pivot?9000:2500):0))*dt*SHIP.turnK; // degrees per hour: the brig tacks in about half a minute, a boat spins round, a first rate takes her time
   let diff=s.docked?(s.dockHold?0:angDiff(sh.heading,sh.ordered)):angDiff(sh.heading,target);
-  if(s.irons||sh.anch.mode==="weighing"){diff=0;sh.turnDir=0;} // no turning until the anchor is fully up
+  if(s.irons){diff=0;sh.turnDir=0;} // in irons the helm has no bite
   else if(sh.turnDir){ // forced direction for tack/wear
     let d=sh.turnDir>0?norm(target-sh.heading):-norm(sh.heading-target);
     if(Math.abs(d)<6){sh.turnDir=0;}else diff=d;
@@ -1392,7 +1392,7 @@ function step(dt){
   { // at anchor: she brings up, swings head to wind and rides to her cable; a drag anchor in deep water only slows her
     const A=sh.anch;
     if(A.mode==="holding"||A.mode==="weighing"){sh.v+=(0-sh.v)*(1-Math.exp(-dt/.003));
-      if(A.mode==="holding"){if(!s.docked){sh.heading=norm(sh.heading+angDiff(sh.heading,w.from)*(1-Math.exp(-dt/.015)));sh.ordered=sh.heading;sh.wander=0;sh.turnDir=0;}
+      if(A.mode==="holding"){if(!s.docked){if(!A.hold){sh.heading=norm(sh.heading+angDiff(sh.heading,w.from)*(1-Math.exp(-dt/.015)));sh.ordered=sh.heading;}sh.wander=0;sh.turnDir=0;}
         A.drag=!s.docked&&w.kn>30?(w.kn-30)*.12:0;if(A.drag>0&&!A.dragWarned){A.dragWarned=true;say("The anchor is dragging in this wind! Veer more cable or get under way.",{slow:true});}if(A.drag===0)A.dragWarned=false;}
       if(A.mode==="weighing"&&s.t>=A.t0+60/3600){A.mode="up";say("Anchor's aweigh! The hands cat and fish it.",{});EV.emit("refresh",true);}}
     else if(A.mode==="trailing")sh.v+=(sh.v*.4-sh.v)*(1-Math.exp(-dt/.004)); }
@@ -1530,15 +1530,15 @@ async function dockAtPort(){if(!S||S.done||S.docking)return;S.docking=true;const
   S.docking=false;if(mission)$("ovEnd").hidden=false;else{modalOpen=false;stopSkip();say(`Made fast alongside the quay at ${P.name}. Sails furled and the anchor down.`,{});}
   updateUI(true);}
 function dropAnchor(){if(!S||S.done)return;const sh=S.ship,A=sh.anch;
-  if(A.mode==="holding"||A.mode==="trailing"){if(A.low!=null&&S.t-A.low<20/3600){say("The anchor is still going down. Wait for it to bite.",{log:false});return;}if(loadsByHand()&&(quayTons(S)>0||basketTons(S)>0)){say("Goods are still on the quay or unpaid in the basket. Confirm and load them before casting off.",{});return;}S.docked=null;A.mode="weighing";A.t0=S.t;say("Cast off! Heave round, lads, weighing anchor.",{});updateUI();return;}
+  if(A.mode==="holding"||A.mode==="trailing"){if(A.low!=null&&S.t-A.low<20/3600){say("The anchor is still going down. Wait for it to bite.",{log:false});return;}if(loadsByHand()&&(quayTons(S)>0||basketTons(S)>0)){say("Goods are still on the quay or unpaid in the basket. Confirm and load them before casting off.",{});return;}S.docked=null;A.mode="weighing";A.hold=false;A.t0=S.t;say("Cast off! Heave round, lads, weighing anchor.",{});updateUI();return;}
   if(A.mode==="weighing")return;
   if(sh.v>3.5){say("She is making too much way to let go the anchor. Shorten sail and slow to under 3 knots first.",{});return;}
   const d=depthFm(sh.x,sh.y);A.depth=d;A.t0=S.t;A.low=S.t;A.drag=0;A.dragWarned=false;
-  if(d<=30){A.mode="holding";say(`Let go! The anchor bites in ${d} fathoms and she rides to her cable.`,{});}
+  if(d<=30){A.mode="holding";A.hold=false;say(`Let go! The anchor bites in ${d} fathoms and she rides to her cable.`,{});}
   else{A.mode="trailing";say(`Let go! No bottom: ${d} fathoms is more than the cable. The anchor hangs below as a drag and only slows her.`,{});}
   updateUI();}
 function setCourse(d){if(!S||S.done)return;if(S.docked){const sh=S.ship,w=windAt(S,sh.x,sh.y,S.t);S.dockHold=Math.abs(angDiff(sh.heading,w.from))<NOGO;sh.ordered=norm(Math.round(d));sh.turnDir=0;updateUI(true);return;} // facing the wind alongside, the compass names where the jib should take her; she turns only once the jib is backed // alongside: the captain warps her round to any heading he likes
-  if(S.ship.anch.mode==="holding"||S.ship.anch.mode==="weighing"){say("She is at anchor. Weigh anchor before you steer.",{log:false});return;}
+  if(S.ship.anch.mode==="holding"||S.ship.anch.mode==="weighing"){const A=S.ship.anch;S.ship.ordered=norm(Math.round(d));S.ship.turnDir=0;if(A.mode==="holding")A.hold=true;updateUI(true);return;} // at anchor the hands warp her round on a spring from the cable: she holds the heading ordered until the wind swings her again
   if(S.irons){S.ship.ordered=norm(Math.round(d));updateUI(true);return;}
   S.ship.ordered=norm(Math.round(d));S.ship.turnDir=0;updateUI();}
 function backJib(){if(!S||S.done)return;const sh=S.ship;
