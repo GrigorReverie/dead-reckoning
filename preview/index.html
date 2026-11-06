@@ -251,7 +251,19 @@ body.fs3d #fsBar{left:max(12px,env(safe-area-inset-left,0px));bottom:max(12px,en
 .card h3{font-family:var(--f-display);font-weight:400;font-size:19px;margin:0}
 .card p{margin:0;line-height:1.55;max-width:62ch}
 .lede{font-family:var(--f-italic);font-style:italic;font-size:17px;color:var(--ink-soft)}
-.shippick{display:flex;flex-direction:column;gap:6px}
+.stscr{display:flex;flex-direction:column;gap:12px}.stscr[hidden]{display:none}
+.sthead{display:flex;align-items:center;gap:10px}.sthead h2{font-family:var(--f-display);font-weight:400;font-size:22px;margin:0}
+.stbig{display:grid;grid-template-columns:minmax(0,1fr);gap:10px}.stbig .voycard{padding:16px}.stbig .voycard b{font-size:22px}.stbig .voycard span.d{font-size:13px}
+.shipdet{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:14px;align-items:start}
+.shipinfo img{width:100%;height:96px;object-fit:contain;display:block}.shipinfo h3{margin-top:2px}.shipinfo ul{margin:6px 0 0;padding-left:18px;font-size:13px;line-height:1.45}
+.shipstats{margin:0;display:flex;flex-direction:column;gap:8px}.shipstats>div{display:flex;flex-direction:column;gap:2px}
+.shipstats dt{font-family:var(--f-data);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft)}
+.shipstats dd{margin:0;font-size:14px;display:flex;align-items:center;gap:8px}.shipstats dd b{font-family:var(--f-data);font-weight:400;min-width:5.5em}
+.shipstats .bar5{flex:1;height:6px;border:1px solid var(--ink);background:var(--paper-2);position:relative}.shipstats .bar5 i{position:absolute;inset:0 auto 0 0;background:var(--ink)}
+.stcv{width:100%;display:block;border:1px solid var(--ink);cursor:pointer}#stPlan{cursor:default}
+.stports{display:flex;flex-wrap:wrap;gap:6px}.stports .btn{flex:1 1 auto}
+@media (max-width:520px){.shipdet{grid-template-columns:minmax(0,1fr)}.card{padding:18px 16px}}
+@media (min-width:700px){.stbig{grid-template-columns:repeat(3,minmax(0,1fr))}}
 .pickhd{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
 .pickhd .tag{font-family:var(--f-data);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ochre)}
 .pickhd .muted{font-size:12px}
@@ -456,7 +468,7 @@ body.fs3d #fsBar{left:max(12px,env(safe-area-inset-left,0px));bottom:max(12px,en
 .svs{grid-column:1/-1;font:11px var(--f-data);color:var(--ink-soft)}
 @media (min-width:0px){.shipv{grid-template-columns:minmax(0,1fr);overflow:auto;grid-template-rows:auto auto;align-content:start}.sv-main{overflow:visible}.sv-side{border-left:0;border-top:2px solid var(--ink);overflow:visible}.svw button{width:34px;height:32px}.svbtns button{padding:9px 12px}}
 @media (prefers-reduced-motion: reduce){.toast{transition:none}}
-#freePick{display:flex;flex-direction:column;gap:10px}#freePick[hidden]{display:none}
+
 </style>
 <style id="drDesignPass1">
 /* Design system pass 1 (preview only): lighter inner borders, 40px touch targets, tokens. See design/DESIGN.md. */
@@ -782,18 +794,43 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 </div>
 
 <div class="ov" id="ovStart">
-  <div class="card">
+  <div class="card" id="stCard">
     <h1>Dead Reckoning</h1>
-    <p class="lede" id="lede">Bridgetown, Barbados, March 1745. You are master of the brig <i>Hesper</i>, 160 tons. The trade wind blows steady from the east. Choose your orders.</p>
-    <div class="shippick"><div class="pickhd"><span class="tag">Your ship</span><span class="muted" id="shipSub"></span></div><div class="shipstrip" id="shipList" role="radiogroup" aria-label="Choose your ship"></div></div>
-    <div id="contBox" hidden style="display:flex;flex-direction:column;gap:6px"><button class="btn" id="bCont" style="padding:10px 12px;text-align:left;font-size:14px"></button><div class="muted" id="contNote"></div></div>
-    <div class="voylist" id="voyList"></div>
-    <div id="freePick" hidden></div>
-    <div><button class="btn" id="bSavesStart">Saved games and sync</button></div>
-    <p class="muted">Free roam has no end: sail where you like, anchor at any port to trade, fish and explore the islands.</p>
+    <p class="lede" id="lede">Bridgetown, Barbados, March 1745. The trade wind blows steady from the east. Choose your orders.</p>
+    <section class="stscr" id="stHome">
+      <div id="contBox" hidden style="display:flex;flex-direction:column;gap:6px"><button class="btn primary" id="bCont" style="padding:12px;text-align:left;font-size:15px"></button><div class="muted" id="contNote"></div></div>
+      <div class="stbig" id="stBig">
+        <button type="button" class="voycard" id="stLearn"><span class="tag">Guided</span><b>Learn to sail</b><span class="d">A guided lesson out of Bridgetown and back: helm, sails, wind, log and docking, one step at a time.</span></button>
+        <button type="button" class="voycard" id="stScnBtn"><span class="tag">Quick sail and sandbox</span><b>Scenarios</b><span class="d">The Short Run, a ten-minute delivery, and the test sandbox for fishing, pirates, storms and more.</span></button>
+        <button type="button" class="voycard" id="stFree"><span class="tag">No orders</span><b>Free sail</b><span class="d">Choose any of ten ships and a port, then sail where you like. No mission, no end.</span></button>
+      </div>
+      <div class="row" style="gap:8px"><button type="button" class="btn" id="stCareer" title="Start in a small cutter with £40 and work your way up the fleet">Career</button><button class="btn" id="bSavesStart">Saved games and sync</button></div>
+    </section>
+    <section class="stscr" id="stScn" hidden>
+      <div class="sthead"><button type="button" class="btn sm" data-back="home">Back</button><h2>Scenarios</h2></div>
+      <div class="voylist" id="stScnList"></div>
+      <div id="scnSetup"></div>
+    </section>
+    <section class="stscr" id="stShip" hidden>
+      <div class="sthead"><button type="button" class="btn sm" data-back="home">Back</button><h2>Choose your ship</h2></div>
+      <div class="shipstrip" id="shipList" role="radiogroup" aria-label="Choose your ship"></div>
+      <div class="shipdet" id="shipDet">
+        <div class="shipinfo"><img id="sdImg" alt=""><h3 id="sdName"></h3><p class="muted" id="sdSub"></p><ul id="sdInfo"></ul></div>
+        <dl class="shipstats" id="sdStats"></dl>
+      </div>
+      <div><button type="button" class="btn primary" id="stShipNext">Choose a starting port</button></div>
+    </section>
+    <section class="stscr" id="stPort" hidden>
+      <div class="sthead"><button type="button" class="btn sm" id="stPortBack">Back</button><h2 id="stPortHead">Where do you weigh from?</h2></div>
+      <p class="muted" id="stPortNote" style="margin:0"></p>
+      <canvas id="stMap" class="stcv" aria-label="Map of the islands. Tap a port to choose it."></canvas>
+      <div class="stports" id="stPorts" role="radiogroup" aria-label="Starting port"></div>
+      <div class="pickhd"><span class="tag" id="stPlanTag">Harbour plan</span><span class="muted" id="stPortSub"></span></div>
+      <canvas id="stPlan" class="stcv" aria-label="Plan of the harbour"></canvas>
+      <div><button type="button" class="btn primary" id="stGo">Set sail</button></div>
+    </section>
   </div>
 </div>
-
 <div class="ov" id="ovSave" hidden>
   <div class="card">
     <h3>Save and load</h3>
@@ -6082,7 +6119,7 @@ function openPortPlan(){if(!portSel)return;const k=portSel,P=PORTS[k],X=PORTX[k]
   $("ppInfo").innerHTML=portInfoHTML(k)+`<div class="ptbl"><h4>Pilot's notes</h4><ul>${X.notes.map(n=>`<li>${n}</li>`).join("")}<li>The Caribbean current sets about ${CURRENT.set}° at ${CURRENT.drift} kn in the offing, runs faster through the passages between the islands and slack and eddying under their lee; tidal streams here are about ${X.tide} kn.</li></ul></div>`;
   $("ovPort").hidden=false;modalOpen=true;drawPortPlan(k);}
 $("ppClose").onclick=()=>{$("ovPort").hidden=true;modalOpen=!$("ovStart").hidden||!$("ovEnd").hidden||!$("ovHelp").hidden;};
-function drawPortPlan(k){const X=PORTX[k],cn=$("ppCv"),g=cn.getContext("2d"),dpr=Math.min(2,devicePixelRatio||1),W=cn.clientWidth||640,H=Math.round(W*.72);cn.width=W*dpr;cn.height=H*dpr;cn.style.height=H+"px";g.setTransform(dpr,0,0,dpr,0,0);
+function drawPortPlan(k,cn0){const X=PORTX[k],cn=cn0||$("ppCv"),g=cn.getContext("2d"),dpr=Math.min(2,devicePixelRatio||1),W=cn.clientWidth||640,H=Math.round(W*.72);cn.width=W*dpr;cn.height=H*dpr;cn.style.height=H+"px";g.setTransform(dpr,0,0,dpr,0,0);
   const cs=getComputedStyle(document.documentElement),col=n=>cs.getPropertyValue(n).trim()||"#2b2119",INK=col("--ink"),PAPER=col("--paper"),SOFT=col("--ink-soft")||INK,RULE=col("--rule")||SOFT;
   const sc=Math.min(W/100,H/70)*.96,d=X.dir*D2R,a=-Math.cos(d),b=-Math.sin(d),c=Math.sin(d),dd=-Math.cos(d);
   const P=(u,v)=>[W/2+sc*(u*a+v*c),H/2+sc*(u*b+v*dd)];
@@ -8016,13 +8053,19 @@ const LEDE={jolly:"the <i>jolly boat</i> of a sloop of war, eighteen feet, four 
   sultana:"the schooner <i>Sultana</i>, fifty feet, eight swivel guns",brig:"the brig <i>Hesper</i>, 160 tons",caroline:"the royal yacht <i>Royal Caroline</i>, carved and gilded",
   endeavour:"the bark <i>Endeavour</i>, a Whitby collier of 368 tons",xebec:"a Spanish <i>jabeque</i>, three lateens and sweeps",gotheborg:"the East Indiaman <i>Götheborg</i>, thirty guns",
   constitution:"the frigate <i>Constitution</i>, forty-four guns",trinidad:"the <i>Santísima Trinidad</i>, the largest warship afloat"};
+/* the ship screen: a strip to choose from, then the chosen ship's picture, notes and a column of stats (cargo space included) */
+const SHIPMAX={crew:Math.max(...SHIPSPEC.map(s=>SHIPX[s.id].crew.reduce((a,c)=>a+c[1],0))),spd:Math.max(...SHIPSPEC.map(s=>SHIPX[s.id].speedK)),hull:Math.max(...SHIPSPEC.map(s=>SHIPX[s.id].hullMax)),hold:Math.max(...Object.values(CARGOT))};
+const crewTotal=id=>SHIPX[id].crew.reduce((a,c)=>a+c[1],0);
+function shipStatRows(id){const X=SHIPX[id],t=CARGOT[id]??40;
+  return [["Cargo space",t<1?"½ ton":t+" tons",Math.sqrt(t/SHIPMAX.hold)],["Crew",crewTotal(id)+" men",Math.sqrt(crewTotal(id)/SHIPMAX.crew)],["Speed",["Slow","Steady","Brisk","Fast"][Math.min(3,Math.floor((X.speedK-.7)/.12))],X.speedK/SHIPMAX.spd],
+    ["Closest to the wind",X.nogo+"°",clamp((72-X.nogo)/30,.05,1)],["Hull strength",X.hullMax>=12?"Heavy":X.hullMax>=10?"Stout":X.hullMax>=8?"Fair":"Light",X.hullMax/SHIPMAX.hull],["Built",String(X.year),null],["Oars",X.oars?(X.oars.sweeps?"Sweeps":"Oars"):"None",null]];}
 function pickShip(id){shipPick=id;try{localStorage.setItem("drShip",id);}catch(e){}const sp=SPEC[id];
-  $("lede").innerHTML=`Bridgetown, Barbados, March 1745. You are master of ${LEDE[id]}. The trade wind blows steady from the east. Choose your orders.`;
-  $("shipSub").textContent=`${sp.sub}. ${sp.info[0]}; ${sp.info[2]}.`;
+  $("sdImg").src=`icons/ships/${id}-side.webp`;$("sdName").textContent=sp.name;$("sdSub").textContent=sp.sub;$("sdInfo").innerHTML=sp.info.map(x=>`<li>${x}</li>`).join("");
+  $("sdStats").innerHTML=shipStatRows(id).map(([k,v,f])=>`<div><dt>${k}</dt><dd><b>${v}</b>${f==null?"":`<span class="bar5" aria-hidden="true"><i style="width:${Math.round(clamp(f,.04,1)*100)}%"></i></span>`}</dd></div>`).join("");
   $("shipList").querySelectorAll("button").forEach(b=>b.setAttribute("aria-checked",b.dataset.s===id?"true":"false"));}
 $("shipList").innerHTML=SHIPSPEC.map(sp=>`<button type="button" class="shipcard" role="radio" data-s="${sp.id}"><img src="icons/ships/${sp.id}-side.webp" alt="" loading="lazy"><b>${sp.name}</b><span>${sp.role}</span></button>`).join("");
 $("shipList").querySelectorAll("button").forEach(b=>b.onclick=()=>pickShip(b.dataset.s));
-pickShip(shipPick);requestAnimationFrame(()=>{const b=$("shipList").querySelector('[aria-checked="true"]');if(b)b.scrollIntoView({block:"nearest",inline:"center"});});
+pickShip(shipPick);
 /* ---------- SCENARIO MODE: a sandbox for testing mechanics (no goals, no end) ----------
    THE MECHANICS REGISTRY. Every mechanic in the game is described once in SCN_MECH below: its dials, trigger buttons and live readouts.
    The setup sheet, the Test panel and the presets are all built from this list, so a mechanic added here shows up everywhere on its own.
@@ -8221,7 +8264,7 @@ function scnPanelRefresh(rebuild){
     const hd=document.createElement("div");hd.style.cssText="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:6px";
     hd.innerHTML=`<b style="font-family:var(--f-display);font-size:16px;flex:1">Test: ${S.scn.name}</b>`;
     const rs=document.createElement("button");rs.className="btn sm";rs.textContent="Restart";rs.onclick=()=>scnStart(S.scn.cfg,S.scn.name);
-    const su=document.createElement("button");su.className="btn sm";su.textContent="Change setup";su.onclick=()=>{pn.hidden=true;$("ovStart").hidden=false;modalOpen=true;};
+    const su=document.createElement("button");su.className="btn sm";su.textContent="Change setup";su.onclick=()=>{pn.hidden=true;$("ovStart").hidden=false;modalOpen=true;if(window.stGo)stGo("scn");};
     hd.append(rs,su);pn.append(hd);
     const miss=(typeof GAME_MECHANICS!=="undefined"?GAME_MECHANICS:[]).filter(id=>!SCN_MECH.some(m=>m.id===id));
     if(miss.length){const w=document.createElement("div");w.className="muted";w.style.cssText="font-size:12px;margin-bottom:6px";w.textContent="Not in Scenario yet: "+miss.join(", ");pn.append(w);}
@@ -8329,39 +8372,70 @@ function startLesson(){
   setInterval(()=>{if(S&&S.tut&&!S.tut.done&&!S.done){tutStep(S,TUT_LESSON,performance.now());draw();}else if(!card.hidden)draw();},400);
   window.__TUT={TUT_LESSON,tutBegin,startLesson};
 }
-$("voyList").innerHTML=VOYAGES.map((v,i)=>`<button class="voycard" data-v="${i}"><span class="tag">${v.tag}</span><b>${v.title}</b><span class="d">${v.desc}</span></button>`).join("");
-$("voyList").querySelectorAll("button").forEach(b=>b.onclick=()=>startVoyage(VOYAGES[+b.dataset.v]));
-{const fb=document.createElement("button");fb.className="voycard";fb.id="freeCard";fb.innerHTML='<span class="tag">No orders</span><b>Free sailing</b><span class="d">Start from any port and sail where you like. No mission, no end: trade, fish, explore the islands and come to anchor when you please.</span>';
-  const fp=$("freePick"); // free roam is the only way to start: the sea trial and lost-at-sea voyages stay in VOYAGES for old saves but are not offered
-  fp.innerHTML='<div class="row" role="radiogroup" aria-label="Game mode" style="gap:8px"><button type="button" class="btn" id="modeFree" role="radio">Free sailing</button><button type="button" class="btn" id="modeCareer" role="radio">Career</button><button type="button" class="btn" id="modeScn" role="radio">Scenario</button><button type="button" class="btn" id="modeLearn" title="A short guided voyage out of Bridgetown that teaches the helm, sails, log, reckoning and bearings">Learn to sail</button></div><p class="muted" id="modeNote" style="margin:0"></p><b id="freeHead" style="font-family:var(--f-display);font-weight:400;font-size:17px">Free roam: where do you weigh from?</b><div class="voylist" id="freePorts" style="grid-template-columns:repeat(auto-fill,minmax(130px,1fr))"></div><div><button class="btn" id="freeBack">Back</button></div><div id="scnSetup" hidden></div>';
-  let gameMode="free";try{{const dm=localStorage.getItem("drMode");if(dm==="career"||dm==="scenario")gameMode=dm;}}catch(e){}
-  const setMode=m=>{gameMode=m;try{localStorage.setItem("drMode",m);}catch(e){}
-    $("modeFree").setAttribute("aria-checked",String(m==="free"));$("modeCareer").setAttribute("aria-checked",String(m==="career"));$("modeFree").setAttribute("aria-pressed",String(m==="free"));$("modeCareer").setAttribute("aria-pressed",String(m==="career"));
-    document.querySelector(".shippick").hidden=m!=="free";
-    $("modeNote").textContent=m==="career"?"Start in a small Cumberland cutter with £40 and a berth at the port you choose. Trade, take contracts, and save for bigger ships: the shipyard is in the Ship tab when you are docked. Your old ship goes in part exchange.":"Choose any of the ten ships and sail where you like. No goals, no end.";
-    $("freeHead").textContent=m==="career"?"Career: where do you start?":"Free roam: where do you weigh from?";
-    $("modeScn").setAttribute("aria-checked",String(m==="scenario"));$("modeScn").setAttribute("aria-pressed",String(m==="scenario"));
-    $("freeHead").hidden=$("freePorts").hidden=m==="scenario";$("scnSetup").hidden=m!=="scenario";if(m==="scenario")$("modeNote").textContent="A sandbox for testing mechanics such as fishing, pirates, weather, trading, crew crises, navigation and tides. No goals and no end.";};
-  $("modeLearn").onclick=()=>startLesson();$("modeFree").onclick=()=>setMode("free");$("modeCareer").onclick=()=>setMode("career");$("modeScn").onclick=()=>setMode("scenario");scnBuildSetup($("scnSetup"));setMode(gameMode);
-  $("freePorts").innerHTML=Object.keys(PORTS).map(k=>`<button class="voycard" data-p="${k}" style="padding:8px 10px"><b style="font-size:16px">${PORTS[k].name}</b></button>`).join("");
-  $("voyList").hidden=true;fp.hidden=false;$("freeBack").parentNode.hidden=true;
-  $("freePorts").querySelectorAll("button").forEach(b=>b.onclick=()=>{const k=b.dataset.p;
-    startVoyage(gameMode==="career"?{id:"career",tag:"Career",title:"From "+PORTS[k].name,from:k,to:null,mode:"trial",hdg:280,free:true,career:true,ship:CAREER_START,desc:""}:{id:"free",tag:"Free sailing",title:"From "+PORTS[k].name,from:k,to:null,mode:"trial",hdg:280,free:true,desc:""});});
-  { // The Short Run is the first voyage: a new player sees it alone until it is done, or until they skip it
-    const sc=document.createElement("button");sc.className="voycard";sc.id="shortCard";sc.type="button";
+/* ---------- the start screens: Home (Continue, Learn to sail, Scenarios, Free sail) -> Ship -> Starting port; Scenarios has its own screen ---------- */
+{ const SCR={home:$("stHome"),scn:$("stScn"),ship:$("stShip"),port:$("stPort")};
+  const LEDES={home:"Bridgetown, Barbados, March 1745. The trade wind blows steady from the east. Choose your orders.",
+    scn:"A short delivery to learn the sea, or a sandbox to test the game's mechanics. Neither has a long road ahead.",
+    ship:"Choose the vessel you will command. Every voyage begins in 1745, whatever the ship.",
+    port:"Every captain starts from a quay. Pick your port on the map and see its harbour below."};
+  let st={mode:"free",port:"bridgetown",at:"home"};try{const p=localStorage.getItem("drPort");if(p&&PORTS[p])st.port=p;}catch(e){}
+  function stGo(n){st.at=n;for(const k in SCR)SCR[k].hidden=k!==n;
+    $("lede").innerHTML=n==="ship"?LEDES.ship:LEDES[n];
+    if(n==="ship")requestAnimationFrame(()=>{const b=$("shipList").querySelector('[aria-checked="true"]');if(b)b.scrollIntoView({block:"nearest",inline:"center"});});
+    if(n==="port")portShow();
+    $("stCard").scrollTop=0;}
+  window.stGo=stGo;
+  document.querySelectorAll("#stCard [data-back]").forEach(b=>b.onclick=()=>stGo(b.dataset.back));
+  $("stLearn").onclick=()=>startLesson();
+  $("stScnBtn").onclick=()=>stGo("scn");
+  $("stFree").onclick=()=>{st.mode="free";stGo("ship");};
+  $("stCareer").onclick=()=>{st.mode="career";stGo("port");};
+  $("stShipNext").onclick=()=>stGo("port");
+  $("stPortBack").onclick=()=>stGo(st.mode==="career"?"home":"ship");
+  // Scenarios: the Short Run (quick sail) and the sandbox setup
+  { const sc=document.createElement("button");sc.className="voycard";sc.id="shortCard";sc.type="button";
     let done=false;try{done=localStorage.getItem("drShortRun")==="1";}catch(e){}
-    sc.innerHTML=`<span class="tag">${done?"Replay":"Your first voyage"}</span><b>The Short Run</b><span class="d">Six tons of flour from Bridgetown to Castries before tomorrow noon's tide. One squall, one choice, about ten minutes.</span>`;
-    sc.onclick=()=>startVoyage(SHORT_RUN);
-    const lc=document.createElement("button");lc.className="voycard";lc.id="learnCard";lc.type="button";
-    lc.innerHTML=`<span class="tag">Start here</span><b>Learn to sail</b><span class="d">A guided lesson out of Bridgetown and back: helm, sails, wind, log and docking, one step at a time.</span>`;
-    lc.onclick=()=>startLesson();
-    const duo=document.createElement("div");duo.className="voylist";duo.id="startDuo";duo.append(lc,sc);$("contBox").before(duo);
-    const skip=document.createElement("button");skip.className="btn";skip.id="shortSkip";skip.type="button";skip.textContent="I have sailed before: Free sailing, Career or Scenario";
-    const shp=document.querySelector(".shippick");
-    const gate=on=>{fp.hidden=on;shp.hidden=on||gameMode!=="free";skip.hidden=!on;};
-    skip.onclick=()=>{try{localStorage.setItem("drShortRun","1");}catch(e){}gate(false);sc.querySelector(".tag").textContent="Replay";};
-    duo.after(skip);gate(!done);
-  }}
+    sc.innerHTML=`<span class="tag">${done?"Replay":"Quick sail"}</span><b>The Short Run</b><span class="d">Six tons of flour from Bridgetown to Castries before tomorrow noon's tide. One squall, one choice, about ten minutes.</span>`;
+    sc.onclick=()=>startVoyage(SHORT_RUN);$("stScnList").append(sc);
+    const hd=document.createElement("b");hd.style.cssText="font-family:var(--f-display);font-weight:400;font-size:17px";hd.textContent="Sandbox scenarios";$("stScnList").after(hd);
+    scnBuildSetup($("scnSetup"));hd.after($("scnSetup")); }
+  // Starting port: a simple map of the whole chain with the ports marked, and the chosen harbour's plan underneath
+  const MB=(()=>{let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;for(const k in PORTS){const p=PORTS[k];x0=Math.min(x0,p.x);x1=Math.max(x1,p.x);y0=Math.min(y0,p.y);y1=Math.max(y1,p.y);}
+    return{x0:x0-55,x1:x1+55,y0:y0-45,y1:y1+45};})(); // the ports and some sea around them; islands beyond are clipped
+  let hits=[];
+  const cols=()=>{const cs=getComputedStyle(document.documentElement),c=n=>cs.getPropertyValue(n).trim();return{INK:c("--ink")||"#2b2119",PAPER:c("--paper")||"#f6eed9",P2:c("--paper-2")||"#efe3c4",SOFT:c("--ink-soft")||"#6b5a46",OCH:c("--ochre")||"#b2452c"};};
+  function drawMap(){const cn=$("stMap"),W=cn.clientWidth||320,H=Math.round(Math.min(W*1.0,380)),dpr=Math.min(2,devicePixelRatio||1);cn.width=W*dpr;cn.height=H*dpr;cn.style.height=H+"px";
+    const g=cn.getContext("2d");g.setTransform(dpr,0,0,dpr,0,0);const C=cols(),bw=MB.x1-MB.x0,bh=MB.y1-MB.y0,sc=Math.min((W-20)/bw,(H-20)/bh),ox=(W-bw*sc)/2,oy=(H-bh*sc)/2;
+    const X=x=>ox+(x-MB.x0)*sc,Y=y=>oy+(MB.y1-y)*sc;
+    g.fillStyle=C.PAPER;g.fillRect(0,0,W,H);g.fillStyle="rgba(110,140,165,.30)";g.fillRect(0,0,W,H);
+    g.lineJoin="round";for(const I of islands){g.beginPath();I.pts.forEach((p,i)=>i?g.lineTo(X(p.x),Y(p.y)):g.moveTo(X(p.x),Y(p.y)));g.closePath();g.fillStyle=C.P2;g.fill();g.strokeStyle=C.INK;g.lineWidth=1.2;g.stroke();}
+    g.fillStyle=C.SOFT;g.font="italic 11px 'IM Fell English',Georgia,serif";g.textAlign="center";g.fillText("Caribbean Sea",W*.26,H*.52);g.fillText("Atlantic Ocean",W*.78,H*.9);
+    // north arrow
+    g.strokeStyle=C.INK;g.fillStyle=C.INK;g.lineWidth=1.2;g.beginPath();g.moveTo(W-18,36);g.lineTo(W-18,14);g.stroke();g.beginPath();g.moveTo(W-18,10);g.lineTo(W-22,18);g.lineTo(W-14,18);g.closePath();g.fill();g.font="11px 'IBM Plex Mono',monospace";g.fillText("N",W-18,50);
+    hits=[];const placed=[];g.textAlign="left";
+    for(const k in PORTS){const p=PORTS[k],x=X(p.x),y=Y(p.y),sel=k===st.port;hits.push({k,x,y});
+      g.beginPath();g.arc(x,y,sel?7:4.5,0,2*PI);g.fillStyle=sel?C.OCH:C.INK;g.fill();g.strokeStyle=C.PAPER;g.lineWidth=1.5;g.stroke();
+      if(sel){g.beginPath();g.arc(x,y,12,0,2*PI);g.strokeStyle=C.OCH;g.lineWidth=1.6;g.stroke();}
+      g.font=`${sel?15:13}px 'IM Fell English SC',Georgia,serif`;const t=p.name,w=g.measureText(t).width+6,h=16;
+      const opts=[[x+10,y-8],[x-w-10,y-8],[x-w/2,y-h-10],[x-w/2,y+10],[x+10,y-h-6],[x-w-10,y+4],[x+10,y+4]];let r=opts.find(o=>o[0]>=2&&o[0]+w<=W-2&&o[1]>=2&&o[1]+h<=H-2&&!placed.some(q=>o[0]<q[0]+q[2]&&o[0]+w>q[0]&&o[1]<q[1]+q[3]&&o[1]+h>q[1]))||opts[0];placed.push([r[0],r[1],w,h]);
+      g.fillStyle="rgba(246,238,217,.85)";g.fillRect(r[0],r[1],w,h);g.fillStyle=sel?C.OCH:C.INK;g.fillText(t,r[0]+3,r[1]+12);}}
+  $("stMap").addEventListener("click",e=>{const r=e.currentTarget.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;let b=null,d=34;for(const h of hits){const q=Math.hypot(h.x-x,h.y-y);if(q<d){d=q;b=h;}}if(b)choosePort(b.k);});
+  $("stPorts").innerHTML=Object.keys(PORTS).map(k=>`<button type="button" class="btn" role="radio" data-p="${k}">${PORTS[k].name}</button>`).join("");
+  $("stPorts").querySelectorAll("button").forEach(b=>b.onclick=()=>choosePort(b.dataset.p));
+  function choosePort(k){st.port=k;try{localStorage.setItem("drPort",k);}catch(e){}portShow();}
+  function portShow(){const k=st.port,P=PORTS[k],X=PORTX[k],car=st.mode==="career";
+    $("stPortHead").textContent=car?"Career: where do you start?":"Where do you weigh from?";
+    $("stPortNote").textContent=car?"You start in a small Cumberland cutter with £40. Trade, take contracts and save for bigger ships.":`${SPEC[shipPick].name}. Tap a port on the map.`;
+    $("stPorts").querySelectorAll("button").forEach(b=>b.setAttribute("aria-checked",String(b.dataset.p===k)));
+    $("stPortSub").textContent=`${P.name}, ${X.isl} · ${X.anch[4]}`;$("stPlanTag").textContent="Harbour plan";
+    $("stGo").textContent="Set sail from "+P.name;
+    drawMap();drawPortPlan(k,$("stPlan"));}
+  $("stGo").onclick=()=>{const k=st.port;
+    startVoyage(st.mode==="career"?{id:"career",tag:"Career",title:"From "+PORTS[k].name,from:k,to:null,mode:"trial",hdg:280,free:true,career:true,ship:CAREER_START,desc:""}:{id:"free",tag:"Free sailing",title:"From "+PORTS[k].name,from:k,to:null,mode:"trial",hdg:280,free:true,desc:""});};
+  window.addEventListener("resize",()=>{if(!$("ovStart").hidden&&st.at==="port")portShow();});
+  $("bVoy").addEventListener("click",()=>stGo("home"));$("endNext").addEventListener("click",()=>stGo("home"));
+  stGo("home");
+}
 { const mq=matchMedia("(min-width:0px)"),box=document.querySelector(".compassbox"),home=$("paneV3");
   const place=()=>{const tgt=mq.matches?document.querySelector(".dock-all .dockbody"):home;if(box.parentNode!==tgt)mq.matches?tgt.insertBefore(box,tgt.firstChild):tgt.appendChild(box);};
   place();mq.addEventListener("change",()=>{place();resize();resize3D();}); }
