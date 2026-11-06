@@ -28,7 +28,7 @@ It runs in the browser as an installable PWA (GitHub Pages), on phone and deskto
 | Mode | What it is |
 |---|---|
 | Free | Sail and trade freely. Start money £120. |
-| Learn to sail | A guided first voyage: a button on the start screen next to Free, Career and Scenario. Out of Bridgetown and back in 7 short steps (cast off and steer, set sails, heave the log, reckon, take a bearing, mark position, dock). Same sea and rules; the Assists switch decides Captain or Casual. Pirates, crew crises and squalls are switched off for the lesson. | Live |
+| Learn to sail | A guided first voyage: a button on the start screen next to Free, Career and Scenario. Out of Bridgetown and back in 7 short steps (cast off and steer, set sails, heave the log, reckon, take a bearing, mark position, dock). Same sea and rules; the Assists switch decides Captain or Casual. Pirates, crew crises and squalls are switched off for the lesson. The step card at the top folds away behind a 44px round icon (top left) and reopens from it; the choice is remembered, and it reopens itself with a pulse when the step changes. | Live |
 | Career | Start in a cutter (£40), earn, and move up the fleet at the shipyard (60% part-exchange). |
 | The Short Run | The first voyage: Bridgetown to Castries with Mr Haskell's 6 tons of flour before tomorrow noon's tide. A scripted run (calm, falling glass, a squall and one choice, haze that hides the land, landfall) ends in a verdict card. A new player sees it alone until it is done or skipped; it stays on the start sheet as a replay. Casual (true position shown) gets hints and a softer squall; Captain (reckoning only) gets neither. | Preview |
 | Scenario | Sandbox/test mode built from the `SCN_MECH` registry: setup sheet, Test panel, presets. |
