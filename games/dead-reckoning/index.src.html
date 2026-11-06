@@ -8681,7 +8681,6 @@ window.CUTCAM=function(R){
       if(!mt.__gu){mt.__gu=1;mt.__t=mt.transparent;const pv=mt.onBeforeCompile;mt.onBeforeCompile=(sh,r)=>{if(pv)pv.call(mt,sh,r);sh.uniforms.uGhostA=M.gA;sh.fragmentShader="uniform float uGhostA;\n"+sh.fragmentShader.replace("#include <dithering_fragment>","#include <dithering_fragment>\ngl_FragColor.a*=uGhostA;");};mt.transparent=true;mt.needsUpdate=true;}else if(!mt.transparent){mt.transparent=true;mt.needsUpdate=true;}}
     else if(o.isMesh&&mt.isMeshBasicMaterial&&mt.vertexColors!==true){const h=mt.color.getHex();if(h===0x221a13||h===0x3a3a40||(M.xk>.02&&!ing(o)))hide(o);}});if(M.seabed)hide(M.seabed);
   if(R.gen&&!shell)for(const o of R.gen.sails){if(o.s&&o.s.yard&&o.s.yard.y>TOP-1&&o.piv)hide(o.piv);}
-  { const sl=S&&S.ship&&S.ship.sls;if(sl)for(const k in sl)sl[k]=0; }
   if(R.crew)for(const c of R.crew)hide(c.m);
   if(!M.hid){M.hid=[];const bb=new THREE.Box3();R.bob.traverse(o=>{if(!(o.isMesh||o.isLine||o.isSprite))return;for(let q=o;q;q=q.parent)if(q===M.G||q===M.G2)return;   // yards, tops and flags left floating above the cut
     bb.setFromObject(o);if(!bb.isEmpty()&&bb.min.y-_c.y>TOP-1.2)M.hid.push(o);});}
