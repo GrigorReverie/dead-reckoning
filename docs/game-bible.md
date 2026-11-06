@@ -89,7 +89,7 @@ Per-ship stats are compared in the Ship Stats Compare dashboard. Hull capacity (
 - **Tuning:** the Trade Economy and Career Pace dashboards.
 
 ## 9. People
-Named crew with personalities, two watches, jobs by room, fatigue, morale, beer and biscuit, injuries and a surgeon. Crises give decision moments. Assists let the player hand work to the crew at 25/50/75/100% on watch. The "Dead reckoning only" assist toggle is hidden for now (always on, hard mode) behind the `EASY_MODE_DR_TOGGLE` flag in the source; set it true to bring the toggle back for an easy/hard choice. Crew limbs keep sensible angles with bending knees and elbows. In the Ship tab, All decks also shows a faint outer shell with masts, yards and rigging.
+Named crew with personalities, two watches, jobs by room, fatigue, morale, beer and biscuit, injuries and a surgeon. Crises give decision moments. Assists let the player hand work to the crew at 25/50/75/100% on watch. The helm's Mark position button (dead-reckoning mark) is hidden for now (hard mode) behind the `EASY_MODE_MARK_BUTTON` flag in the source; set it true to bring it back for an easy/hard choice. Crew limbs keep sensible angles with bending knees and elbows. In the Ship tab, All decks also shows a faint outer shell with masts, yards and rigging.
 
 ## 10. Art and UI direction
 - **Chart:** 17th-century-style chart look with contour and depth lines (in progress); pen-and-ink icons.
