@@ -4984,21 +4984,21 @@ function update3D(dt,now){
       lf.mesh.geometry.attributes.position.needsUpdate=true;lf.mesh.geometry.attributes.color.needsUpdate=true;lf.mesh.geometry.setDrawRange(0,n);} }
   { const bf=R.bowfx;if(bf){const v=S.ship.v,th0=R.ship.rotation.y,ct=Math.cos(th0),sn=Math.sin(th0),amp=clamp(v/4.5,0,1);
       const pa=bf.mesh.geometry.attributes.position.array,ca=bf.mesh.geometry.attributes.color.array,Pc=R.U.uPaper.value,Ic=R.U.uSeaInk.value;pa.fill(0);let n=0;
-      if(v>.3){
+      if(v>.12){
         const bAt=R.bAt,hs=Math.max(.35,R.hk);
         const put=(x,z,dy,k)=>{if(n>=bf.NS*2)return;const o=n*3,wx=x*ct+z*sn,wz=-x*sn+z*ct;pa[o]=x;pa[o+1]=waveH(R,wx,wz)+.12+dy;pa[o+2]=z;k=clamp(k,0,1);
           ca[o]=Pc.r+(Ic.r-Pc.r)*k;ca[o+1]=Pc.g+(Ic.g-Pc.g)*k;ca[o+2]=Pc.b+(Ic.b-Pc.b)*k;n++;};
         const outside=(x,z)=>Math.abs(x)>bAt(z)+.1;
         const seg=(a,b)=>{if(!outside(a[0],a[1])||!outside(b[0],b[1]))return;put(a[0],a[1],a[3]||0,a[2]);put(b[0],b[1],b[3]||0,b[2]);};
         // F1 bow: water split by the stem piles into a low crest; one clean arm per side runs aft with a swell rolling along it, a short inner line and cusp ticks that travel aft
-        const Hh=clamp(.035*v*v,0,1.1)*Math.min(1,hs*1.3),Z0=R.Z0,wt=R.wt,TK=.354,Lw=(6+v*3.2)*hs,sp=Lw*.2,off=(wt*(.9+v*.22))%sp,armLat=d=>bAt(Z0-d)+.12*hs+TK*d*.85;
+        const Hh=clamp(.2+.035*v*v,0,1.1)*Math.min(1,hs*1.3),Z0=R.Z0,wt=R.wt,TK=.354,Lw=(9+v*3)*hs,sp=Lw*.2,off=(wt*(.9+v*.22))%sp,armLat=d=>bAt(Z0-d)+.12*hs+TK*d*.85;
         { let prev=null;for(let j=0;j<=14;j++){const x=(-1.1+2.2*j/14)*hs,q=[x,Z0+.35-Math.abs(x)*.3,.95,Hh*1.4*(1-x*x/1.3/hs/hs)];if(prev)seg(prev,q);prev=q;} }
         for(const sd of[1,-1]){let prev=null,pin=null;const N=22;
-          for(let j=0;j<=N;j++){const t=j/N,d=t*Lw,z=Z0-d,x=sd*armLat(d)+sd*Math.sin(d*1.1-wt*(7+v))*.05*t*hs,y=Hh*Math.pow(1-t,1.3)+.04+(.05+.09*amp)*hs*(1-t)*Math.sin(d*1.5-wt*(5+v*.8)),k=(1-t*.9)*(.6+.4*amp)+.1,q=[x,z,k,y];
-            if(prev){seg(prev,q);seg([prev[0]+sd*.09,prev[1],prev[2]*.55,prev[3]],[q[0]+sd*.09,q[1],q[2]*.55,q[3]]);}prev=q;
+          for(let j=0;j<=N;j++){const t=j/N,d=t*Lw,z=Z0-d,x=sd*armLat(d)+sd*Math.sin(d*1.1-wt*(7+v))*.05*t*hs,y=Hh*Math.pow(1-t,1.3)+.1+(.05+.09*amp)*hs*(1-t)*Math.sin(d*1.5-wt*(5+v*.8)),k=(1-t*.85)*(.8+.2*amp)+.15,q=[x,z,k,y];
+            if(prev){seg(prev,q);seg([prev[0]+sd*.09,prev[1],prev[2]*.6,prev[3]],[q[0]+sd*.09,q[1],q[2]*.6,q[3]]);seg([prev[0]+sd*.19,prev[1],prev[2]*.35,prev[3]],[q[0]+sd*.19,q[1],q[2]*.35,q[3]]);}prev=q;
             if(t<=.55){const qi=[sd*(bAt(Z0-d)+.12*hs+TK*d*.5),z,k*.7,y*.6+.03];if(pin)seg(pin,qi);pin=qi;}}
           for(let d=off;d<Lw;d+=sp){const a=1-d/Lw,x0=sd*armLat(d),z0=Z0-d,cx=x0-sd*.06*Lw,cz=z0+.008*Lw,x1=x0-sd*.11*Lw,z1=z0+.055*Lw;let pp=null;
-            for(let u=0;u<=5;u++){const s=u/5,m=1-s,q=[m*m*x0+2*m*s*cx+s*s*x1,m*m*z0+2*m*s*cz+s*s*z1,a*.7*(.5+.5*amp)*(1-.4*s),.05+(.1+.15*amp)*hs*a*Math.sin(Math.PI*Math.min(1,s*1.2))];if(pp)seg(pp,q);pp=q;}}}
+            for(let u=0;u<=5;u++){const s=u/5,m=1-s,q=[m*m*x0+2*m*s*cx+s*s*x1,m*m*z0+2*m*s*cz+s*s*z1,a*.9*(.7+.3*amp)*(1-.4*s),.1+(.1+.15*amp)*hs*a*Math.sin(Math.PI*Math.min(1,s*1.2))];if(pp)seg(pp,q);pp=q;}}}
       }
       bf.mesh.geometry.attributes.position.needsUpdate=true;bf.mesh.geometry.attributes.color.needsUpdate=true;bf.mesh.geometry.setDrawRange(0,n);} }
   // sails
