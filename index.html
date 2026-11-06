@@ -1686,8 +1686,8 @@ function step(dt){
   sh.sailSet=invEff(effOf(sh.sls));
   const sail=sailLerp(sh.sailSet);
   const opt=optBrace(rel);
-  if(optOn("bosun")||sh.turnDir||sh.autoBrace){const d=opt-sh.brace;sh.brace+=clamp(d,-8000*dt,8000*dt);sh.braceCmd=sh.brace;if(!sh.turnDir&&Math.abs(d)<2)sh.autoBrace=false;}
-  else sh.brace+=clamp(sh.braceCmd-sh.brace,-25000*dt,25000*dt); // the yards swing about 7 degrees a second
+  if(optOn("bosun")||sh.turnDir||sh.autoBrace){const d=opt-sh.brace;sh.brace+=clamp(d,-8000*SHIP.braceK*dt,8000*SHIP.braceK*dt);sh.braceCmd=sh.brace;if(!sh.turnDir&&Math.abs(d)<2)sh.autoBrace=false;}
+  else sh.brace+=clamp(sh.braceCmd-sh.brace,-25000*SHIP.braceK*dt,25000*SHIP.braceK*dt); // the yards swing about 4 degrees a second on a brig, slower on bigger ships (braceK)
   const terr=Math.abs(sh.brace-opt);
   const alpha=th-(90-sh.brace*Math.sign(rel||1)); // angle between the wind and the sail; negative means it blows on the forward face
   const abackNow=alpha<-6&&Math.abs(sh.brace)>4;
@@ -2192,9 +2192,9 @@ function simDefOf(sp){const X=SHIPX[sp.id],Ls=linesOf(sp),rig=rigOf(sp,Ls),S5=ri
   const nw=crewOf(sp.id).filter(m=>m.w<3).reduce((a,m)=>a+ROLE[m.r].s,0);
   return{id:sp.id,spec:sp,nogo:X.nogo,polar:(POLARS[X.pol]||POLARS.sqx)(X.nogo),stages,hullMax:X.hullMax,speedK:X.speedK,sailIds:ids,sailW:W,preset:P,furlSt,setSt,climb,sailName,
     reef:S5.filter(s=>{const c=cls(s);return c==="c"||c==="t"||c==="a";}).map(s=>s.id),bMin:fa?(lat?8:5):0,bMax:fa?(lat?72:80):50,fa,lat,
-    turnK:clamp(Math.pow(22.2/sp.hull.Lwl,.8),.3,3),tauK:Math.pow(sp.hull.Lwl/22.2,.5),leeK:X.leeK??1,heelK:X.heelK??1,effN:X.boat?1:Math.max(1,nw/3*1.12),oars:X.oars||null,crewN:X.crew.reduce((a,c)=>a+c[1],0),boat:!!X.boat};}
+    turnK:clamp(Math.pow(22.2/sp.hull.Lwl,.8),.3,3),braceK:clamp(Math.pow(22.2/sp.hull.Lwl,.6)*.55,.15,1.2),tauK:Math.pow(sp.hull.Lwl/22.2,.5),leeK:X.leeK??1,heelK:X.heelK??1,effN:X.boat?1:Math.max(1,nw/3*1.12),oars:X.oars||null,crewN:X.crew.reduce((a,c)=>a+c[1],0),boat:!!X.boat};}
 const SHIPDEFS={brig:{id:"brig",spec:SPEC.brig,nogo:NOGO,polar:POLAR,stages:SAILS,hullMax:HULL_MAX,speedK:1,sailIds:SAILIDS,sailW:SAILW,preset:PRESET,furlSt:FURLST,setSt:SETST,climb:CLIMB,sailName:SAILNAME,reef:[...REEF],bMin:BMIN,bMax:BMAX,fa:false,lat:false,
-  turnK:1,tauK:1,leeK:1,heelK:1,effN:6,oars:SHIPX.brig.oars,crewN:20,boat:false}};
+  turnK:1,braceK:.55,tauK:1,leeK:1,heelK:1,effN:6,oars:SHIPX.brig.oars,crewN:20,boat:false}};
 for(const sp of SHIPSPEC)if(sp.id!=="brig")SHIPDEFS[sp.id]=simDefOf(sp);
 let SHIP=SHIPDEFS.brig;
 let shipPick="brig";try{const k=localStorage.getItem("drShip");if(k&&SHIPDEFS[k])shipPick=k;}catch(e){}
@@ -5338,7 +5338,7 @@ function update3D(dt,now){
       for(const o of R.oars){const back=st.k<0||(r.pivot&&o.sd===r.pivot),ph=R.rowPh*(back?-1:1),drive=Math.cos(ph)>0,dn=Math.asin(clamp((o.y+.15-o.tipY)/o.len,0,.9));
         const sw=st.spm?.36*Math.sin(ph):0,lift=st.spm?(drive?0:.1)*Math.abs(Math.cos(ph)):.02;o.g.rotation.set(0,o.sd*sw,-o.sd*(dn-lift));}}}
   if(R.gen){const cs=Math.cos((rel+sh.brace)*D2R),sgnB=Math.abs(sh.brace)>1?Math.sign(sh.brace):(R.side>=0?1:-1),tgt=-sgnB*(90-Math.abs(sh.brace))*D2R;
-    R.faA=R.faA==null?tgt:R.faA+(tgt-R.faA)*clamp(dt*2.2,0,1);const fa=R.faA,lee=-Math.sign(fa||1),QY=R.qY||(R.qY=new THREE.Quaternion()),VY=R.vY||(R.vY=new THREE.Vector3(0,1,0));
+    R.faA=R.faA==null?tgt:R.faA+(tgt-R.faA)*clamp(dt*1.2*SHIP.braceK,0,1);const fa=R.faA,lee=-Math.sign(fa||1),QY=R.qY||(R.qY=new THREE.Quaternion()),VY=R.vY||(R.vY=new THREE.Vector3(0,1,0));
     for(const m of R.gen.masts){m.yg.rotation.y=sh.brace*D2R;m.fg.rotation.y=fa;}
     const fill=clamp((th-NOGO+12)/30,.2,1),bSq=R.bs*(1.1+.3*sl)*Math.min(1,.25+Math.abs(cs)),fSq=clamp((1-Math.abs(cs))*.5+(th<NOGO?.7:0)+(S.aback?.8:0),0,1.2),fFa=th<NOGO?1:clamp((1-fill)*.7,0,1);
     for(const o of R.gen.sails){const e=SS[o.id]||0,show=e>.03;o.gs.mesh.visible=o.gs.lines.visible=show;o.bun.visible=e<.55;const bk=clamp(1-e*1.5,.3,1);o.bun.scale.set(bk,1,bk);
