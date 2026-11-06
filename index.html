@@ -8697,8 +8697,8 @@ function build(R){
      benches(c){const n=c.o.n||8;for(let i=0;i<n;i++){const z=c.z0+(i+.5)*(c.z1-c.z0)/n,y=c.f(z),w=hx(z,y+.6);if(w<1)continue;
         B(-w+.15,-.45,y+.42,y+.5,z-.16,z+.16,0x8c5f33);slot(c,{k:"seat",x:Math.max(-w+.5,-1.0),y:y+.5,z,yaw:PI/2});B(-.6,-.45,y,y+.42,z-.1,z+.1,0x6a4423,false);B(-w+.3,-.6,y,y+.12,z+.45,z+.55,0x6a4423,false);
         Cy(-w*.5-.3,y+.95,z+.3,.045,w*1.25,0xc49a5e,{ax:"x",seg:6,e:false});}},
-     thwarts(c){const n=c.o.n||3;for(let i=0;i<n;i++){const z=c.z0+(i+.5)*(c.z1-c.z0)/n,yt=deck(z)-.28,w=hx(z,yt)-.03;if(w<.2)continue;B(-w,0,yt,yt+.05,z-.11,z+.11,0x8c5f33);}
-      const zm=c.zc,yo=deck(zm)-.2,ln=Math.min(2.4,(c.z1-c.z0)*.95);for(const x of[-.2,-.35])Cy(x,yo,zm,.025,ln,0xc49a5e,{ax:"z",seg:6,e:false});},
+     thwarts(c){const n=c.o.n||3;for(let i=0;i<n;i++){const z=c.z0+(i+.5)*(c.z1-c.z0)/n,yt=deck(z)-.28,w=hx(z,yt)-.03;if(w<.2)continue;B(-w,0,yt,yt+.05,z-.11,z+.11,0x8c5f33);slot(c,{k:"seat",x:-.14,y:yt+.05,z,yaw:PI});}
+      const zm=c.zc,yo=deck(zm)-.2,ln=Math.min(2.4,(c.z1-c.z0)*.95),wo=hx(zm,yo)-.12;for(const x of[-wo,-wo+.13])Cy(x,yo,zm,.025,ln,0xc49a5e,{ax:"z",seg:6,e:false});},
      bow(c){const y=c.f(c.zc);To(-.22,y+.05,c.zc-.15,.14,.04,0xd6c08f);Sp(-.18,y+.1,c.zc+.15,.07,.07,.07,0x2b2722,false);Cy(-.3,y+.13,c.zc-.45,.11,.28,0xc99a5a,{ax:"x",seg:8});},
      lazarette(c){const y=c.f(c.zc),h=Math.max(.3,Math.min(.6,c.hh-.1));for(let k=0;k<3;k++){const z=c.z0+.4+k*(c.z1-c.z0-.8)/2,xw=W(z,y+.4,.2);if(xw<.6)continue;B(-xw,-xw+Math.min(.7,xw-.2),y,y+h,z-.25,z+.25,[0x8a6234,0xd9b46e,0xa8763f][k]);}To(-.6,y+.1,c.zc,.35,.1,0xd6c08f);},
      manger(c){const y=c.f(c.zc),h=Math.min(1.3,c.hh-.1);pz(c.z0,y,h,0xcfa575);Cy(-1.0,y+.6,c.zc,.18,1.2,0x3d342a,{seg:8});To(-Math.min(2.4,W(c.zc,y+.4)-.9),y+.18,c.zc,.7,.16,0xd6c08f);},
@@ -8908,33 +8908,50 @@ function actOf(m,i){const h=lookSeed(m,i)>>1,r=m.r||"Seaman",off=NOFF.includes(r
   return off?(h%2?"sit":"stand"):["sit","sit","stand","walk","sit"][h%5];}
 // where each man stands, sits or lies so he is never inside furniture: sleepers take a real hammock or bunk, sitters a bench, the rest a free spot or a clear lane
 function crewSpots(place,g,C){
-  const OBS=M.OBS||[],SL=M.slots||{},left=[];M.pose=[];for(const k in SL)for(const s of SL[k])s.used=0;
-  for(const key in g){const list=g[key],lv=Math.floor(key/10),rm=key%10,b=M.bands[lv][rm],z0=b[0]+.3,z1=Math.max(b[0]+.31,b[1]-.3);
+  const OBS=M.OBS||[],SL=M.slots||{};M.pose=[];for(const k in SL)for(const s of SL[k])s.used=0;
+  const ctxs={};
+  // one room's floor: its props, a test for a clear spot, and the men already standing there
+  const ctxOf=key=>{if(ctxs[key])return ctxs[key];const lv=Math.floor(key/10),rm=key%10,b=M.bands[lv]&&M.bands[lv][rm];if(!b)return null;const z0=b[0]+.3,z1=Math.max(b[0]+.31,b[1]-.3);
     const ob=(OBS[lv]||[]).filter(o=>o[5]>b[0]-.5&&o[4]<b[1]+.5);
     const free=(x,z,yf,r)=>{if(x>.02)return false;const hw=hx(z,yf+.9)-.45;if(hw>.1&&-x>hw)return false;const lo=yf+.12,hi=yf+1.45;
       for(let q=0;q<ob.length;q++){const o=ob[q];if(o[3]<lo||o[2]>hi||o[1]<x-r||o[0]>x+r||o[5]<z-r||o[4]>z+r)continue;return false;}return true;};
-    const sl=(SL[key]||[]).slice().sort((p,q)=>p.z-q.z||p.x-q.x),seats=sl.filter(s=>s.k==="seat"),beds=sl.filter(s=>s.k!=="seat");
-    let bi=0,si=0;const occ=[];
+    const occ=[],near=(x,z,r)=>{for(const o of occ)if(Math.abs(o[0]-x)<r&&Math.abs(o[1]-z)<r)return true;return false;};
     // the lane for men who walk the length of the room: the strip of floor that is clear for the most of it
     let lane=-.2,lq=-1;{const hwm=Math.max(.3,hx((z0+z1)/2,1)-.45);for(let x=-.15;x>-hwm-.01;x-=.1){let ok=0,all=0;for(let z=z0;z<=z1;z+=.3){all++;if(free(x,z,floorAt(lv,rm,z),.22))ok++;}const q=ok/Math.max(1,all);if(q>lq+.001){lq=q;lane=x;}if(q>.97)break;}}
-    const near=(x,z,r)=>{for(const o of occ)if(Math.abs(o[0]-x)<r&&Math.abs(o[1]-z)<r)return true;return false;};
+    return ctxs[key]={lv,rm,b,z0,z1,free,occ,near,lane};};
+  const left=[],over=[];
+  for(const key in g){const list=g[key],cx=ctxOf(key),{lv,rm,z0,z1,free,occ,near,lane}=cx;
+    const sl=(SL[key]||[]).slice().sort((p,q)=>p.z-q.z||p.x-q.x),seats=sl.filter(s=>s.k==="seat"),beds=sl.filter(s=>s.k!=="seat");
+    let bi=0,si=0;
     for(const i of list){const act=actOf(C[i],i),p=place[i];
       if(act==="lie"&&bi<beds.length){const s=beds[bi++];s.used=1;M.pose[i]={bed:s};place[i]=[s.x,s.y,s.z];continue;}
-      if(act==="sit"&&si<seats.length){const s=seats[si++];M.pose[i]={seat:s,act:"sit"};place[i]=[s.x,s.y+.03,s.z];continue;}
-      const eff=act==="sit"?"stand":act,walk=eff==="walk",r=eff==="lie"?.34:.24;
+      if(act==="sit"&&si<seats.length){const s=seats[si++];s.used=1;M.pose[i]={seat:s,act:"sit"};place[i]=[s.x,s.y+.03,s.z];continue;}
+      if(act==="lie"){left.push([i,lv,p[2]]);continue;}
+      const eff=act==="sit"?"stand":act,walk=eff==="walk",r=.24;
       if(act==="sit")M.pose[i]={act:"stand"};
       const wantX=walk?lane:p[0];let found=null;
       for(let k=0;k<240&&!found;k++){const dz=((k%2)?1:-1)*Math.ceil(k/2)*.22,z=p[2]+dz;if(z<z0-.2||z>z1+.2)continue;const yf=floorAt(lv,rm,z);
         const xs=walk?[lane]:[wantX,-.2,wantX-.3,wantX+.3,wantX-.6,wantX+.6,wantX-1,wantX+1,-.5,-.9,-1.4,-2,-3];
         for(const x of xs){if(x>-.1&&x!==wantX)continue;if(free(x,z,yf,r)&&!near(x,z,.46)){found=[Math.min(-.1,x),yf+.03,z];break;}}}
-      if(found){place[i]=found;occ.push([found[0],found[2]]);}else{occ.push([p[0],p[2]]);}
-      if(act==="lie")left.push([i,lv,p[2]]);
+      if(found){place[i]=found;occ.push([found[0],found[2]]);}else over.push([i,lv,rm,p]);
     }}
-  // sleepers whose own room has no spare bunk take a free one elsewhere in the ship (nearest deck first) rather than lying on the floor
-  if(left.length){const pool=[];for(const k in SL)for(const s of SL[k])if(s.k!=="seat"&&!s.used)pool.push({s,lv:Math.floor(k/10),rm:k%10});
-    for(const[i,lv,z]of left){let bj=-1,bd=1e9;for(let j=0;j<pool.length;j++){const q=pool[j];if(!q)continue;const d=Math.abs(q.lv-lv)*1000+Math.abs(q.s.z-z);if(d<bd){bd=d;bj=j;}}
-      if(bj<0)break;const q=pool[bj];pool[bj]=null;q.s.used=1;const bb=M.bands[q.lv][q.rm];M.pose[i]={bed:q.s};place[i]=[q.s.x,q.s.y,q.s.z];M.zb[i]=[q.lv,bb[0]+.3,Math.max(bb[0]+.31,bb[1]-.3),q.rm];}}
+  // sleepers whose own room has no spare bunk take a free one elsewhere in the ship (nearest deck first); failing that a seat to doze on, else a clear patch of deck
+  const setRoom=(i,lv,rm)=>{const bb=M.bands[lv][rm];M.zb[i]=[lv,bb[0]+.3,Math.max(bb[0]+.31,bb[1]-.3),rm];};
+  const take=(kind,i,lv,z)=>{let bj=-1,bd=1e9;const pool=take[kind]||(take[kind]=(()=>{const a=[];for(const k in SL)for(const s of SL[k])if((kind==="seat")===(s.k==="seat")&&!s.used)a.push({s,lv:Math.floor(k/10),rm:k%10});return a;})());
+    for(let j=0;j<pool.length;j++){const q=pool[j];if(!q)continue;const d=Math.abs(q.lv-lv)*1000+Math.abs(q.s.z-z);if(d<bd){bd=d;bj=j;}}
+    if(bj<0)return false;const q=pool[bj];pool[bj]=null;q.s.used=1;setRoom(i,q.lv,q.rm);
+    if(kind==="seat"){M.pose[i]={seat:q.s,act:"sit"};place[i]=[q.s.x,q.s.y+.03,q.s.z];}else{M.pose[i]={bed:q.s};place[i]=[q.s.x,q.s.y,q.s.z];}return true;};
+  for(const[i,lv,z]of left){if(take("bed",i,lv,z))continue;if(take("seat",i,lv,z))continue;over.push([i,lv,M.zb[i][3],place[i],1]);}
+  // anyone still without a clear spot moves to the nearest room with floor to spare
+  if(over.length){const keys=[];for(let l=0;l<M.bands.length;l++)for(let r2=0;r2<M.bands[l].length;r2++)keys.push(l*10+r2);
+    for(const[i,lv,rm,p,lie]of over){const order=keys.slice().sort((a,b)=>Math.abs(Math.floor(a/10)-lv)*100+Math.abs(a%10-rm)-(Math.abs(Math.floor(b/10)-lv)*100+Math.abs(b%10-rm)));let done=false;
+      for(const key of order){const cx=ctxOf(key);if(!cx)continue;const r=lie?.34:.24;
+        for(let z=cx.z0;z<=cx.z1&&!done;z+=.45){const yf=floorAt(cx.lv,cx.rm,z);for(const x of[-.2,-.5,-.9,-1.4,-2,-3]){if(cx.free(x,z,yf,r)&&!cx.near(x,z,.5)){place[i]=[x,yf+.03,z];cx.occ.push([x,z]);setRoom(i,cx.lv,cx.rm);M.pose[i]=Object.assign(M.pose[i]||{},{act:lie?"lie":"stand"});done=true;break;}}}
+        if(done)break;}
+      if(!done)cxFallback(i,p);}}
+  function cxFallback(){}
 }
+
 function crewLayout(){const im=M.fig;if(!im||typeof S==="undefined"||!S||!S.crew)return;const C=S.crew;crewX(S);
   const g={};M.home=C.map((m,i)=>{const h=homeOf(m,i);(g[h[0]*10+h[1]]=g[h[0]*10+h[1]]||[]).push(i);return h;});M.grp=g;
   const n=Math.min(1200,C.length);for(const k in M.P)M.P[k].count=n;const place=new Array(C.length);M.zb=new Array(C.length);
