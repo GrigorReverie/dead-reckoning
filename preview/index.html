@@ -52,7 +52,10 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-
 .seg button:last-child{border-right:0}
 .seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
 .tb{background:transparent;color:var(--ink);border:1px solid var(--ink);border-radius:3px;padding:5px 10px;font-family:var(--f-data);font-size:12px}
-.menuwrap{position:relative}.menupop{position:absolute;right:0;top:calc(100% + 6px);z-index:40;background:var(--paper);border:1px solid var(--ink);box-shadow:0 8px 24px rgba(20,14,10,.35);padding:6px;display:flex;flex-direction:column;gap:4px;min-width:150px}.menupop[hidden]{display:none}#assistPop{width:min(330px,calc(100vw - 16px));max-height:78vh;overflow-y:auto;padding:8px 12px 10px;gap:8px}#assistPop .ah{font-family:var(--f-display);font-weight:400;font-variant:small-caps;font-size:13px;border-bottom:1px dotted var(--rule);margin-top:4px}#assistPop .chk{align-items:flex-start;font-size:13px}#assistPop .chk small{display:block;color:var(--ink-soft);font-size:12px;line-height:1.35;margin-top:1px}#assistPop .chk input{margin-top:3px;flex:none}#assistPop,#assistPop .chk,#assistPop .chk span{white-space:normal;min-width:0}#assistPop .chk{max-width:100%}.menupop .tb{text-align:left;width:100%}
+.menuwrap{position:relative}.menupop{position:absolute;right:0;top:calc(100% + 6px);z-index:40;background:var(--paper);border:1px solid var(--ink);box-shadow:0 8px 24px rgba(20,14,10,.35);padding:6px;display:flex;flex-direction:column;gap:4px;min-width:150px}.menupop[hidden]{display:none}#assistPop{width:min(330px,calc(100vw - 16px));max-height:78vh;overflow-y:auto;padding:8px 12px 10px;gap:8px}#assistPop .apHead{position:sticky;top:-8px;z-index:2;display:flex;justify-content:space-between;align-items:center;background:var(--paper);margin:-8px -12px 0;padding:8px 12px;border-bottom:1px solid var(--rule)}
+#assistPop .apClose{min-height:44px;min-width:88px;padding:0 14px;font-size:14px;border:1px solid var(--ink);background:var(--paper-2);color:var(--ink);border-radius:4px;cursor:pointer}
+.assistBack{position:fixed;inset:0;z-index:39;background:rgba(20,14,10,.3);touch-action:none}
+#assistPop .ah{font-family:var(--f-display);font-weight:400;font-variant:small-caps;font-size:13px;border-bottom:1px dotted var(--rule);margin-top:4px}#assistPop .chk{align-items:flex-start;font-size:13px}#assistPop .chk small{display:block;color:var(--ink-soft);font-size:12px;line-height:1.35;margin-top:1px}#assistPop .chk input{margin-top:3px;flex:none}#assistPop,#assistPop .chk,#assistPop .chk span{white-space:normal;min-width:0}#assistPop .chk{max-width:100%}.menupop .tb{text-align:left;width:100%}
 .tb:hover{background:var(--paper-2)}
 .tb[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
 .infobar{display:flex;align-items:baseline;gap:4px 22px;flex-wrap:wrap;padding:6px max(16px,env(safe-area-inset-left,0px));background:var(--paper);border-bottom:1px solid var(--ink);font-size:12px;min-width:0}
@@ -502,6 +505,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
     <div class="menuwrap"><button class="tb" id="bMenu" aria-expanded="false" aria-haspopup="true" title="Voyages, assists, help and sound"><span class="mtxt">Menu </span>☰</button>
       <div class="menupop" id="menuPop" hidden><button class="tb" id="bVoy">New voyage</button><button class="tb" id="bAssist" title="Crew assists: sails, watches, speed log and navigation">Assists ✦</button><button class="tb" id="bPreview">Preview ◐</button><button class="tb" id="bHelp">How to sail</button><button class="tb" id="bSave">Save game</button><button class="tb" id="bLoad">Load game</button><button class="tb" id="bDark" aria-pressed="false">Dark mode</button><button class="tb" id="bSound" aria-pressed="false">Sound off</button><button class="tb" id="bFull" title="Use the whole screen">Full screen</button><button class="tb" id="bQual" title="3D sharpness and detail: Auto, Low, Medium, High">Quality: Auto</button><button class="tb" id="bCheat">Cheats</button></div>
       <div class="menupop" id="assistPop" hidden>
+        <div class="apHead"><b>Assists ✦</b><button type="button" class="apClose" id="assistClose" aria-label="Close assists">✕ Close</button></div>
         <b class="ah">Sails</b>
         <label class="chk"><input type="checkbox" id="aSail"> <span>Sailmaster<small>Shortens sail when she strains and makes sail again as the wind eases.</small></span></label>
         <div id="aBosunSlot"></div>
@@ -1746,9 +1750,14 @@ function initAssists(){
   let saved={};try{saved=JSON.parse(localStorage.getItem("drAssists")||"{}");}catch(e){}
   ASSIST_IDS.forEach(id=>{if(id in saved)$(id).checked=!!saved[id];$(id).addEventListener("change",()=>{if(id==="aSail"&&!$("aSail").checked&&S&&!S.done&&S.smOrd){S.smOrd=false;const sh=S.ship;sh.q=sh.q.filter(j=>!SAILIDS.includes(j.id));sh.sl={...sh.sa};sh.sail=clamp(Math.round(invEff(effOf(sh.sl))),0,SAILS.length-1);updateUI();} if(id==="aDR"&&S&&!S.done){S.mode=$("aDR").checked?"lost":"trial";say(S.mode==="lost"?"The chart now shows only your reckoning.":"The chart now shows your true position.",{log:false});updateUI(true);}const o={};ASSIST_IDS.forEach(k=>o[k]=$(k).checked);try{localStorage.setItem("drAssists",JSON.stringify(o));}catch(e){}});});
   const pop=$("assistPop"),btn=$("bAssist");
-  btn.onclick=e=>{pop.hidden=false;if(S)$("aRoute").checked=!!S.route.follow;};
-  document.addEventListener("click",e=>{if(!pop.hidden&&!e.target.closest("#assistPop,#bAssist"))pop.hidden=true;});
-  window.addEventListener("keydown",e=>{if(e.key==="Escape"){pop.hidden=true;}});
+  const back=document.createElement("div");back.className="assistBack";back.hidden=true;document.body.append(back);
+  const setPop=v=>{pop.hidden=!v;back.hidden=!v;};
+  btn.onclick=e=>{setPop(true);if(S)$("aRoute").checked=!!S.route.follow;};
+  // tap anywhere outside (the dimmed backdrop, even over the 3D view) or the Close button dismisses it
+  ["pointerdown","click"].forEach(t=>back.addEventListener(t,e=>{e.preventDefault();e.stopPropagation();setPop(false);}));
+  $("assistClose").onclick=()=>setPop(false);
+  new MutationObserver(()=>{back.hidden=pop.hidden;}).observe(pop,{attributes:true,attributeFilter:["hidden"]});
+  window.addEventListener("keydown",e=>{if(e.key==="Escape"){setPop(false);}});
   $("aRoute").onchange=e=>{if(!S)return;S.route.follow=e.target.checked;S.route.t=0;if(S.route.follow)routeSteerOnce();$("rFollow").checked=S.route.follow;};
 }
 function hourly(w){
