@@ -209,6 +209,7 @@ body.fs3d #fsBar{left:max(12px,env(safe-area-inset-left,0px));bottom:max(12px,en
 .dockbody{display:flex;gap:12px;align-items:center;min-width:0}
 .dockbody.col{flex-direction:column;align-items:stretch;gap:7px}
 .cspd{display:flex;flex-wrap:nowrap;justify-content:space-between;gap:8px;font-size:12px;white-space:nowrap}.dockctl{display:flex;flex-direction:column;gap:6px;min-width:0;flex:1}
+#spdTxt.stale{opacity:.6;font-style:italic}
 #dial{flex:none;width:190px;height:190px;cursor:crosshair}
 .helmbtns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px}
 .helmbtns .btn{padding:3px 2px;white-space:nowrap}
@@ -2923,7 +2924,7 @@ function updateUI(force){
   const watches=[[0,"Middle watch"],[4,"Morning watch"],[8,"Forenoon watch"],[12,"Afternoon watch"],[16,"First dog watch"],[18,"Last dog watch"],[20,"First watch"]];
   let wn="";for(const[hh,n]of watches)if(lh>=hh)wn=n;let b=Math.floor(lh*2)%8;if(b===0)b=8;
   $("watch").textContent=`${wn} · ${b} bell${b>1?"s":""}`;
-  $("spdTxt").textContent=S.mode==="trial"||$("peek").checked?`${sh.v.toFixed(1)} kn`:"unknown";$("windSpd").innerHTML=`Wind <b>${S.mode==="trial"?w.kn.toFixed(0)+" kn":bf===0?"calm":bf>=12?"64+ kn":"about "+BFT[bf-1]+"–"+(BFT[bf]-1)+" kn"}</b> · Force ${bf} · from ${pointName(w.from)}`;{const cu=currentAt(sh.x,sh.y);$("curTxt").innerHTML=cu&&cu.drift>.02?`Current <b>${S.mode==="trial"?cu.drift.toFixed(1)+" kn":"about "+cu.drift.toFixed(1)+" kn"}</b> · setting ${pointName(cu.set)}`:"Current <b>slack</b>";}
+  {const L=S.lastLog,age=L?Math.max(0,Math.round((S.t-L.t)*60)):0,ageT=age<60?age+" min":Math.floor(age/60)+" h "+String(age%60).padStart(2,"0")+" min";$("spdTxt").textContent=S.mode==="trial"||$("peek").checked?`${sh.v.toFixed(1)} kn`:L?`${fmtKn(L.v)} kn${age>=1?" ("+ageT+" ago)":""}`:"unknown";$("spdTxt").title=L?`Hove ${L.by==="you"?"by you":"by the mate"} ${ageT} ago. Heave again after the wind or sails change.`:"Heave the log to measure your speed";$("spdTxt").classList.toggle("stale",!!L&&age>=60);}$("windSpd").innerHTML=`Wind <b>${S.mode==="trial"?w.kn.toFixed(0)+" kn":bf===0?"calm":bf>=12?"64+ kn":"about "+BFT[bf-1]+"–"+(BFT[bf]-1)+" kn"}</b> · Force ${bf} · from ${pointName(w.from)}`;{const cu=currentAt(sh.x,sh.y);$("curTxt").innerHTML=cu&&cu.drift>.02?`Current <b>${S.mode==="trial"?cu.drift.toFixed(1)+" kn":"about "+cu.drift.toFixed(1)+" kn"}</b> · setting ${pointName(cu.set)}`:"Current <b>slack</b>";}
   $("windTxt").innerHTML=`From <b>${pointName(w.from)}</b> · Force ${bf}, ${BNAME[bf].toLowerCase()}${S.mode==="trial"?` <span class="mono muted">(${w.kn.toFixed(0)} kn)</span>`:""}${S.squall?' · <span class="warn">squall</span>':""}`;
   const rel=angDiff(sh.heading,w.from),th=Math.abs(rel);
   const pos=th<NOGO?"In irons":th<80?"Close-hauled":th<100?"Beam reach":th<160?"Broad reach":"Running";
