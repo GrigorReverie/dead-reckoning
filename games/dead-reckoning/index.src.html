@@ -1427,12 +1427,15 @@ function assistStep(s,dt,w){
 const FS3=(()=>{let g={water:true,sky:true,con:true,brg:false};try{Object.assign(g,JSON.parse(localStorage.getItem("dr.fs3grids")||"{}"));}catch(e){}
   return{on:false,g,save(){try{localStorage.setItem("dr.fs3grids",JSON.stringify(g));}catch(e){}},waterOn(){return g.water;},skyOn(){return g.sky;},conOn(){return g.con;},brgOn(){return g.brg;}};})();
 const ASSIST_IDS=["aSail","aCrew","aNoon","aFix","bosun","mateLog","aSky","aDR"];
+/* Easy/hard switch: the "Dead reckoning only" assist toggle is hidden (hard: reckoning only, no true position) while false. Set true to bring the toggle back for an easy mode. */
+const EASY_MODE_DR_TOGGLE=false;
 function initAssists(){
   $("aBosunSlot").append($("bosun").closest("label"));$("aLogSlot").append($("mateRow"));$("peekWrap").hidden=true;
   const bl=$("bosun").closest("label");bl.querySelector("input").insertAdjacentElement("afterend",Object.assign(document.createElement("span"),{innerHTML:"Bosun trims the yards<small>Braces the yards to the best angle for the wind, always.</small>"}));[...bl.childNodes].filter(n=>n.nodeType===3).forEach(n=>n.remove());
   const ml=$("mateLog").closest("label");[...ml.childNodes].filter(n=>n.nodeType===3).forEach(n=>n.remove());ml.append(Object.assign(document.createElement("span"),{innerHTML:"Mate heaves the log each hour<small>Reads the speed off the log line every hour for your reckoning, with a little error.</small>"}));
   [bl,ml].forEach(l=>{l.style.alignItems="flex-start";});
   let saved={};try{saved=JSON.parse(localStorage.getItem("drAssists")||"{}");}catch(e){}
+  if(!EASY_MODE_DR_TOGGLE){$("aDR").checked=true;saved.aDR=true;$("aDR").closest("label").hidden=true;}
   ASSIST_IDS.forEach(id=>{if(id in saved)$(id).checked=!!saved[id];$(id).addEventListener("change",()=>{if(id==="aSail"&&!$("aSail").checked&&S&&!S.done&&S.smOrd){S.smOrd=false;const sh=S.ship;sh.q=sh.q.filter(j=>!SAILIDS.includes(j.id));sh.sl={...sh.sa};sh.sail=clamp(Math.round(invEff(effOf(sh.sl))),0,SAILS.length-1);updateUI();} if(id==="aDR"&&S&&!S.done){S.mode=$("aDR").checked?"lost":"trial";say(S.mode==="lost"?"The chart now shows only your reckoning.":"The chart now shows your true position.",{log:false});updateUI(true);}const o={};ASSIST_IDS.forEach(k=>o[k]=$(k).checked);try{localStorage.setItem("drAssists",JSON.stringify(o));}catch(e){}});});
   const pop=$("assistPop"),btn=$("bAssist");
   const back=document.createElement("div");back.className="assistBack";back.hidden=true;document.body.append(back);
