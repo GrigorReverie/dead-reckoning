@@ -1739,9 +1739,9 @@ function assistStep(s,dt,w){
 }
 // water grid, sky grid and constellation switches (remembered); they work in every 3D view, and the full-screen view shows them beside its own button
 const FS3=(()=>{let g={water:true,sky:true,con:true};try{Object.assign(g,JSON.parse(localStorage.getItem("dr.fs3grids")||"{}"));}catch(e){}
-/* Easy/hard switch: the helm row's Heave the log button (#bHeave2, the dead-reckoning speed reading) is hidden while false; the mate still heaves the log each hour if that assist is on, and the chart log button and L key remain. Set true to bring the helm button back for an easy mode. */
-const EASY_MODE_HEAVE_BUTTON=false;
-if(!EASY_MODE_HEAVE_BUTTON){const st=document.createElement("style");st.id="drHardMode";st.textContent="#bHeave2{display:none!important}";document.head.append(st);}
+/* Easy/hard switch: the helm row's Take bearing button (#bBrg, the dead-reckoning position check) is hidden while false; the chart bearing button, the Book and the lookout assist remain. Set true to bring the helm button back for an easy mode. */
+const EASY_MODE_BEARING_BUTTON=false;
+if(!EASY_MODE_BEARING_BUTTON){const st=document.createElement("style");st.id="drHardMode";st.textContent="#bBrg{display:none!important}";document.head.append(st);}
   return{on:false,g,save(){try{localStorage.setItem("dr.fs3grids",JSON.stringify(g));}catch(e){}},waterOn(){return g.water;},skyOn(){return g.sky;},conOn(){return g.con;}};})();
 const ASSIST_IDS=["aSail","aCrew","aNoon","aFix","bosun","mateLog","aSky","aDR","aPts"];
 function initAssists(){
@@ -8250,7 +8250,7 @@ const TUT_LESSON={id:"learn",stuckMs:25000,steps:[
   enter:(s,f)=>{f.h0=s.heaves;},
   text:()=>"Now measure your speed the old way. Tap the log button, then tap Nip the moment the sand runs out. The knots you read are what your reckoning uses from now on.",
   hint:()=>"The glass fills the screen. Tap Nip just as the top bulb is empty.",
-  target:["#bHeave","#bHeave2","#cHeave","#ctlIcon"],
+  target:["#bHeave","#bHeave2","#ctlIcon"],
   done:(s,f)=>s.heaves>f.h0},
  {id:"reckon",title:"Reckon your position",speed:true,
   text:s=>{const a=tutAway(s);if(a<4)return `Keep sailing. Your pencil mark on the chart moves by the speed you logged, not by the speed she really makes. Sail about 4 miles out (${a.toFixed(1)} so far). You can speed time up while you wait.`;
