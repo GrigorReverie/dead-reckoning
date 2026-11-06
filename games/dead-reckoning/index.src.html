@@ -4930,7 +4930,14 @@ function update3D(dt,now){
       bf.mesh.geometry.attributes.position.needsUpdate=true;bf.mesh.geometry.attributes.color.needsUpdate=true;bf.mesh.geometry.setDrawRange(0,n);} }
   // sails
   const sl=sh.sailSet,tm=R.wt;
-  const SS=sh.sls;
+  // the sails on screen follow an order only once the hands are aloft at the yard (or after a long wait with nobody to climb, or when time is racing)
+  const SS=(()=>{const T=sh.sls,V=(R.vs&&R.vsS===S&&R.vsId===R.shipId)?R.vs:(R.vsS=S,R.vsId=R.shipId,R.vsT={},R.vs=Object.assign({},T)),
+      sp0=clamp(speedMult,1,8),vdt=Math.min(dt,.1)*sp0,al=R.aloftSet||{};
+    for(const k in T){if(V[k]==null){V[k]=T[k];continue;}const d=T[k]-V[k];
+      if(Math.abs(d)<.002){V[k]=T[k];R.vsT[k]=0;continue;}
+      R.vsT[k]=(R.vsT[k]||0)+vdt;
+      if(al[k]||sp0>=8||!R.crew||R.vsT[k]>40)V[k]+=clamp(d,-.16*vdt,.16*vdt);}
+    return V;})();
   for(const o of R.sails||[]){
     o.grp.rotation.y=sh.brace*D2R; // braced up: the weather yardarm swings forward, the lee yardarm aft
     // levels: 0 = course (low), 1 = topsail, 2 = topgallant; each is let fall or clewed up smoothly
@@ -4969,7 +4976,8 @@ function update3D(dt,now){
         cl.geometry.setDrawRange(0,n);cl.geometry.attributes.position.needsUpdate=true;} } }
   // crew
   { const C=R.crew;if(C){if((R.dsf=(R.dsf||0)+1)%30===1)dressDeck(R);const sp=clamp(speedMult,1,8),cdt=Math.min(dt,.1)*sp,t=R.wt,working={};
-      for(const j of sh.q)working[j.id]=1;for(const k of SAILIDS)if(Math.abs(sh.sls[k]-sh.sa[k])>.02)working[k]=1;
+      for(const j of sh.q)working[j.id]=1;for(const k of SAILIDS)if(Math.abs(sh.sls[k]-sh.sa[k])>.02||(R.vs&&Math.abs(R.vs[k]-sh.sls[k])>.01))working[k]=1; // the hands stay aloft until the sail on screen has finished moving
+      R.aloftSet=R.aloftNow||{};R.aloftNow={};
       const D=R.dk,ground=D.ground;
       const hip=(c,a)=>{c.lL.rotation.x=a;c.lR.rotation.x=-a;};
       // route from the deck up the shrouds to a yard slot: shroud foot, up the ratlines, along the yard on the footrope
@@ -5012,7 +5020,7 @@ function update3D(dt,now){
             const rw=S.ship.row&&S.ship.row.on,ph=R.wt*(rw?2.2*(S.ship.row.k||1):1)+(hi%2)*.0;c.aL.rotation.x=c.aR.rotation.x=rw?-1.3+Math.sin(ph)*.6:-.3;c.lean=rw?.25*Math.sin(ph):.05;m.rotation.y=PI;}
           else{c.m.visible=!rm||rm.mode==="duty"||c.state!=="idle";
           if(c.state==="idle"&&want&&c.m.visible){c.route=routeFor(sid,slot);c.q=c.route.slice();c.state="going";c.wp=null;}
-          else if(c.state==="aloft"&&!want){c.q=c.route.slice().reverse().map((w,i,a)=>({p:w.p,m:w.m==="yard"?"climb":w.m}));c.q.shift();const hp=D.home();c.q.push({p:[hp[0],D.footAt?D.footAt(hp[1]):D.foot,hp[1]],m:"walk"});c.state="returning";}
+          else if(c.state==="aloft"&&!want){const rv=c.route.slice().reverse();c.q=rv.slice(1).map((w,i)=>({p:w.p,m:i===0&&rv[0].m==="yard"?"yard":"climb"})); /* edge in along the yard, then climb down the ratlines at the pace of the climb up */ const hp=D.home();c.q.push({p:[hp[0],D.footAt?D.footAt(hp[1]):D.foot,hp[1]],m:"walk"});c.state="returning";}
           if(c.state==="going"||c.state==="returning"){
             if(sp>=8&&c.q.length){const w=c.q[c.q.length-1];m.position.set(w.p[0],w.p[1],w.p[2]);c.q.length=0;}
             const w=c.q[0];
@@ -5022,7 +5030,7 @@ function update3D(dt,now){
               const climb=w.m==="climb",r=go(c,w.p[0],w.p[1],w.p[2],climb?.95:.6,climb,cdt);
               if(r.st>1e-5){c.ph+=r.st/.35*PI;const a=Math.sin(c.ph);c.lL.rotation.x=-.3+a*.3;c.lR.rotation.x=-.3-a*.3;c.aL.rotation.x=-2.5+Math.max(0,a)*.5;c.aR.rotation.x=-2.5+Math.max(0,-a)*.5;}
               if(r.d<.08)c.q.shift();}}
-          else if(c.state==="aloft"){const w=c.route[c.route.length-1];if(w){m.position.set(w.p[0],w.p[1],w.p[2]);}
+          else if(c.state==="aloft"){R.aloftNow[sid]=1;const w=c.route[c.route.length-1];if(w){m.position.set(w.p[0],w.p[1],w.p[2]);}
             hip(c,0);c.aL.rotation.x=c.aR.rotation.x=-1.2+Math.sin(t*2+idx)*.18;m.rotation.y=R.yardInfo[sid]?PI:0;}
           else{ // idle on deck: stroll, lean on the rail, coil down a rope, swab, or stand talking with a shipmate
             if(!c.act)c.act="stroll";
