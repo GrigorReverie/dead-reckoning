@@ -9327,12 +9327,12 @@ function crewSpots(place,g,C){
     for(let j=0;j<pool.length;j++){const q=pool[j];if(!q)continue;const d=Math.abs(q.lv-lv)*1000+Math.abs(q.s.z-z);if(d<bd){bd=d;bj=j;}}
     if(bj<0)return false;const q=pool[bj];pool[bj]=null;q.s.used=1;setRoom(i,q.lv,q.rm);
     if(kind==="seat"){M.pose[i]={seat:q.s,act:"sit"};place[i]=[q.s.x,q.s.y+.03,q.s.z];}else{M.pose[i]={bed:q.s};place[i]=[q.s.x,q.s.y,q.s.z];}return true;};
-  for(const[i,lv,z]of left){if(take("bed",i,lv,z))continue;if(take("seat",i,lv,z))continue;over.push([i,lv,M.zb[i][3],place[i],1]);}
+  for(const[i,lv,z]of left){if(take("bed",i,lv,z))continue;if(take("seat",i,lv,z))continue;M.pose[i]={act:"stand"};over.push([i,lv,M.zb[i][3],place[i]]);}
   // anyone still without a clear spot moves to the nearest room with floor to spare
   if(over.length){const keys=[];for(let l=0;l<M.bands.length;l++)for(let r2=0;r2<M.bands[l].length;r2++)keys.push(l*10+r2);
     for(const[i,lv,rm,p,lie]of over){const order=keys.slice().sort((a,b)=>Math.abs(Math.floor(a/10)-lv)*100+Math.abs(a%10-rm)-(Math.abs(Math.floor(b/10)-lv)*100+Math.abs(b%10-rm)));let done=false;
-      for(const key of order){const cx=ctxOf(key);if(!cx)continue;const r=lie?.34:.24;
-        for(let z=cx.z0;z<=cx.z1&&!done;z+=.45){const yf=floorAt(cx.lv,cx.rm,z);for(const x of[-.2,-.5,-.9,-1.4,-2,-3]){if(cx.free(x,z,yf,r)&&!cx.near(x,z,.5)){place[i]=[x,yf+.03,z];cx.occ.push([x,z]);setRoom(i,cx.lv,cx.rm);M.pose[i]=Object.assign(M.pose[i]||{},{act:lie?"lie":"stand"});done=true;break;}}}
+      for(const key of order){const cx=ctxOf(key);if(!cx)continue;const r=.24;
+        for(let z=cx.z0;z<=cx.z1&&!done;z+=.45){const yf=floorAt(cx.lv,cx.rm,z);for(const x of[-.2,-.5,-.9,-1.4,-2,-3]){if(cx.free(x,z,yf,r)&&!cx.near(x,z,.5)){place[i]=[x,yf+.03,z];cx.occ.push([x,z]);setRoom(i,cx.lv,cx.rm);M.pose[i]=Object.assign(M.pose[i]||{},{act:"stand"});done=true;break;}}}
         if(done)break;}
       if(!done)cxFallback(i,p);}}
   function cxFallback(){}
