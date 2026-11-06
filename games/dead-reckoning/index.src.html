@@ -2542,7 +2542,7 @@ function updateUI(force){
    const jb=$("cbJib"),am=sh.anch.mode,atp=S.docked||am==="holding"||am==="weighing",show=atp?th<NOGO+6||!!sh.jibBack:(am==="up"||am==="trailing")&&(S.irons||sh.jibBack||(th<NOGO+6&&sh.v<1.5));
    jb.classList.toggle("on",!!show);jb.classList.toggle("armed",!!sh.jibBack);jb.title=sh.jibBack?"Jib backed: tap to let it go":"Back the jib: set the heading you want on the compass, then tap";}
   $("posail").textContent=`${pos} · wind ${rel>0?"starboard":"port"}`;$("posail").className=th<NOGO?"warn":"";
-  {const el=$("sumStrip"),dk=document.querySelector(".dock-all");if(el){const col=!!dk&&dk.classList.contains("collapsed");el.hidden=!col;if(col){const sm=(window.DRLook&&DRLook.get().sum)||["hdg","spd","alert"],P=[];
+  {const el=$("sumStrip"),dk=document.querySelector(".dock-all");if(el){const col=!!dk&&dk.classList.contains("collapsed");el.hidden=true;if(false){const sm=(window.DRLook&&DRLook.get().sum)||["hdg","spd","alert"],P=[];
    if(sm.includes("hdg"))P.push((((Math.round(sh.heading)%360)+360)%360)+"°");if(sm.includes("spd"))P.push($("spdTxt").textContent);if(sm.includes("wind"))P.push("wind "+pointName(w.from)+" F"+bf);if(sm.includes("sails"))P.push(pos);
    const nC=(S.crew&&S.crew.length)||1,why=[];if(th<NOGO)why.push("in irons");if(S.water>15)why.push("water in the bilge");if(S.hull<.5)why.push("hull damaged");if(S.stores&&Math.min(S.stores.bis,S.stores.meat,S.stores.beer)/nC<5)why.push("stores low");if(S.crew&&S.crew.some(m=>m.hp!=null&&m.hp<.5))why.push("crew hurt or sick");
    el.innerHTML=P.map(x=>"<span>"+x+"</span>").join("")+(sm.includes("alert")&&why.length?'<i class="sumdot" title="'+why.join(", ")+'">!</i>':"");}}}
