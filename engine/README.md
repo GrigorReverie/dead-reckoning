@@ -46,3 +46,6 @@ Engine files are plain script inlined into the game's single script, so names ar
 Options asked with `optOn`: `bosun`, `mateLog`, `aSail`, `aCrew`, `aNoon`, `aFix` (Assists switches) and `crisisOpen`.
 
 Still calling the DR UI directly (to convert in their own steps): helm actions (`setCourse`, `setSail`, `rowStep` call `updateUI`) and the nav wrappers (`takeBearing`, `startObserve`, `markPosition` call `updateUI` after the engine call), `svBalance` (the Ship-tab rebuild between the rota and the bosun's watch). Crew logic itself is now in the engine; the crisis card (`showCrisis`), `crewInfo`, `crewExtra` and `hireUI` stay in the game.
+
+## voyage/shortrun.js
+A scripted first voyage (beats by progress, one choice, a verdict). Emits `sr` events: `hint`, `glass`, `decide`, `chose`, `squallPast`, `haze`. The game answers with notices, the choice card (`showCrisis`) and low visibility (`PV.vis`).

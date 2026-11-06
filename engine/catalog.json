@@ -282,6 +282,44 @@
    "games": [
     "dead-reckoning"
    ]
+  },
+  {
+   "id": "shortrun",
+   "module": "voyage/shortrun.js",
+   "summary": "A scripted first voyage: one job and a deadline, beats placed by progress along the leg (calm, glass falls, a squall with a shorten-or-press-on choice, haze, landfall) and a verdict that explains what the choices cost.",
+   "inputs": [
+    "srStart(s): needs s.v.from, s.v.to, a cargo",
+    "srStep(s): called each simulation step",
+    "srChoose(s,'reef'|'press')",
+    "srSettle(s): on arrival, pays freight and returns the verdict",
+    "SRG hooks: pos, cargoUnits, goodCost, shillings"
+   ],
+   "outputs": [
+    "events EV 'sr': hint, glass, decide, chose, squallPast, haze",
+    "s.sr state (stage, choice, peakStrain)",
+    "verdict {grade,text,causes[],rows[],reward}"
+   ],
+   "knobs": [
+    "SRK.glassAt",
+    "SRK.hazeAt",
+    "SRK.hazeEnd",
+    "SRK.deadlineHours",
+    "SRK.reward",
+    "SRK.casualSquall",
+    "SRK.squallLead"
+   ],
+   "tags": [
+    "onboarding",
+    "pacing",
+    "script",
+    "tutorial",
+    "weather",
+    "trade"
+   ],
+   "adaptation": "Any game with a leg from A to B and a hazard: swap the beats (a blimp could meet a downdraft and a fog bank) and the cargo; the pacing by progress and the verdict with traceable causes stay the same.",
+   "games": [
+    "dead-reckoning"
+   ]
   }
  ]
 }

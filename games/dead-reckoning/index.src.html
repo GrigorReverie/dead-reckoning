@@ -1111,7 +1111,7 @@ const beaufort=kn=>{let i=0;while(i<BFT.length&&kn>=BFT[i])i++;return i;};
 const CURRENT={set:290,drift:.35};
 // Preview menu overrides (null = the game's own auto weather); see the Preview panel near the end of the script
 // Every game mechanic is listed here AND described in the Scenario registry (SCN_MECH). Add an id here and an entry there when you add a mechanic.
-const GAME_MECHANICS=["traffic","setup","weather","tides","fishing","pirates","crew","trade","loading","navigation","damage","events","harbour","performance"];
+const GAME_MECHANICS=["traffic","setup","weather","tides","fishing","pirates","crew","trade","loading","navigation","damage","events","harbour","performance","shortrun"];
 let HARBOURK=1; // harbour traffic: 0 none, .45 light, 1 normal, 1.7 busy (Scenario)
 let EVFREQ=1; // sea events: 1 = natural pace, 0 = off, higher = more often (Cheats menu and Scenario)
 const PV={wind:null,sea:null,cur:null,wx:null,vis:null,fauna:1,tide:1,shadows:true};
@@ -1275,7 +1275,7 @@ function step(dt){
   const bf=beaufort(w.kn);
   wxStep(s,dt,w);routeStep(s);assistStep(s,dt,w);crewStep(s,dt,w);fishStep(s,dt,w);damageStep(s,dt,w);tradeStep(s,dt,w);
   // squalls
-  squallStep(s);
+  squallStep(s);srStep(s);if(s.sr&&s.sr.hazeOn&&PV.vis==null)PV.vis=SRK.hazeNm;
   // helmsman
   const sig=(2.5+.7*bf)*(1+1.3*(s.fat||0)*(s.fat||0))*(s.helmF||1);
   sh.wander+=-sh.wander*dt*1.5+gauss()*sig*Math.sqrt(dt)*1.6;
@@ -1949,10 +1949,11 @@ function startVoyage(v){HARBOURK=1;
   $("ovStart").hidden=true;$("ovEnd").hidden=true;modalOpen=false;
   $("voyTitle").textContent=`${v.tag}: ${v.title}`;
   $("peek").checked=false;$("peekWrap").hidden=true;
-  if(v.free)S.mode=$("aDR").checked?"lost":"trial";else $("aDR").checked=S.mode==="lost";
+  if(v.free||v.short)S.mode=$("aDR").checked?"lost":"trial";else $("aDR").checked=S.mode==="lost";
   setSpeed(1);setPaused(false);follow=true;$("follow").setAttribute("aria-pressed","true");
   cam.zoom=S.mode==="lost"?2.6:3.2;cam.x=S.ship.x;cam.y=S.ship.y;
   S.log=[];renderLog();
+  if(v.short){PV.vis=null;mkInit(S);startDocked(S,v.from);srStart(S);sayLog(`Mr Haskell has loaded ${SRK.tons} tons of flour. Take it to ${PORTS[v.to].name} before tomorrow noon's tide: the freight is £${SRK.reward}. Weigh anchor when you are ready.`);}else
   if(v.career){careerInit(S,v.from);sayLog(`Career begins at ${PORTS[v.from].name}. You own a small cutter and ${money(S.purse)}. Trade, take contracts and save for a bigger ship: the shipyard is in the Ship tab.`);}else
   if(v.free){if(v.from in PORTS){startDocked(S,v.from);say(`Made fast alongside the quay at ${PORTS[v.from].name}. Weigh anchor when you are ready: the sea is yours.${S.mode==="lost"?" The chart shows only your reckoning.":""}`);}else say("Hove to. No orders: the sea is yours.");}else
   say(v.mode==="lost"?`Weighed anchor from ${placeOf(v.from).name}. From here on the chart shows only your reckoning.`:`${v.from in PORTS?"Weighed anchor from "+PORTS[v.from].name:"Hove to in the "+placeOf(v.from).name}. Bound for ${PORTS[v.to].name}.`);
@@ -1973,6 +1974,8 @@ function endVoyage(ok,where){
   $("endGrade").textContent=grade;$("endText").textContent=text;
   const rows=[["Time at sea",`${Math.floor(hrs)} h ${Math.round((hrs%1)*60)} min`],["Distance sailed",`${s.distance.toFixed(0)} miles`],["Best speed",`${s.maxV.toFixed(1)} knots`],["Rigging",`${Math.round(s.ship.rig*100)}%`],["Missed stays",String(s.missed)],["Logs hove by you",String(s.heaves)],["Noon sights",String(s.sights)],["Cross-bearing fixes",String(s.fixes)]];
   if(s.mode==="lost")rows.unshift(["Reckoning error",`${miss.toFixed(1)} miles`]);
+  $("endRetry").textContent="Sail it again";$("endNext").textContent="Choose next voyage";
+  if(s.v.short&&ok&&s.sr){const V=srSettle(s);if(V){grade=V.grade;text=V.text+" "+V.causes.join(" ");rows.length=0;rows.push(...V.rows);$("endTitle").textContent="Delivered to "+PORTS[s.v.to].name;$("endGrade").textContent=grade;$("endText").textContent=text;$("endRetry").textContent="Another run";$("endNext").textContent="Free sailing or Career";try{localStorage.setItem("drShortRun","1");}catch(e){}}}
   $("endReport").innerHTML=rows.map(([a,b])=>`<dt>${a}</dt><dd class="mono">${b}</dd>`).join("");
   $("ovEnd").hidden=false;modalOpen=true;
 }
@@ -6461,7 +6464,7 @@ function fishStep(s,dt,w){if(!s.fish)return;const sh=s.ship,P=s.mode==="trial"?s
     if(away||coastNm(f.x,f.y)<1){f.x=ox;f.y=oy;if(away&&g){const a=Math.atan2(g.x-f.x,g.y-f.y);f.vx=Math.sin(a)*.4;f.vy=Math.cos(a)*.4;}else{f.vx=-f.vx;f.vy=-f.vy;}}
     else if(rng()<dt*.15){const a=rng()*2*PI;f.vx=Math.sin(a)*.4;f.vy=Math.cos(a)*.4;}}
   // the lookout watches the water for birds and breaking fish
-  if(s.t>=(s.spotT||0)){s.spotT=s.t+1/30;const lh=((localHours(s,s.t)%24)+24)%24,dl=lh>=6.5&&lh<17.5?1:lh>=5.5&&lh<18.5?.5:0,range=4.5*dl*(1-.5*((s.wx&&s.wx.rain)||0));if(PV.vis!=null)range=Math.min(range,PV.vis);
+  if(s.t>=(s.spotT||0)){s.spotT=s.t+1/30;let lh=((localHours(s,s.t)%24)+24)%24,dl=lh>=6.5&&lh<17.5?1:lh>=5.5&&lh<18.5?.5:0,range=4.5*dl*(1-.5*((s.wx&&s.wx.rain)||0));if(PV.vis!=null)range=Math.min(range,PV.vis);
     for(const f of s.fish){const d=Math.hypot(f.x-sh.x,f.y-sh.y),m=s.fmarks[f.id];
       if(f.amt<=25){if(m&&d<range){delete s.fmarks[f.id];}continue;}
       if(d<range){const first=!m;s.fmarks[f.id]={x:P.x+(f.x-sh.x),y:P.y+(f.y-sh.y),t:s.t,kind:f.kind,bank:f.kind==="bank",o:m&&m.o||markShape(f.id,f.kind==="bank")};
@@ -6519,6 +6522,19 @@ const BERTHS=(()=>{const B=[],add=(room,label,x,tier,lv,q)=>B.push({room,label,x
 const CREWN=[["Capt. Josiah Hale","Captain",3],["Thos. Marlowe","Mate",0],["Edmund Pryce","Bosun",2],["Abel Crane","Carpenter",3],["Nat Dobbs","Cook",3],["Jemmy Fox","Cabin boy",3]];
 const SEAN=["Will Ashby","Hugh Teague","Sam Loder","Peter Voss","Ned Garrick","Isaac Bell","Josh Penhallow","Dan Mercer","Tom Rudge","Eli Corbin","Matt Quill","Ben Starke","Robt. Finch","Kit Harlow"];
 //@engine crew/crew.js
+//@engine voyage/shortrun.js
+/* The Short Run: the game words and draws the script's events (see engine/voyage/shortrun.js) */
+const SHORT_RUN={id:"short",tag:"The Short Run",title:"Flour for Castries",from:"bridgetown",to:"castries",mode:"trial",hdg:285,short:true,ship:"brig",desc:""};
+Object.assign(SRG,{pos:k=>PORTS[k],cargoUnits:(g,tons)=>tons/GOODS[g].t,goodCost:g=>GOODS[g].p,shillings:20});
+EV.on("sr",(k,a,b)=>{
+  if(k==="hint")say("Hint: "+b,{log:false});
+  else if(k==="glass")say("The glass is falling fast. Something is brewing to windward.",{slow:true});
+  else if(k==="decide")showCrisis({title:"A squall to windward",text:"Black cloud and white water are coming down on you, perhaps twenty minutes off. Mr Haskell's flour is in the hold and Castries is still a long way. What do you do?",opts:[
+    {label:"Shorten sail now",sub:"Slower, but the topmasts stay safe.",fn:()=>{srChoose(S,"reef");if(S.ship.sail>1)setSail(1);return"You shorten sail and send the hands aloft. The squall can come.";}},
+    {label:"Press on under plain sail",sub:"Faster, and the rigging may pay for it.",fn:()=>{srChoose(S,"press");return"You hold your canvas and trust the masts.";}}]});
+  else if(k==="squallPast")say("The squall has passed and the sea is settling.",{});
+  else if(k==="haze"){if(a){PV.vis=SRK.hazeNm;say("Rain and haze close in. The land has gone.",{slow:true});}else{PV.vis=null;say("The haze lifts. Land ahead.",{});}}
+});
 Object.assign(CREWG,{localHours:(s,t)=>localHours(s,t),dayIndex:s=>dayIndex(s),atPort:s=>atPort(s),modalOpen:()=>modalOpen,skipping:()=>skipLeft>0,money:sh=>money(sh),maxCrew:()=>maxCrew(),minCrew:()=>minCrew(),effN:()=>SHIP.effN,
   role:r=>ROLE[r]||ROLE.Seaman,dutyRate:DUTYRATE,berths:BERTHS,berthOwner:id=>berthOwner(id),watchNames:WNAME,names:{get first(){return HN1},get last(){return HN2}}});
 const mkCrew=()=>crewMake({named:CREWN,seamen:SEAN,berthOrder:[0,1,2,3,4,15,5,6,7,8,9,10,11,12,13,14,16,17,18,19],
@@ -7492,6 +7508,14 @@ const SCN_MECH=[
   triggers:[],
   readouts:[["Current",s=>CURRENT.drift.toFixed(2)+" kn towards "+Math.round((CURRENT.set+180)%360)+"°"],
    ["Tide at nearest port",s=>{try{const p=portsNear(s);return p.name+" "+tideLvl(p.k,s.t).toFixed(2)+" m"}catch(e){return "—"}}]]},
+ {id:"shortrun",name:"The Short Run (first voyage)",
+  dials:[],
+  apply(){},
+  triggers:[["Start the script here",s=>{if(!s.v.to){say("The script needs a destination: start The Short Run from the start sheet.",{log:false});return;}srStart(s);say("Short Run script started.",{log:false});}],
+   ["Glass falls now",s=>{if(!s.sr){say("Start the script first.",{log:false});return;}s.sr.stage=1;s.nextSquall=s.t+SRK.squallLead;s.squallWarned=false;EV.emit("sr","glass");}],
+   ["Squall decision now",s=>{if(!s.sr)return;s.sr.stage=2;EV.emit("sr","decide");}],
+   ["Haze on / off",s=>{if(!s.sr)return;s.sr.hazeOn=!s.sr.hazeOn;EV.emit("sr","haze",s.sr.hazeOn);}]],
+  readouts:[["Script",s=>s.sr?["calm","glass falling","choice due","squall coming","squall past","haze","landfall"][s.sr.stage]:"not running"],["Progress",s=>s.sr?Math.round(srProgress(s)*100)+"%":"—"],["Choice",s=>s.sr&&s.sr.choice||"—"],["Hours to deadline",s=>s.sr?(s.sr.deadline-s.t).toFixed(1)+" h":"—"]]},
  {id:"fishing",name:"Fishing",
   dials:[{k:"fish",label:"Fish",start:true,opts:()=>[["normal","Natural patches"],["rich","School beside the ship"],["none","None"]],def:"normal"},{k:"fishx",label:"Fishing rate (cheat)",live:true,opts:()=>[["500","Normal (500×)"],["1500","Fast"],["5000","Very fast"],["50","Slow"]],def:"500"}],
   apply(s,g,starting){FISHX=+g("fishx");if(!starting)return;const f=g("fish");if(f==="rich")scnSchool(s,"bonito");else if(f==="none"){s.fish=[];s.grounds=[];}},
@@ -7653,7 +7677,18 @@ $("voyList").querySelectorAll("button").forEach(b=>b.onclick=()=>startVoyage(VOY
   $("freePorts").innerHTML=Object.keys(PORTS).map(k=>`<button class="voycard" data-p="${k}" style="padding:8px 10px"><b style="font-size:16px">${PORTS[k].name}</b></button>`).join("");
   $("voyList").hidden=true;fp.hidden=false;$("freeBack").parentNode.hidden=true;
   $("freePorts").querySelectorAll("button").forEach(b=>b.onclick=()=>{const k=b.dataset.p;
-    startVoyage(gameMode==="career"?{id:"career",tag:"Career",title:"From "+PORTS[k].name,from:k,to:null,mode:"trial",hdg:280,free:true,career:true,ship:CAREER_START,desc:""}:{id:"free",tag:"Free sailing",title:"From "+PORTS[k].name,from:k,to:null,mode:"trial",hdg:280,free:true,desc:""});});}
+    startVoyage(gameMode==="career"?{id:"career",tag:"Career",title:"From "+PORTS[k].name,from:k,to:null,mode:"trial",hdg:280,free:true,career:true,ship:CAREER_START,desc:""}:{id:"free",tag:"Free sailing",title:"From "+PORTS[k].name,from:k,to:null,mode:"trial",hdg:280,free:true,desc:""});});
+  { // The Short Run is the first voyage: a new player sees it alone until it is done, or until they skip it
+    const sc=document.createElement("button");sc.className="voycard";sc.id="shortCard";sc.type="button";
+    let done=false;try{done=localStorage.getItem("drShortRun")==="1";}catch(e){}
+    sc.innerHTML=`<span class="tag">${done?"Replay":"Your first voyage"}</span><b>The Short Run</b><span class="d">Six tons of flour from Bridgetown to Castries before tomorrow noon's tide. One squall, one choice, about ten minutes.</span>`;
+    sc.onclick=()=>startVoyage(SHORT_RUN);$("contBox").before(sc);
+    const skip=document.createElement("button");skip.className="btn";skip.id="shortSkip";skip.type="button";skip.textContent="I have sailed before: free sailing, Career or Scenario";
+    const shp=document.querySelector(".shippick");
+    const gate=on=>{fp.hidden=on;shp.hidden=on||gameMode!=="free";skip.hidden=!on;};
+    skip.onclick=()=>{try{localStorage.setItem("drShortRun","1");}catch(e){}gate(false);sc.querySelector(".tag").textContent="Replay";};
+    sc.after(skip);gate(!done);
+  }}
 { const mq=matchMedia("(min-width:0px)"),box=document.querySelector(".compassbox"),home=$("paneV3");
   const place=()=>{const tgt=mq.matches?document.querySelector(".dock-all .dockbody"):home;if(box.parentNode!==tgt)mq.matches?tgt.insertBefore(box,tgt.firstChild):tgt.appendChild(box);};
   place();mq.addEventListener("change",()=>{place();resize();resize3D();}); }
