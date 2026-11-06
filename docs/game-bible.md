@@ -33,6 +33,8 @@ It runs in the browser as an installable PWA (GitHub Pages), on phone and deskto
 | The Short Run | The first voyage: Bridgetown to Castries with Mr Haskell's 6 tons of flour before tomorrow noon's tide. A scripted run (calm, falling glass, a squall and one choice, haze that hides the land, landfall) ends in a verdict card. A new player sees it alone until it is done or skipped; it stays on the start sheet as a replay. Casual (true position shown) gets hints and a softer squall; Captain (reckoning only) gets neither. | Preview |
 | Scenario | Sandbox/test mode built from the `SCN_MECH` registry: setup sheet, Test panel, presets. |
 
+**Start screen flow (2026-11-06).** One choice per screen, each moving to the next, with Back. *Home:* a Continue button at the top if there is a save, then three cards: Learn to sail (goes straight into the lesson), Scenarios, Free sail; Career and Saved games sit below as small buttons. *Scenarios:* the Short Run (quick sail) and the sandbox setup. *Free sail:* ship choice, with the ship's picture and notes beside a column of stats (cargo space, crew, speed, closest to the wind, hull strength, year, oars). Then *Starting port:* a simple map of the whole chain with the five ports (tap one), and the harbour plan of the chosen port below it, then Set sail. Career skips the ship choice (it starts in the cutter). The screens use the design tokens only (paper, ink, ochre, `voycard`, `shipcard`, `btn`).
+
 Voyages can also be scripted start/finish pairs: trial (true position shown) or lost (reckoning only).
 
 ## 5. Core loops
