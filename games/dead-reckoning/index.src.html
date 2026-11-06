@@ -2805,8 +2805,7 @@ vec3 sunShade(vec3 col,vec3 nw,vec3 wp,vec2 hc){
   float csh=0.0;
   if(u_castOn>0.5 && u_ShadowOn>0.0){
     #ifdef HATCH_UV
-    // sails are thin cloth that sways: with the normal bias they shadow themselves and the cast edge shimmers frame to frame, so give them a much larger offset and bias and fade the cast near the terminator
-    csh=shadowAt(wp+nw*u_sBias*3.0,u_sBias*(4.0+4.0*(1.0-clamp(lam,0.0,1.0))),u_selfSoft*1.5).x*u_castAmt*(1.0-form)*smoothstep(0.05,0.3,lam);
+    csh=0.0; // sails: no cast shadow at all. They sway and the shadow-map edge shimmers on them, so they take the steady form shade only
 #else
     csh=shadowAt(wp+nw*u_sBias*0.6,u_sBias*(1.0+2.0*(1.0-clamp(lam,0.0,1.0))),u_selfSoft).x*u_castAmt*(1.0-form);
 #endif
@@ -2814,6 +2813,9 @@ vec3 sunShade(vec3 col,vec3 nw,vec3 wp,vec2 hc){
   float shade=max(form*u_formAmt,csh)*u_LightK;
   col*=mix(vec3(1.0),u_shadeTint,clamp(shade*u_washAmt,0.0,1.0));
   float h=hatchP(hc,u_hType,u_hAng,u_hSp,u_hW,u_hGain,u_hStart,u_hCrossAng,u_hCrossStart,shade)*u_hOpac;
+#ifdef HATCH_UV
+  h*=1.0-smoothstep(0.12,0.4,length(fwidth(hc))/u_hSp); // sail hatching fades out smoothly once the lines get near a pixel apart, so swaying cloth does not shimmer
+#endif
   col=mix(col,u_hCol,clamp(h,0.0,1.0));
   if(uNightK>0.5){ // by night: cool moonlight on the faces it reaches, the shaded sides left dark, and a warm lantern glow on the wood nearby
     float lit=clamp(lam,0.0,1.0)*(1.0-csh)*uMoon.w;
@@ -2956,7 +2958,7 @@ void main(){
     float seam1=aaLine(u/0.78,w*0.8)*0.8; float seam2=aaLine((u+0.07)/0.78,w*0.55)*0.5;
     float edge=aaOne(dx,0.24,w)*0.95; float hem=aaOne(v,0.22,w)*0.9; float top=aaOne(v,5.28,w)*0.9;
     float reef=aaOne(v,3.6,w)*0.8; float pts=aaLine(u/0.52,w*0.8)*(1.0-smoothstep(0.1,0.22,abs(v-3.6)))*0.8*step(3.6,v+0.2);
-    float weave=max(aaLine(u/0.09,0.5),aaLine(v/0.09,0.5))*0.06;
+    float weave=0.0; // the fine cloth weave aliased and shimmered on swaying sails
     ink=max(max(seam1,seam2),max(max(edge,hem),max(max(top,reef),max(pts,weave))));
     ink=max(ink,dark*0.07); ink*=0.6;
   #endif
