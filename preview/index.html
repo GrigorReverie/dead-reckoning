@@ -7820,7 +7820,7 @@ $("bookBtn").onclick=()=>{const bx=$("bookBox"),o=!bx.classList.contains("open")
   ['bShip','bShip2'].forEach(id=>$(id).addEventListener("click",()=>{if(!SV.open){if(phone())dk.classList.add("collapsed");bx.classList.remove("open");$("bookBtn").setAttribute("aria-expanded","false");}setTimeout(fit,0);},true));
   setInterval(fit,400);new MutationObserver(fit).observe(dk,{attributes:true,attributeFilter:["class"]});new MutationObserver(fit).observe(bx,{attributes:true,attributeFilter:["class"]});addEventListener("resize",fit);fit();}
 {const h=document.querySelector(".dockhead b.dh");h.onclick=()=>document.querySelector('.ctog[data-dock="all"]').click();}
-{const sl=$("sailSteps5");let drag=false;const at=e=>{const r=sl.getBoundingClientRect(),f=(462-(e.clientY-r.top)/r.height*500)/400;return clamp(Math.round(f*4),0,4);};
+{const sl=$("sailSteps5");let drag=false;const at=e=>{const r=sl.getBoundingClientRect(),f=clamp((462-(e.clientY-r.top)/r.height*500)/400,0,1),n=SAILS.length,top=Math.max(1,invEff(effOf(planOf(n-1))));let b=0,bd=9;for(let i=0;i<n;i++){const d=Math.abs(invEff(effOf(planOf(i)))/top-f);if(d<bd){bd=d;b=i;}}return b;};
   sl.addEventListener("pointerdown",e=>{drag=true;try{sl.setPointerCapture(e.pointerId);}catch(x){}setSail(at(e));e.preventDefault();});
   sl.addEventListener("pointermove",e=>{if(drag&&S&&S.ship.sail!==at(e))setSail(at(e));});
   const up=()=>{drag=false;};sl.addEventListener("pointerup",up);sl.addEventListener("pointercancel",up);}
