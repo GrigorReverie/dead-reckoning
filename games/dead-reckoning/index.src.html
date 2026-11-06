@@ -469,6 +469,7 @@ body.fs3d #fsBar{left:max(12px,env(safe-area-inset-left,0px));bottom:max(12px,en
 @media (min-width:0px){.shipv{grid-template-columns:minmax(0,1fr);overflow:auto;grid-template-rows:auto auto;align-content:start}.sv-main{overflow:visible}.sv-side{border-left:0;border-top:2px solid var(--ink);overflow:visible}.svw button{width:34px;height:32px}.svbtns button{padding:9px 12px}}
 @media (prefers-reduced-motion: reduce){.toast{transition:none}}
 
+#follow[hidden]{display:none!important}
 </style>
 <style id="drDesignPass1">
 /* Design system pass 1 (preview only): lighter inner borders, 40px touch targets, tokens. See design/DESIGN.md. */
@@ -2019,7 +2020,7 @@ function startVoyage(v){HARBOURK=1;
   $("peek").checked=false;$("peekWrap").hidden=true;
   if(v.free||v.short)S.mode=$("aDR").checked?"lost":"trial";else $("aDR").checked=S.mode==="lost";
   setSpeed(1);setPaused(false);follow=true;$("follow").setAttribute("aria-pressed","true");
-  cam.zoom=S.mode==="lost"?2.6:3.2;cam.x=S.ship.x;cam.y=S.ship.y;
+  cam.zoom=S.mode==="lost"?2.6:3.2;{const c0=S.mode==="lost"?S.est:S.ship;cam.x=c0.x;cam.y=c0.y;}
   S.log=[];renderLog();
   if(v.short){PV.vis=null;mkInit(S);startDocked(S,v.from);srStart(S);sayLog(`Mr Haskell has loaded ${SRK.tons} tons of flour. Take it to ${PORTS[v.to].name} before tomorrow noon's tide: the freight is £${SRK.reward}. Weigh anchor when you are ready.`);}else
   if(v.career){careerInit(S,v.from);sayLog(`Career begins at ${PORTS[v.from].name}. You own a small cutter and ${money(S.purse)}. Trade, take contracts and save for a bigger ship: the shipyard is in the Ship tab.`);}else
@@ -5658,7 +5659,9 @@ function frame(now){
     let n=0;while(acc>1e-12&&n<400){const d=Math.min(acc,MAXSTEP);step(d);acc-=d;n++;if(paused||S.done||modalOpen){acc=0;break;}}
     if(n>=400)acc=0;
   }else acc=0;
-  if(S&&follow&&!(S.mode==="lost"&&!$("peek").checked&&!S.done)){const tgt=S.ship;cam.x+=(tgt.x-cam.x)*.15;cam.y+=(tgt.y-cam.y)*.15;}
+  const hideShip=!!S&&S.mode==="lost"&&!$("peek").checked&&!S.done; // dead reckoning on: the chart never centres on the ship and the follow button goes
+  {const fb=$("follow");if(fb.hidden!==hideShip)fb.hidden=hideShip;if(hideShip&&follow){follow=false;fb.setAttribute("aria-pressed","false");}}
+  if(S&&follow&&!hideShip){const tgt=S.ship;cam.x+=(tgt.x-cam.x)*.15;cam.y+=(tgt.y-cam.y)*.15;}
   if((frameN++&31)===0)measureDocks();
   chartMaybe(now);if(dialDue(now))drawDial();update3D(dtR,now);updateUI();if(SV.open)svFrame(dtR,now);
   if(soundOn&&windGain&&S){const w=windAt(S,S.ship.x,S.ship.y,S.t);windGain.gain.value=paused?0:Math.min(.5,.04+w.kn/80);}
@@ -7467,7 +7470,7 @@ function loadState(o){stopSkip();useShip(o.shipId||"brig");o.shipId=SHIP.id;S=o;
   setPlotting(false);updateRoute();svNew();openShip(false);selSails.clear();$("sailSl").style.display="none";
   $("ovStart").hidden=true;$("ovEnd").hidden=true;$("ovSave").hidden=true;modalOpen=false;
   $("voyTitle").textContent=`${v.tag}: ${v.title}`;$("peek").checked=false;$("peekWrap").hidden=true;$("aDR").checked=S.mode==="lost";
-  setSpeed(1);follow=true;$("follow").setAttribute("aria-pressed","true");cam.zoom=v.mode==="lost"?2.6:3.2;cam.x=S.ship.x;cam.y=S.ship.y;
+  setSpeed(1);follow=true;$("follow").setAttribute("aria-pressed","true");cam.zoom=v.mode==="lost"?2.6:3.2;{const c0=S.mode==="lost"?S.est:S.ship;cam.x=c0.x;cam.y=c0.y;}
   if(R3){R3.last=null;R3.lampF=null;R3.nfc=null;}
   renderLog();setPaused(true);say("Game loaded. The ship is paused. Press play to sail on.");updateUI(true);}
 async function loadSlot(slot){const r=await readSlot(slot);if(!r)return false;let o;try{o=decS(r.json);}catch(e){return false;}if(!o||!o.ship||!o.v)return false;loadState(o);return true;}
