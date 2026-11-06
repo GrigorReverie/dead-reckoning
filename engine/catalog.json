@@ -347,6 +347,44 @@
    "games": [
     "dead-reckoning"
    ]
+  },
+  {
+   "id": "debt",
+   "module": "career/debt.js",
+   "summary": "A season-long debt to a patron: pay it down at a quay, pay it all and a new season starts, fall short and you step down one rung with the ship sold toward the debt and your crew kept.",
+   "inputs": [
+    "debtStart(s, price, carry)",
+    "debtStep(s, hard) each simulation step",
+    "debtPay(s, amount)",
+    "debtSettle(s, ladder, rung) at the ledger",
+    "debtExtend(s), debtFall(s, ladder, rung)"
+   ],
+   "outputs": [
+    "state s.debt {season, d0, owed, paid, interest, fees, deadline, state}",
+    "events EV 'debt': start, paid, interest, letter, cleared, due",
+    "ledger result {kind: paid|warn|demote|wharf, credit, surplus, owedAfter}"
+   ],
+   "knobs": [
+    "DBK.weeks",
+    "DBK.mult (debt as a multiple of the ship price)",
+    "DBK.rateHard",
+    "DBK.graceWeeks",
+    "DBK.warnFrac",
+    "DBK.extFee",
+    "DBK.credit",
+    "DBK.wharfFrac"
+   ],
+   "tags": [
+    "career",
+    "economy",
+    "pacing",
+    "failure",
+    "loop"
+   ],
+   "adaptation": "Any game with a ladder of vehicles and a patron: a blimp line owes the airfield a lease, falls back to a smaller envelope and keeps its ground crew. Only the ladder, words and ledger card are new.",
+   "games": [
+    "dead-reckoning"
+   ]
   }
  ]
 }

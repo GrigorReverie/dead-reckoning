@@ -44,7 +44,7 @@ Voyages can also be scripted start/finish pairs: trial (true position shown) or 
 - **Campaign:** build standing and money, unlock better goods and contracts, buy a bigger ship.
 
 ## 6. Mechanics overview
-Full rules are in `mechanics.md`. Registered ids in `GAME_MECHANICS`: `setup`, `weather`, `tides`, `fishing`, `pirates`, `crew`, `trade`, `navigation`, `damage`, `shortrun`. Preview adds `traffic`, `harbour`, `events` and quay loading. `tutorial` is registered too.
+Full rules are in `mechanics.md`. Registered ids in `GAME_MECHANICS`: `setup`, `weather`, `tides`, `fishing`, `pirates`, `crew`, `trade`, `navigation`, `damage`, `shortrun`, `debt`. Preview adds `traffic`, `harbour`, `events` and quay loading. `tutorial` is registered too.
 
 | Area | Summary | Status |
 |---|---|---|
@@ -60,6 +60,7 @@ Full rules are in `mechanics.md`. Registered ids in `GAME_MECHANICS`: `setup`, `
 | Trade | 12 goods, port prices, news, duties, smuggling, contracts, standing | Live |
 | Pirates | Open-sea chase or prowl, boarding crisis, no gun combat | Live |
 | Short Run script | Beats placed by progress along the leg (so they land the same at any game speed), squall choice (shorten sail or press on) with real rigging consequences, freight paid by time against the deadline; logic in `engine/voyage/shortrun.js`, Scenario entry `shortrun` | Preview |
+| Debt ladder (Career) | Each season Mr Haskell is owed a sum (about 2.7 times the price of your ship) within 12 game weeks; pay at any quay. Pay it all and a new season starts on your rung. Short by a quarter or less: 2 more weeks for a £15 fee, once a season. Further short: you step down a rung, the ship goes toward the debt at 60%, you are lent the rung below, and your crew come with you (extra hands wait ashore and rejoin when there is room). On the cutter it is wharf work: debt cut, same ship. Casual: no interest, 4 free weeks after the deadline. Captain: 2% interest a week, no grace. Week-6 letter. Logic in `engine/career/debt.js`, Scenario entry `debt` | Live |
 | Sea events | Derelict, castaway, squall encounters with weighted outcomes | Preview |
 | Traffic | Other vessels on lanes, moored harbour ships | Preview |
 | Quay loading | Basket, receipt, crates loaded one by one into the hold | Preview |
@@ -108,7 +109,7 @@ Named crew with personalities, two watches, jobs by room, fatigue, morale, beer 
 Live (promoted from Preview 2026-11-04): lookout spyglass, ship controls module with the fixed helm deck layout, compass redraw capped to ~30fps.
 In progress (Preview): traffic, harbour ships, sea events, quay loading, engine/games folder split (`engine-plan/`; step 0 folders and build done, step 1 `engine/core` events, settings, rng, state and save live; step 2 `engine/field` wind and `engine/weather` live; step 3 `engine/nav` navigation live; step 4 `engine/crew` built on a branch, awaiting publish).
 
-Decided 2026-11-06 (design in `dead-reckoning/design/lili-hook-goals-pacing.md`): the Short Run replaces the new-game start for first-timers; Career will get a debt ladder where failure means demotion and keeping the crew (not built); sea events become the beat deck for voyage pacing (not built).
+Decided 2026-11-06 (design in `dead-reckoning/design/lili-hook-goals-pacing.md`): the Short Run replaces the new-game start for first-timers; the Career debt ladder is built (failure means demotion and keeping the crew; see the Mechanics table); sea events become the beat deck for voyage pacing (not built).
 
 Ideas not built: St John's reefs in 3D; bar depth blocking deep ships at low tide; wind-sea wavelength; pay and shares; chronometer as a late upgrade (from the brief).
 

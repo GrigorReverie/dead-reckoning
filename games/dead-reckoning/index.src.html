@@ -505,12 +505,15 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .warn::before{content:"\25B2\FE0E ";font-size:.8em}
 .btn:active:not(:disabled),.tb:active,.ctog:active,.tbicon:active{background:var(--rule)}
 .btn:disabled,.tb:disabled{cursor:not-allowed}
+.debtchip{display:inline-flex;flex-direction:column;gap:1px;font:11px/1.2 var(--f-data);color:var(--ink);margin-left:8px;min-width:96px;max-width:46vw}
+.debtchip .rwind{height:4px;margin:0;background-size:auto}.debtchip .rwind i{background:var(--good);width:0}
 </style>
 
 <div class="app">
   <div class="bar">
     <button type="button" class="bartog" id="barTog" aria-expanded="true" title="Fold the top bar up or down">▲</button>
     <span id="voyTitle" hidden></span>
+    <span class="debtchip" id="debtChip" hidden title="Your debt to Mr Haskell. Pay at any quay: Ship tab, Career."><span id="dcTxt"></span><i class="rwind"><i id="dcBar"></i></i></span>
     <span class="sp"></span>
     <div class="seg" role="group" aria-label="Time">
       <button id="tPause" aria-pressed="false" title="Pause (Space)">❚❚</button>
@@ -1172,7 +1175,7 @@ const beaufort=kn=>{let i=0;while(i<BFT.length&&kn>=BFT[i])i++;return i;};
 const CURRENT={set:290,drift:.35};
 // Preview menu overrides (null = the game's own auto weather); see the Preview panel near the end of the script
 // Every game mechanic is listed here AND described in the Scenario registry (SCN_MECH). Add an id here and an entry there when you add a mechanic.
-const GAME_MECHANICS=["traffic","setup","weather","tides","fishing","pirates","crew","trade","loading","navigation","damage","events","harbour","performance","tutorial","shortrun"];
+const GAME_MECHANICS=["traffic","setup","weather","tides","fishing","pirates","crew","trade","loading","navigation","damage","events","harbour","performance","tutorial","shortrun","debt"];
 let HARBOURK=1; // harbour traffic: 0 none, .45 light, 1 normal, 1.7 busy (Scenario)
 let EVFREQ=1; // sea events: 1 = natural pace, 0 = off, higher = more often (Cheats menu and Scenario)
 const PV={wind:null,sea:null,cur:null,wx:null,vis:null,fauna:1,tide:1,shadows:true};
@@ -1337,7 +1340,7 @@ function step(dt){
   const bf=beaufort(w.kn);
   wxStep(s,dt,w);routeStep(s);assistStep(s,dt,w);crewStep(s,dt,w);fishStep(s,dt,w);damageStep(s,dt,w);tradeStep(s,dt,w);
   // squalls
-  squallStep(s);srStep(s);if(s.sr&&s.sr.hazeOn&&PV.vis==null)PV.vis=SRK.hazeNm;
+  squallStep(s);srStep(s);debtTick(s);if(s.sr&&s.sr.hazeOn&&PV.vis==null)PV.vis=SRK.hazeNm;
   // helmsman
   const sig=(2.5+.7*bf)*(1+1.3*(s.fat||0)*(s.fat||0))*(s.helmF||1);
   sh.wander+=-sh.wander*dt*1.5+gauss()*sig*Math.sqrt(dt)*1.6;
@@ -6328,7 +6331,7 @@ const priceOf_=id=>{const r=LADDER.find(x=>x[0]===id);return r?r[1]:0;};
 const rungOf=id=>LADDER.findIndex(x=>x[0]===id);
 const shipTradeIn=s=>Math.round(TRADEIN*priceOf_(s.shipId));
 const netWorth=s=>Math.round(s.purse+shipTradeIn(s)+cargoValue(s));
-function careerInit(s,k){s.career={t0:s.t,start:k,owned:[CAREER_START],noted:null,done:false};s.purse=CAREER_PURSE;startDocked(s,k);}
+function careerInit(s,k){s.career={t0:s.t,start:k,owned:[CAREER_START],noted:null,done:false,ashore:[]};s.purse=CAREER_PURSE;startDocked(s,k);debtStart(s,priceOf_(CAREER_START));}
 function startDocked(s,k){mkInit(s);
   const P=PORTS[k],sh=s.ship,A=sh.anch;{const f=PF[k];if(f&&f.dock){sh.x=f.dock.x;sh.y=f.dock.y;sh.heading=f.dock.hdg;}else{sh.x=P.x;sh.y=P.y;}}
   sh.ordered=sh.heading;sh.v=0;for(const id of SAILIDS){sh.sls[id]=0;sh.sa[id]=0;}sh.sail=0;sh.sl=planOf(0);
@@ -6347,18 +6350,20 @@ function buyShip(id){const s=S;if(!s||!s.career||s.done)return;const def=SHIPDEF
   for(const k of Object.keys(s))if(!SHIPKEYS.includes(k))ns[k]=s[k];
   const o=s.ship,n=ns.ship;n.x=o.x;n.y=o.y;n.heading=o.heading;n.ordered=o.heading;n.v=0;n.anch=o.anch;n.bias=o.bias;for(const k of SAILIDS){n.sls[k]=0;n.sa[k]=0;}n.sail=0;n.sl=planOf(0);
   ns.purse=s.purse-net;ns.career=Object.assign({},s.career);if(!ns.career.owned.includes(id))ns.career.owned.push(id);
+  const rj=crewRejoin(ns);
   stopSkip();S=ns;applyShip();svNew();selSails.clear();$("sailSl").style.display="none";if(R3){R3.last=null;R3.nfc=null;}
   const last=LADDER[LADDER.length-1][0];
-  sayLog(`Bought ${SPEC[id].name} for ${money(cost)}, with ${money(back)} allowed on ${old}. Her people come aboard and the ship is provisioned.`,{});
+  sayLog(`Bought ${SPEC[id].name} for ${money(cost)}, with ${money(back)} allowed on ${old}. Her people come aboard and the ship is provisioned.${rj?` ${rj} of your hands who waited ashore sign on again.`:""}`,{});
   if(id===last&&!ns.career.done){ns.career.done=true;sayLog(`Career complete: you command ${SPEC[id].name}, the grandest ship on the ladder. The sea stays yours to sail.`,{});}
   svBill();tradeUI(true);updateUI(true);careerUI(true);}
 function careerNote(s){const i=rungOf(s.shipId),nx=LADDER[i+1];if(!nx||s.career.noted===nx[0])return;
   if(s.purse+shipTradeIn(s)>=nx[1]){s.career.noted=nx[0];sayLog(`You could now afford ${SPEC[nx[0]].name}. Dock and visit the shipyard in the Ship tab.`,{log:false});}}
 function careerUI(force){const P=document.getElementById("svCareer");if(!P)return;if(!S||!S.career){P.hidden=true;return;}P.hidden=false;const s=S,box=document.getElementById("svCareerBody");
   careerNote(s);const site=atPort(s),dock=!!(site&&s.docked);
-  const sig=[s.cheatShips,s.shipId,Math.round(s.purse),Math.round(cargoValue(s)),dock,site&&site.k,Math.floor(s.t/24)].join("|");if(!force&&box._sig===sig)return;box._sig=sig;
+  const sig=[s.cheatShips,s.shipId,Math.round(s.purse),Math.round(cargoValue(s)),dock,site&&site.k,Math.floor(s.t/24),s.debt?Math.round(s.debt.owed)+s.debt.state+(dHard(s)?1:0):"",(s.career.ashore||[]).length].join("|");if(!force&&box._sig===sig)return;box._sig=sig;
   const i=rungOf(s.shipId),nx=LADDER[i+1],worth=netWorth(s),days=Math.max(0,Math.floor((s.t-s.career.t0)/24));
   let h=`<div class="sveff"><div><span>Ship</span><b>${SPEC[s.shipId].name}</b></div><div><span>Net worth</span><b>${money(worth)}</b></div><div><span>Days in command</span><b>${days}</b></div></div>`;
+  h+=debtPanel(s,dock,site);
   if(nx){const need=nx[1]-shipTradeIn(s),have=s.purse,pct=Math.round(clamp(have/Math.max(1,need),0,1)*100);
     h+=`<p class="svhint">Goal: ${SPEC[LADDER[LADDER.length-1][0]].name}. Next rung ${i+1} of ${LADDER.length-1}: <b>${SPEC[nx[0]].name}</b> for ${money(nx[1])}, ${money(need)} after the trade-in of ${money(shipTradeIn(s))} on your ${SPEC[s.shipId].name}.</p><div class="rwind" title="Your purse against the next ship" style="margin:4px 0"><i style="width:${pct}%;--bw:${Math.round(10000/Math.max(pct,1))}%"></i></div><p class="svhint">Purse ${money(have)} of ${money(need)} (${pct}%).</p>`;}
   else h+=`<p class="svhint">You command the grandest ship on the ladder. Trade, explore, or sell down and start again.</p>`;
@@ -6366,7 +6371,67 @@ function careerUI(force){const P=document.getElementById("svCareer");if(!P)retur
   for(const[id,cost]of LADDER){const cur=id===s.shipId,net=s.cheatShips?0:cost-shipTradeIn(s),fits=true,ok=dock&&!cur&&s.purse>=net&&fits,why=cur?"Yours":!dock?"":s.purse<net?"Too dear":!fits?"Cargo too big":"";
     h+=`<tr${cur?' class="dim"':""}><td>${SPEC[id].name}<br><small>${SPEC[id].role}</small></td><td class="num">${CARGOT[id]} t</td><td class="num">${SHIPX[id].crew.reduce((a,c)=>a+c[1],0)}</td><td class="num">${money(cost)}${cur?"":`<br><small>${net>=0?"pay "+money(net):"get "+money(-net)}</small>`}</td><td>${cur?"Yours":`<button data-ship="${id}"${ok?"":" disabled"}>${why||"Buy"}</button>`}</td></tr>`;}
   box.innerHTML=h+"</table></div>";}
-{ const cb=document.getElementById("svCareerBody");if(cb)cb.addEventListener("click",e=>{const b=e.target.closest("button[data-ship]");if(b&&S)buyShip(b.dataset.ship);}); }
+{ const cb=document.getElementById("svCareerBody");if(cb)cb.addEventListener("click",e=>{const b=e.target.closest("button[data-ship]");if(b&&S)buyShip(b.dataset.ship);const p=e.target.closest("button[data-pay]");if(p&&S&&S.debt){if(!(atPort(S)&&S.docked)){say("Mr Haskell's agent takes payment alongside a quay.",{log:false});return;}const a=debtPay(S,p.dataset.pay==="all"?Infinity:+p.dataset.pay);if(!a)say("The purse is empty, or nothing is owing.",{log:false});debtChip();careerUI(true);tradeUI(true);}}); }
+/* ---------- debt ladder (engine/career/debt.js): the game words and draws the events ---------- */
+const dHard=s=>(s||S).mode==="lost"; // Captain: 2% interest a week, no grace
+EV.on("debt",(k,a,b)=>{
+  if(k==="start")sayLog(`Mr Haskell's ledger, season ${a.season}: you owe ${money(a.owed)}, to be paid within ${DBK.weeks} weeks. His agent takes payment at any quay (Ship tab, Career).`);
+  else if(k==="paid")say(`You pay ${money(a)} to Mr Haskell's agent.`,{});
+  else if(k==="interest")say(`Week ${b}: ${money(a)} of interest is added to what you owe Mr Haskell.`,{});
+  else if(k==="letter"){const d=S.debt;sayLog(`A letter from Mr Haskell: "Half the season is gone. You have paid ${money(d.paid)} of ${money(d.d0)}; ${money(d.owed)} is still owing."`);}
+  else if(k==="cleared"||k==="due")stopSkip();
+});
+function debtChip(){const c=$("debtChip");if(!c)return;const s=S,i=s&&s.debt?debtInfo(s,dHard(s)):null;
+  if(!i){if(!c.hidden)c.hidden=true;return;}
+  const wk=i.grace?`grace ${i.graceLeft.toFixed(1)} wk`:`${Math.ceil(i.weeksLeft)} wk`,sig=Math.round(i.owed)+"|"+wk+"|"+i.state+"|"+Math.round(i.frac*100);
+  if(c._s===sig)return;c._s=sig;c.hidden=false;$("dcTxt").textContent=`Debt ${money(i.owed)} · ${wk}`;$("dcBar").style.width=Math.round(i.frac*100)+"%";}
+function debtTick(s){
+  if(s.career&&!s.debt&&!s.career.done)debtStart(s,priceOf_(s.shipId)); // an older save: Mr Haskell writes
+  if(!s.debt){debtChip();return;}
+  debtStep(s,dHard(s));debtChip();
+  if(s.debt.state!=="open")debtLedger(s);}
+function debtPanel(s,dock,site){const i=s.debt?debtInfo(s,dHard(s)):null;if(!i)return"";const hard=dHard(s),pct=Math.round(i.frac*100);
+  const pay=[["£5",100],["£20",400],["£50",1000],["All","all"]].map(([l,v])=>`<button data-pay="${v}"${dock&&s.purse>=1&&i.state==="open"?"":" disabled"}>Pay ${l}</button>`).join(" ");
+  return `<h3>Mr Haskell's ledger</h3><div class="sveff"><div><span>Owing</span><b>${money(i.owed)}</b></div><div><span>Season</span><b>${i.season}</b></div><div><span>${i.grace?"Grace left":"Weeks left"}</span><b>${(i.grace?i.graceLeft:i.weeksLeft).toFixed(1)}</b></div></div>`+
+   `<div class="rwind" title="Paid so far this season" style="margin:4px 0"><i style="width:${pct}%;--bw:${Math.round(10000/Math.max(pct,1))}%"></i></div>`+
+   `<p class="svhint">${hard?"Captain: 2% interest each week, and no grace after the deadline.":"Casual: no interest, and four free weeks after the deadline."} Short of the debt by a quarter or less, he grants ${DBK.extWeeks} more weeks for ${money(DBK.extFee)}, once a season. Further short, you step down a rung and your ship goes toward the debt; your crew stay with you.${(s.career&&s.career.ashore||[]).length?` ${s.career.ashore.length} hands wait ashore until you can carry them again.`:""}</p>`+
+   `<p class="svhint">${dock?`Alongside at ${site.name}. Mr Haskell's agent is on the quay.`:"Dock at a port to pay."}</p><div class="svbtns">${pay}</div>`;}
+/* a hand who waited ashore signs on again when the new ship has room (they take a seaman's berth) */
+function crewRejoin(ns){const A=ns.career&&ns.career.ashore;if(!A||!A.length)return 0;
+  const seas=ns.crew.map((m,i)=>m.r==="Seaman"?i:-1).filter(i=>i>=0).reverse();let n=0;
+  while(A.length&&n<seas.length){const i=seas[n++],m=A.shift();m.b=ns.crew[i].b;m.mode=undefined;m.ov=null;ns.crew[i]=m;}
+  return n;}
+function debtLedger(s){const d=s.debt;if(!d||d.state==="open"||s.crisis||modalOpen||s.done)return;
+  const rung=rungOf(s.shipId),dock=!!(atPort(s)&&s.docked),r=debtSettle(s,LADDER,rung);
+  if(r.kind==="paid"){const nb=dbtBase(priceOf_(s.shipId));
+    showCrisis({title:`Mr Haskell's ledger: season ${r.season} paid`,text:`The debt is cleared: ${money(r.paid)} paid${r.interest?`, with ${money(r.interest)} of interest`:""}${r.fees?` and ${money(r.fees)} in fees`:""}. Mr Haskell is satisfied. He offers you another season on your ${SPEC[s.shipId].name}: ${money(nb)} within ${DBK.weeks} weeks. The shipyard door is open when you can afford a bigger hull.`,
+      opts:[{label:"Take the next season",sub:`${money(nb)} owing, ${DBK.weeks} weeks.`,fn:()=>{debtStart(s,priceOf_(s.shipId));return"You sign Mr Haskell's new ledger.";}}]});return;}
+  if(r.kind==="warn"){const opts=[{label:"Take the extension",sub:`${r.weeks} more weeks; ${money(r.fee)} is added to the debt.`,fn:()=>{debtExtend(s);return`Mr Haskell grants ${r.weeks} more weeks. ${money(s.debt.owed)} is now owing.`;}}];
+    if(dock)opts.push({label:"Settle the ledger now",sub:"Take the fall now instead of waiting.",fn:()=>debtApply(s,debtFall(s,LADDER,rung))});
+    showCrisis({title:"Mr Haskell's ledger: so nearly",text:`You are ${money(r.owed)} short of clearing the debt, within a quarter of what you borrowed. He will wait ${r.weeks} more weeks for a ${money(r.fee)} fee. He grants this once a season.`,opts});return;}
+  if(r.kind==="demote"&&!dock){if(!d.agent){d.agent=true;sayLog("The season is out and the debt is not cleared. Mr Haskell's agent will settle the ledger when you next lie alongside a quay.");}return;}
+  const nm=SPEC[s.shipId].name;
+  showCrisis({title:"Mr Haskell's ledger: the season is out",text:r.kind==="wharf"?`You owe ${money(r.owed)} and have nothing smaller to give up. Mr Haskell has you work the wharf for it: the debt is cut to ${money(r.owedAfter)} and you keep the ${nm}. Your standing is where it was. Nobody is dismissed.`:`You owe ${money(r.owed)}. Mr Haskell takes your ${nm} at ${Math.round(DBK.credit*100)}% of her price, ${money(r.credit)} toward the debt${r.surplus?`, and ${money(r.surplus)} comes back to your purse`:""}. He lends you ${SPEC[r.to].name}. Your crew come with you; any who do not fit wait ashore on a retainer and sign on again when you have the room. A new season begins at ${money(r.owedAfter)}.`,
+    opts:[{label:r.kind==="wharf"?"Work the wharf":"Hand over the ship",sub:r.kind==="wharf"?"Debt cut, same ship.":`Down to ${SPEC[r.to].name}. Crew kept.`,fn:()=>debtApply(s,r)}]});}
+function debtApply(s,r){
+  if(r.kind==="wharf"){debtStart(s,0,r.owedAfter);debtChip();return"You work the wharf through the season. The ledger starts again, smaller.";}
+  const id=r.to,old=SPEC[s.shipId].name,cap=CARGOT[id]??40;
+  for(const g of Object.keys(s.cargo||{})){if(holdUsed(s)<=cap+1e-9)break;if(GOODS[g].tier>2)continue;const over=holdUsed(s)-cap,n=Math.min(Math.floor(s.cargo[g].n+1e-9),Math.ceil(over/GOODS[g].t-1e-9));if(n>=1)tradeSell(g,n);}
+  if(holdUsed(s)>cap+1e-9){const f=cap/holdUsed(s);for(const g of Object.keys(s.cargo)){s.cargo[g].n*=f;s.cargo[g].cost*=f;}}
+  const ns=newState({...s.v,ship:id});for(const k of Object.keys(s))if(!SHIPKEYS.includes(k))ns[k]=s[k];
+  const o=s.ship,n=ns.ship;n.x=o.x;n.y=o.y;n.heading=o.heading;n.ordered=o.heading;n.v=0;n.anch=o.anch;n.bias=o.bias;for(const k of SAILIDS){n.sls[k]=0;n.sa[k]=0;}n.sail=0;n.sl=planOf(0);
+  // the crew come with you: officers and the surgeon first; the rest take the new ship's berths, and any who do not fit wait ashore
+  const pri=m=>({Captain:0,Mate:1,Bosun:2,Surgeon:3,Carpenter:4,Cook:5,"Surgeon's mate":6})[m.r]??9;
+  const sorted=s.crew.map((m,i)=>[m,i]).sort((a,b)=>pri(a[0])-pri(b[0])||a[1]-b[1]).map(x=>x[0]),keep=sorted.slice(0,ns.crew.length),away=sorted.slice(ns.crew.length);
+  keep.forEach((m,i)=>{m.b=ns.crew[i].b;m.mode=undefined;m.ov=null;if(m.mo!=null)m.mo=Math.max(0,m.mo-DBK.moraleHit);});
+  ns.crew=keep;const hm=keep.find(m=>m.r==="Seaman")||keep[0];ns.helmN=hm?hm.n:null;
+  if(s.career){ns.career=Object.assign({},s.career);ns.career.ashore=(ns.career.ashore||[]).concat(away);}
+  ns.purse=s.purse+r.surplus;
+  stopSkip();S=ns;applyShip();svNew();selSails.clear();$("sailSl").style.display="none";if(R3){R3.last=null;R3.nfc=null;}
+  debtStart(ns,priceOf_(id),r.owedAfter);
+  sayLog(`Mr Haskell's men take the ${old}. ${money(r.credit)} goes toward the debt${r.surplus?`, ${money(r.surplus)} to your purse`:""}. You sail on in ${SPEC[id].name}, with your crew${away.length?`, all but ${away.length} who wait ashore on a retainer`:""}. A new ledger: ${money(ns.debt.owed)}.`);
+  svBill();tradeUI(true);updateUI(true);careerUI(true);debtChip();
+  return`You lose the ${old} and keep your people. ${SPEC[id].name} is yours on loan.`;}
 function marketBlurb(k){if(!S||!S.cargo)return"";const s=S;mkInit(s);const tod=atPort(s)&&atPort(s).k===k,rep=s.rep||0;
   const rows=MKT_IDS.filter(g=>GOODS[g].tier===1||rep>=REP2).map(g=>{const e=s.seen[k]&&s.seen[k][g];const p=tod?Math.round(unitPrice(k,g,s.mk.ports[k][g])):e?e.p:null;return `<div><span>${GOODS[g].n} (${GOODS[g].u})</span><span>${p==null?"not seen yet":p+"s"+(tod?` <em>(today)</em>`:` <em>(${ageD(s,e.t)} d ago)</em>`)}</span></div>`;}).join("");
   return `<div class="ptbl"><h4>Goods market</h4>${rows}</div>`;}
@@ -6606,6 +6671,7 @@ const CREWN=[["Capt. Josiah Hale","Captain",3],["Thos. Marlowe","Mate",0],["Edmu
 const SEAN=["Will Ashby","Hugh Teague","Sam Loder","Peter Voss","Ned Garrick","Isaac Bell","Josh Penhallow","Dan Mercer","Tom Rudge","Eli Corbin","Matt Quill","Ben Starke","Robt. Finch","Kit Harlow"];
 //@engine crew/crew.js
 //@engine voyage/shortrun.js
+//@engine career/debt.js
 /* The Short Run: the game words and draws the script's events (see engine/voyage/shortrun.js) */
 const SHORT_RUN={id:"short",tag:"The Short Run",title:"Flour for Castries",from:"bridgetown",to:"castries",mode:"trial",hdg:285,short:true,ship:"brig",desc:""};
 Object.assign(SRG,{pos:k=>PORTS[k],cargoUnits:(g,tons)=>tons/GOODS[g].t,goodCost:g=>GOODS[g].p,shillings:20});
@@ -7605,6 +7671,19 @@ const SCN_MECH=[
    ["Squall decision now",s=>{if(!s.sr)return;s.sr.stage=2;EV.emit("sr","decide");}],
    ["Haze on / off",s=>{if(!s.sr)return;s.sr.hazeOn=!s.sr.hazeOn;EV.emit("sr","haze",s.sr.hazeOn);}]],
   readouts:[["Script",s=>s.sr?["calm","glass falling","choice due","squall coming","squall past","haze","landfall"][s.sr.stage]:"not running"],["Progress",s=>s.sr?Math.round(srProgress(s)*100)+"%":"—"],["Choice",s=>s.sr&&s.sr.choice||"—"],["Hours to deadline",s=>s.sr?(s.sr.deadline-s.t).toFixed(1)+" h":"—"]]},
+ {id:"debt",name:"Career debt ladder",
+  dials:[],
+  apply(){},
+  triggers:[["Start a season of debt",s=>{debtStart(s,priceOf_(s.shipId));debtChip();}],
+   ["Add £50 to the purse",s=>{s.purse+=1000;}],
+   ["Pay £20",s=>{if(!s.debt){say("Start a season first.",{log:false});return;}say(debtPay(s,400)?"Paid.":"Nothing to pay with.",{log:false});debtChip();}],
+   ["One week left",s=>{const d=s.debt;if(!d){say("Start a season first.",{log:false});return;}d.t0=s.t-11*DBK.weekH;d.deadline=d.t0+DBK.weeks*DBK.weekH;d.weekDone=11;}],
+   ["Past the deadline",s=>{const d=s.debt;if(!d){say("Start a season first.",{log:false});return;}d.deadline=s.t-(dHard(s)?0:DBK.graceWeeks*DBK.weekH)-.01;}],
+   ["Clear the debt",s=>{const d=s.debt;if(!d){say("Start a season first.",{log:false});return;}s.purse+=d.owed;debtPay(s,d.owed);}]],
+  readouts:[["Owing",s=>s.debt?money(s.debt.owed)+" of "+money(s.debt.d0):"no debt"],["Season",s=>s.debt?s.debt.season+" ("+s.debt.state+")":"—"],
+   ["Weeks left",s=>{const i=s.debt&&debtInfo(s,dHard(s));return i?(i.grace?"grace "+i.graceLeft.toFixed(1):i.weeksLeft.toFixed(1)):"—";}],
+   ["Interest and fees",s=>s.debt?money(s.debt.interest)+" + "+money(s.debt.fees):"—"],
+   ["Hands ashore",s=>String(s.career&&s.career.ashore?s.career.ashore.length:0)]]},
  {id:"fishing",name:"Fishing",
   dials:[{k:"fish",label:"Fish",start:true,opts:()=>[["normal","Natural patches"],["rich","School beside the ship"],["none","None"]],def:"normal"},{k:"fishx",label:"Fishing rate (cheat)",live:true,opts:()=>[["500","Normal (500×)"],["1500","Fast"],["5000","Very fast"],["50","Slow"]],def:"500"}],
   apply(s,g,starting){FISHX=+g("fishx");if(!starting)return;const f=g("fish");if(f==="rich")scnSchool(s,"bonito");else if(f==="none"){s.fish=[];s.grounds=[];}},

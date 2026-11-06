@@ -50,3 +50,6 @@ Still calling the DR UI directly (to convert in their own steps): helm actions (
 
 ## voyage/shortrun.js
 A scripted first voyage (beats by progress, one choice, a verdict). Emits `sr` events: `hint`, `glass`, `decide`, `chose`, `squallPast`, `haze`. The game answers with notices, the choice card (`showCrisis`) and low visibility (`PV.vis`).
+
+## career/debt.js
+The Career debt ladder: a season of debt to a patron, payments, weekly interest (hard mode), a week-6 letter, the ledger (paid, warn, fall) and the fall itself (ship sold toward the debt, one rung down, crew kept). Emits `debt` events: `start`, `paid`, `interest`, `letter`, `cleared`, `due`. The game draws the bar, the pay buttons and the ledger card, and does the ship and crew swap.
