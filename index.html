@@ -8346,12 +8346,16 @@ $("voyList").querySelectorAll("button").forEach(b=>b.onclick=()=>startVoyage(VOY
     const sc=document.createElement("button");sc.className="voycard";sc.id="shortCard";sc.type="button";
     let done=false;try{done=localStorage.getItem("drShortRun")==="1";}catch(e){}
     sc.innerHTML=`<span class="tag">${done?"Replay":"Your first voyage"}</span><b>The Short Run</b><span class="d">Six tons of flour from Bridgetown to Castries before tomorrow noon's tide. One squall, one choice, about ten minutes.</span>`;
-    sc.onclick=()=>startVoyage(SHORT_RUN);$("contBox").before(sc);
-    const skip=document.createElement("button");skip.className="btn";skip.id="shortSkip";skip.type="button";skip.textContent="I have sailed before: Learn to sail, Free sailing, Career or Scenario";
+    sc.onclick=()=>startVoyage(SHORT_RUN);
+    const lc=document.createElement("button");lc.className="voycard";lc.id="learnCard";lc.type="button";
+    lc.innerHTML=`<span class="tag">Start here</span><b>Learn to sail</b><span class="d">A guided lesson out of Bridgetown and back: helm, sails, wind, log and docking, one step at a time.</span>`;
+    lc.onclick=()=>startLesson();
+    const duo=document.createElement("div");duo.className="voylist";duo.id="startDuo";duo.append(lc,sc);$("contBox").before(duo);
+    const skip=document.createElement("button");skip.className="btn";skip.id="shortSkip";skip.type="button";skip.textContent="I have sailed before: Free sailing, Career or Scenario";
     const shp=document.querySelector(".shippick");
     const gate=on=>{fp.hidden=on;shp.hidden=on||gameMode!=="free";skip.hidden=!on;};
     skip.onclick=()=>{try{localStorage.setItem("drShortRun","1");}catch(e){}gate(false);sc.querySelector(".tag").textContent="Replay";};
-    sc.after(skip);gate(!done);
+    duo.after(skip);gate(!done);
   }}
 { const mq=matchMedia("(min-width:0px)"),box=document.querySelector(".compassbox"),home=$("paneV3");
   const place=()=>{const tgt=mq.matches?document.querySelector(".dock-all .dockbody"):home;if(box.parentNode!==tgt)mq.matches?tgt.insertBefore(box,tgt.firstChild):tgt.appendChild(box);};
